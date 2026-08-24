@@ -285,25 +285,63 @@ function getPendingRole(){
 
 async function finishConfirmedSignup(){
   if(!user) return null;
+
   const chosenRole=getPendingRole();
-  const p=await db.from('profiles')
+
+  const existing=await db.from('profiles')
     .select('id,name,role')
     .eq('id',user.id)
     .maybeSingle();
-  if(p.error) throw p.error;
-  if(p.data){
+
+  if(existing.error) throw existing.error;
+  if(existing.data){
     localStorage.removeItem('simple_pending_role');
-    return p.data;
+    return existing.data;
   }
-  const created=await ensureProfile(chosenRole);
+
+  // Profile does not exist yet. Create it after the email has been
+  // confirmed / a valid authenticated session exists.
+  const created=await db.from('profiles').insert({
+    id:user.id,
+    name:(user.user_metadata?.name || user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuario'),
+    role:chosenRole
+  }).select('id,name,role').single();
+
+  if(created.error){
+    // A concurrent auth event may have created it already.
+    if(created.error.code==='23505'){
+      const retry=await db.from('profiles')
+        .select('id,name,role')
+        .eq('id',user.id)
+        .maybeSingle();
+      if(retry.error) throw retry.error;
+      if(retry.data){
+        localStorage.removeItem('simple_pending_role');
+        return retry.data;
+      }
+    }
+    throw created.error;
+  }
+
   localStorage.removeItem('simple_pending_role');
-  return created;
+  return created.data;
+}
+
+function getPendingRole(){
+  const metadataRole = user?.user_metadata?.simple_role;
+  if(metadataRole === 'trainer' || metadataRole === 'client') return metadataRole;
+
+  const pending = localStorage.getItem('simple_pending_role');
+  if(pending === 'trainer' || pending === 'client') return pending;
+
+  return null;
 }
 
 async function ensureProfile(chosenRole){
-  if(!user) throw new Error('No hay una sesión activa.');
+  if(!user?.id) throw new Error('No hay una sesión activa.');
 
-  const p=await db.from('profiles')
+  // First try to read the profile.
+  const p = await db.from('profiles')
     .select('id,name,role')
     .eq('id',user.id)
     .maybeSingle();
@@ -311,19 +349,48 @@ async function ensureProfile(chosenRole){
   if(p.error) throw p.error;
   if(p.data) return p.data;
 
-  // Solo se crea un perfil durante el alta de una cuenta nueva.
-  // El login normal NUNCA debe intentar crear perfiles.
-  const q=await db.from('profiles')
-    .insert({
-      id:user.id,
-      name:(user.email||'usuario').split('@')[0],
-      role:chosenRole
-    })
+  // A new account must have a role. Never invent one silently.
+  const role = chosenRole || getPendingRole();
+  if(role !== 'trainer' && role !== 'client'){
+    throw new Error('No se ha podido recuperar el tipo de cuenta. Vuelve a crear la cuenta seleccionando Cliente o Entrenador.');
+  }
+
+  const name =
+    user.user_metadata?.name ||
+    user.user_metadata?.full_name ||
+    user.email?.split('@')[0] ||
+    'Usuario';
+
+  const q = await db.from('profiles')
+    .insert({id:user.id,name,role})
     .select('id,name,role')
     .single();
 
-  if(q.error) throw q.error;
+  if(q.error){
+    // If another auth event created it milliseconds earlier, read it again.
+    if(q.error.code === '23505'){
+      const retry = await db.from('profiles')
+        .select('id,name,role')
+        .eq('id',user.id)
+        .maybeSingle();
+      if(retry.error) throw retry.error;
+      if(retry.data) return retry.data;
+    }
+    throw q.error;
+  }
+
   return q.data;
+}
+
+async function finishConfirmedSignup(){
+  if(!user?.id) throw new Error('No hay una sesión activa.');
+
+  const role = getPendingRole();
+  const profile = await ensureProfile(role);
+
+  // Once the profile exists, the pending local value is no longer needed.
+  localStorage.removeItem('simple_pending_role');
+  return profile;
 }
 
 async function authSubmit(){
@@ -351,6 +418,10 @@ async function authSubmit(){
 
   try{
     if(submittingMode==='signup'){
+      if(submittingRole!=='trainer' && submittingRole!=='client'){
+        msg('Selecciona Cliente o Entrenador.');
+        return;
+      }
       localStorage.setItem('simple_pending_role', submittingRole);
     }
 
@@ -361,7 +432,10 @@ async function authSubmit(){
           password,
           options:{
             emailRedirectTo:APP_URL,
-            data:{simple_role:submittingRole}
+            data:{
+              simple_role:submittingRole,
+              name:email.split('@')[0]
+            }
           }
         });
 
@@ -371,12 +445,14 @@ async function authSubmit(){
       return;
     }
 
+    // Supabase normally returns a user without a session when email confirmation
+    // is required. In that case we deliberately stop here and let the email link
+    // create the authenticated session.
     if(submittingMode==='signup' && !r.data?.session){
-      localStorage.setItem('simple_pending_role',submittingRole);
       mode='login';
       $('authBtn').textContent='Iniciar sesión';
       $('authSwitch').textContent='Crear cuenta';
-      msg('Cuenta creada. Revisa tu correo. Al confirmar, volverás automáticamente a SIMPLE.',true);
+      msg('Cuenta creada. Confirma el correo y después inicia sesión con esa cuenta.',true);
       return;
     }
 
@@ -385,13 +461,7 @@ async function authSubmit(){
       return;
     }
 
-    // Confirmamos sesión y usuario en servidor antes de consultar profiles.
-    const sessionCheck=await db.auth.getSession();
-    if(sessionCheck.error || !sessionCheck.data?.session){
-      console.error('Session check:',sessionCheck.error);
-      msg('No se pudo confirmar la sesión. Inténtalo de nuevo.');
-      return;
-    }
+    // Get the authenticated user from the server, not from stale local state.
     const userCheck=await db.auth.getUser();
     if(userCheck.error || !userCheck.data?.user){
       console.error('User check:',userCheck.error);
@@ -400,24 +470,24 @@ async function authSubmit(){
     }
     user=userCheck.data.user;
 
-    // Si el correo ya fue confirmado, terminamos de crear el perfil.
-    // El rol también viaja en user_metadata, por lo que funciona aunque
-    // la confirmación se haga en otro dispositivo.
-    if(submittingMode==='signup'){
-      try{
-        profile=await finishConfirmedSignup();
-      }catch(profileError){
-        console.error('Create profile:',profileError);
-        msg(
-          profileError?.code==='42501'
-            ? 'La cuenta está confirmada, pero Supabase no permite crear el perfil. Revisa la política INSERT de profiles.'
-            : (profileError?.message||'La cuenta está confirmada, pero no se pudo crear el perfil.')
-        );
-        return;
-      }
+    // IMPORTANT: after email confirmation, the first login can be the moment
+    // where the profile is created. Therefore LOGIN also runs ensureProfile().
+    try{
+      profile=await ensureProfile(
+        submittingMode==='signup' ? submittingRole : getPendingRole()
+      );
+    }catch(profileError){
+      console.error('Profile bootstrap:',profileError);
+      msg(
+        profileError?.code==='42501'
+          ? 'La cuenta funciona, pero Supabase bloquea la creación del perfil. Hay que revisar la política INSERT de profiles.'
+          : (profileError?.message || 'No se pudo crear o encontrar el perfil.')
+      );
+      return;
     }
 
-    await start(submittingMode==='signup' ? (profile?.role||submittingRole) : null);
+    localStorage.removeItem('simple_pending_role');
+    await start(profile.role);
   }catch(e){
     console.error('Auth submit:',e);
     msg(e?.message || 'Error de conexión con Supabase.');
@@ -454,7 +524,7 @@ async function getProfileStable(){
         .eq('id',user.id)
         .maybeSingle();
       if(!p.error && p.data) return p.data;
-      lastError=p.error || new Error('Perfil no encontrado.');
+      lastError=p.error || new Error('No se ha podido cargar el perfil. Cierra sesión y vuelve a iniciar sesión.');
     }
     await new Promise(resolve=>setTimeout(resolve,250*(attempt+1)));
   }
@@ -497,13 +567,52 @@ async function start(chosenRole=null){
   }
 }
 
+
+async function bootstrapAuthSession(){
+  try{
+    const {data,error}=await db.auth.getSession();
+    if(error) throw error;
+
+    if(data?.session?.user){
+      user=data.session.user;
+
+      // This is the critical path after clicking "Confirm email".
+      // The confirmation redirect may arrive without the original signup form
+      // being present, so create the profile from user_metadata here.
+      try{
+        profile=await ensureProfile(getPendingRole());
+        localStorage.removeItem('simple_pending_role');
+        await start(profile.role);
+        return true;
+      }catch(profileError){
+        console.error('Confirmation/profile bootstrap:',profileError);
+        // Leave the user on the login screen with a useful message instead
+        // of showing a generic "Perfil no encontrado".
+        $('auth').style.display='block';
+        $('app').style.display='none';
+        msg(
+          profileError?.code==='42501'
+            ? 'Correo confirmado. Falta permitir la creación del perfil en Supabase.'
+            : (profileError?.message || 'Correo confirmado, pero no se pudo preparar el perfil.')
+        );
+      }
+    }
+  }catch(e){
+    console.error('bootstrapAuthSession:',e);
+  }
+  return false;
+}
+
+(async()=>{ await bootstrapAuthSession(); })();
+
 db.auth.onAuthStateChange(async (event, session)=>{
   if(!session?.user) return;
   if(event==='SIGNED_IN' || event==='INITIAL_SESSION'){
     try{
       user=session.user;
       profile=await finishConfirmedSignup();
-      if($('auth') && $('auth').style.display!=='none'){
+      if($('auth') && $('auth').style.display!=='none' && !window.__simpleStarted){
+        window.__simpleStarted=true;
         await start(null);
       }
     }catch(e){
@@ -2012,6 +2121,7 @@ async function redeemShareCode(){
         user=u.data.user;
         try{
           profile=await finishConfirmedSignup();
+          if(!window.__simpleStarted) window.__simpleStarted=true;
           await start(null);
         }catch(e){
           console.error('Post-confirmation setup:',e);
