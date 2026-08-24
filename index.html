@@ -107,6 +107,76 @@
 .progress-summary-positive{color:#35d0b5}
 .progress-summary-negative{color:#ff7b7b}
 .progress-summary-neutral{color:inherit}
+
+/* SIMPLE · Ajuste móvil del login */
+.auth{
+  width:100%;
+  min-height:100dvh;
+  padding:16px;
+}
+.authbox{
+  width:min(420px,100%);
+  max-width:100%;
+  padding:22px 18px;
+  overflow:hidden;
+}
+.authbox h1{
+  font-size:28px;
+}
+.authbox p{
+  line-height:1.4;
+}
+.role-picker{
+  width:100%;
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+  margin:14px 0;
+}
+.role-option{
+  min-width:0;
+  width:100%;
+  min-height:54px;
+  padding:10px 8px;
+  gap:6px;
+  line-height:1.2;
+  text-align:center;
+}
+.role-option input{
+  flex:0 0 auto;
+  width:auto;
+}
+.role-option span{
+  min-width:0;
+  overflow-wrap:anywhere;
+}
+.authbox input{
+  min-width:0;
+}
+@media(max-width:430px){
+  .auth{
+    padding:12px;
+  }
+  .authbox{
+    padding:20px 15px;
+    border-radius:18px;
+  }
+  .role-picker{
+    grid-template-columns:1fr 1fr;
+    gap:7px;
+  }
+  .role-option{
+    min-height:52px;
+    padding:9px 6px;
+    font-size:14px;
+  }
+}
+@media(max-width:340px){
+  .role-picker{
+    grid-template-columns:1fr;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -116,7 +186,7 @@
     <input type="radio" name="simpleRole" value="trainer" onchange="selectRole(this.value)">
     <span>👨‍🏫 Entrenador</span>
   </label>
-  <label class="role-option selected">
+  <label class="role-option">
     <input type="radio" name="simpleRole" value="client" checked onchange="selectRole(this.value)">
     <span>👤 Cliente</span>
   </label>
