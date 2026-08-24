@@ -176,7 +176,7 @@
         <h2 id="trainTitle" style="margin:0">Entrenamiento</h2>
         <div class="muted" id="trainSubtitle"></div>
       </div>
-      <button class="btn" onclick="loadHistory().then(showHistory)">Historial</button><button class="btn" onclick="closeM('trainModal')">Cerrar</button>
+      <button class="btn" onclick="loadHistory(workoutRoutine?.id).then(showHistory)">Historial</button><button class="btn" onclick="closeM('trainModal')">Cerrar</button>
     </div>
     <div id="trainBody" style="margin-top:12px"></div>
   </div>
@@ -680,7 +680,7 @@ function renderClientProgressChart(){
 
   const pointsSvg=clean.map((p,i)=>{
     const dateText=p.date.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'2-digit'});
-    const rirText=Number.isFinite(p.rir)?`${Number(p.rir).toFixed(1)}`:'—';
+    const rirText=Number.isFinite(p.rir)?`${Math.round(Number(p.rir))}`:'—';
     const detail=`${dateText} - 1RM estimado: ${fmt(p.value)} kg - RIR ${rirText}`;
     return `<g tabindex="0" role="button" aria-label="${esc(detail)}" data-progress-point="${i}" style="cursor:pointer">
       <circle cx="${x(i)}" cy="${y(p.value)}" r="8" fill="currentColor"/>
@@ -702,7 +702,7 @@ function renderClientProgressChart(){
     const showPoint=()=>{
       const p=clean[Number(node.dataset.progressPoint)];
       const dateText=p.date.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'2-digit'});
-      const rirText=Number.isFinite(p.rir)?Number(p.rir).toFixed(1):'—';
+      const rirText=Number.isFinite(p.rir)?Math.round(Number(p.rir)):'—';
       const detail=$('clientProgressPointDetail');
       if(detail){
         detail.style.display='block';
@@ -752,6 +752,7 @@ async function openClientRoutineProgress(clientId,routineId,routineName){
   if(!title||!body)return;
 
   title.textContent=routineName||'Progreso';
+  title.dataset.routineId=String(routineId);
   subtitle.textContent='Cargando historial del cliente...';
   body.innerHTML='<div class="muted">Cargando sesiones...</div>';
   closeM('clientModal');
@@ -764,7 +765,20 @@ async function openClientRoutineProgress(clientId,routineId,routineName){
     });
     if(r.error)throw r.error;
 
-    const sessions=r.data||[];
+    // El RPC debe devolver solo la rutina solicitada, pero hacemos una segunda
+    // comprobación en el cliente para impedir que una rutina pueda mostrar
+    // sesiones de otra aunque el RPC devuelva más filas.
+    const requestedRoutineId=String(routineId);
+    // Si el usuario cambió rápidamente de rutina mientras cargaba la anterior,
+    // no permitimos que la respuesta antigua pinte datos sobre la nueva.
+    if(String(title.dataset.routineId)!==requestedRoutineId)return;
+
+    const sessions=(r.data||[]).filter(session=>{
+      const data=session?.data||{};
+      const sessionRoutineId=data.routine_id ?? data.routineId ?? null;
+      return sessionRoutineId!=null && String(sessionRoutineId)===requestedRoutineId;
+    });
+
     subtitle.textContent=`${sessions.length} sesión${sessions.length===1?'':'es'} registrada${sessions.length===1?'':'s'}`;
 
     if(!sessions.length){
@@ -796,7 +810,6 @@ async function openClientRoutineProgress(clientId,routineId,routineName){
               <option value="weight">Peso máximo</option>
               <option value="reps">Repeticiones máximas</option>
               <option value="1rm">1RM estimado</option>
-              
             </select>
           </div>
         </div>
@@ -1173,12 +1186,24 @@ async function openRoutine(id){
 
 let activeWorkout={day:null,exercises:[],sets:{}};
 
-async function loadHistory(){
-  const r=await db.from('workouts')
+async function loadHistory(routineId=null){
+  let query=db.from('workouts')
     .select('id,user_id,variant,day,workout_date,data')
     .eq('user_id',user.id)
     .order('workout_date',{ascending:false});
-  if(r.error){console.error('history:',r.error);window.workoutHistory=[];return}
+
+  // El historial siempre pertenece a la rutina que está abierta.
+  // Esto evita mezclar sesiones de dos rutinas distintas del mismo cliente.
+  if(routineId){
+    query=query.eq('data->>routine_id',String(routineId));
+  }
+
+  const r=await query;
+  if(r.error){
+    console.error('history:',r.error);
+    window.workoutHistory=[];
+    return;
+  }
   window.workoutHistory=r.data||[];
 }
 let selectedWorkoutIds = new Set();
@@ -1447,7 +1472,7 @@ function renderPreviousSession(exerciseId){
 
 async function startWorkoutDay(dayId){
   try{
-    await loadHistory();
+    await loadHistory(workoutRoutine?.id);
     const d=await db.from('routine_days').select('id,name,day_order').eq('id',dayId).single();
     if(d.error)throw d.error;
     const x=await db.from('routine_exercises').select('id,name,sets,target,rir,rest_seconds,exercise_order,notes')
@@ -1647,7 +1672,7 @@ async function saveWorkoutSession(){
       `${user.id}|${workoutRoutine.id}|${activeWorkout.day.id}|${payload.workout_date}`;
 
     toast('Sesión guardada correctamente');
-    await loadHistory();
+    await loadHistory(workoutRoutine?.id);
     showHistory();
   }catch(e){
     console.error('saveWorkoutSession:',e);
