@@ -255,7 +255,14 @@
 const SUPABASE_URL="https://yvguatdqncadkwewlepe.supabase.co";
 const SUPABASE_KEY="sb_publishable_VYoUECN0MaGIOC2LtGi0iw_C0wqUY-W";
 if(!window.supabase){ throw new Error("Supabase JS no cargó"); }
-const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const APP_URL = 'https://raulchulbi-sys.github.io/SIMPLE/';
+const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{
+  auth:{
+    persistSession:true,
+    autoRefreshToken:true,
+    detectSessionInUrl:true
+  }
+});
 let user=null,profile=null,routines=[],assignments=[],editDays=[];let mode='login';
 const $=id=>document.getElementById(id),esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
 function toast(x){$('toast').textContent=x;$('toast').style.display='block';clearTimeout(window._t);window._t=setTimeout(()=>$('toast').style.display='none',1800)}function closeM(id){$(id).classList.remove('show')}function openM(id){$(id).classList.add('show')}
@@ -267,6 +274,30 @@ function selectRole(role){
   document.querySelectorAll('input[name="simpleRole"]').forEach(input=>{
     input.checked = input.value === selectedRole;
   });
+}
+
+function getPendingRole(){
+  const metadataRole=user?.user_metadata?.simple_role;
+  if(metadataRole==='trainer' || metadataRole==='client') return metadataRole;
+  const saved=localStorage.getItem('simple_pending_role');
+  return saved==='trainer' || saved==='client' ? saved : 'client';
+}
+
+async function finishConfirmedSignup(){
+  if(!user) return null;
+  const chosenRole=getPendingRole();
+  const p=await db.from('profiles')
+    .select('id,name,role')
+    .eq('id',user.id)
+    .maybeSingle();
+  if(p.error) throw p.error;
+  if(p.data){
+    localStorage.removeItem('simple_pending_role');
+    return p.data;
+  }
+  const created=await ensureProfile(chosenRole);
+  localStorage.removeItem('simple_pending_role');
+  return created;
 }
 
 async function ensureProfile(chosenRole){
@@ -319,9 +350,20 @@ async function authSubmit(){
   const submittingRole=selectedRole;
 
   try{
+    if(submittingMode==='signup'){
+      localStorage.setItem('simple_pending_role', submittingRole);
+    }
+
     const r = submittingMode==='login'
       ? await db.auth.signInWithPassword({email,password})
-      : await db.auth.signUp({email,password});
+      : await db.auth.signUp({
+          email,
+          password,
+          options:{
+            emailRedirectTo:APP_URL,
+            data:{simple_role:submittingRole}
+          }
+        });
 
     if(r.error){
       console.error('Auth:',r.error);
@@ -330,10 +372,11 @@ async function authSubmit(){
     }
 
     if(submittingMode==='signup' && !r.data?.session){
+      localStorage.setItem('simple_pending_role',submittingRole);
       mode='login';
       $('authBtn').textContent='Iniciar sesión';
       $('authSwitch').textContent='Crear cuenta';
-      msg('Cuenta creada. Revisa tu correo para confirmar la cuenta y después inicia sesión.',true);
+      msg('Cuenta creada. Revisa tu correo. Al confirmar, volverás automáticamente a SIMPLE.',true);
       return;
     }
 
@@ -357,25 +400,24 @@ async function authSubmit(){
     }
     user=userCheck.data.user;
 
-    // En el alta sí podemos crear el perfil. En el login, start() solo lee.
+    // Si el correo ya fue confirmado, terminamos de crear el perfil.
+    // El rol también viaja en user_metadata, por lo que funciona aunque
+    // la confirmación se haga en otro dispositivo.
     if(submittingMode==='signup'){
       try{
-        profile=await ensureProfile(submittingRole);
+        profile=await finishConfirmedSignup();
       }catch(profileError){
         console.error('Create profile:',profileError);
-        await db.auth.signOut();
-        user=null;
-        profile=null;
         msg(
           profileError?.code==='42501'
-            ? 'La cuenta se creó, pero no se pudo crear el perfil por los permisos de Supabase.'
-            : (profileError?.message||'La cuenta se creó, pero no se pudo configurar el perfil.')
+            ? 'La cuenta está confirmada, pero Supabase no permite crear el perfil. Revisa la política INSERT de profiles.'
+            : (profileError?.message||'La cuenta está confirmada, pero no se pudo crear el perfil.')
         );
         return;
       }
     }
 
-    await start(submittingRole);
+    await start(submittingMode==='signup' ? (profile?.role||submittingRole) : null);
   }catch(e){
     console.error('Auth submit:',e);
     msg(e?.message || 'Error de conexión con Supabase.');
@@ -454,6 +496,21 @@ async function start(chosenRole=null){
     return false;
   }
 }
+
+db.auth.onAuthStateChange(async (event, session)=>{
+  if(!session?.user) return;
+  if(event==='SIGNED_IN' || event==='INITIAL_SESSION'){
+    try{
+      user=session.user;
+      profile=await finishConfirmedSignup();
+      if($('auth') && $('auth').style.display!=='none'){
+        await start(null);
+      }
+    }catch(e){
+      console.error('Auth state/profile setup:',e);
+    }
+  }
+});
 
 function renderTabs(){
   const trainer=profile?.role==='trainer';
@@ -1947,11 +2004,19 @@ async function redeemShareCode(){
     }
 
     if(s.data?.session){
-      // Tras una recarga usamos el rol real guardado en profiles.
+      // Tras confirmar el correo, Supabase vuelve a esta URL con una sesión.
+      // En ese momento creamos el perfil si todavía no existe y usamos el
+      // rol guardado en user_metadata.
       const u=await db.auth.getUser();
       if(u.data?.user){
         user=u.data.user;
-        await start(null);
+        try{
+          profile=await finishConfirmedSignup();
+          await start(null);
+        }catch(e){
+          console.error('Post-confirmation setup:',e);
+          msg(e?.message || 'La cuenta está confirmada, pero no se pudo completar el perfil.');
+        }
       }
     }
   }catch(e){
@@ -1959,6 +2024,16 @@ async function redeemShareCode(){
     msg(e?.message || 'No se pudo conectar con Supabase.');
   }
 })();
+
+// Si llegamos a SIMPLE con parámetros de confirmación pero sin sesión,
+// no mostramos una página en blanco: damos una instrucción clara.
+if(/[?&](code|token_hash)=/.test(window.location.search) && !window.location.hash){
+  setTimeout(()=>{
+    if($('auth') && $('app').style.display==='none'){
+      msg('La confirmación está procesándose. Si no entras automáticamente, vuelve a abrir SIMPLE e inicia sesión.');
+    }
+  },1200);
+}
 </script><script>
 // Protección contra dobles clics en acciones sensibles.
 document.addEventListener('click', function(e){
