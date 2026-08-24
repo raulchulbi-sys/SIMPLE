@@ -1,0 +1,1886 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SIMPLE</title>
+<style>
+:root{--bg:#0b0d10;--card:#15191e;--card2:#1b2026;--text:#f4f6f8;--muted:#9ba4ae;--line:#2a3139;--ok:#b9f6ca;--danger:#ff9a9a}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button,input,textarea{font:inherit}button{cursor:pointer}.wrap{max-width:1050px;margin:auto;padding:20px 15px 80px}header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:20px}h1{margin:0;font-size:26px;letter-spacing:-.5px}.sub{color:var(--muted);font-size:12px;margin-top:4px}.actions,.tabs,.buttons{display:flex;gap:7px;flex-wrap:wrap}.btn{border:1px solid var(--line);background:var(--card);color:var(--text);padding:10px 13px;border-radius:11px}.btn.primary{background:#fff;color:#111;border-color:#fff}.btn.danger{color:var(--danger)}.tabs{background:#111419;border:1px solid var(--line);padding:5px;border-radius:13px;margin-bottom:18px}.tabs button{flex:1;border:0;background:transparent;color:var(--muted);padding:10px;border-radius:9px}.tabs button.active{background:#fff;color:#111}.card{background:var(--card);border:1px solid var(--line);border-radius:17px;padding:16px;margin:12px 0}.empty{text-align:center;color:var(--muted);padding:38px 18px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.grid3{display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px}label{display:block;color:var(--muted);font-size:11px;margin:0 0 5px}input,textarea{width:100%;background:var(--card2);border:1px solid var(--line);border-radius:10px;color:var(--text);padding:10px;outline:none}textarea{min-height:65px;resize:vertical}.routine{display:flex;justify-content:space-between;align-items:center;gap:12px}.routine h3{margin:0}.muted{color:var(--muted);font-size:12px}.badge{border:1px solid var(--line);padding:4px 8px;border-radius:99px;font-size:11px;color:var(--muted)}.day{border-top:1px solid var(--line);margin-top:14px;padding-top:14px}.dayhead{display:flex;justify-content:space-between;gap:10px;align-items:center}.exercise{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px;margin:8px 0}.exercisehead{display:flex;justify-content:space-between;gap:8px}.exname{font-weight:700}.meta{color:var(--muted);font-size:11px;margin-top:3px}.modal{position:fixed;inset:0;background:#000b;display:none;align-items:flex-end;justify-content:center;z-index:20}.modal.show{display:flex}.sheet{width:min(760px,100%);max-height:90vh;overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:20px 20px 0 0;padding:18px}.modal.center{align-items:center}.modal.center .sheet{border-radius:20px}.auth{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:18px}.authbox{width:min(420px,100%);background:var(--card);border:1px solid var(--line);border-radius:22px;padding:25px}.authbox h1{margin-bottom:5px}.authbox p{color:var(--muted);font-size:13px}.authbox input,.authbox button{margin-top:8px}.authbox button{width:100%}.msg{font-size:12px;min-height:18px;margin-top:8px}.error{color:var(--danger)}.ok{color:var(--ok)}.toast{position:fixed;top:18px;left:50%;transform:translateX(-50%);background:#fff;color:#111;padding:10px 14px;border-radius:11px;display:none;z-index:50;font-size:13px}@media(max-width:650px){.grid,.grid3{grid-template-columns:1fr}.routine{align-items:flex-start;flex-direction:column}header{align-items:flex-start}}
+
+.setrow{display:grid;grid-template-columns:45px 1fr 1fr 55px;gap:7px;align-items:center;margin:7px 0}
+.setrow input{min-width:70px}
+.tick{width:48px;height:38px;border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:9px;font-size:18px}
+.tick.done{background:var(--ok);color:#111;border-color:var(--ok)}
+.rest-buttons{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:12px}.rest-buttons .btn{min-width:48px}
+.history-session{padding:0;margin-bottom:12px;overflow:hidden}
+.history-summary{list-style:none;display:flex;justify-content:space-between;align-items:center;gap:14px;padding:18px 20px;cursor:pointer}
+.history-summary::-webkit-details-marker{display:none}
+.history-summary:hover{background:var(--card2)}
+.history-title{font-size:19px}
+.history-summary-actions{display:flex;align-items:center;gap:10px;flex-shrink:0}.history-delete{padding:8px 14px}.history-chevron{font-size:22px;color:var(--muted);transition:transform .15s ease}
+.history-session[open] .history-chevron{transform:rotate(180deg)}
+.history-content{padding:0 20px 20px}
+.history-exercise{margin-top:16px;padding-top:15px;border-top:1px solid var(--line)}
+.history-exercise-head{display:flex;justify-content:space-between;gap:10px}
+.history-objective{color:var(--muted);font-size:13px}
+.history-table{margin-top:10px;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.history-row{display:grid;grid-template-columns:70px 1fr 1fr 1fr;padding:9px 12px;border-top:1px solid var(--line)}
+.history-row:first-child{border-top:0}
+.history-label{font-size:11px;color:var(--muted);background:var(--card2)}
+.history-notes{margin-top:9px;color:var(--muted);font-size:13px}
+.history-notes span{color:var(--text);font-weight:600}
+.history-actions{display:flex;justify-content:flex-end;margin-top:18px}
+.history-toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 0}
+.history-select-actions{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.history-select-count{color:var(--muted);font-size:12px}
+.history-check{width:19px;height:19px;accent-color:#fff;cursor:pointer;flex:0 0 auto}
+.history-summary-main{display:flex;align-items:center;gap:12px;min-width:0}
+.history-summary-main>div:last-child{min-width:0}
+.history-selected{border-color:#66717e;box-shadow:0 0 0 1px #66717e inset}
+.previous-session{margin-top:12px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:var(--card2)}
+.previous-session-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:7px}
+.previous-session-title{font-size:12px;color:var(--muted);letter-spacing:.2px}
+.previous-session-date{font-size:11px;color:var(--muted)}
+.previous-session-sets{display:flex;flex-wrap:wrap;gap:6px}
+.previous-set{padding:6px 8px;border:1px solid var(--line);border-radius:9px;font-size:12px}
+.previous-empty{font-size:12px;color:var(--muted)}
+
+@media(max-width:650px){.history-summary{padding:15px}.history-summary-actions{gap:6px}.history-delete{padding:7px 10px}.history-title{font-size:17px}}
+
+.rest-floating{
+  position:fixed;
+  left:50%;
+  bottom:18px;
+  transform:translateX(-50%);
+  z-index:99999;
+  width:118px;
+  padding:6px 8px;
+  border:1px solid var(--line);
+  border-radius:16px;
+  background:var(--card);
+  box-shadow:0 14px 40px rgba(0,0,0,.45);
+  text-align:center;
+  cursor:grab;
+  user-select:none;
+  touch-action:none;
+}
+.rest-floating:active{cursor:grabbing}
+.rest-drag-handle{font-size:9px;letter-spacing:.08em;color:var(--muted);margin-bottom:4px}
+.rest-time{font-size:25px;font-weight:800;line-height:1.15;margin:3px 0 8px}
+.rest-finished{display:block;margin:10px 0}
+
+.rest-header{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.rest-actions{display:flex;gap:3px}
+.rest-mini{width:26px;height:26px;border:0;background:transparent;color:var(--muted);font-size:18px;line-height:1;border-radius:7px;cursor:pointer}
+.rest-mini:hover{background:var(--card2);color:var(--text)}
+.rest-stop{font-size:12px;padding:6px 10px}
+.rest-floating.rest-mini-mode{width:auto;min-width:64px;max-width:90px;padding:3px 6px;border-radius:999px;box-shadow:0 6px 18px rgba(0,0,0,.28)}
+.rest-floating.rest-mini-mode .rest-time{font-size:14px;margin:0;font-weight:800}
+.rest-floating.rest-mini-mode .rest-drag-handle{display:none}
+.rest-floating.rest-mini-mode .rest-stop{display:none}
+.rest-floating.rest-mini-mode .rest-header{gap:2px}
+.rest-floating.rest-mini-mode .rest-actions{margin-left:0}
+.share-code{font-size:30px;font-weight:800;letter-spacing:4px;text-align:center}
+
+.role-picker{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+.role-option{display:flex;align-items:center;justify-content:center;gap:8px;padding:13px 10px;border:1px solid var(--line);background:var(--card2);color:var(--text);border-radius:12px;cursor:pointer;font-weight:700;transition:.15s}
+.role-option:has(input:checked){border-color:#fff;box-shadow:0 0 0 2px #fff}
+.role-option input{margin:0;accent-color:#fff}
+
+.client-progress-chart{margin:0 0 14px}
+.progress-chart-controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(150px,220px);gap:10px;margin-bottom:12px}
+.progress-chart-controls label{display:block;font-size:13px;color:var(--muted,#9aa3b2);margin-bottom:5px}
+.progress-chart-controls select{width:100%;min-height:42px}
+.progress-chart-wrap{width:100%;overflow:hidden;border:1px solid var(--border,#30343b);border-radius:14px;background:var(--card,#171a1f);padding:8px}
+.progress-chart{display:block;width:100%;height:300px}
+.progress-chart-empty{padding:24px;text-align:center;color:var(--muted,#9aa3b2)}
+.progress-chart-summary{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.progress-chart-stat{padding:8px 11px;border:1px solid var(--border,#30343b);border-radius:10px;background:var(--card,#171a1f)}
+.progress-chart-stat b{display:block;margin-top:2px}
+@media(max-width:560px){
+  .progress-chart-controls{grid-template-columns:1fr}
+  .progress-chart{height:250px}
+}
+
+.progress-point-detail{margin-top:10px;display:none}
+.progress-point-detail .point-date{font-weight:700}
+.progress-point-detail .point-rir{font-weight:700}
+.progress-summary-positive{color:#35d0b5}
+.progress-summary-negative{color:#ff7b7b}
+.progress-summary-neutral{color:inherit}
+</style>
+</head>
+<body>
+<div id="auth" class="auth"><div class="authbox"><h1>SIMPLE</h1><p id="authText">Accede a tus rutinas y entrenamiento.</p>
+<div class="role-picker">
+  <label class="role-option">
+    <input type="radio" name="simpleRole" value="trainer" onchange="selectRole(this.value)">
+    <span>👨‍🏫 Entrenador</span>
+  </label>
+  <label class="role-option selected">
+    <input type="radio" name="simpleRole" value="client" checked onchange="selectRole(this.value)">
+    <span>👤 Cliente</span>
+  </label>
+</div>
+<input id="email" type="email" placeholder="Correo electrónico"><input id="password" type="password" placeholder="Contraseña"><button type="button" id="authBtn" class="btn primary">Iniciar sesión</button><button type="button" id="authSwitch" class="btn">Crear cuenta</button><div id="authMsg" class="msg"></div></div></div>
+<div id="app" style="display:none"><div class="wrap"><header><div><h1>SIMPLE</h1><div class="sub"><span id="role"></span> · <span id="mail"></span></div></div><div class="actions"><button class="btn" onclick="shareHeaderOpen()">Compartir</button><button class="btn" onclick="logout()">Salir</button></div></header>
+<div id="tabs" class="tabs"></div>
+<div id="mine"></div>
+<div id="new" style="display:none"></div>
+<div id="shared" style="display:none"></div>
+<div id="clients" style="display:none"></div></div></div>
+<div id="editModal" class="modal center"><div class="sheet"><div style="display:flex;justify-content:space-between;align-items:center"><h2 style="margin:0">Editar rutina</h2><button class="btn" onclick="closeM('editModal')">Cerrar</button></div><div id="editor"></div></div></div>
+<div id="clientProgressModal" class="modal center">
+  <div class="sheet">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+      <div>
+        <h2 id="clientProgressTitle" style="margin:0">Progreso</h2>
+        <div id="clientProgressSubtitle" class="muted"></div>
+      </div>
+      <button class="btn" onclick="closeM('clientProgressModal')">Cerrar</button>
+    </div>
+    <div id="clientProgressBody" style="margin-top:14px"></div>
+  </div>
+</div>
+<div id="clientModal" class="modal center">
+  <div class="sheet">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+      <div>
+        <h2 id="clientModalTitle" style="margin:0">Cliente</h2>
+        <div id="clientModalSubtitle" class="muted"></div>
+      </div>
+      <button class="btn" onclick="closeM('clientModal')">Cerrar</button>
+    </div>
+    <div id="clientModalBody" style="margin-top:14px"></div>
+  </div>
+</div>
+<div id="viewModal" class="modal"><div class="sheet"><div style="display:flex;justify-content:space-between;align-items:center"><h2 id="viewTitle" style="margin:0"></h2><button class="btn" onclick="closeM('viewModal')">Cerrar</button></div><div id="viewBody"></div></div></div>
+<div id="toast" class="toast"></div>
+
+
+<div id="shareModal" class="modal">
+  <div class="sheet">
+    <div class="dayhead">
+      <div>
+        <h2 id="shareTitle" style="margin:0">Compartir rutina</h2>
+        <div class="muted">Genera un código para tus clientes.</div>
+      </div>
+      <button class="btn" onclick="closeM('shareModal')">Cerrar</button>
+    </div>
+    <div id="shareForm" style="margin-top:14px"></div>
+  </div>
+</div>
+<div id="trainModal" class="modal">
+  <div class="sheet">
+    <div class="dayhead">
+      <div>
+        <h2 id="trainTitle" style="margin:0">Entrenamiento</h2>
+        <div class="muted" id="trainSubtitle"></div>
+      </div>
+      <button class="btn" onclick="loadHistory().then(showHistory)">Historial</button><button class="btn" onclick="closeM('trainModal')">Cerrar</button>
+    </div>
+    <div id="trainBody" style="margin-top:12px"></div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script>
+const SUPABASE_URL="https://yvguatdqncadkwewlepe.supabase.co";
+const SUPABASE_KEY="sb_publishable_VYoUECN0MaGIOC2LtGi0iw_C0wqUY-W";
+if(!window.supabase){ throw new Error("Supabase JS no cargó"); }
+const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+let user=null,profile=null,routines=[],assignments=[],editDays=[];let mode='login';
+const $=id=>document.getElementById(id),esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+function toast(x){$('toast').textContent=x;$('toast').style.display='block';clearTimeout(window._t);window._t=setTimeout(()=>$('toast').style.display='none',1800)}function closeM(id){$(id).classList.remove('show')}function openM(id){$(id).classList.add('show')}
+function msg(x,ok=false){$('authMsg').textContent=x;$('authMsg').className='msg '+(ok?'ok':'error')}function authToggle(){mode=mode==='login'?'signup':'login';$('authBtn').textContent=mode==='login'?'Iniciar sesión':'Crear cuenta';$('authSwitch').textContent=mode==='login'?'Crear cuenta':'Ya tengo una cuenta';$('authText').textContent=mode==='login'?'Accede a tus rutinas y entrenamiento.':'Crea tu cuenta y empieza desde cero.';msg('')}
+let selectedRole='client';
+
+function selectRole(role){
+  selectedRole = role === 'trainer' ? 'trainer' : 'client';
+  document.querySelectorAll('input[name="simpleRole"]').forEach(input=>{
+    input.checked = input.value === selectedRole;
+  });
+}
+
+async function ensureProfile(chosenRole){
+  if(!user) throw new Error('No hay una sesión activa.');
+
+  const p=await db.from('profiles')
+    .select('id,name,role')
+    .eq('id',user.id)
+    .maybeSingle();
+
+  if(p.error) throw p.error;
+  if(p.data) return p.data;
+
+  // Solo se crea un perfil durante el alta de una cuenta nueva.
+  // El login normal NUNCA debe intentar crear perfiles.
+  const q=await db.from('profiles')
+    .insert({
+      id:user.id,
+      name:(user.email||'usuario').split('@')[0],
+      role:chosenRole
+    })
+    .select('id,name,role')
+    .single();
+
+  if(q.error) throw q.error;
+  return q.data;
+}
+
+async function authSubmit(){
+  const email=$('email').value.trim();
+  const password=$('password').value;
+  const btn=$('authBtn');
+
+  if(!email || !password){
+    msg('Introduce correo y contraseña.');
+    return;
+  }
+  if(password.length < 6){
+    msg('La contraseña debe tener al menos 6 caracteres.');
+    return;
+  }
+
+  btn.disabled=true;
+  $('authSwitch').disabled=true;
+  document.querySelectorAll('input[name="simpleRole"]').forEach(x=>x.disabled=true);
+  btn.textContent='Conectando...';
+  msg('Conectando...',true);
+
+  const submittingMode=mode;
+  const submittingRole=selectedRole;
+
+  try{
+    const r = submittingMode==='login'
+      ? await db.auth.signInWithPassword({email,password})
+      : await db.auth.signUp({email,password});
+
+    if(r.error){
+      console.error('Auth:',r.error);
+      msg(r.error.message || 'No se pudo iniciar sesión.');
+      return;
+    }
+
+    if(submittingMode==='signup' && !r.data?.session){
+      mode='login';
+      $('authBtn').textContent='Iniciar sesión';
+      $('authSwitch').textContent='Crear cuenta';
+      msg('Cuenta creada. Revisa tu correo para confirmar la cuenta y después inicia sesión.',true);
+      return;
+    }
+
+    if(!r.data?.user){
+      msg('No se pudo obtener la cuenta.');
+      return;
+    }
+
+    // Confirmamos sesión y usuario en servidor antes de consultar profiles.
+    const sessionCheck=await db.auth.getSession();
+    if(sessionCheck.error || !sessionCheck.data?.session){
+      console.error('Session check:',sessionCheck.error);
+      msg('No se pudo confirmar la sesión. Inténtalo de nuevo.');
+      return;
+    }
+    const userCheck=await db.auth.getUser();
+    if(userCheck.error || !userCheck.data?.user){
+      console.error('User check:',userCheck.error);
+      msg('La sesión aún no está lista. Inténtalo de nuevo.');
+      return;
+    }
+    user=userCheck.data.user;
+
+    // En el alta sí podemos crear el perfil. En el login, start() solo lee.
+    if(submittingMode==='signup'){
+      try{
+        profile=await ensureProfile(submittingRole);
+      }catch(profileError){
+        console.error('Create profile:',profileError);
+        await db.auth.signOut();
+        user=null;
+        profile=null;
+        msg(
+          profileError?.code==='42501'
+            ? 'La cuenta se creó, pero no se pudo crear el perfil por los permisos de Supabase.'
+            : (profileError?.message||'La cuenta se creó, pero no se pudo configurar el perfil.')
+        );
+        return;
+      }
+    }
+
+    await start(submittingRole);
+  }catch(e){
+    console.error('Auth submit:',e);
+    msg(e?.message || 'Error de conexión con Supabase.');
+  }finally{
+    if($('app').style.display==='none'){
+      btn.disabled=false;
+      $('authSwitch').disabled=false;
+      document.querySelectorAll('input[name="simpleRole"]').forEach(x=>x.disabled=false);
+      btn.textContent=mode==='login'?'Iniciar sesión':'Crear cuenta';
+    }
+  }
+}
+
+$('authBtn').addEventListener('click',authSubmit);
+$('authSwitch').addEventListener('click',()=>{
+  mode=mode==='login'?'signup':'login';
+  $('authBtn').textContent=mode==='login'?'Iniciar sesión':'Crear cuenta';
+  $('authSwitch').textContent=mode==='login'?'Crear cuenta':'Ya tengo una cuenta';
+  $('authText').textContent=mode==='login'
+    ? 'Accede a tus rutinas y entrenamiento.'
+    : 'Crea tu cuenta y elige cómo usar SIMPLE.';
+  msg('');
+});
+
+async function getProfileStable(){
+  let lastError=null;
+  for(let attempt=0; attempt<4; attempt++){
+    const u=await db.auth.getUser();
+    if(u.error){ lastError=u.error; }
+    else if(u.data?.user){ user=u.data.user; }
+    if(user?.id){
+      const p=await db.from('profiles')
+        .select('id,name,role')
+        .eq('id',user.id)
+        .maybeSingle();
+      if(!p.error && p.data) return p.data;
+      lastError=p.error || new Error('Perfil no encontrado.');
+    }
+    await new Promise(resolve=>setTimeout(resolve,250*(attempt+1)));
+  }
+  throw lastError || new Error('No se pudo cargar el perfil.');
+}
+
+async function start(chosenRole=null){
+  if(!user) return false;
+  try{
+    profile=await getProfileStable();
+
+    if(chosenRole && profile.role!==chosenRole){
+      const actualRole=profile.role;
+      $('app').style.display='none';
+      $('auth').style.display='flex';
+      msg(
+        `Esta cuenta está configurada como ${actualRole==='trainer'?'entrenador':'cliente'}. ` +
+        `Selecciona el tipo correcto para iniciar sesión.`
+      );
+      return false;
+    }
+
+    $('auth').style.display='none';
+    $('app').style.display='block';
+    $('mail').textContent=user.email||'';
+    $('role').textContent=profile.role==='trainer'?'Entrenador':'Cliente';
+    document.querySelector('header .actions .btn').style.display=
+      profile.role==='trainer'?'inline-flex':'none';
+
+    renderTabs();
+    await reload();
+    view(profile.role==='trainer'?'mine':'shared');
+    return true;
+  }catch(e){
+    console.error('Start:',e);
+    $('app').style.display='none';
+    $('auth').style.display='flex';
+    msg(e?.message || 'No se pudo cargar el perfil.');
+    return false;
+  }
+}
+
+function renderTabs(){
+  const trainer=profile?.role==='trainer';
+
+  $('tabs').innerHTML=trainer
+    ? `<button id="tMine" class="active" onclick="view('mine')">Mis rutinas</button>
+       <button id="tNew" onclick="view('new')">Crear rutina</button>
+       <button id="tClients" onclick="view('clients')">Mis clientes</button>`
+    : `<button id="tShared" class="active" onclick="view('shared')">Mis rutinas</button>`;
+
+  // El cliente ya no tiene un apartado de Historial independiente.
+  // El historial se consulta dentro de cada rutina, desde el botón
+  // "Historial" del entrenamiento correspondiente.
+}
+
+async function logout(){await db.auth.signOut();location.reload()}
+async function reload(){
+  if(!user) throw new Error('No hay una sesión activa.');
+
+  const r=await db.from('routines')
+    .select('id,name,description,share_code,source_routine_id,created_at')
+    .eq('owner_id',user.id)
+    .order('created_at',{ascending:false});
+
+  if(r.error){
+    console.error('Carga de rutinas:',r.error);
+    throw r.error;
+  }
+
+  routines=r.data||[];
+
+  if(profile?.role==='client'){
+    const a=await db.from('routine_assignments')
+      .select('*')
+      .eq('client_id',user.id)
+      .order('created_at',{ascending:false});
+
+    if(a.error){
+      console.error('Carga de asignaciones:',a.error);
+      throw a.error;
+    }
+
+    assignments=a.data||[];
+  }else{
+    assignments=[];
+    // Trainer: load assignments for routines owned by this trainer.
+    const mineIds=routines.map(r=>r.id);
+    if(mineIds.length){
+      const a=await db.from('routine_assignments')
+        .select('id,client_id,trainer_id,trainer_routine_id,client_routine_id,created_at')
+        .eq('trainer_id',user.id)
+        .in('trainer_routine_id',mineIds)
+        .order('created_at',{ascending:false});
+      if(a.error){
+        console.error('Carga de clientes:',a.error);
+        throw a.error;
+      }
+      assignments=a.data||[];
+    }else{
+      assignments=[];
+    }
+  }
+}
+
+function view(v){
+  ['mine','new','shared','clients','history'].forEach(x=>{
+    if($(x)) $(x).style.display=x===v?'block':'none';
+  });
+
+  document.querySelectorAll('#tabs .btn, #tabs button').forEach(b=>b.classList.remove('active'));
+  const target=$('t'+v[0].toUpperCase()+v.slice(1));
+  if(target) target.classList.add('active');
+
+  if(v==='mine') renderMine();
+  if(v==='new') renderNew();
+  if(v==='shared') renderShared();
+  if(v==='clients') renderClients();
+}
+
+async function revokeClientRoutine(assignmentId){
+  if(window.__revokingAssignment)return;
+  const a=(assignments||[]).find(x=>String(x.id)===String(assignmentId));
+  if(!a)return toast('Asignación no encontrada.');
+  if(!confirm('¿Revocar el acceso de este cliente a esta rutina?'))return;
+
+  window.__revokingAssignment=true;
+  try{
+    const r=await db.from('routine_assignments')
+      .delete()
+      .eq('id',assignmentId)
+      .eq('trainer_id',user.id);
+    if(r.error)throw r.error;
+
+    await reload();
+    await renderClients();
+    toast('Acceso revocado');
+  }catch(e){
+    console.error('revokeClientRoutine:',e);
+    toast('No se pudo revocar el acceso: '+(e.message||'error'));
+  }finally{
+    window.__revokingAssignment=false;
+  }
+}
+
+let clientProgressChartState={sessions:[],exerciseNames:[],metric:'weight'};
+
+function getProgressExercises(sessions){
+  const names=[];
+  const seen=new Set();
+  sessions.forEach(s=>{
+    const ex=Array.isArray(s?.data?.exercises)?s.data.exercises:
+      Array.isArray(s?.exercises)?s.exercises:[];
+    ex.forEach(e=>{
+      const name=String(e?.name||e?.exercise_name||'').trim();
+      if(name&&!seen.has(name)){seen.add(name);names.push(name);}
+    });
+  });
+  return names;
+}
+
+function getExercisePoints(sessions,exerciseName,metric){
+  const ordered=[...sessions].sort((a,b)=>new Date(a.workout_date)-new Date(b.workout_date));
+  return ordered.map((s,idx)=>{
+    const exs=Array.isArray(s?.data?.exercises)?s.data.exercises:
+      Array.isArray(s?.exercises)?s.exercises:[];
+    const e=exs.find(x=>String(x?.name||x?.exercise_name||'').trim()===exerciseName);
+    if(!e)return null;
+    const sets=Array.isArray(e?.sets)?e.sets:
+      Array.isArray(e?.series)?e.series:[];
+    const nums=sets.map((set,setIndex)=>{
+      const kg=Number(set?.kg ?? set?.weight);
+      const reps=Number(set?.reps ?? set?.repetitions);
+      const rir=Number(set?.rir);
+      const estimated1rm=(Number.isFinite(kg)&&Number.isFinite(reps)&&kg>0&&reps>0)
+        ? 0.0333*kg*reps+kg : null;
+      return {kg,reps,rir,estimated1rm,setIndex};
+    });
+
+    let value=null;
+    if(metric==='weight'){
+      const vals=nums.map(x=>x.kg).filter(Number.isFinite);
+      value=vals.length?Math.max(...vals):null;
+    }else if(metric==='reps'){
+      const vals=nums.map(x=>x.reps).filter(Number.isFinite);
+      value=vals.length?Math.max(...vals):null;
+    }else if(metric==='1rm'){
+      const valid=nums.filter(x=>Number.isFinite(x.estimated1rm));
+      if(valid.length){
+        const best=valid.reduce((a,b)=>b.estimated1rm>a.estimated1rm?b:a);
+        value=best.estimated1rm;
+      }
+    }
+
+    if(value===null)return null;
+
+    // RIR shown in the tooltip: prefer the RIR of the set that generated the
+    // plotted 1RM; otherwise show the average RIR recorded for the exercise.
+    let pointRir=null;
+    if(metric==='1rm'){
+      const valid=nums.filter(x=>Number.isFinite(x.estimated1rm));
+      const best=valid.length?valid.reduce((a,b)=>b.estimated1rm>a.estimated1rm?b:a):null;
+      if(best && Number.isFinite(best.rir)) pointRir=best.rir;
+    }
+    if(pointRir===null){
+      const rirs=nums.map(x=>x.rir).filter(Number.isFinite);
+      pointRir=rirs.length?rirs.reduce((a,b)=>a+b,0)/rirs.length:null;
+    }
+
+    return {
+      date:new Date(s.workout_date),
+      value,
+      session:idx+1,
+      rir:pointRir,
+      bestKg:metric==='1rm' ? nums.filter(x=>Number.isFinite(x.estimated1rm)).reduce((a,b)=>!a||b.estimated1rm>a.estimated1rm?b:a,null)?.kg : null,
+      bestReps:metric==='1rm' ? nums.filter(x=>Number.isFinite(x.estimated1rm)).reduce((a,b)=>!a||b.estimated1rm>a.estimated1rm?b:a,null)?.reps : null
+    };
+  }).filter(Boolean);
+}
+
+
+function progressMetricLabel(metric){
+  return metric==='weight'?'Peso (kg)':metric==='reps'?'Repeticiones':metric==='1rm'?'1RM estimado (kg)':'RIR medio';
+}
+
+function formatProgressValue(value,metric){
+  if(metric==='reps')return `${Math.round(value)}`;
+  if(metric==='rir')return Number(value).toFixed(1);
+  return Number(value).toLocaleString('es-ES',{maximumFractionDigits:1});
+}
+
+function renderClientProgressChart(){
+  const root=$('clientProgressChart');
+  const select=$('clientProgressExercise');
+  const metricSelect=$('clientProgressMetric');
+  if(!root||!select||!metricSelect)return;
+
+  const exerciseName=select.value;
+  const metric=metricSelect.value;
+  clientProgressChartState.metric=metric;
+
+  const points=getExercisePoints(clientProgressChartState.sessions,exerciseName,metric);
+  const pointDetail=$('clientProgressPointDetail');
+  if(pointDetail){pointDetail.style.display='none';pointDetail.innerHTML='';}
+  if(!points.length){
+    root.innerHTML='<div class="progress-chart-empty">No hay datos suficientes para este ejercicio.</div>';
+    $('clientProgressChartSummary').innerHTML='';
+    return;
+  }
+
+  // Keep only finite values and sort chronologically.
+  const clean=points
+    .filter(p=>p && p.date instanceof Date && !Number.isNaN(p.date.getTime()) && Number.isFinite(p.value))
+    .sort((a,b)=>a.date-b.date);
+
+  if(!clean.length){
+    root.innerHTML='<div class="progress-chart-empty">No hay datos válidos para este ejercicio.</div>';
+    $('clientProgressChartSummary').innerHTML='';
+    return;
+  }
+
+  const W=860,H=300,L=64,R=20,T=28,B=52;
+  const innerW=W-L-R, innerH=H-T-B;
+  const values=clean.map(p=>p.value);
+  let dataMin=Math.min(...values), dataMax=Math.max(...values);
+
+  // Nice Y-axis range. Never allow repeated labels.
+  const range=dataMax-dataMin;
+  const base=Math.max(Math.abs(dataMax),Math.abs(dataMin),1);
+  const rawStep=range>0 ? range/4 : base/10;
+
+  function niceStep(step){
+    const power=Math.pow(10,Math.floor(Math.log10(Math.max(step,1e-9))));
+    const n=step/power;
+    const nice=n<=1?1:n<=2?2:n<=2.5?2.5:n<=5?5:10;
+    return nice*power;
+  }
+
+  let step=niceStep(rawStep);
+  if(metric==='reps' || metric==='rir') step=Math.max(step, metric==='reps'?1:0.5);
+
+  let axisMin=Math.floor(dataMin/step)*step;
+  let axisMax=Math.ceil(dataMax/step)*step;
+
+  if(axisMin===axisMax){
+    axisMin = Math.max(0, axisMin-step*2);
+    axisMax = axisMax+step*2;
+  } else {
+    const pad=step;
+    axisMin=Math.max(0,axisMin-pad);
+    axisMax=axisMax+pad;
+  }
+
+  // Recalculate a final integer tick count and guarantee unique labels.
+  let tickCount=Math.round((axisMax-axisMin)/step)+1;
+  while(tickCount>7){
+    step=niceStep(step*1.5);
+    axisMin=Math.max(0,Math.floor(dataMin/step)*step-step);
+    axisMax=Math.ceil(dataMax/step)*step+step;
+    tickCount=Math.round((axisMax-axisMin)/step)+1;
+  }
+  while(tickCount<4){
+    step=niceStep(step/2);
+    axisMin=Math.max(0,Math.floor(dataMin/step)*step-step);
+    axisMax=Math.ceil(dataMax/step)*step+step;
+    tickCount=Math.round((axisMax-axisMin)/step)+1;
+  }
+
+  const ticks=[];
+  for(let v=axisMin,guard=0; v<=axisMax+step*0.001 && guard<20; v+=step,guard++){
+    ticks.push(Number(v.toPrecision(12)));
+  }
+  const uniqueTicks=[...new Set(ticks)];
+  if(uniqueTicks.length<2){
+    uniqueTicks.length=0;
+    uniqueTicks.push(axisMin,axisMax);
+  }
+
+  const x=i=>clean.length===1?L+innerW/2:L+(i/(clean.length-1))*innerW;
+  const y=v=>T+((axisMax-v)/(axisMax-axisMin))*innerH;
+  const fmt=v=>formatProgressValue(v,metric);
+
+  const gridSvg=uniqueTicks.map(v=>`
+    <line x1="${L}" y1="${y(v)}" x2="${W-R}" y2="${y(v)}" stroke="currentColor" opacity=".12"/>
+    <text x="${L-9}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="currentColor" opacity=".65">${esc(fmt(v))}</text>
+  `).join('');
+
+  const poly=clean.length>1
+    ? clean.map((p,i)=>`${x(i).toFixed(1)},${y(p.value).toFixed(1)}`).join(' ')
+    : '';
+
+  const lineSvg=poly
+    ? `<polyline points="${poly}" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/>`
+    : '';
+
+  const pointsSvg=clean.map((p,i)=>{
+    const dateText=p.date.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'2-digit'});
+    const rirText=Number.isFinite(p.rir)?`${Number(p.rir).toFixed(1)}`:'—';
+    const detail=`${dateText} - 1RM estimado: ${fmt(p.value)} kg - RIR ${rirText}`;
+    return `<g tabindex="0" role="button" aria-label="${esc(detail)}" data-progress-point="${i}" style="cursor:pointer">
+      <circle cx="${x(i)}" cy="${y(p.value)}" r="8" fill="currentColor"/>
+      <text x="${x(i)}" y="${H-24}" text-anchor="middle" font-size="10" fill="currentColor" opacity=".7">${esc(p.date.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit'}))}</text>
+    </g>`;
+  }).join('');
+
+  root.innerHTML=`
+    <div class="progress-chart-wrap">
+      <svg class="progress-chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Evolución de ${esc(exerciseName)}">
+        ${gridSvg}
+        ${lineSvg}
+        ${pointsSvg}
+        <text x="${L}" y="15" font-size="12" fill="currentColor" opacity=".65">${esc(progressMetricLabel(metric))}</text>
+      </svg>
+    </div>`;
+
+  root.querySelectorAll('[data-progress-point]').forEach(node=>{
+    const showPoint=()=>{
+      const p=clean[Number(node.dataset.progressPoint)];
+      const dateText=p.date.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'2-digit'});
+      const rirText=Number.isFinite(p.rir)?Number(p.rir).toFixed(1):'—';
+      const detail=$('clientProgressPointDetail');
+      if(detail){
+        detail.style.display='block';
+        detail.innerHTML=`<span class="point-date">${esc(dateText)}</span> - 1RM estimado: ${esc(fmt(p.value))} kg - <span class="point-rir">RIR ${esc(rirText)}</span>`;
+      }
+    };
+    node.addEventListener('click',showPoint);
+    node.addEventListener('keydown',e=>{
+      if(e.key==='Enter'||e.key===' '){e.preventDefault();showPoint();}
+    });
+  });
+
+  const first=clean[0].value,last=clean[clean.length-1].value,delta=last-first;
+  const trend=delta>0?'Progresando':delta<0?'Descenso':'Estable';
+  const trendText=clean.length<2?'Una sesión':trend;
+  const changeClass=delta>0?'progress-summary-positive':delta<0?'progress-summary-negative':'progress-summary-neutral';
+  const trendClass=delta>0?'progress-summary-positive':delta<0?'progress-summary-negative':'progress-summary-neutral';
+  $('clientProgressChartSummary').innerHTML=`
+    <div class="progress-chart-stat"><span class="muted">Inicio</span><b>${esc(fmt(first))}</b></div>
+    <div class="progress-chart-stat"><span class="muted">Actual</span><b>${esc(fmt(last))}</b></div>
+    <div class="progress-chart-stat"><span class="muted">Cambio</span><b class="${changeClass}">${clean.length<2?'—':(delta>0?'+':'')+esc(fmt(delta))}</b></div>
+    <div class="progress-chart-stat"><span class="muted">Tendencia</span><b class="${trendClass}">${esc(trendText)}</b></div>`;
+}
+
+
+function setupClientProgressChart(sessions){
+  clientProgressChartState.sessions=sessions;
+  clientProgressChartState.exerciseNames=getProgressExercises(sessions);
+  const select=$('clientProgressExercise'), metric=$('clientProgressMetric');
+  if(!select||!metric)return;
+  select.innerHTML=clientProgressChartState.exerciseNames.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
+  if(!clientProgressChartState.exerciseNames.length){
+    select.disabled=true;
+    metric.disabled=true;
+    $('clientProgressChart').innerHTML='<div class="progress-chart-empty">No hay ejercicios con datos registrados.</div>';
+    return;
+  }
+  select.disabled=false;metric.disabled=false;
+  select.onchange=renderClientProgressChart;
+  metric.onchange=renderClientProgressChart;
+  renderClientProgressChart();
+}
+
+async function openClientRoutineProgress(clientId,routineId,routineName){
+  if(!user?.id)return toast('Debes iniciar sesión.');
+  const title=$('clientProgressTitle'), subtitle=$('clientProgressSubtitle'), body=$('clientProgressBody');
+  if(!title||!body)return;
+
+  title.textContent=routineName||'Progreso';
+  subtitle.textContent='Cargando historial del cliente...';
+  body.innerHTML='<div class="muted">Cargando sesiones...</div>';
+  closeM('clientModal');
+  openM('clientProgressModal');
+
+  try{
+    const r=await db.rpc('get_client_routine_history',{
+      p_client_id:String(clientId),
+      p_routine_id:String(routineId)
+    });
+    if(r.error)throw r.error;
+
+    const sessions=r.data||[];
+    subtitle.textContent=`${sessions.length} sesión${sessions.length===1?'':'es'} registrada${sessions.length===1?'':'s'}`;
+
+    if(!sessions.length){
+      body.innerHTML='<div class="empty">El cliente todavía no tiene sesiones registradas de esta rutina.</div>';
+      return;
+    }
+
+    body.innerHTML=`
+      <div class="card" style="margin:0 0 12px">
+        <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">
+          <div><div class="muted">Sesiones</div><b style="font-size:20px">${sessions.length}</b></div>
+          <div><div class="muted">Última sesión</div><b>${new Date(sessions[0].workout_date).toLocaleDateString('es-ES')}</b></div>
+        </div>
+      </div>
+
+      <div class="card client-progress-chart">
+        <div style="margin-bottom:10px">
+          <b style="font-size:18px">Evolución del ejercicio</b>
+          <div class="muted">Selecciona un ejercicio para ver cómo progresa a lo largo de las sesiones.</div>
+        </div>
+        <div class="progress-chart-controls">
+          <div>
+            <label for="clientProgressExercise">Ejercicio</label>
+            <select id="clientProgressExercise" class="input"></select>
+          </div>
+          <div>
+            <label for="clientProgressMetric">Métrica</label>
+            <select id="clientProgressMetric" class="input">
+              <option value="weight">Peso máximo</option>
+              <option value="reps">Repeticiones máximas</option>
+              <option value="1rm">1RM estimado</option>
+              
+            </select>
+          </div>
+        </div>
+        <div id="clientProgressChart"></div>
+        <div id="clientProgressPointDetail" class="progress-chart-stat progress-point-detail"></div>
+        <div id="clientProgressChartSummary" class="progress-chart-summary"></div>
+      </div>
+
+      ${sessions.map((s,idx)=>{
+        const d=s.data||{};
+        const date=new Date(s.workout_date);
+        const exercises=Array.isArray(d.exercises)?d.exercises:[];
+        return `<details class="history-session card" ${idx===0?'open':''}>
+          <summary class="history-summary">
+            <div>
+              <b class="history-title">${esc(d.day_name||s.day||'Entrenamiento')}</b>
+              <div class="muted">${date.toLocaleDateString('es-ES')}</div>
+            </div>
+            <span class="history-chevron">⌄</span>
+          </summary>
+          <div class="history-content">
+            ${exercises.length?exercises.map(e=>{
+              const sets=Array.isArray(e.sets)?e.sets:[];
+              return `<div class="history-exercise">
+                <div class="history-exercise-head">
+                  <div>
+                    <b>${esc(e.name||'Ejercicio')}</b>
+                    <div class="history-objective">
+                      Objetivo: ${esc(e.target||'—')} · ${e.planned_sets||sets.length||1} series
+                    </div>
+                  </div>
+                </div>
+                <div class="history-table">
+                  <div class="history-row history-label">
+                    <span>Serie</span><span>KG</span><span>REPS</span><span>RIR</span>
+                  </div>
+                  ${sets.map(set=>`
+                    <div class="history-row">
+                      <span>${esc(String(set.set??''))}</span>
+                      <span>${esc(String(set.kg||'—'))}</span>
+                      <span>${esc(String(set.reps||'—'))}</span>
+                      <span>${esc(String(set.rir!==''&&set.rir!=null?set.rir:'—'))}</span>
+                    </div>`).join('')}
+                </div>
+                ${e.notes?`<div class="history-notes"><span>Notas:</span> ${esc(e.notes)}</div>`:''}
+              </div>`;
+            }).join(''):'<div class="muted">Sin ejercicios registrados.</div>'}
+          </div>
+        </details>`;
+      }).join('')}`;
+    setupClientProgressChart(sessions);
+  }catch(e){
+    console.error('openClientRoutineProgress:',e);
+    const msg=String(e?.message||'');
+    body.innerHTML=msg.includes('get_client_routine_history')
+      ? '<div class="error">Falta configurar el acceso seguro al historial del cliente. Ejecuta primero el SQL de V48 en Supabase.</div>'
+      : '<div class="error">No se pudo cargar el progreso del cliente.</div>';
+  }
+}
+
+async function openClientProfile(clientId){
+  if(!user?.id)return toast('Debes iniciar sesión.');
+  const cid=String(clientId);
+  const clientAssignments=(assignments||[]).filter(a=>String(a.client_id)===cid);
+  if(!clientAssignments.length)return toast('Este cliente ya no tiene rutinas asignadas.');
+
+  const title=$('clientModalTitle'), subtitle=$('clientModalSubtitle'), body=$('clientModalBody');
+  if(!title||!body)return;
+  title.textContent='Cliente';
+  subtitle.textContent='Cargando...';
+  body.innerHTML='<div class="muted">Cargando información...</div>';
+  openM('clientModal');
+
+  try{
+    const p=await db.from('profiles').select('id,name,role').eq('id',cid).maybeSingle();
+    if(p.error)throw p.error;
+    if(!p.data || p.data.role!=='client')throw new Error('Perfil de cliente no encontrado.');
+
+    const name=(p.data.name||'').trim()||'Cliente sin nombre';
+    title.textContent=name;
+    subtitle.textContent=`${clientAssignments.length} rutina${clientAssignments.length===1?'':'s'} asignada${clientAssignments.length===1?'':'s'}`;
+
+    const items=clientAssignments.map(a=>{
+      const routine=routines.find(r=>String(r.id)===String(a.trainer_routine_id));
+      return {assignment:a,routine};
+    }).filter(x=>x.routine);
+
+    body.innerHTML=`
+      <div class="card" style="margin:0 0 12px">
+        <div class="muted">Rutinas asignadas</div>
+      </div>
+      ${items.length?items.map(x=>`
+        <div class="card" style="margin:8px 0">
+          <div style="display:flex;justify-content:space-between;gap:10px;align-items:center">
+            <div>
+              <b>${esc(x.routine.name)}</b>
+              <div class="muted">Asignada ${new Date(x.assignment.created_at).toLocaleDateString('es-ES')}</div>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+              <button class="btn" onclick="openClientRoutineProgress('${cid}','${x.routine.id}','${esc(x.routine.name)}')">Ver progreso</button>
+              <button class="btn danger" onclick="revokeFromClientProfile('${x.assignment.id}')">Revocar</button>
+            </div>
+          </div>
+        </div>`).join(''):'<div class="empty">No hay rutinas asignadas.</div>'}`;
+  }catch(e){
+    console.error('openClientProfile:',e);
+    body.innerHTML='<div class="error">No se pudo cargar el perfil del cliente.</div>';
+  }
+}
+
+async function revokeFromClientProfile(assignmentId){
+  await revokeClientRoutine(assignmentId);
+  if(!window.__revokingAssignment){
+    const a=(assignments||[]).find(x=>String(x.id)===String(assignmentId));
+    if(!a) closeM('clientModal');
+    else await openClientProfile(a.client_id);
+  }
+}
+
+async function renderClients(){
+  const box=$('clients');
+  if(!box)return;
+  box.innerHTML=`<div class="card"><h2 style="margin:0 0 4px">Mis clientes</h2><div class="muted">Clientes con al menos una de tus rutinas asignada.</div><div class="muted" style="margin-top:12px">Cargando...</div></div>`;
+
+  try{
+    const ids=[...new Set((assignments||[]).map(a=>a.client_id).filter(Boolean))];
+
+    if(!ids.length){
+      box.innerHTML=`
+        <div class="card">
+          <h2 style="margin:0 0 4px">Mis clientes</h2>
+          <div class="muted">Clientes con al menos una de tus rutinas asignada.</div>
+          <div class="empty" style="margin-top:14px">
+            Todavía no tienes clientes con rutinas asignadas.
+          </div>
+        </div>`;
+      return;
+    }
+
+    const p=await db.from('profiles')
+      .select('id,name,role')
+      .in('id',ids);
+
+    if(p.error)throw p.error;
+
+    const names=new Map((p.data||[]).map(x=>[String(x.id),x.name||'']));
+    // Some older client profiles may have an empty name. Try the public
+    // display-name RPC if the project exposes it; otherwise keep a clear fallback.
+    const missing=[...ids].filter(id=>!String(names.get(String(id))||'').trim());
+    if(missing.length){
+      try{
+        const rpc=await db.rpc('get_public_profile_names',{p_user_ids:missing});
+        if(!rpc.error){
+          for(const row of (rpc.data||[])){
+            if(row?.id) names.set(String(row.id),row.name||'');
+          }
+        }
+      }catch(_){}
+    }
+    const grouped=new Map();
+
+    for(const a of assignments||[]){
+      const cid=String(a.client_id);
+      if(!grouped.has(cid))grouped.set(cid,[]);
+      const routine=routines.find(r=>String(r.id)===String(a.trainer_routine_id));
+      if(routine)grouped.get(cid).push({assignment:a,routine});
+    }
+
+    box.innerHTML=`
+      <div class="card">
+        <h2 style="margin:0 0 4px">Mis clientes</h2>
+        <div class="muted">${grouped.size} cliente${grouped.size===1?'':'s'} con rutinas asignadas.</div>
+      </div>
+      ${[...grouped.entries()].map(([cid,items])=>`
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;gap:12px;align-items:center">
+            <div>
+              <h3 style="margin:0">${esc((names.get(cid)||'').trim() || 'Cliente sin nombre')}</h3>
+              <div class="muted">${items.length} rutina${items.length===1?'':'s'} asignada${items.length===1?'':'s'}</div>
+            </div>
+            <button class="btn primary" onclick="openClientProfile('${cid}')">Ver cliente</button>
+          </div>
+          <div style="margin-top:12px">
+            ${items.map(x=>`
+              <div class="card" style="margin:8px 0;padding:12px">
+                <div style="display:flex;justify-content:space-between;gap:10px;align-items:center">
+                  <div>
+                    <b>${esc(x.routine.name)}</b>
+                    <div class="muted">Asignada ${new Date(x.assignment.created_at).toLocaleDateString('es-ES')}</div>
+                  </div>
+                  <button class="btn danger" onclick="revokeClientRoutine('${x.assignment.id}')">Revocar</button>
+                </div>
+              </div>`).join('')}
+          </div>
+        </div>`).join('')}`;
+  }catch(e){
+    console.error('renderClients:',e);
+    box.innerHTML=`<div class="card"><h2>Mis clientes</h2><div class="error">No se pudieron cargar los clientes.</div></div>`;
+  }
+}
+
+
+function renderMine(){$('mine').innerHTML='<div class="card"><h2 style="margin:0 0 4px">Mis rutinas</h2><div class="muted">Tus rutinas solo pertenecen a tu cuenta.</div></div>'+(routines.length?routines.map(r=>`<div class="card routine"><div><h3>${esc(r.name)}</h3><div class="muted">${esc(r.description||'Sin descripción')}</div></div><div class="buttons"><button class="btn primary" onclick="openRoutine('${r.id}')">Abrir</button><button class="btn" onclick="editRoutine('${r.id}')">Editar</button><button class="btn" onclick="openShare('${r.id}')">Compartir</button><button class="btn danger" onclick="delRoutine('${r.id}')">Eliminar</button></div></div>`).join(''):'<div class="card empty"><b style="color:#fff">No tienes rutinas todavía.</b><div style="margin-top:6px">Crea la primera desde aquí.</div><button class="btn primary" style="margin-top:14px" onclick="view(\'new\')">Crear rutina</button></div>')}
+let newDays=[];
+function renderNew(){
+  let h=`<div class="card">
+    <h2 style="margin-top:0">Crear rutina</h2>
+    <div class="grid">
+      <div><label>Nombre</label><input id="rn" placeholder="Ej. Hipertrofia"></div>
+      <div><label>Descripción</label><input id="rd" placeholder="Opcional"></div>
+    </div>
+    <div class="buttons" style="margin-top:14px">
+      <button class="btn" onclick="addNewDay()">Añadir día</button>
+      <button class="btn primary" onclick="createRoutine()">Guardar rutina</button>
+    </div>
+  </div><div id="newDays"></div>`;
+  $('new').innerHTML=h;
+  renderNewDays();
+}
+function renderNewDays(){
+  let box=$('newDays'); if(!box)return;
+  box.innerHTML=newDays.length?newDays.map((d,di)=>`<div class="card">
+    <div class="dayhead">
+      <input value="${esc(d.name)}" placeholder="Ej. Lunes / Push" onchange="newDays[${di}].name=this.value">
+      <button class="btn danger" onclick="removeNewDay(${di})">Eliminar día</button>
+    </div>
+    ${d.exercises.map((e,ei)=>`<div class="exercise">
+      <div class="grid3">
+        <div><label>Ejercicio</label><input value="${esc(e.name)}" placeholder="Ej. Press banca" onchange="newDays[${di}].exercises[${ei}].name=this.value"></div>
+        <div><label>Nº de series</label><input type="number" min="1" value="${e.sets}" onchange="newDays[${di}].exercises[${ei}].sets=+this.value"></div>
+        <div><label>Descanso (min)</label><input type="number" min="0" step="0.5" value="${e.rest_seconds/60}" onchange="newDays[${di}].exercises[${ei}].rest_seconds=(+this.value||0)*60"></div>
+      </div>
+      <div class="grid" style="margin-top:8px">
+        <div><label>Objetivo / rango de repeticiones</label><input value="${esc(e.target)}" placeholder="Ej. 2x10-15" onchange="newDays[${di}].exercises[${ei}].target=this.value"></div>
+        <div><label>RIR</label><input value="${esc(e.rir)}" placeholder="Ej. 2" onchange="newDays[${di}].exercises[${ei}].rir=this.value"></div>
+      </div>
+      <div style="margin-top:8px"><label>Notas del ejercicio</label><input value="${esc(e.notes)}" placeholder="Opcional" onchange="newDays[${di}].exercises[${ei}].notes=this.value"></div>
+      <div class="buttons" style="justify-content:flex-end;margin-top:8px"><button class="btn danger" onclick="removeNewEx(${di},${ei})">Eliminar ejercicio</button></div>
+    </div>`).join('')}
+    <button class="btn" onclick="addNewEx(${di})">Añadir ejercicio</button>
+  </div>`).join(''):'<div class="card empty">Añade un día y después los ejercicios que quieras.</div>';
+}
+function addNewDay(){newDays.push({name:'Nuevo día',exercises:[]});renderNewDays()}
+function removeNewDay(i){newDays.splice(i,1);renderNewDays()}
+function addNewEx(di){newDays[di].exercises.push({name:'',sets:2,target:'2x10-15',rir:'2',rest_seconds:120,notes:''});renderNewDays()}
+function removeNewEx(di,ei){newDays[di].exercises.splice(ei,1);renderNewDays()}
+async function createRoutine(){
+  if(window.__routineSaving)return;
+  const name=$('rn').value.trim();
+  if(!name)return toast('Pon un nombre');
+  if(!newDays.length)return toast('Añade al menos un día');
+  if(newDays.some(d=>!d.name.trim()))return toast('Pon nombre a todos los días');
+  if(newDays.some(d=>d.exercises.some(e=>!e.name.trim())))return toast('Pon nombre a todos los ejercicios');
+  window.__routineSaving=true;
+  try{
+    const r=await db.from('routines').insert({owner_id:user.id,name,description:$('rd').value.trim()}).select().single();
+    if(r.error)throw r.error;
+    try{
+      for(let di=0;di<newDays.length;di++){
+        const d=newDays[di];
+        const q=await db.from('routine_days').insert({routine_id:r.data.id,name:d.name.trim(),day_order:di}).select().single();
+        if(q.error)throw q.error;
+        for(let ei=0;ei<d.exercises.length;ei++){
+          const e=d.exercises[ei];
+          const x=await db.from('routine_exercises').insert({
+            day_id:q.data.id,name:e.name.trim(),sets:Math.max(1,Number(e.sets)||1),
+            target:e.target||'',rir:e.rir===''||e.rir==null?null:Number(e.rir),
+            rest_seconds:Math.max(0,Number(e.rest_seconds)||0),exercise_order:ei,notes:e.notes||null
+          });
+          if(x.error)throw x.error;
+        }
+      }
+    }catch(e){
+      await db.from('routines').delete().eq('id',r.data.id).eq('owner_id',user.id);
+      throw e;
+    }
+    newDays=[];await reload();view('mine');toast('Rutina creada');
+  }catch(e){console.error('createRoutine:',e);toast('No se pudo guardar la rutina')}
+  finally{window.__routineSaving=false}
+}
+async function days(id){let d=await db.from('routine_days').select('id,name,day_order').eq('routine_id',id).order('day_order');if(d.error)throw d.error;for(let x of d.data||[]){let e=await db.from('routine_exercises').select('id,name,sets,target,rir,rest_seconds,exercise_order,notes').eq('day_id',x.id).order('exercise_order');if(e.error)throw e.error;x.exercises=e.data||[]}return d.data||[]}
+async function editRoutine(id){let r=routines.find(x=>x.id===id);editDays=await days(id);$('editor').innerHTML=`<div class="grid"><div><label>Nombre</label><input id="en" value="${esc(r.name)}"></div><div><label>Descripción</label><input id="ed" value="${esc(r.description||'')}"></div></div><div class="buttons" style="margin:12px 0"><button class="btn primary" onclick="saveEditor('${id}')">Guardar rutina</button><button class="btn" onclick="addDay()">Añadir día</button></div><div id="daysEditor"></div>`;renderEditor();openM('editModal')}
+function renderEditor(){let h='';editDays.forEach((d,di)=>{h+=`<div class="card"><div class="dayhead"><input value="${esc(d.name)}" onchange="editDays[${di}].name=this.value"><button class="btn danger" onclick="removeDay(${di})">Eliminar</button></div>${d.exercises.map((e,ei)=>`<div class="exercise"><div class="grid3"><div><label>Ejercicio</label><input value="${esc(e.name)}" onchange="editDays[${di}].exercises[${ei}].name=this.value"></div><div><label>Series</label><input type="number" min="1" value="${e.sets||1}" onchange="editDays[${di}].exercises[${ei}].sets=+this.value"></div><div><label>Descanso (min)</label><input type="number" min="0" step="0.5" value="${(e.rest_seconds||120)/60}" onchange="editDays[${di}].exercises[${ei}].rest_seconds=(+this.value||0)*60"></div></div><div class="grid" style="margin-top:8px"><div><label>Objetivo</label><input value="${esc(e.target||'')}" placeholder="2x10-15" onchange="editDays[${di}].exercises[${ei}].target=this.value"></div><div><label>RIR</label><input value="${esc(e.rir||'')}" onchange="editDays[${di}].exercises[${ei}].rir=this.value"></div></div><div style="margin-top:8px"><label>Notas</label><input value="${esc(e.notes||'')}" onchange="editDays[${di}].exercises[${ei}].notes=this.value"></div><div class="buttons" style="justify-content:flex-end;margin-top:7px"><button class="btn danger" onclick="removeEx(${di},${ei})">Eliminar ejercicio</button></div></div>`).join('')}<button class="btn" onclick="addEx(${di})">Añadir ejercicio</button></div>`});$('daysEditor').innerHTML=h||'<div class="empty">Añade un día.</div>'}
+function addDay(){editDays.push({id:null,name:'Nuevo día',day_order:editDays.length,exercises:[]});renderEditor()}function removeDay(i){if(confirm('¿Eliminar este día?')){editDays.splice(i,1);renderEditor()}}function addEx(di){editDays[di].exercises.push({id:null,name:'Nuevo ejercicio',sets:2,target:'2x10-15',rir:'2',rest_seconds:120,notes:''});renderEditor()}function removeEx(di,ei){editDays[di].exercises.splice(ei,1);renderEditor()}
+async function saveEditor(id){
+  if(window.__routineSaving)return;
+  const name=$('en').value.trim();
+  if(!name)return toast('Pon un nombre a la rutina');
+  if(editDays.some(d=>!d.name.trim()))return toast('Pon nombre a todos los días');
+  if(editDays.some(d=>d.exercises.some(e=>!e.name.trim())))return toast('Pon nombre a todos los ejercicios');
+  window.__routineSaving=true;
+  try{
+    const u=await db.from('routines').update({name,description:$('ed').value.trim(),updated_at:new Date().toISOString()}).eq('id',id).eq('owner_id',user.id);
+    if(u.error)throw u.error;
+    for(let di=0;di<editDays.length;di++){
+      const d=editDays[di];let did=d.id;
+      if(did){
+        const q=await db.from('routine_days').update({name:d.name.trim(),day_order:di}).eq('id',did).eq('routine_id',id);
+        if(q.error)throw q.error;
+      }else{
+        const q=await db.from('routine_days').insert({routine_id:id,name:d.name.trim(),day_order:di}).select().single();
+        if(q.error)throw q.error;did=q.data.id;d.id=did;
+      }
+      const old=await db.from('routine_exercises').select('id').eq('day_id',did);
+      if(old.error)throw old.error;
+      const keep=[];
+      for(let ei=0;ei<d.exercises.length;ei++){
+        const e=d.exercises[ei],payload={day_id:did,name:e.name.trim(),sets:Math.max(1,Number(e.sets)||1),target:e.target||'',rir:e.rir===''||e.rir==null?null:Number(e.rir),rest_seconds:Math.max(0,Number(e.rest_seconds)||0),exercise_order:ei,notes:e.notes||null};
+        if(e.id){
+          const q=await db.from('routine_exercises').update(payload).eq('id',e.id).eq('day_id',did);
+          if(q.error)throw q.error;keep.push(e.id);
+        }else{
+          const q=await db.from('routine_exercises').insert(payload).select().single();
+          if(q.error)throw q.error;e.id=q.data.id;keep.push(e.id);
+        }
+      }
+      const stale=(old.data||[]).map(x=>x.id).filter(x=>!keep.includes(x));
+      if(stale.length){
+        const q=await db.from('routine_exercises').delete().in('id',stale).eq('day_id',did);
+        if(q.error)throw q.error;
+      }
+    }
+    const all=await db.from('routine_days').select('id').eq('routine_id',id);
+    if(all.error)throw all.error;
+    const keepD=editDays.map(d=>d.id).filter(Boolean);
+    const staleD=(all.data||[]).map(x=>x.id).filter(x=>!keepD.includes(x));
+    if(staleD.length){
+      const ex=await db.from('routine_exercises').select('id').in('day_id',staleD);
+      if(ex.error)throw ex.error;
+      if(ex.data?.length){
+        const q=await db.from('routine_exercises').delete().in('id',ex.data.map(x=>x.id));
+        if(q.error)throw q.error;
+      }
+      const q=await db.from('routine_days').delete().in('id',staleD).eq('routine_id',id);
+      if(q.error)throw q.error;
+    }
+    await reload();closeM('editModal');renderMine();toast('Rutina guardada');
+  }catch(e){console.error('saveEditor:',e);toast('No se pudo guardar la rutina')}
+  finally{window.__routineSaving=false}
+}
+async function delRoutine(id){
+  if(window.__routineDeleting)return;
+  if(!user?.id)return toast('Debes iniciar sesión.');
+  if(!confirm('¿Eliminar esta rutina y TODO su contenido?'))return;
+  window.__routineDeleting=true;
+  try{
+    const r=await db.from('routines').delete().eq('id',id).eq('owner_id',user.id);
+    if(r.error)throw r.error;
+    const check=await db.from('routines').select('id').eq('id',id).maybeSingle();
+    if(check.error)throw check.error;
+    if(check.data)throw new Error('La rutina sigue existiendo después del borrado.');
+    await reload();renderMine();toast('Rutina eliminada completamente');
+  }catch(e){console.error('delRoutine:',e);toast('No se pudo eliminar la rutina: '+(e.message||'revisa los permisos'))}
+  finally{window.__routineDeleting=false}
+}
+async function openRoutine(id){
+  const r=routines.find(x=>x.id===id); workoutRoutine=r;
+  if(!r)return toast('Rutina no encontrada');
+  try{
+    const d=await days(id);
+    $('trainTitle').textContent=r.name;
+    $('trainSubtitle').textContent='Selecciona el día que vas a entrenar.';
+    $('trainBody').innerHTML=d.length?`
+      <div class="card">
+        <h3 style="margin-top:0">Días de entrenamiento</h3>
+        ${d.map(x=>`<button class="btn" style="width:100%;margin:6px 0;text-align:left" onclick="startWorkoutDay('${x.id}')">
+          <b>${esc(x.name)}</b><span class="muted" style="float:right">${x.exercises.length} ejercicios</span>
+        </button>`).join('')}
+      </div>`:
+      '<div class="empty">Esta rutina todavía no tiene días.</div>';
+    openM('trainModal');
+  }catch(e){console.error(e);toast('No se pudo abrir la rutina')}
+}
+
+let activeWorkout={day:null,exercises:[],sets:{}};
+
+async function loadHistory(){
+  const r=await db.from('workouts')
+    .select('id,user_id,variant,day,workout_date,data')
+    .eq('user_id',user.id)
+    .order('workout_date',{ascending:false});
+  if(r.error){console.error('history:',r.error);window.workoutHistory=[];return}
+  window.workoutHistory=r.data||[];
+}
+let selectedWorkoutIds = new Set();
+
+function updateHistorySelectionUI(){
+  document.querySelectorAll('.history-session').forEach(el=>{
+    const id=el.dataset.workoutId;
+    el.classList.toggle('history-selected', selectedWorkoutIds.has(String(id)));
+    const cb=el.querySelector('.history-check');
+    if(cb) cb.checked=selectedWorkoutIds.has(String(id));
+  });
+  const count=selectedWorkoutIds.size;
+  const countEl=$('historySelectedCount');
+  if(countEl) countEl.textContent=count?`${count} seleccionada${count===1?'':'s'}`:'Ninguna seleccionada';
+  const del=$('deleteSelectedHistory');
+  if(del) del.disabled=!count;
+}
+
+function toggleWorkoutSelection(id, checked){
+  id=String(id);
+  if(checked) selectedWorkoutIds.add(id);
+  else selectedWorkoutIds.delete(id);
+  updateHistorySelectionUI();
+}
+
+function toggleAllHistory(){
+  const h=window.workoutHistory||[];
+  if(!h.length) return;
+  const allSelected=h.every(x=>selectedWorkoutIds.has(String(x.id)));
+  if(allSelected) selectedWorkoutIds.clear();
+  else h.forEach(x=>selectedWorkoutIds.add(String(x.id)));
+  updateHistorySelectionUI();
+}
+
+function clearHistorySelection(){
+  selectedWorkoutIds.clear();
+  updateHistorySelectionUI();
+}
+
+async function deleteSelectedHistory(){
+  const ids=[...selectedWorkoutIds];
+  if(!ids.length) return toast('Selecciona al menos una sesión.');
+
+  if(!confirm(`¿Eliminar ${ids.length} sesión${ids.length===1?'':'es'} del historial?`)) return;
+
+  const del=$('deleteSelectedHistory');
+  if(del){ del.disabled=true; del.textContent='Borrando...'; }
+
+  try{
+    let failed=0;
+    for(const id of ids){
+      const r=await db.rpc('delete_my_workout',{p_workout_id:id});
+      if(r.error){
+        failed++;
+        console.error('delete_my_workout:',id,r.error);
+      }
+    }
+
+    await loadHistory();
+
+    const remaining=new Set((window.workoutHistory||[]).map(x=>String(x.id)));
+    selectedWorkoutIds=new Set(ids.filter(id=>remaining.has(String(id))));
+    showHistory();
+
+    if(failed===0 && selectedWorkoutIds.size===0){
+      toast(`${ids.length} sesión${ids.length===1?'':'es'} eliminada${ids.length===1?'':'s'}`);
+    }else if(selectedWorkoutIds.size){
+      toast('Algunas sesiones no se pudieron borrar.');
+    }else{
+      toast('Sesiones eliminadas');
+    }
+  }catch(e){
+    console.error(e);
+    toast('No se pudieron borrar las sesiones.');
+  }finally{
+    const b=$('deleteSelectedHistory');
+    if(b){ b.textContent='Eliminar seleccionadas'; }
+    updateHistorySelectionUI();
+  }
+}
+
+function showHistory(){
+  const h=window.workoutHistory||[];
+  $('trainTitle').textContent='Historial';
+  $('trainSubtitle').textContent='Tus sesiones guardadas';
+  if(!h.some(x=>selectedWorkoutIds.has(String(x.id)))) selectedWorkoutIds=new Set([...selectedWorkoutIds].filter(id=>h.some(x=>String(x.id)===id)));
+
+  $('trainBody').innerHTML = `
+    <div class="history-toolbar">
+      <div class="history-select-actions">
+        <button class="btn" type="button" onclick="toggleAllHistory()">Seleccionar todo</button>
+        <button class="btn" type="button" onclick="clearHistorySelection()">Limpiar selección</button>
+        <button id="deleteSelectedHistory" class="btn danger" type="button" onclick="deleteSelectedHistory()" disabled>Eliminar seleccionadas</button>
+      </div>
+      <div id="historySelectedCount" class="history-select-count">Ninguna seleccionada</div>
+    </div>
+    ${h.length?h.map((x,idx)=>{
+      const d=new Date(x.workout_date);
+      const data=x.data||{};
+      const exercises=Array.isArray(data.exercises)?data.exercises:[];
+      return `<details class="history-session card" data-workout-id="${esc(x.id)}">
+        <summary class="history-summary">
+          <div class="history-summary-main">
+            <input class="history-check" type="checkbox" aria-label="Seleccionar sesión" ${selectedWorkoutIds.has(String(x.id))?'checked':''}
+              onclick="event.stopPropagation()" onchange="toggleWorkoutSelection('${x.id}',this.checked)">
+            <div>
+              <b class="history-title">${esc(data.routine_name||'Entrenamiento')}</b>
+              <div class="muted">${esc(data.day_name||x.day||'')} · ${d.toLocaleDateString('es-ES')}</div>
+            </div>
+          </div>
+          <div class="history-summary-actions">
+            <button class="btn danger history-delete" onclick="event.preventDefault();event.stopPropagation();deleteWorkout('${x.id}')">Eliminar</button>
+            <span class="history-chevron">⌄</span>
+          </div>
+        </summary>
+        <div class="history-content">
+          ${exercises.length?exercises.map(e=>{
+            const target=e.target||'';
+            const plannedRir=(e.planned_rir!==null && e.planned_rir!==undefined && e.planned_rir!=='')?e.planned_rir:'—';
+            const sets=Array.isArray(e.sets)?e.sets:[];
+            return `<div class="history-exercise">
+              <div class="history-exercise-head">
+                <div>
+                  <b>${esc(e.name||'Ejercicio')}</b>
+                  <div class="history-objective">
+                    Objetivo: ${esc(target||'—')} · ${e.planned_sets||sets.length||1} series · RIR ${esc(String(plannedRir))}
+                  </div>
+                </div>
+              </div>
+              <div class="history-table">
+                <div class="history-row history-label">
+                  <span>Serie</span><span>KG</span><span>REPS</span><span>RIR</span>
+                </div>
+                ${sets.map(s=>`
+                  <div class="history-row">
+                    <span>${esc(String(s.set||''))}</span>
+                    <span>${esc(String(s.kg||'—'))}</span>
+                    <span>${esc(String(s.reps||'—'))}</span>
+                    <span>${esc(String(s.rir!==''&&s.rir!=null?s.rir:'—'))}</span>
+                  </div>`).join('')}
+              </div>
+              ${e.notes?`<div class="history-notes"><span>Notas:</span> ${esc(e.notes)}</div>`:''}
+
+              ${(()=>{
+                const all=window.workoutHistory||[];
+                const rid=data.routine_id||null;
+                const prev=all
+                  .filter(s=>String(s.id)!==String(x.id))
+                  .filter(s=>{
+                    const sd=s.data||{};
+                    const sameRoutine=rid
+                      ? String(sd.routine_id||'')===String(rid)
+                      : (sd.routine_name||'')===(data.routine_name||'');
+                    return sameRoutine &&
+                      new Date(s.workout_date||0)<new Date(x.workout_date||0) &&
+                      (sd.exercises||[]).some(pe=>String(pe.exercise_id||'')===String(e.exercise_id||''));
+                  })
+                  .sort((a,b)=>new Date(b.workout_date||0)-new Date(a.workout_date||0))[0];
+                if(!prev)return '';
+                const pe=(prev.data?.exercises||[]).find(pe=>String(pe.exercise_id||'')===String(e.exercise_id||''));
+                if(!pe)return '';
+                const ps=Array.isArray(pe.sets)?pe.sets:[];
+                return `<div class="history-notes" style="margin-top:8px"><span>Sesión anterior:</span> ${ps.map(s=>`${esc(String(s.kg||'—'))} kg × ${esc(String(s.reps||'—'))} · RIR ${esc(String(s.rir!==''&&s.rir!=null?s.rir:'—'))}`).join(' · ')}</div>`;
+              })()}
+            </div>`;
+          }).join(''):'<div class="muted" style="margin-top:12px">No hay ejercicios guardados en esta sesión.</div>'}
+        </div>
+      </details>`;
+    }).join(''):'<div class="empty">Todavía no tienes sesiones guardadas.</div>'}`;
+
+  updateHistorySelectionUI();
+}
+
+async function deleteWorkout(id){
+  if(window.__deletingWorkout)return;
+  const session=(window.workoutHistory||[]).find(x=>String(x.id)===String(id));
+  if(!session)return toast('Sesión no encontrada.');
+
+  const data=session.data||{};
+  const name=data.routine_name||'esta sesión';
+  const day=data.day_name||session.day||'';
+  const date=session.workout_date?new Date(session.workout_date).toLocaleDateString('es-ES'):'';
+  if(!confirm(`¿Eliminar ${name}${day?' · '+day:''}${date?' · '+date:''} del historial?`))return;
+
+  window.__deletingWorkout=true;
+  try{
+    const r=await db.rpc('delete_my_workout',{p_workout_id:id});
+    if(r.error)throw r.error;
+
+    await loadHistory();
+    if((window.workoutHistory||[]).some(x=>String(x.id)===String(id))){
+      throw new Error('La sesión sigue en el historial después de borrarla.');
+    }
+
+    selectedWorkoutIds.delete(String(id));
+    showHistory();
+    toast('Sesión eliminada');
+  }catch(e){
+    console.error('deleteWorkout:',e);
+    toast('No se pudo borrar la sesión: '+(e.message||'error'));
+  }finally{
+    window.__deletingWorkout=false;
+  }
+}
+
+
+function getPreviousExerciseSession(exerciseId){
+  const history=window.workoutHistory||[];
+  const routineId=workoutRoutine?.id||null;
+  const routineName=workoutRoutine?.name||'';
+
+  const candidates=history.filter(s=>{
+    const d=s.data||{};
+    const sameRoutine=routineId
+      ? String(d.routine_id||'')===String(routineId)
+      : String(d.routine_name||'')===String(routineName);
+    if(!sameRoutine)return false;
+    return Array.isArray(d.exercises) &&
+      d.exercises.some(e=>String(e.exercise_id||'')===String(exerciseId));
+  }).sort((a,b)=>{
+    const da=Date.parse(a.workout_date||a.data?.workout_date||0);
+    const db=Date.parse(b.workout_date||b.data?.workout_date||0);
+    return db-da;
+  });
+
+  const currentDate=Date.now();
+  for(const session of candidates){
+    const d=session.data||{};
+    const sessionDate=Date.parse(session.workout_date||d.workout_date||0);
+    // If this is the exact current workout record, skip it.
+    if(workoutRoutine?.id && String(d.routine_id||'')===String(workoutRoutine.id) &&
+       activeWorkout?.day?.id && String(d.routine_day_id||'')===String(activeWorkout.day.id) &&
+       sessionDate>=currentDate-24*60*60*1000){
+      continue;
+    }
+    const exercise=(d.exercises||[]).find(e=>String(e.exercise_id||'')===String(exerciseId));
+    if(exercise)return {exercise,date:new Date(session.workout_date||d.workout_date||0)};
+  }
+  return null;
+}
+
+function renderPreviousSession(exerciseId){
+  const prev=getPreviousExerciseSession(exerciseId);
+  if(!prev)return `<div class="previous-session">
+    <div class="previous-session-head"><span class="previous-session-title">Última sesión</span></div>
+    <div class="previous-empty">Todavía no hay un registro anterior de este ejercicio.</div>
+  </div>`;
+
+  const sets=Array.isArray(prev.exercise.sets)?prev.exercise.sets:[];
+  const date=!isNaN(prev.date)?prev.date.toLocaleDateString('es-ES'):'';
+  return `<div class="previous-session">
+    <div class="previous-session-head">
+      <span class="previous-session-title">Última sesión</span>
+      <span class="previous-session-date">${esc(date)}</span>
+    </div>
+    <div class="previous-session-sets">
+      ${sets.length?sets.map((s,i)=>{
+        const kg=s.kg!==''&&s.kg!=null?s.kg:'—';
+        const reps=s.reps!==''&&s.reps!=null?s.reps:'—';
+        const rir=s.rir!==''&&s.rir!=null?s.rir:'—';
+        return `<span class="previous-set">${i+1}. ${esc(String(kg))} kg × ${esc(String(reps))} · RIR ${esc(String(rir))}</span>`;
+      }).join(''):'<span class="previous-empty">Sin series registradas.</span>'}
+    </div>
+  </div>`;
+}
+
+async function startWorkoutDay(dayId){
+  try{
+    await loadHistory();
+    const d=await db.from('routine_days').select('id,name,day_order').eq('id',dayId).single();
+    if(d.error)throw d.error;
+    const x=await db.from('routine_exercises').select('id,name,sets,target,rir,rest_seconds,exercise_order,notes')
+      .eq('day_id',dayId).order('exercise_order');
+    if(x.error)throw x.error;
+    activeWorkout={day:d.data,exercises:x.data||[],sets:{}};
+    $('trainTitle').textContent=d.data.name;
+    $('trainSubtitle').textContent='Completa tus series y guarda tus datos.';
+    renderWorkoutDay();
+  }catch(e){console.error(e);toast('No se pudo cargar el entrenamiento')}
+}
+
+function renderWorkoutDay(){
+  const exs=activeWorkout.exercises;
+  if(!exs.length){
+    $('trainBody').innerHTML='<div class="empty">Este día no tiene ejercicios.</div>';
+    return;
+  }
+  $('trainBody').innerHTML=exs.map((e)=>{
+    const key=e.id;
+    const state=activeWorkout.sets[key]||Array.from({length:e.sets||1},()=>({kg:'',reps:'',rir:'',done:false}));
+    activeWorkout.sets[key]=state;
+    const plannedRir=(e.rir!==null&&e.rir!==undefined&&e.rir!=='')?e.rir:'—';
+    return `<div class="card">
+      <div class="dayhead">
+        <div>
+          <b>${esc(e.name)}</b>
+          <div class="history-objective" style="margin-top:5px">
+            Objetivo: ${esc(e.target||'—')} · ${e.sets||1} series · RIR ${esc(String(plannedRir))}
+          </div>
+          ${renderPreviousSession(e.id)}
+          
+        </div>
+      </div>
+      <div style="overflow:auto;margin-top:10px">
+        <div style="min-width:560px">
+          <div class="setrow" style="font-size:11px;color:var(--muted);grid-template-columns:45px 1fr 1fr 1fr 55px">
+            <span>Serie</span><span>KG</span><span>REPS</span><span>RIR</span><span>Hecha</span>
+          </div>
+          ${state.map((s,si)=>`
+            <div class="setrow" style="grid-template-columns:45px 1fr 1fr 1fr 55px">
+              <span>${si+1}</span>
+              <input inputmode="decimal" placeholder="0" value="${esc(s.kg)}" onchange="updateSet('${key}',${si},'kg',this.value)">
+              <input inputmode="numeric" placeholder="0" value="${esc(s.reps)}" onchange="updateSet('${key}',${si},'reps',this.value)">
+              <input inputmode="numeric" placeholder="0" min="0" max="10" value="${esc(s.rir)}" onchange="updateSet('${key}',${si},'rir',this.value)">
+              <button class="tick ${s.done?'done':''}" onclick="toggleSet('${key}',${si})">${s.done?'✓':'○'}</button>
+            </div>`).join('')}
+        </div>
+      </div>
+      <div style="margin-top:12px">
+        <label>Notas del ejercicio</label>
+        <textarea placeholder="Escribe aquí..." onchange="updateExerciseNote('${key}',this.value)">${esc(state.note||'')}</textarea>
+      </div>
+      <div class="rest-buttons">
+        <span class="muted">Descanso</span>
+        ${[2,3,4,5].map(m=>`<button class="btn" onclick="startRestTimer(${m*60})">${m}'</button>`).join('')}
+      </div>
+    </div>`;
+  }).join('')+`
+    <div id="restBox" class="rest-floating" style="display:none"></div>
+    <div class="buttons" style="justify-content:flex-end">
+      <button class="btn primary" onclick="saveWorkoutSession()">Guardar sesión</button>
+    </div>`;
+}
+
+function summarizePreviousExercise(previous){
+  if(!previous?.exercise)return null;
+  const sets=Array.isArray(previous.exercise.sets)?previous.exercise.sets:[];
+  const valid=sets.map(s=>({
+    kg:Number.parseFloat(s.kg),
+    reps:Number.parseFloat(s.reps),
+    rir:s.rir===''||s.rir==null?null:Number.parseFloat(s.rir),
+    done:!!s.done
+  })).filter(s=>Number.isFinite(s.kg)&&Number.isFinite(s.reps));
+
+  if(!valid.length)return null;
+  const completed=valid.filter(s=>s.done);
+  const pool=completed.length?completed:valid;
+  const best=pool.slice().sort((a,b)=>{
+    if(b.kg!==a.kg)return b.kg-a.kg;
+    return b.reps-a.reps;
+  })[0];
+  const totalVolume=pool.reduce((sum,s)=>sum+(s.kg*s.reps),0);
+  const rirVals=pool.map(s=>s.rir).filter(Number.isFinite);
+  const avgRir=rirVals.length?rirVals.reduce((a,b)=>a+b,0)/rirVals.length:null;
+  return {best,totalVolume,avgRir,sets:pool.length};
+}
+
+function updateSet(id,i,field,value){
+  const arr=activeWorkout.sets[id];
+  if(arr&&arr[i])arr[i][field]=value;
+}
+function updateExerciseNote(id,value){
+  const arr=activeWorkout.sets[id]||(activeWorkout.sets[id]=[]);
+  arr.note=value;
+}
+function toggleSet(id,i){
+  const arr=activeWorkout.sets[id]; if(!arr||!arr[i])return;
+  arr[i].done=!arr[i].done;
+  renderWorkoutDay();
+}
+let restTimer=null,restLeft=0;
+let restDrag={active:false,offsetX:0,offsetY:0};
+
+function startRestTimer(seconds){
+  clearInterval(restTimer);
+  restLeft=seconds;
+  const box=$('restBox');if(!box)return;
+
+  box.style.display='block';
+  box.style.left='';
+  box.style.top='';
+  box.style.right='24px';
+  box.style.bottom='24px';
+
+  const tick=()=>{
+    box.innerHTML=`
+      <div class="rest-header">
+        <div class="rest-drag-handle" title="Arrastra el cronómetro">DESCANSO</div>
+        <div class="rest-actions">
+          <button class="rest-mini" onclick="toggleRestMini()" title="Minimizar cronómetro">−</button>
+          <button class="rest-mini" onclick="stopRestTimer()" title="Cerrar">×</button>
+        </div>
+      </div>
+      <div class="rest-time">${String(Math.floor(restLeft/60)).padStart(2,'0')}:${String(restLeft%60).padStart(2,'0')}</div>
+      <button class="btn rest-stop" onclick="stopRestTimer()">Terminar</button>`;
+    if(restLeft<=0){
+      clearInterval(restTimer);
+      box.innerHTML='<div class="rest-header"><div class="rest-drag-handle" title="Arrastra el cronómetro">DESCANSO</div><div class="rest-actions"><button class="rest-mini" onclick="stopRestTimer()">×</button></div></div><b class="rest-finished">Descanso terminado</b>';
+      return;
+    }
+    restLeft--;
+  };
+
+  tick();
+  restTimer=setInterval(tick,1000);
+}
+
+function toggleRestMini(){
+  const box=$('restBox');
+  if(!box)return;
+  box.classList.toggle('rest-mini-mode');
+  const mini=box.classList.contains('rest-mini-mode');
+  box.setAttribute('aria-label',mini?'Cronómetro minimizado':'Cronómetro de descanso');
+}
+function stopRestTimer(){
+  clearInterval(restTimer);
+  const b=$('restBox');
+  if(b)b.style.display='none';
+}
+
+
+
+async function saveWorkoutSession(){
+  if(window.__savingWorkout)return;
+  if(!user?.id)return toast('Debes iniciar sesión.');
+  if(!workoutRoutine?.id||!activeWorkout?.day?.id)return toast('No hay un entrenamiento activo.');
+  const currentKey=`${user.id}|${workoutRoutine.id}|${activeWorkout.day.id}|${new Date().toISOString().slice(0,10)}`;
+  if(window.__lastSavedWorkoutKey===currentKey)return toast('Este entrenamiento ya está guardado hoy.');
+
+  window.__savingWorkout=true;
+  try{
+    const sessionData={
+      routine_id:workoutRoutine.id,
+      routine_day_id:activeWorkout.day.id,
+      routine_name:workoutRoutine.name||'Entrenamiento',
+      day_name:activeWorkout.day.name||'',
+      workout_date:new Date().toISOString(),
+      exercises:(activeWorkout.exercises||[]).map(e=>{
+        const st=activeWorkout.sets[e.id]||[];
+        return {
+          exercise_id:e.id,name:e.name,target:e.target||'',
+          planned_sets:e.sets||1,
+          planned_rir:(e.rir!==null&&e.rir!==undefined&&e.rir!=='')?e.rir:null,
+          rest_minutes:(e.rest_seconds||0)/60,
+          notes:st.note||'',
+          sets:st.map((s,i)=>({
+            set:i+1,kg:s.kg||'',reps:s.reps||'',rir:s.rir||'',done:!!s.done
+          }))
+        };
+      })
+    };
+
+    const payload={
+      user_id:user.id,
+      variant:activeWorkout.day.name||'',
+      day:activeWorkout.day.name||'',
+      workout_date:new Date().toISOString().slice(0,10),
+      data:sessionData
+    };
+
+    const r=await db.from('workouts').insert(payload).select().single();
+    if(r.error)throw r.error;
+
+    // Mark the current workout as saved so a second click cannot create a duplicate.
+    window.__lastSavedWorkoutKey=
+      `${user.id}|${workoutRoutine.id}|${activeWorkout.day.id}|${payload.workout_date}`;
+
+    toast('Sesión guardada correctamente');
+    await loadHistory();
+    showHistory();
+  }catch(e){
+    console.error('saveWorkoutSession:',e);
+    toast('No se pudo guardar la sesión: '+(e.message||'revisa la tabla workouts'));
+  }finally{
+    window.__savingWorkout=false;
+  }
+}
+
+
+function shareHeaderOpen(){
+  if(!routines.length)return toast('Primero crea una rutina');
+  openShare(routines[0].id);
+}
+
+async function openShare(routineId){
+  const r=routines.find(x=>x.id===routineId);
+  if(!r)return toast('Rutina no encontrada.');
+
+  $('shareTitle').textContent=`Compartir · ${r.name}`;
+  $('shareForm').innerHTML=`
+    <div class="grid">
+      <div>
+        <label>Límite de usos</label>
+        <select id="shareUses">
+          <option value="1">1 uso</option>
+          <option value="5">5 usos</option>
+          <option value="10">10 usos</option>
+          <option value="0">Ilimitado</option>
+        </select>
+      </div>
+      <div>
+        <label>Caducidad</label>
+        <select id="shareExpiry">
+          <option value="0">Sin caducidad</option>
+          <option value="1">24 horas</option>
+          <option value="7">7 días</option>
+          <option value="30">30 días</option>
+        </select>
+      </div>
+    </div>
+    <div class="buttons" style="justify-content:flex-end;margin-top:14px">
+      <button class="btn primary" onclick="createShareCode('${routineId}')">Generar código</button>
+    </div>
+    <div id="shareResult" style="margin-top:14px"></div>`;
+  openM('shareModal');
+}
+
+async function createShareCode(routineId){
+  if(window.__shareBusy) return;
+  window.__shareBusy = true;
+  const btns=document.querySelectorAll('#shareModal button');
+  btns.forEach(b=>b.disabled=true);
+  try{
+    if(!user?.id) return toast('Debes iniciar sesión.');
+    if(!routineId) return toast('No se ha seleccionado una rutina.');
+
+    const uses=Number($('shareUses')?.value ?? 1);
+    const days=Number($('shareExpiry')?.value ?? 0);
+    const expires=days ? new Date(Date.now()+days*86400000).toISOString() : null;
+
+    if(!Number.isInteger(uses) || uses < 0)
+      return toast('El límite de usos no es válido.');
+
+    const r=await db.rpc('create_routine_share_code',{
+      p_routine_id:routineId,
+      p_max_uses:uses,
+      p_expires_at:expires
+    });
+
+    if(r.error){
+      console.error('create share code:',r.error);
+      return toast(r.error.message || 'No se pudo generar el código.');
+    }
+
+    const row=Array.isArray(r.data) ? r.data[0] : r.data;
+    const value=row?.code ?? row;
+    if(!value) return toast('Supabase no devolvió ningún código.');
+
+    const result=$('shareResult');
+    if(result) result.innerHTML=`
+      <div class="card" style="text-align:center">
+        <div class="muted">Código de acceso</div>
+        <div style="font-size:30px;font-weight:800;letter-spacing:4px;margin:8px 0">${esc(value)}</div>
+        <div class="muted">Comparte este código con tu cliente.</div>
+      </div>`;
+  }catch(e){
+    console.error('createShareCode unexpected error:',e);
+    toast(e?.message || 'No se pudo generar el código.');
+  }finally{
+    window.__shareBusy=false;
+    btns.forEach(b=>b.disabled=false);
+  }
+}
+
+
+async function removeSharedRoutine(assignmentId, routineName){
+  if(window.__removeSharedBusy) return;
+  const ok = confirm(
+    `¿Quieres dejar de tener "${routineName}" en tus rutinas compartidas?\n\n` +
+    `La rutina no se eliminará para el entrenador.`
+  );
+  if(!ok) return;
+
+  window.__removeSharedBusy = true;
+  try{
+    const r = await db
+      .from('routine_assignments')
+      .delete()
+      .eq('id', assignmentId)
+      .eq('client_id', user.id);
+
+    if(r.error) throw r.error;
+
+    await reload();
+    await renderShared();
+    toast('Rutina eliminada de tus rutinas compartidas');
+  }catch(e){
+    console.error('remove shared routine:', e);
+    toast(e?.message || 'No se pudo eliminar la rutina.');
+  }finally{
+    window.__removeSharedBusy = false;
+  }
+}
+
+async function renderShared(){
+  let h=`<div class="card">
+    <h2 style="margin:0 0 4px">Rutinas compartidas</h2>
+    <div class="muted">Rutinas que un entrenador te ha asignado.</div>
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+      <input id="redeemCode" placeholder="Código SIMPLE" style="flex:1;min-width:180px;text-transform:uppercase">
+      <button class="btn primary" onclick="redeemShareCode()">Añadir rutina</button>
+    </div>
+  </div>`;
+
+  for(const a of assignments){
+    const r=await db.from('routines').select('id,name,description').eq('id',a.trainer_routine_id).maybeSingle();
+    if(r.data)h+=`<div class="card routine">
+      <div><h3>${esc(r.data.name)}</h3><div class="muted">${esc(r.data.description||'')}</div></div>
+      <div class="buttons">
+        <button class="btn primary" onclick="openSharedRoutine('${r.data.id}')">Abrir</button>
+        <button class="btn danger" onclick='removeSharedRoutine(${JSON.stringify(a.id)},${JSON.stringify(r.data.name||'')})'>Eliminar</button>
+      </div>
+    </div>`;
+  }
+  $('shared').innerHTML=h;
+}
+
+async function openSharedRoutine(id){
+  const r=await db.from('routines').select('id,name,description,share_code,source_routine_id,owner_id,created_at').eq('id',id).maybeSingle();
+  if(r.error||!r.data)return toast('No se pudo abrir la rutina compartida.');
+  const original=r.data;
+  workoutRoutine=original;
+  try{
+    const d=await days(id);
+    $('trainTitle').textContent=original.name;
+    $('trainSubtitle').textContent='Rutina compartida por tu entrenador.';
+    $('trainBody').innerHTML=d.length?`
+      <div class="card">
+        <h3 style="margin-top:0">Días de entrenamiento</h3>
+        ${d.map(x=>`<button class="btn" style="width:100%;margin:6px 0;text-align:left" onclick="startWorkoutDay('${x.id}')">
+          <b>${esc(x.name)}</b><span class="muted" style="float:right">${x.exercises.length} ejercicios</span>
+        </button>`).join('')}
+      </div>`:'<div class="empty">Esta rutina todavía no tiene días.</div>';
+    openM('trainModal');
+  }catch(e){console.error(e);toast('No se pudo abrir la rutina')}
+}
+
+async function redeemShareCode(){
+  if(window.__redeemBusy) return;
+  const input=$('redeemCode');
+  const code=(input?.value||'').trim().toUpperCase();
+  if(!code)return toast('Introduce un código.');
+
+  const btn=input?.parentElement?.querySelector('button');
+  window.__redeemBusy = true;
+  if(btn) btn.disabled=true;
+  try{
+    const r=await db.rpc('redeem_routine_share_code',{p_code:code});
+    if(r.error) throw r.error;
+    if(input) input.value='';
+    await reload();
+    view('shared');
+    toast('Rutina añadida correctamente');
+  }catch(e){
+    console.error('redeem code:',e);
+    toast(e?.message||'Código no válido.');
+  }finally{
+    window.__redeemBusy=false;
+    if(btn) btn.disabled=false;
+  }
+}
+
+(async()=>{
+  try{
+    const s=await db.auth.getSession();
+
+    if(s.error){
+      console.error('Session error:',s.error);
+      msg('No se pudo comprobar la sesión.');
+      return;
+    }
+
+    if(s.data?.session){
+      // Tras una recarga usamos el rol real guardado en profiles.
+      const u=await db.auth.getUser();
+      if(u.data?.user){
+        user=u.data.user;
+        await start(null);
+      }
+    }
+  }catch(e){
+    console.error('Init error:',e);
+    msg(e?.message || 'No se pudo conectar con Supabase.');
+  }
+})();
+</script><script>
+// Protección contra dobles clics en acciones sensibles.
+document.addEventListener('click', function(e){
+  const btn=e.target.closest('button');
+  if(!btn || btn.dataset.keepEnabled==='true') return;
+  if(!(btn.dataset.action || btn.type==='submit' || btn.classList.contains('primary'))) return;
+  if(btn.dataset.robustClick==='1'){
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    return;
+  }
+  btn.dataset.robustClick='1';
+  setTimeout(()=>btn.dataset.robustClick='0',900);
+}, true);
+</script>
+<script>
+window.addEventListener('unhandledrejection', e=>{ console.error('Unhandled promise rejection:',e.reason); });
+window.addEventListener('error', e=>{ console.error('Unhandled error:',e.error||e.message); });
+</script>
+</body></html>
