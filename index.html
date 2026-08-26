@@ -296,14 +296,18 @@ async function requestPasswordReset(){
   if(!email){msg('Introduce primero tu correo electrónico.');$('email').focus();return;}
   const btn=$('forgotBtn');btn.disabled=true;btn.textContent='Enviando...';
   try{
-    const r=await db.auth.resetPasswordForEmail(email,{redirectTo:APP_URL});
+    const r=await db.auth.resetPasswordForEmail(email,{redirectTo:APP_URL+'?reset=1'});
     if(r.error)throw r.error;
     msg('Te hemos enviado un correo para restablecer la contraseña.',true);
   }catch(e){console.error('Password reset request:',e);msg(e?.message||'No se pudo enviar el correo de recuperación.');}
   finally{btn.disabled=false;btn.textContent='¿Has olvidado tu contraseña?';}
 }
 function openPasswordReset(){
-  $('newPassword').value='';$('newPassword2').value='';setResetMsg('');openM('resetModal');
+  $('newPassword').value='';
+  $('newPassword2').value='';
+  setResetMsg('');
+  openM('resetModal');
+  try{window.history.replaceState({},document.title,window.location.origin+window.location.pathname);}catch(_){}
   setTimeout(()=>$('newPassword').focus(),50);
 }
 async function updatePassword(){
@@ -663,8 +667,20 @@ async function bootstrapAuthSession(){
 (async()=>{ await bootstrapAuthSession(); })();
 
 db.auth.onAuthStateChange(async (event, session)=>{
+  if(event==='PASSWORD_RECOVERY'){
+    if(session?.user) user=session.user;
+    openPasswordReset();
+    return;
+  }
   if(!session?.user) return;
   if(event==='SIGNED_IN' || event==='INITIAL_SESSION'){
+    const recoveryMarker=new URLSearchParams(window.location.search).get('reset')==='1';
+    const recoveryHash=new URLSearchParams((window.location.hash||'').replace(/^#/,'')).get('type')==='recovery';
+    if(recoveryMarker || recoveryHash){
+      user=session.user;
+      openPasswordReset();
+      return;
+    }
     try{
       user=session.user;
       profile=await finishConfirmedSignup();
@@ -2169,8 +2185,9 @@ async function redeemShareCode(){
       return;
     }
 
-    const hashParams=new URLSearchParams((window.location.hash||'').replace(/^#/,'') );
-    if(hashParams.get('type')==='recovery'){
+    const hashParams=new URLSearchParams((window.location.hash||'').replace(/^#/,' '));
+    const isRecovery=new URLSearchParams(window.location.search).get('reset')==='1' || hashParams.get('type')==='recovery';
+    if(isRecovery){
       if(s.data?.session?.user) user=s.data.session.user;
       openPasswordReset();
       return;
