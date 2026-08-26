@@ -1893,6 +1893,11 @@ function formatStipulatedRest(e){
   return rem?`${min}:${String(rem).padStart(2,'0')}`:`${min}'`;
 }
 function applyPresetLoads(exercise, state){
+  // Las cargas predefinidas pertenecen únicamente a la rutina PPL-UL / VLC.
+  // XTV y UPPER-LOWER-FULL BODY empiezan KG/REPS/RIR vacíos.
+  const routineName=String(workoutRoutine?.name||'').trim().toLowerCase();
+  if(!routineName.includes('vlc'))return false;
+
   const preset=routinePresetForExercise(exercise?.name);
   if(!preset?.sets?.length)return false;
   let changed=false;
