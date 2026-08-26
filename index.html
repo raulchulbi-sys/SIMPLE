@@ -191,13 +191,32 @@
     <span>👤 Cliente</span>
   </label>
 </div>
-<input id="email" type="email" placeholder="Correo electrónico"><input id="password" type="password" placeholder="Contraseña"><button type="button" id="authBtn" class="btn primary">Iniciar sesión</button><button type="button" id="authSwitch" class="btn">Crear cuenta</button><div id="authMsg" class="msg"></div></div></div>
+<input id="email" type="email" placeholder="Correo electrónico"><input id="password" type="password" placeholder="Contraseña"><button type="button" id="forgotBtn" class="btn" style="margin-top:8px">¿Has olvidado tu contraseña?</button><button type="button" id="authBtn" class="btn primary">Iniciar sesión</button><button type="button" id="authSwitch" class="btn">Crear cuenta</button><div id="authMsg" class="msg"></div></div></div>
 <div id="app" style="display:none"><div class="wrap"><header><div><h1>SIMPLE</h1><div class="sub"><span id="role"></span> · <span id="mail"></span></div></div><div class="actions"><button class="btn" onclick="shareHeaderOpen()">Compartir</button><button class="btn" onclick="logout()">Salir</button></div></header>
 <div id="tabs" class="tabs"></div>
 <div id="mine"></div>
 <div id="new" style="display:none"></div>
 <div id="shared" style="display:none"></div>
 <div id="clients" style="display:none"></div></div></div>
+<div id="resetModal" class="modal center">
+  <div class="sheet">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+      <div>
+        <h2 style="margin:0">Cambiar contraseña</h2>
+        <div class="muted">Escribe una nueva contraseña para tu cuenta.</div>
+      </div>
+      <button class="btn" type="button" onclick="closeM('resetModal')">Cerrar</button>
+    </div>
+    <div style="margin-top:14px">
+      <label>Nueva contraseña</label>
+      <input id="newPassword" type="password" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+      <label style="margin-top:10px">Repite la contraseña</label>
+      <input id="newPassword2" type="password" placeholder="Repite la contraseña" autocomplete="new-password">
+      <button id="resetPasswordBtn" type="button" class="btn primary" style="width:100%;margin-top:12px" onclick="updatePassword()">Cambiar contraseña</button>
+      <div id="resetMsg" class="msg"></div>
+    </div>
+  </div>
+</div>
 <div id="editModal" class="modal center"><div class="sheet"><div style="display:flex;justify-content:space-between;align-items:center"><h2 style="margin:0">Editar rutina</h2><button class="btn" onclick="closeM('editModal')">Cerrar</button></div><div id="editor"></div></div></div>
 <div id="clientProgressModal" class="modal center">
   <div class="sheet">
@@ -267,6 +286,43 @@ let user=null,profile=null,routines=[],assignments=[],editDays=[];let mode='logi
 const $=id=>document.getElementById(id),esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
 function toast(x){$('toast').textContent=x;$('toast').style.display='block';clearTimeout(window._t);window._t=setTimeout(()=>$('toast').style.display='none',1800)}function closeM(id){$(id).classList.remove('show')}function openM(id){$(id).classList.add('show')}
 function msg(x,ok=false){$('authMsg').textContent=x;$('authMsg').className='msg '+(ok?'ok':'error')}function authToggle(){mode=mode==='login'?'signup':'login';$('authBtn').textContent=mode==='login'?'Iniciar sesión':'Crear cuenta';$('authSwitch').textContent=mode==='login'?'Crear cuenta':'Ya tengo una cuenta';$('authText').textContent=mode==='login'?'Accede a tus rutinas y entrenamiento.':'Crea tu cuenta y empieza desde cero.';msg('')}
+
+function setResetMsg(text,ok=false){
+  const el=$('resetMsg');
+  if(el){el.textContent=text;el.className='msg '+(ok?'ok':'error');}
+}
+async function requestPasswordReset(){
+  const email=$('email').value.trim();
+  if(!email){msg('Introduce primero tu correo electrónico.');$('email').focus();return;}
+  const btn=$('forgotBtn');btn.disabled=true;btn.textContent='Enviando...';
+  try{
+    const r=await db.auth.resetPasswordForEmail(email,{redirectTo:APP_URL});
+    if(r.error)throw r.error;
+    msg('Te hemos enviado un correo para restablecer la contraseña.',true);
+  }catch(e){console.error('Password reset request:',e);msg(e?.message||'No se pudo enviar el correo de recuperación.');}
+  finally{btn.disabled=false;btn.textContent='¿Has olvidado tu contraseña?';}
+}
+function openPasswordReset(){
+  $('newPassword').value='';$('newPassword2').value='';setResetMsg('');openM('resetModal');
+  setTimeout(()=>$('newPassword').focus(),50);
+}
+async function updatePassword(){
+  const p1=$('newPassword').value,p2=$('newPassword2').value,btn=$('resetPasswordBtn');
+  if(p1.length<6){setResetMsg('La contraseña debe tener al menos 6 caracteres.');return;}
+  if(p1!==p2){setResetMsg('Las contraseñas no coinciden.');return;}
+  btn.disabled=true;btn.textContent='Guardando...';
+  try{
+    const r=await db.auth.updateUser({password:p1});
+    if(r.error)throw r.error;
+    setResetMsg('Contraseña cambiada correctamente.',true);toast('Contraseña actualizada');
+    setTimeout(async()=>{
+      closeM('resetModal');await db.auth.signOut();$('app').style.display='none';$('auth').style.display='flex';
+      mode='login';$('authBtn').textContent='Iniciar sesión';$('authSwitch').textContent='Crear cuenta';
+      $('authText').textContent='Accede a tus rutinas y entrenamiento.';msg('Contraseña actualizada. Ya puedes iniciar sesión.',true);
+    },900);
+  }catch(e){console.error('Password update:',e);setResetMsg(e?.message||'No se pudo cambiar la contraseña.');}
+  finally{btn.disabled=false;btn.textContent='Cambiar contraseña';}
+}
 let selectedRole='client';
 
 function selectRole(role){
@@ -502,6 +558,7 @@ async function authSubmit(){
 }
 
 $('authBtn').addEventListener('click',authSubmit);
+$('forgotBtn').addEventListener('click',requestPasswordReset);
 $('authSwitch').addEventListener('click',()=>{
   mode=mode==='login'?'signup':'login';
   $('authBtn').textContent=mode==='login'?'Iniciar sesión':'Crear cuenta';
@@ -2109,6 +2166,13 @@ async function redeemShareCode(){
     if(s.error){
       console.error('Session error:',s.error);
       msg('No se pudo comprobar la sesión.');
+      return;
+    }
+
+    const hashParams=new URLSearchParams((window.location.hash||'').replace(/^#/,'') );
+    if(hashParams.get('type')==='recovery'){
+      if(s.data?.session?.user) user=s.data.session.user;
+      openPasswordReset();
       return;
     }
 
