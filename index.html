@@ -184,6 +184,9 @@
   }
 }
 
+
+.history-edit-input{width:100%;box-sizing:border-box;min-width:0;padding:8px 6px;border:1px solid var(--border);border-radius:8px;background:var(--panel);color:var(--text)}
+.history-edit-note{width:100%;box-sizing:border-box;min-height:70px;padding:9px;border:1px solid var(--border);border-radius:8px;background:var(--panel);color:var(--text);resize:vertical}
 </style>
 </head>
 <body>
@@ -760,7 +763,8 @@ function getProgressExercises(sessions){
       Array.isArray(s?.exercises)?s.exercises:[];
     ex.forEach(e=>{
       const name=String(e?.name||e?.exercise_name||'').trim();
-      if(name&&!seen.has(name)){seen.add(name);names.push(name);}
+      const key=name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+      if(name&&!seen.has(key)){seen.add(key);names.push(name);}
     });
   });
   return names.sort((a,b)=>a.localeCompare(b,'es',{sensitivity:'base'}));
@@ -771,7 +775,9 @@ function getExercisePoints(sessions,exerciseName,metric){
   return ordered.map((s,idx)=>{
     const exs=Array.isArray(s?.data?.exercises)?s.data.exercises:
       Array.isArray(s?.exercises)?s.exercises:[];
-    const e=exs.find(x=>String(x?.name||x?.exercise_name||'').trim()===exerciseName);
+    const normalizeExerciseName=v=>String(v||'').trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+    const targetExerciseName=normalizeExerciseName(exerciseName);
+    const e=exs.find(x=>normalizeExerciseName(x?.name||x?.exercise_name)===targetExerciseName);
     if(!e)return null;
     const sets=Array.isArray(e?.sets)?e.sets:
       Array.isArray(e?.series)?e.series:[];
@@ -943,7 +949,11 @@ function renderClientProgressChart(){
   const pointsSvg=clean.map((p,i)=>{
     const dateText=p.date.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'2-digit'});
     const rirText=Number.isFinite(p.rir)?`${Math.round(Number(p.rir))}`:'—';
-    const detail=`${dateText} - 1RM estimado: ${fmt(p.value)} kg - RIR ${rirText}`;
+    const metricText=progressMetricLabel(metric)==='Peso (kg)' ? `${fmt(p.value)} kg`
+      : progressMetricLabel(metric)==='Repeticiones' ? `${fmt(p.value)} reps`
+      : progressMetricLabel(metric)==='RIR medio' ? `${fmt(p.value)} RIR`
+      : `${fmt(p.value)} kg`;
+    const detail=`${dateText} - ${progressMetricLabel(metric)}: ${metricText} - RIR ${rirText}`;
     return `<g tabindex="0" role="button" aria-label="${esc(detail)}" data-progress-point="${i}" style="cursor:pointer">
       <circle cx="${x(i)}" cy="${y(p.value)}" r="8" fill="currentColor"/>
       <text x="${x(i)}" y="${H-24}" text-anchor="middle" font-size="10" fill="currentColor" opacity=".7">${esc(p.date.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit'}))}</text>
@@ -968,7 +978,11 @@ function renderClientProgressChart(){
       const detail=$('clientProgressPointDetail');
       if(detail){
         detail.style.display='block';
-        detail.innerHTML=`<span class="point-date">${esc(dateText)}</span> - 1RM estimado: ${esc(fmt(p.value))} kg - <span class="point-rir">RIR ${esc(rirText)}</span>`;
+        const metricText=metric==='weight' ? `${fmt(p.value)} kg`
+          : metric==='reps' ? `${fmt(p.value)} reps`
+          : metric==='rir' ? `${fmt(p.value)} RIR`
+          : `${fmt(p.value)} kg`;
+        detail.innerHTML=`<span class="point-date">${esc(dateText)}</span> - ${esc(progressMetricLabel(metric))}: ${esc(metricText)} - <span class="point-rir">RIR ${esc(rirText)}</span>`;
       }
     };
     node.addEventListener('click',showPoint);
@@ -1021,10 +1035,15 @@ async function openRoutineProgress(routineId){
   openM('clientProgressModal');
   try{
     const r=await db.from('workouts').select('id,user_id,variant,day,workout_date,data')
-      .eq('user_id',user.id).eq('data->>routine_id',String(routineId))
+      .eq('user_id',user.id)
       .order('workout_date',{ascending:false});
     if(r.error)throw r.error;
-    const sessions=r.data||[];
+    const requestedRoutineId=String(routineId);
+    const sessions=(r.data||[]).filter(session=>{
+      const d=session?.data||{};
+      const rid=d.routine_id ?? d.routineId ?? null;
+      return rid!=null && String(rid)===requestedRoutineId;
+    });
     if(!sessions.length){
       body.innerHTML='<div class="empty">Todavía no tienes sesiones registradas de esta rutina.</div>';
       subtitle.textContent='0 sesiones registradas';
@@ -1614,6 +1633,121 @@ async function deleteSelectedHistory(){
   }
 }
 
+
+async function editWorkout(id){
+  if(window.__editingWorkout)return;
+  const session=(window.workoutHistory||[]).find(x=>String(x.id)===String(id));
+  if(!session)return toast('Sesión no encontrada.');
+
+  const data=session.data||{};
+  const exercises=Array.isArray(data.exercises)?data.exercises:[];
+  window.__editingWorkout=id;
+
+  $('trainTitle').textContent='Editar sesión';
+  $('trainSubtitle').textContent=`${data.routine_name||'Entrenamiento'} · ${data.day_name||session.day||''} · ${new Date(session.workout_date).toLocaleDateString('es-ES')}`;
+
+  $('trainBody').innerHTML=`
+    <div class="card">
+      <div class="muted" style="margin-bottom:14px">
+        Corrige KG, repeticiones, RIR o las notas. La fecha de la sesión no cambia.
+      </div>
+      ${exercises.map((e,ei)=>{
+        const sets=Array.isArray(e.sets)?e.sets:[];
+        return `<div class="history-exercise" style="margin-bottom:18px">
+          <div class="history-exercise-head">
+            <div>
+              <b>${esc(e.name||'Ejercicio')}</b>
+              <div class="history-objective">
+                Objetivo: ${esc(e.target||'—')} · ${e.planned_sets||sets.length||1} series · RIR ${esc(String(e.planned_rir??'0'))}
+              </div>
+            </div>
+          </div>
+          <div class="history-table">
+            <div class="history-row history-label">
+              <span>Serie</span><span>KG</span><span>REPS</span><span>RIR</span>
+            </div>
+            ${sets.map((set,si)=>`
+              <div class="history-row">
+                <span>${esc(String(set.set??si+1))}</span>
+                <input class="history-edit-input" inputmode="decimal"
+                  data-edit-ex="${ei}" data-edit-set="${si}" data-edit-field="kg"
+                  value="${esc(set.kg??'')}">
+                <input class="history-edit-input" inputmode="numeric" min="0"
+                  data-edit-ex="${ei}" data-edit-set="${si}" data-edit-field="reps"
+                  value="${esc(set.reps??'')}">
+                <input class="history-edit-input" inputmode="numeric" min="0" max="10"
+                  data-edit-ex="${ei}" data-edit-set="${si}" data-edit-field="rir"
+                  value="${esc(set.rir??'')}">
+              </div>`).join('')}
+          </div>
+          <div style="margin-top:10px">
+            <label>Notas del ejercicio</label>
+            <textarea class="history-edit-note" data-edit-ex="${ei}">${esc(e.notes??'')}</textarea>
+          </div>
+        </div>`;
+      }).join('')}
+      <div class="buttons" style="justify-content:flex-end;gap:8px">
+        <button class="btn" type="button" onclick="cancelEditWorkout('${esc(id)}')">Cancelar</button>
+        <button class="btn primary" type="button" onclick="saveEditedWorkout('${esc(id)}')">Guardar cambios</button>
+      </div>
+    </div>`;
+}
+
+function cancelEditWorkout(id){
+  window.__editingWorkout=null;
+  showHistory();
+  const el=document.querySelector(`[data-workout-id="${CSS.escape(String(id))}"]`);
+  if(el)el.open=true;
+}
+
+async function saveEditedWorkout(id){
+  if(window.__savingEditedWorkout)return;
+  const session=(window.workoutHistory||[]).find(x=>String(x.id)===String(id));
+  if(!session)return toast('Sesión no encontrada.');
+
+  window.__savingEditedWorkout=true;
+  try{
+    const data=JSON.parse(JSON.stringify(session.data||{}));
+    const exercises=Array.isArray(data.exercises)?data.exercises:[];
+
+    document.querySelectorAll('.history-edit-input').forEach(input=>{
+      const ei=Number(input.dataset.editEx);
+      const si=Number(input.dataset.editSet);
+      const field=input.dataset.editField;
+      if(!exercises[ei]||!Array.isArray(exercises[ei].sets)||!exercises[ei].sets[si])return;
+      exercises[ei].sets[si][field]=input.value;
+    });
+
+    document.querySelectorAll('.history-edit-note').forEach(input=>{
+      const ei=Number(input.dataset.editEx);
+      if(exercises[ei])exercises[ei].notes=String(input.value??'');
+    });
+
+    data.exercises=exercises;
+
+    // Update only the current user's own workout row.
+    const r=await db.from('workouts')
+      .update({data})
+      .eq('id',id)
+      .eq('user_id',user.id)
+      .select('id,user_id,variant,day,workout_date,data')
+      .single();
+
+    if(r.error)throw r.error;
+
+    window.__editingWorkout=null;
+    await loadHistory(workoutRoutine?.id);
+    showHistory();
+    const el=document.querySelector(`[data-workout-id="${CSS.escape(String(id))}"]`);
+    if(el)el.open=true;
+    toast('Cambios guardados correctamente');
+  }catch(e){
+    console.error('saveEditedWorkout:',e);
+    toast('No se pudieron guardar los cambios: '+(e.message||'error'));
+  }finally{
+    window.__savingEditedWorkout=false;
+  }
+}
 function showHistory(){
   const h=window.workoutHistory||[];
   $('trainTitle').textContent='Historial';
@@ -1644,6 +1778,7 @@ function showHistory(){
             </div>
           </div>
           <div class="history-summary-actions">
+            <button class="btn" onclick="event.preventDefault();event.stopPropagation();editWorkout('${x.id}')">Editar</button>
             <button class="btn danger history-delete" onclick="event.preventDefault();event.stopPropagation();deleteWorkout('${x.id}')">Eliminar</button>
             <span class="history-chevron">⌄</span>
           </div>
@@ -1799,23 +1934,110 @@ function renderPreviousSession(exerciseId){
   </div>`;
 }
 
+
+function workoutNotesKey(){
+  return user?.id && workoutRoutine?.id && activeWorkout?.day?.id
+    ? `simple_routine_notes_v3:${user.id}:${workoutRoutine.id}:${activeWorkout.day.id}`
+    : null;
+}
+
 async function startWorkoutDay(dayId){
   try{
-    await loadHistory(workoutRoutine?.id);
-    const d=await db.from('routine_days').select('id,name,day_order').eq('id',dayId).single();
+    // Cargar el día y ejercicios es el flujo principal.
+    const d=await db.from('routine_days')
+      .select('id,name,day_order')
+      .eq('id',dayId)
+      .single();
     if(d.error)throw d.error;
-    const x=await db.from('routine_exercises').select('id,name,sets,target,rir,rest_seconds,exercise_order,notes')
-      .eq('day_id',dayId).order('exercise_order');
+
+    const x=await db.from('routine_exercises')
+      .select('id,name,sets,target,rir,rest_seconds,exercise_order,notes')
+      .eq('day_id',dayId)
+      .order('exercise_order');
     if(x.error)throw x.error;
-    activeWorkout={day:d.data,exercises:x.data||[],sets:{}};
-    const recovered=loadWorkoutDraft();
+
+    activeWorkout={
+      day:d.data,
+      exercises:x.data||[],
+      sets:{},
+      locked:false,
+      lockedSession:null
+    };
+
+    // Observaciones persistentes DEL USUARIO, nunca escribiendo sobre
+    // routine_exercises. La rutina del entrenador no se modifica.
+    const notesKey=workoutNotesKey();
+    let localNotes={};
+    try{localNotes=JSON.parse(localStorage.getItem(notesKey)||'{}')||{};}catch(_){}
+
+    for(const e of activeWorkout.exercises){
+      const base=Array.from({length:e.sets||1},()=>({
+        kg:'',reps:'',rir:'',done:false
+      }));
+      base.note=localNotes[e.id]!==undefined
+        ? String(localNotes[e.id]??'')
+        : String(e.notes??'');
+      activeWorkout.sets[e.id]=base;
+    }
+
+    // El historial es auxiliar: si falla, la rutina sigue pudiendo abrirse.
+    try{
+      await loadHistory(workoutRoutine?.id);
+    }catch(e){
+      console.warn('Historial no disponible:',e);
+      window.workoutHistory=[];
+    }
+
+    const today=new Date().toISOString().slice(0,10);
+    const todaySession=(window.workoutHistory||[]).find(session=>{
+      const data=session.data||{};
+      return String(data.routine_id||'')===String(workoutRoutine.id) &&
+        String(data.routine_day_id||'')===String(dayId) &&
+        String(session.workout_date||'').slice(0,10)===today;
+    });
+
+    // Si existe sesión hoy, cargarla y bloquearla.
+    if(todaySession){
+      activeWorkout.locked=true;
+      activeWorkout.lockedSession=todaySession;
+
+      const savedExercises=Array.isArray(todaySession.data?.exercises)
+        ? todaySession.data.exercises : [];
+
+      for(const e of activeWorkout.exercises){
+        const saved=savedExercises.find(se=>String(se.exercise_id||'')===String(e.id))
+          || savedExercises.find(se=>
+            String(se.name||'').trim().toLowerCase()===String(e.name||'').trim().toLowerCase()
+          );
+        if(!saved)continue;
+
+        const base=Array.from({length:e.sets||1},(_,i)=>({
+          kg:'',reps:'',rir:'',done:false,
+          ...(saved.sets?.[i]||{})
+        }));
+        base.note=String(saved.notes ?? activeWorkout.sets[e.id]?.note ?? '');
+        activeWorkout.sets[e.id]=base;
+      }
+    }
+
+    // Solo recuperar borrador si todavía no está guardada la sesión.
+    const recovered=!activeWorkout.locked && loadWorkoutDraft();
+
     $('trainTitle').textContent=d.data.name;
-    $('trainSubtitle').textContent=recovered
-      ? 'Sesión recuperada automáticamente. Tus datos se guardan mientras entrenas.'
-      : 'Completa tus series y guarda tus datos.';
+    $('trainSubtitle').textContent=activeWorkout.locked
+      ? 'Sesión ya guardada hoy. Puedes consultarla, pero no volver a modificarla.'
+      : recovered
+        ? 'Sesión recuperada automáticamente. Tus datos se guardan mientras entrenas.'
+        : 'Completa tus series y guarda tus datos.';
+
     renderWorkoutDay();
-    if(recovered)toast('Sesión recuperada');
-  }catch(e){console.error(e);toast('No se pudo cargar el entrenamiento')}
+
+    if(activeWorkout.locked)toast('Esta sesión ya está guardada hoy');
+    else if(recovered)toast('Sesión recuperada');
+  }catch(e){
+    console.error('startWorkoutDay:',e);
+    toast('No se pudo cargar el entrenamiento');
+  }
 }
 
 function workoutDraftKey(){
@@ -1925,6 +2147,7 @@ function applyPresetLoads(exercise, state){
 
 function renderWorkoutDay(){
   const exs=activeWorkout.exercises;
+  const locked=!!activeWorkout.locked;
   if(!exs.length){
     $('trainBody').innerHTML='<div class="empty">Este día no tiene ejercicios.</div>';
     return;
@@ -1936,6 +2159,7 @@ function renderWorkoutDay(){
     activeWorkout.sets[key]=state;
     if(presetChanged) saveWorkoutDraft();
     const plannedRir=(e.rir!==null&&e.rir!==undefined&&e.rir!=='')?e.rir:'0';
+    const disabledAttr=locked?' disabled readonly':'';
     return `<div class="card">
       <div class="dayhead">
         <div style="min-width:0;width:100%">
@@ -1953,26 +2177,27 @@ function renderWorkoutDay(){
         ${state.map((s,si)=>`
           <div class="setrow">
             <span>${si+1}</span>
-            <input inputmode="decimal" placeholder="0" value="${esc(s.kg)}" oninput="updateSet('${key}',${si},'kg',this.value)">
-            <input inputmode="numeric" placeholder="0" value="${esc(s.reps)}" oninput="updateSet('${key}',${si},'reps',this.value)">
-            <input inputmode="numeric" placeholder="0" min="0" max="10" value="${esc(s.rir)}" oninput="updateSet('${key}',${si},'rir',this.value)">
-            <button class="tick ${s.done?'done':''}" onclick="toggleSet('${key}',${si})">${s.done?'✓':'○'}</button>
+            <input inputmode="decimal" placeholder="0" value="${esc(s.kg)}"${disabledAttr} oninput="updateSet('${key}',${si},'kg',this.value)">
+            <input inputmode="numeric" placeholder="0" value="${esc(s.reps)}"${disabledAttr} oninput="updateSet('${key}',${si},'reps',this.value)">
+            <input inputmode="numeric" placeholder="0" min="0" max="10" value="${esc(s.rir)}"${disabledAttr} oninput="updateSet('${key}',${si},'rir',this.value)">
+            <button class="tick ${s.done?'done':''}"${locked?' disabled':''} onclick="toggleSet('${key}',${si})">${s.done?'✓':'○'}</button>
           </div>`).join('')}
       </div>
       <div style="margin-top:12px">
         <label>Notas del ejercicio</label>
-        <textarea placeholder="Escribe aquí..." oninput="updateExerciseNote('${key}',this.value)">${esc(state.note||'')}</textarea>
+        <textarea placeholder="Escribe aquí..."${disabledAttr} oninput="updateExerciseNote('${key}',this.value)">${esc(state.note||'')}</textarea>
       </div>
+      ${locked ? '<div class="muted" style="margin-top:12px">Sesión guardada hoy · solo lectura</div>' : `
       <div class="rest-buttons">
         <span class="muted">Descanso</span>
         ${[1,2,3,4,5].map(m=>`<button class="btn" onclick="startRestTimer(${m*60})">${m}'</button>`).join('')}
-      </div>
+      </div>`}
     </div>`;
   }).join('')+`
     <div id="restBox" class="rest-floating" style="display:none"></div>
-    <div class="buttons" style="justify-content:flex-end">
+    ${locked ? '' : `<div class="buttons" style="justify-content:flex-end">
       <button class="btn primary" onclick="saveWorkoutSession()">Guardar sesión</button>
-    </div>`;
+    </div>`}`;
 }
 function summarizePreviousExercise(previous){
   if(!previous?.exercise)return null;
@@ -1998,6 +2223,7 @@ function summarizePreviousExercise(previous){
 }
 
 function updateSet(id,i,field,value){
+  if(activeWorkout.locked)return;
   const arr=activeWorkout.sets[id];
   if(arr&&arr[i]){
     arr[i][field]=value;
@@ -2006,10 +2232,23 @@ function updateSet(id,i,field,value){
 }
 function updateExerciseNote(id,value){
   const arr=activeWorkout.sets[id]||(activeWorkout.sets[id]=[]);
-  arr.note=value;
+  if(activeWorkout.locked)return;
+  arr.note=String(value??'');
   saveWorkoutDraft();
+
+  const key=workoutNotesKey();
+  if(key){
+    try{
+      const notes=JSON.parse(localStorage.getItem(key)||'{}')||{};
+      notes[id]=arr.note;
+      localStorage.setItem(key,JSON.stringify(notes));
+    }catch(e){
+      console.warn('No se pudo guardar la nota local:',e);
+    }
+  }
 }
 function toggleSet(id,i){
+  if(activeWorkout.locked)return;
   const arr=activeWorkout.sets[id]; if(!arr||!arr[i])return;
   arr[i].done=!arr[i].done;
   saveWorkoutDraft();
@@ -2074,11 +2313,36 @@ async function saveWorkoutSession(){
   if(window.__savingWorkout)return;
   if(!user?.id)return toast('Debes iniciar sesión.');
   if(!workoutRoutine?.id||!activeWorkout?.day?.id)return toast('No hay un entrenamiento activo.');
-  const currentKey=`${user.id}|${workoutRoutine.id}|${activeWorkout.day.id}|${new Date().toISOString().slice(0,10)}`;
-  if(window.__lastSavedWorkoutKey===currentKey)return toast('Este entrenamiento ya está guardado hoy.');
+  if(activeWorkout.locked)return toast('Este entrenamiento ya está guardado hoy.');
+
+  const today=new Date().toISOString().slice(0,10);
+  const currentKey=`${user.id}|${workoutRoutine.id}|${activeWorkout.day.id}|${today}`;
+  if(window.__lastSavedWorkoutKey===currentKey){
+    activeWorkout.locked=true;
+    renderWorkoutDay();
+    return toast('Este entrenamiento ya está guardado hoy.');
+  }
 
   window.__savingWorkout=true;
   try{
+    // Fuente de verdad: Supabase. Sobrevive a recarga/cierre/otra pestaña.
+    const existing=await db.from('workouts')
+      .select('id')
+      .eq('user_id',user.id)
+      .eq('workout_date',today)
+      .eq('data->>routine_id',String(workoutRoutine.id))
+      .eq('data->>routine_day_id',String(activeWorkout.day.id))
+      .limit(1);
+
+    if(existing.error)throw existing.error;
+
+    if((existing.data||[]).length){
+      window.__lastSavedWorkoutKey=currentKey;
+      activeWorkout.locked=true;
+      renderWorkoutDay();
+      return toast('Este entrenamiento ya está guardado hoy.');
+    }
+
     const sessionData={
       routine_id:workoutRoutine.id,
       routine_day_id:activeWorkout.day.id,
@@ -2088,13 +2352,19 @@ async function saveWorkoutSession(){
       exercises:(activeWorkout.exercises||[]).map(e=>{
         const st=activeWorkout.sets[e.id]||[];
         return {
-          exercise_id:e.id,name:e.name,target:e.target||'',
+          exercise_id:e.id,
+          name:e.name,
+          target:e.target||'',
           planned_sets:e.sets||1,
           planned_rir:(e.rir!==null&&e.rir!==undefined&&e.rir!=='')?e.rir:null,
           rest_minutes:(e.rest_seconds||0)/60,
           notes:String(st.note??''),
-          sets:st.map((s,i)=>({
-            set:i+1,kg:s.kg||'',reps:s.reps||'',rir:s.rir||'',done:!!s.done
+          sets:st.map((set,i)=>({
+            set:i+1,
+            kg:set.kg??'',
+            reps:set.reps??'',
+            rir:set.rir??'',
+            done:!!set.done
           }))
         };
       })
@@ -2104,17 +2374,28 @@ async function saveWorkoutSession(){
       user_id:user.id,
       variant:activeWorkout.day.name||'',
       day:activeWorkout.day.name||'',
-      workout_date:new Date().toISOString().slice(0,10),
+      workout_date:today,
       data:sessionData
     };
 
     const r=await db.from('workouts').insert(payload).select().single();
     if(r.error)throw r.error;
 
-    // Mark the current workout as saved so a second click cannot create a duplicate.
-    window.__lastSavedWorkoutKey=
-      `${user.id}|${workoutRoutine.id}|${activeWorkout.day.id}|${payload.workout_date}`;
+    // Persistimos las notas en localStorage del usuario y en la sesión guardada.
+    // NO modificamos routine_exercises.
+    const notes={};
+    for(const e of (activeWorkout.exercises||[])){
+      notes[e.id]=String(activeWorkout.sets[e.id]?.note??'');
+    }
+    const notesKey=workoutNotesKey();
+    if(notesKey){
+      try{localStorage.setItem(notesKey,JSON.stringify(notes));}catch(e){}
+    }
+
+    window.__lastSavedWorkoutKey=currentKey;
     clearWorkoutDraft();
+    activeWorkout.locked=true;
+    activeWorkout.lockedSession=r.data||null;
 
     toast('Sesión guardada correctamente');
     await loadHistory(workoutRoutine?.id);
