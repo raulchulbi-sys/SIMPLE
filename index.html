@@ -350,60 +350,6 @@ function getPendingRole(){
   return saved==='trainer' || saved==='client' ? saved : 'client';
 }
 
-async function finishConfirmedSignup(){
-  if(!user) return null;
-
-  const chosenRole=getPendingRole();
-
-  const existing=await db.from('profiles')
-    .select('id,name,role')
-    .eq('id',user.id)
-    .maybeSingle();
-
-  if(existing.error) throw existing.error;
-  if(existing.data){
-    localStorage.removeItem('simple_pending_role');
-    return existing.data;
-  }
-
-  // Profile does not exist yet. Create it after the email has been
-  // confirmed / a valid authenticated session exists.
-  const created=await db.from('profiles').insert({
-    id:user.id,
-    name:(user.user_metadata?.name || user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuario'),
-    role:chosenRole
-  }).select('id,name,role').single();
-
-  if(created.error){
-    // A concurrent auth event may have created it already.
-    if(created.error.code==='23505'){
-      const retry=await db.from('profiles')
-        .select('id,name,role')
-        .eq('id',user.id)
-        .maybeSingle();
-      if(retry.error) throw retry.error;
-      if(retry.data){
-        localStorage.removeItem('simple_pending_role');
-        return retry.data;
-      }
-    }
-    throw created.error;
-  }
-
-  localStorage.removeItem('simple_pending_role');
-  return created.data;
-}
-
-function getPendingRole(){
-  const metadataRole = user?.user_metadata?.simple_role;
-  if(metadataRole === 'trainer' || metadataRole === 'client') return metadataRole;
-
-  const pending = localStorage.getItem('simple_pending_role');
-  if(pending === 'trainer' || pending === 'client') return pending;
-
-  return null;
-}
-
 async function ensureProfile(chosenRole){
   if(!user?.id) throw new Error('No hay una sesión activa.');
 
@@ -817,7 +763,7 @@ function getProgressExercises(sessions){
       if(name&&!seen.has(name)){seen.add(name);names.push(name);}
     });
   });
-  return names;
+  return names.sort((a,b)=>a.localeCompare(b,'es',{sensitivity:'base'}));
 }
 
 function getExercisePoints(sessions,exerciseName,metric){
@@ -1062,6 +1008,73 @@ function setupClientProgressChart(sessions){
   renderClientProgressChart();
 }
 
+async function openRoutineProgress(routineId){
+  if(!user?.id)return toast('Debes iniciar sesión.');
+  const routine=routines.find(r=>String(r.id)===String(routineId));
+  if(!routine)return toast('Rutina no encontrada.');
+  const title=$('clientProgressTitle'), subtitle=$('clientProgressSubtitle'), body=$('clientProgressBody');
+  if(!title||!body)return;
+  title.textContent=`Progreso · ${routine.name||'Rutina'}`;
+  title.dataset.routineId=String(routineId);
+  subtitle.textContent='Cargando tu historial...';
+  body.innerHTML='<div class="muted">Cargando sesiones...</div>';
+  openM('clientProgressModal');
+  try{
+    const r=await db.from('workouts').select('id,user_id,variant,day,workout_date,data')
+      .eq('user_id',user.id).eq('data->>routine_id',String(routineId))
+      .order('workout_date',{ascending:false});
+    if(r.error)throw r.error;
+    const sessions=r.data||[];
+    if(!sessions.length){
+      body.innerHTML='<div class="empty">Todavía no tienes sesiones registradas de esta rutina.</div>';
+      subtitle.textContent='0 sesiones registradas';
+      return;
+    }
+    subtitle.textContent=`${sessions.length} sesión${sessions.length===1?'':'es'} registrada${sessions.length===1?'':'s'}`;
+    body.innerHTML=`
+      <div class="card" style="margin:0 0 12px">
+        <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">
+          <div><div class="muted">Sesiones</div><b style="font-size:20px">${sessions.length}</b></div>
+          <div><div class="muted">Última sesión</div><b>${new Date(sessions[0].workout_date).toLocaleDateString('es-ES')}</b></div>
+        </div>
+      </div>
+      <div class="card client-progress-chart">
+        <div style="margin-bottom:10px"><b style="font-size:18px">Evolución del ejercicio</b>
+        <div class="muted">Selecciona un ejercicio para ver tu progresión.</div></div>
+        <div class="progress-chart-controls">
+          <div><label for="clientProgressExercise">Ejercicio</label><select id="clientProgressExercise" class="input"></select></div>
+          <div><label for="clientProgressMetric">Métrica</label><select id="clientProgressMetric" class="input">
+            <option value="weight">Peso máximo</option><option value="reps">Repeticiones máximas</option><option value="1rm">1RM estimado</option>
+          </select></div>
+        </div>
+        <div id="clientProgressChart"></div>
+        <div id="clientProgressPointDetail" class="progress-chart-stat progress-point-detail"></div>
+        <div id="clientProgressChartSummary" class="progress-chart-summary"></div>
+      </div>
+      ${sessions.map((s,idx)=>{
+        const d=s.data||{}, exercises=Array.isArray(d.exercises)?d.exercises:[];
+        return `<details class="history-session card" ${idx===0?'open':''}>
+          <summary class="history-summary"><div><b class="history-title">${esc(d.day_name||s.day||'Entrenamiento')}</b>
+          <div class="muted">${new Date(s.workout_date).toLocaleDateString('es-ES')}</div></div><span class="history-chevron">⌄</span></summary>
+          <div class="history-content">${exercises.length?exercises.map(e=>{
+            const sets=Array.isArray(e.sets)?e.sets:[];
+            return `<div class="history-exercise"><div class="history-exercise-head"><div><b>${esc(e.name||'Ejercicio')}</b>
+              <div class="history-objective">Objetivo: ${esc(e.target||'—')} · ${e.planned_sets||sets.length||1} series · RIR ${esc(String(e.planned_rir??0))}</div></div></div>
+              <div class="history-table"><div class="history-row history-label"><span>Serie</span><span>KG</span><span>REPS</span><span>RIR</span></div>
+              ${sets.map(set=>`<div class="history-row"><span>${esc(String(set.set??''))}</span>
+                <span>${esc(String(set.kg!==''&&set.kg!=null?set.kg:'—'))}</span>
+                <span>${esc(String(set.reps!==''&&set.reps!=null?set.reps:'—'))}</span>
+                <span>${esc(String(set.rir!==''&&set.rir!=null?set.rir:'—'))}</span></div>`).join('')}</div>
+              ${e.notes?`<div class="history-notes"><span>Notas:</span> ${esc(e.notes)}</div>`:''}</div>`;
+          }).join(''):'<div class="muted">Sin ejercicios registrados.</div>'}</div></details>`;
+      }).join('')}`;
+    setupClientProgressChart(sessions);
+  }catch(e){
+    console.error('openRoutineProgress:',e);
+    body.innerHTML='<div class="error">No se pudo cargar tu progreso.</div>';
+  }
+}
+
 async function openClientRoutineProgress(clientId,routineId,routineName){
   if(!user?.id)return toast('Debes iniciar sesión.');
   const title=$('clientProgressTitle'), subtitle=$('clientProgressSubtitle'), body=$('clientProgressBody');
@@ -1165,8 +1178,8 @@ async function openClientRoutineProgress(clientId,routineId,routineName){
                   ${sets.map(set=>`
                     <div class="history-row">
                       <span>${esc(String(set.set??''))}</span>
-                      <span>${esc(String(set.kg||'—'))}</span>
-                      <span>${esc(String(set.reps||'—'))}</span>
+                      <span>${esc(String(set.kg!==''&&set.kg!=null?set.kg:'—'))}</span>
+                      <span>${esc(String(set.reps!==''&&set.reps!=null?set.reps:'—'))}</span>
                       <span>${esc(String(set.rir!==''&&set.rir!=null?set.rir:'—'))}</span>
                     </div>`).join('')}
                 </div>
@@ -1328,7 +1341,7 @@ async function renderClients(){
 }
 
 
-function renderMine(){$('mine').innerHTML='<div class="card"><h2 style="margin:0 0 4px">Mis rutinas</h2><div class="muted">Tus rutinas solo pertenecen a tu cuenta.</div></div>'+(routines.length?routines.map(r=>`<div class="card routine"><div><h3>${esc(r.name)}</h3><div class="muted">${esc(r.description||'Sin descripción')}</div></div><div class="buttons"><button class="btn primary" onclick="openRoutine('${r.id}')">Abrir</button><button class="btn" onclick="editRoutine('${r.id}')">Editar</button><button class="btn" onclick="openShare('${r.id}')">Compartir</button><button class="btn danger" onclick="delRoutine('${r.id}')">Eliminar</button></div></div>`).join(''):'<div class="card empty"><b style="color:#fff">No tienes rutinas todavía.</b><div style="margin-top:6px">Crea la primera desde aquí.</div><button class="btn primary" style="margin-top:14px" onclick="view(\'new\')">Crear rutina</button></div>')}
+function renderMine(){$('mine').innerHTML='<div class="card"><h2 style="margin:0 0 4px">Mis rutinas</h2><div class="muted">Tus rutinas solo pertenecen a tu cuenta.</div></div>'+(routines.length?routines.map(r=>`<div class="card routine"><div><h3>${esc(r.name)}</h3><div class="muted">${esc(r.description||'Sin descripción')}</div></div><div class="buttons"><button class="btn primary" onclick="openRoutine('${r.id}')">Abrir</button><button class="btn" onclick="editRoutine('${r.id}')">Editar</button><button class="btn" onclick="openRoutineProgress('${r.id}')">Progreso</button><button class="btn" onclick="openShare('${r.id}')">Compartir</button><button class="btn danger" onclick="delRoutine('${r.id}')">Eliminar</button></div></div>`).join(''):'<div class="card empty"><b style="color:#fff">No tienes rutinas todavía.</b><div style="margin-top:6px">Crea la primera desde aquí.</div><button class="btn primary" style="margin-top:14px" onclick="view(\'new\')">Crear rutina</button></div>')}
 let newDays=[];
 function renderNew(){
   let h=`<div class="card">
@@ -1638,7 +1651,7 @@ function showHistory(){
         <div class="history-content">
           ${exercises.length?exercises.map(e=>{
             const target=e.target||'';
-            const plannedRir=(e.planned_rir!==null && e.planned_rir!==undefined && e.planned_rir!=='')?e.planned_rir:'—';
+            const plannedRir=(e.planned_rir!==null && e.planned_rir!==undefined && e.planned_rir!=='')?e.planned_rir:'0';
             const sets=Array.isArray(e.sets)?e.sets:[];
             return `<div class="history-exercise">
               <div class="history-exercise-head">
@@ -1655,9 +1668,9 @@ function showHistory(){
                 </div>
                 ${sets.map(s=>`
                   <div class="history-row">
-                    <span>${esc(String(s.set||''))}</span>
-                    <span>${esc(String(s.kg||'—'))}</span>
-                    <span>${esc(String(s.reps||'—'))}</span>
+                    <span>${esc(String(s.set??''))}</span>
+                    <span>${esc(String(s.kg!==''&&s.kg!=null?s.kg:'—'))}</span>
+                    <span>${esc(String(s.reps!==''&&s.reps!=null?s.reps:'—'))}</span>
                     <span>${esc(String(s.rir!==''&&s.rir!=null?s.rir:'—'))}</span>
                   </div>`).join('')}
               </div>
@@ -1682,7 +1695,7 @@ function showHistory(){
                 const pe=(prev.data?.exercises||[]).find(pe=>String(pe.exercise_id||'')===String(e.exercise_id||''));
                 if(!pe)return '';
                 const ps=Array.isArray(pe.sets)?pe.sets:[];
-                return `<div class="history-notes" style="margin-top:8px"><span>Sesión anterior:</span> ${ps.map(s=>`${esc(String(s.kg||'—'))} kg × ${esc(String(s.reps||'—'))} · RIR ${esc(String(s.rir!==''&&s.rir!=null?s.rir:'—'))}`).join(' · ')}</div>`;
+                return `<div class="history-notes" style="margin-top:8px"><span>Sesión anterior:</span> ${ps.map(s=>`${esc(String(s.kg!==''&&s.kg!=null?s.kg:'—'))} kg × ${esc(String(s.reps!==''&&s.reps!=null?s.reps:'—'))} · RIR ${esc(String(s.rir!==''&&s.rir!=null?s.rir:'—'))}`).join(' · ')}</div>`;
               })()}
             </div>`;
           }).join(''):'<div class="muted" style="margin-top:12px">No hay ejercicios guardados en esta sesión.</div>'}
@@ -1836,7 +1849,7 @@ function loadWorkoutDraft(){
       activeWorkout.sets[e.id]=saved
         ? base.map((s,i)=>({...s,...(saved[i]||{})}))
         : base;
-      if(saved?.note!=null)activeWorkout.sets[e.id].note=saved.note;
+      if(saved && Object.prototype.hasOwnProperty.call(saved,'note'))activeWorkout.sets[e.id].note=String(saved.note??'');
     }
     return true;
   }catch(e){console.warn('No se pudo recuperar el borrador:',e);return false;}
@@ -2079,7 +2092,7 @@ async function saveWorkoutSession(){
           planned_sets:e.sets||1,
           planned_rir:(e.rir!==null&&e.rir!==undefined&&e.rir!=='')?e.rir:null,
           rest_minutes:(e.rest_seconds||0)/60,
-          notes:st.note||'',
+          notes:String(st.note??''),
           sets:st.map((s,i)=>({
             set:i+1,kg:s.kg||'',reps:s.reps||'',rir:s.rir||'',done:!!s.done
           }))
