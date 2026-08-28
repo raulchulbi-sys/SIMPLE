@@ -1352,7 +1352,7 @@ async function openClientProfile(clientId){
               <div class="muted">Asignada ${new Date(x.assignment.created_at).toLocaleDateString('es-ES')}</div>
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
-              <button class="btn" onclick="openClientRoutineProgress('${cid}','${x.routine.id}','${esc(x.routine.name)}')">Ver progreso</button><button class="btn" onclick="editRoutine('${x.routine.id}')">Editar rutina</button>
+              <button class="btn" onclick="openClientRoutineProgress('${cid}','${x.routine.id}','${esc(x.routine.name)}')">Ver progreso</button>
               <button class="btn danger" onclick="revokeFromClientProfile('${x.assignment.id}')">Revocar</button>
             </div>
           </div>
@@ -1535,7 +1535,90 @@ async function createRoutine(){
 }
 async function days(id){let d=await db.from('routine_days').select('id,name,day_order').eq('routine_id',id).order('day_order');if(d.error)throw d.error;for(let x of d.data||[]){let e=await db.from('routine_exercises').select('id,name,sets,target,rir,rest_seconds,exercise_order,notes').eq('day_id',x.id).order('exercise_order');if(e.error)throw e.error;x.exercises=e.data||[]}return d.data||[]}
 async function editRoutine(id){if(profile?.role!=='trainer')return toast('Solo el entrenador puede editar rutinas.');let r=routines.find(x=>x.id===id);editDays=await days(id);$('editor').innerHTML=`<div class="grid"><div><label>Nombre</label><input id="en" value="${esc(r.name)}"></div><div><label>Descripción</label><input id="ed" value="${esc(r.description||'')}"></div></div><div class="buttons" style="margin:12px 0"><button class="btn primary" onclick="saveEditor('${id}')">Guardar rutina</button><button class="btn" onclick="addDay()">Añadir día</button></div><div id="daysEditor"></div>`;renderEditor();openM('editModal')}
-function renderEditor(){let h='';editDays.forEach((d,di)=>{h+=`<div class="card"><div class="dayhead"><input value="${esc(d.name)}" onchange="editDays[${di}].name=this.value"><button class="btn danger" onclick="removeDay(${di})">Eliminar</button></div>${d.exercises.map((e,ei)=>`<div class="exercise"><div class="grid3"><div><label>Ejercicio</label><input value="${esc(e.name)}" onchange="editDays[${di}].exercises[${ei}].name=this.value"></div><div><label>Series</label><input type="number" min="1" value="${e.sets||1}" onchange="editDays[${di}].exercises[${ei}].sets=+this.value"></div><div><label>Descanso (min)</label><input type="number" min="0" step="0.5" value="${(e.rest_seconds||120)/60}" onchange="editDays[${di}].exercises[${ei}].rest_seconds=(+this.value||0)*60"></div></div><div class="grid" style="margin-top:8px"><div><label>Objetivo</label><input value="${esc(e.target||'')}" placeholder="2x10-15" onchange="editDays[${di}].exercises[${ei}].target=this.value"></div><div><label>RIR</label><input value="${esc(e.rir||'')}" onchange="editDays[${di}].exercises[${ei}].rir=this.value"></div></div><div style="margin-top:8px"><label>Notas</label><input value="${esc(e.notes||'')}" onchange="editDays[${di}].exercises[${ei}].notes=this.value"></div><div class="buttons" style="justify-content:flex-end;margin-top:7px"><button class="btn danger" onclick="removeEx(${di},${ei})">Eliminar ejercicio</button></div></div>`).join('')}<button class="btn" onclick="addEx(${di})">Añadir ejercicio</button></div>`});$('daysEditor').innerHTML=h||'<div class="empty">Añade un día.</div>'}
+function renderEditor(){
+  let h='';
+  editDays.forEach((d,di)=>{
+    h+=`<div class="card">
+      <div class="dayhead">
+        <input value="${esc(d.name)}" onchange="editDays[${di}].name=this.value">
+        <div class="buttons">
+          <button class="btn" type="button" onclick="moveDay(${di},-1)" ${di===0?'disabled':''}>↑</button>
+          <button class="btn" type="button" onclick="moveDay(${di},1)" ${di===editDays.length-1?'disabled':''}>↓</button>
+          <button class="btn danger" type="button" onclick="removeDay(${di})">Eliminar</button>
+        </div>
+      </div>
+
+      ${d.exercises.map((e,ei)=>`
+        <div class="exercise">
+          <div class="grid3">
+            <div>
+              <label>Ejercicio</label>
+              <input value="${esc(e.name)}"
+                onchange="editDays[${di}].exercises[${ei}].name=this.value">
+            </div>
+            <div>
+              <label>Series</label>
+              <input type="number" min="1" value="${e.sets||1}"
+                onchange="editDays[${di}].exercises[${ei}].sets=Math.max(1,+this.value||1)">
+            </div>
+            <div>
+              <label>Descanso (min)</label>
+              <input type="number" min="0" step="0.5"
+                value="${(e.rest_seconds||120)/60}"
+                onchange="editDays[${di}].exercises[${ei}].rest_seconds=(+this.value||0)*60">
+            </div>
+          </div>
+
+          <div class="grid" style="margin-top:8px">
+            <div>
+              <label>Objetivo</label>
+              <input value="${esc(e.target||'')}" placeholder="2x10-15"
+                onchange="editDays[${di}].exercises[${ei}].target=this.value">
+            </div>
+            <div>
+              <label>RIR</label>
+              <input value="${esc(e.rir??'')}"
+                onchange="editDays[${di}].exercises[${ei}].rir=this.value">
+            </div>
+          </div>
+
+          <div style="margin-top:8px">
+            <label>Notas</label>
+            <input value="${esc(e.notes||'')}"
+              onchange="editDays[${di}].exercises[${ei}].notes=this.value">
+          </div>
+
+          <div class="buttons" style="justify-content:flex-end;margin-top:7px">
+            <button class="btn" type="button" onclick="moveEx(${di},${ei},-1)" ${ei===0?'disabled':''}>↑</button>
+            <button class="btn" type="button" onclick="moveEx(${di},${ei},1)" ${ei===d.exercises.length-1?'disabled':''}>↓</button>
+            <button class="btn danger" type="button" onclick="removeEx(${di},${ei})">Eliminar ejercicio</button>
+          </div>
+        </div>
+      `).join('')}
+
+      <button class="btn" type="button" onclick="addEx(${di})">Añadir ejercicio</button>
+    </div>`;
+  });
+  $('daysEditor').innerHTML=h||'<div class="empty">Añade un día.</div>';
+}
+
+function moveEx(dayIndex, exerciseIndex, direction){
+  const day=editDays[dayIndex];
+  if(!day || !Array.isArray(day.exercises))return;
+  const target=exerciseIndex+direction;
+  if(target<0 || target>=day.exercises.length)return;
+  [day.exercises[exerciseIndex],day.exercises[target]]=
+    [day.exercises[target],day.exercises[exerciseIndex]];
+  renderEditor();
+}
+
+function moveDay(dayIndex, direction){
+  const target=dayIndex+direction;
+  if(target<0 || target>=editDays.length)return;
+  [editDays[dayIndex],editDays[target]]=
+    [editDays[target],editDays[dayIndex]];
+  renderEditor();
+}
 function addDay(){editDays.push({id:null,name:'Nuevo día',day_order:editDays.length,exercises:[]});renderEditor()}function removeDay(i){if(confirm('¿Eliminar este día?')){editDays.splice(i,1);renderEditor()}}function addEx(di){editDays[di].exercises.push({id:null,name:'Nuevo ejercicio',sets:2,target:'2x10-15',rir:'2',rest_seconds:120,notes:''});renderEditor()}function removeEx(di,ei){editDays[di].exercises.splice(ei,1);renderEditor()}
 async function saveEditor(id){
   if(window.__routineSaving)return;
