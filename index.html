@@ -3016,6 +3016,23 @@ function workoutDraftKey(){
     ? `simple_workout_draft_v2:${user.id}:${workoutRoutine.id}:${activeWorkout.day.id}`
     : null;
 }
+
+// Marca cuándo se completó por última vez este día de rutina.
+// Sirve para impedir que un borrador viejo vuelva a rellenar KG/REPS/RIR
+// cuando empieza el siguiente ciclo de entrenamiento.
+function workoutCompletionKey(){
+  return user?.id && workoutRoutine?.id && activeWorkout?.day?.id
+    ? `simple_workout_completed_v1:${user.id}:${workoutRoutine.id}:${activeWorkout.day.id}`
+    : null;
+}
+function markWorkoutCompleted(){
+  const key=workoutCompletionKey();
+  if(!key)return;
+  try{
+    localStorage.setItem(key,String(Date.now()));
+  }catch(_){ }
+}
+
 function saveWorkoutDraft(){
   const key=workoutDraftKey();
   if(!key)return;
@@ -3044,6 +3061,16 @@ function loadWorkoutDraft(){
     if(!raw)return false;
     const draft=JSON.parse(raw);
     if(!draft?.sets)return false;
+
+    // Un borrador solo puede recuperar una sesión que siga pendiente.
+    // Si ya se completó ese día después de crear el borrador, se descarta.
+    const completedKey=workoutCompletionKey();
+    const completedAt=completedKey ? Number(localStorage.getItem(completedKey)||0) : 0;
+    const draftSavedAt=Number(draft.savedAt||0);
+    if(completedAt && (!draftSavedAt || draftSavedAt <= completedAt)){
+      localStorage.removeItem(key);
+      return false;
+    }
     for(const e of activeWorkout.exercises){
       const base=Array.from({length:e.sets||1},()=>({kg:'',reps:'',rir:'',done:false}));
       const rawSaved=draft.sets?.[e.id];
@@ -3374,6 +3401,9 @@ async function saveWorkoutSession(){
     }
 
     window.__lastSavedWorkoutKey=currentKey;
+    // La sesión acaba de terminar: cualquier borrador anterior de este
+    // mismo día queda invalidado y la próxima apertura empieza limpia.
+    markWorkoutCompleted();
     clearWorkoutDraft();
     activeWorkout.locked=true;
     activeWorkout.lockedSession=r.data||null;
