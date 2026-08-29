@@ -242,7 +242,60 @@
   stroke-width:1.8;
   stroke-linecap:round;
   stroke-linejoin:round;
-}</style>
+}
+
+.routine-editor-day,.routine-editor-exercise{transition:opacity .12s ease,transform .12s ease,outline-color .12s ease}
+.routine-editor-day.dragging,.routine-editor-exercise.dragging{opacity:.42;transform:scale(.995)}
+.routine-editor-day.drag-over,.routine-editor-exercise.drag-over{outline:2px dashed var(--accent,#888);outline-offset:3px}
+.exercise-drop-zone{height:8px;margin:2px 0;border-radius:6px;transition:height .12s ease,background .12s ease}
+.exercise-drop-zone.drop-active{height:24px;background:rgba(120,160,255,.18);outline:2px dashed var(--accent,#888);outline-offset:-2px}
+.drag-handle{cursor:grab;user-select:none;font-size:19px;line-height:1;color:var(--muted);padding:5px 7px;border-radius:6px;touch-action:none}
+.drag-handle:hover{background:rgba(255,255,255,.06);color:inherit}
+.drag-handle:active{cursor:grabbing}
+
+.icon-trash-btn{
+  width:40px !important;
+  min-width:40px !important;
+  height:40px !important;
+  padding:0 !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  font-size:18px !important;
+}
+
+.progress-stat-card{
+  flex:1 1 180px;
+  min-width:160px;
+  padding:14px 16px;
+  border:1px solid rgba(127,127,127,.18);
+  border-radius:12px;
+  background:rgba(127,127,127,.05);
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+.progress-stat-card b{font-size:20px;line-height:1.2}
+.progress-stat-card small{font-size:12px;opacity:.7}
+.progress-stat-card.positive{
+  border-color:rgba(34,197,94,.45);
+  background:rgba(34,197,94,.10);
+}
+.progress-stat-card.positive b{color:#22c55e}
+.progress-stat-card.negative{
+  border-color:rgba(239,68,68,.45);
+  background:rgba(239,68,68,.10);
+}
+.progress-stat-card.negative b{color:#ef4444}
+.progress-stat-card.neutral{opacity:.82}
+@media(max-width:700px){
+  .progress-stat-card{min-width:calc(50% - 6px)}
+}
+
+.dashboard-stats{display:flex;gap:12px;flex-wrap:wrap;margin:12px 0}
+.dashboard-client-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid rgba(127,127,127,.15)}
+.dashboard-client-row:last-child{border-bottom:0}
+</style>
 </head>
 <body>
 <div id="auth" class="auth"><div class="authbox"><h1>SIMPLE</h1><p id="authText">Accede a tus rutinas y entrenamiento.</p>
@@ -266,10 +319,11 @@
 </div><button type="button" id="forgotBtn" class="btn" style="margin-top:8px">¿Has olvidado tu contraseña?</button><button type="button" id="authBtn" class="btn primary">Iniciar sesión</button><button type="button" id="authSwitch" class="btn">Crear cuenta</button><div id="authMsg" class="msg"></div></div></div>
 <div id="app" style="display:none"><div class="wrap"><header><div><h1>SIMPLE</h1><div class="sub"><span id="role"></span> · <span id="mail"></span></div></div><div class="actions"><button class="btn" onclick="shareHeaderOpen()">Compartir</button><button class="btn" onclick="logout()">Salir</button></div></header>
 <div id="tabs" class="tabs"></div>
+<section id="dashboard" class="view"><div id="dashboardContent"></div></section>
 <div id="mine"></div>
 <div id="new" style="display:none"></div>
 <div id="shared" style="display:none"></div>
-<div id="clients" style="display:none"></div></div></div>
+<div id="clients" style="display:none"></div><div id="trash" style="display:none"></div></div></div>
 <div id="resetModal" class="modal center">
   <div class="sheet">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
@@ -337,12 +391,33 @@
         <h2 id="trainTitle" style="margin:0">Entrenamiento</h2>
         <div class="muted" id="trainSubtitle"></div>
       </div>
-      <button class="btn" onclick="loadHistory(workoutRoutine?.id).then(showHistory)">Historial</button><button class="btn" id="editOpenRoutineBtn" onclick="editOpenRoutine()">Editar rutina</button><button class="btn" onclick="closeM('trainModal')">Cerrar</button>
+      <button class="btn" onclick="loadHistory(workoutRoutine?.id).then(showHistory)">Historial</button><button class="btn" onclick="closeM('trainModal')">Cerrar</button>
     </div>
     <div id="trainBody" style="margin-top:12px"></div>
   </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+function simpleSafeAction(fn){
+  if(typeof fn!=='function')return;
+  try{
+    const result=fn();
+    if(result&&typeof result.catch==='function'){
+      result.catch(e=>{console.error(e);toast(e?.message||'Ha ocurrido un error.');});
+    }
+  }catch(e){console.error(e);toast(e?.message||'Ha ocurrido un error.');}
+}
+function simpleSetBusy(el,busy,label){
+  if(!el)return;
+  if(busy){
+    if(!el.dataset.originalText)el.dataset.originalText=el.textContent;
+    el.disabled=true; el.setAttribute('aria-busy','true');
+    if(label)el.textContent=label;
+  }else{
+    el.disabled=false;el.removeAttribute('aria-busy');
+    if(el.dataset.originalText)el.textContent=el.dataset.originalText;
+  }
+}
+</script><script>
 const SUPABASE_URL="https://yvguatdqncadkwewlepe.supabase.co";
 const SUPABASE_KEY="sb_publishable_VYoUECN0MaGIOC2LtGi0iw_C0wqUY-W";
 if(!window.supabase){ throw new Error("Supabase JS no cargó"); }
@@ -751,8 +826,8 @@ function renderTabs(){
   $('tabs').innerHTML=trainer
     ? `<button id="tMine" class="active" onclick="view('mine')">Mis rutinas</button>
        <button id="tNew" onclick="view('new')">Crear rutina</button>
-       <button id="tClients" onclick="view('clients')">Mis clientes</button>`
-    : `<button id="tShared" class="active" onclick="view('shared')">Mis rutinas</button>`;
+       <button id="tDashboard" onclick="view('dashboard')">Resumen</button><button id="tClients" onclick="view('clients')">Mis clientes</button><button class="btn icon-trash-btn" id="tTrash" onclick="view('trash')" title="Papelera" aria-label="Abrir papelera">🗑️</button>`
+    : `<button id="tShared" class="active" onclick="view('shared')">Mis rutinas</button><button class="btn icon-trash-btn" id="tTrashClient" onclick="view('trash')" title="Papelera" aria-label="Abrir papelera">🗑️</button>`;
 
   // El cliente ya no tiene un apartado de Historial independiente.
   // El historial se consulta dentro de cada rutina, desde el botón
@@ -764,8 +839,9 @@ async function reload(){
   if(!user) throw new Error('No hay una sesión activa.');
 
   const r=await db.from('routines')
-    .select('id,name,description,share_code,source_routine_id,created_at')
+    .select('id,name,description,share_code,source_routine_id,created_at,deleted_at')
     .eq('owner_id',user.id)
+    .is('deleted_at',null)
     .order('created_at',{ascending:false});
 
   if(r.error){
@@ -779,6 +855,7 @@ async function reload(){
     const a=await db.from('routine_assignments')
       .select('*')
       .eq('client_id',user.id)
+      .is('client_deleted_at',null)
       .order('created_at',{ascending:false});
 
     if(a.error){
@@ -808,8 +885,130 @@ async function reload(){
   }
 }
 
+async function renderTrash(){
+  const box=$('trash');
+  if(!box)return;
+  box.innerHTML='<div class="card"><h2 style="margin:0 0 4px">🗑️ Papelera</h2><div class="muted">Rutinas eliminadas.</div></div><div class="card"><div class="muted">Cargando...</div></div>';
+  try{
+    const r=await db.from('routines').select('id,name,description,created_at,deleted_at')
+      .eq('owner_id',user.id).not('deleted_at','is',null).order('deleted_at',{ascending:false});
+    if(r.error)throw r.error;
+    const rows=r.data||[];
+    if(!rows.length){
+      box.innerHTML='<div class="card"><h2 style="margin:0 0 4px">🗑️ Papelera</h2><div class="empty">La papelera está vacía.</div></div>';
+      return;
+    }
+    box.innerHTML='<div class="card"><h2 style="margin:0 0 4px">🗑️ Papelera</h2><div class="muted">Restaura una rutina o elimínala definitivamente.</div></div>'+
+      rows.map(r=>`<div class="card routine">
+        <div><h3>${esc(r.name)}</h3><div class="muted">${esc(r.description||'Sin descripción')}</div>
+        <div class="muted" style="margin-top:5px">Eliminada: ${new Date(r.deleted_at).toLocaleString('es-ES')}</div></div>
+        <div class="buttons"><button class="btn" onclick="restoreRoutine('${r.id}')">↩ Restaurar</button>
+        <button class="btn danger" onclick="permanentlyDeleteRoutine('${r.id}')">Eliminar definitivamente</button></div>
+      </div>`).join('');
+  }catch(e){
+    console.error('renderTrash:',e);
+    box.innerHTML='<div class="card"><div class="empty">No se pudo cargar la papelera.</div></div>';
+  }
+}
+async function restoreRoutine(id){
+  if(window.__routineTrashBusy)return;
+  window.__routineTrashBusy=true;
+  try{
+    const r=await db.from('routines').update({deleted_at:null}).eq('id',id).eq('owner_id',user.id).not('deleted_at','is',null);
+    if(r.error)throw r.error;
+    await reload();renderMine();await renderTrash();toast('Rutina restaurada');
+  }catch(e){console.error(e);toast('No se pudo restaurar la rutina: '+(e.message||'revisa los permisos'))}
+  finally{window.__routineTrashBusy=false}
+}
+async function permanentlyDeleteRoutine(id){
+  if(window.__routineTrashBusy)return;
+  if(!confirm('⚠️ Eliminar definitivamente esta rutina y todo su contenido?\\n\\nEsta acción no se puede deshacer.'))return;
+  window.__routineTrashBusy=true;
+  try{
+    const r=await db.from('routines').delete().eq('id',id).eq('owner_id',user.id).not('deleted_at','is',null);
+    if(r.error)throw r.error;
+    await renderTrash();toast('Rutina eliminada definitivamente');
+  }catch(e){console.error(e);toast('No se pudo eliminar definitivamente: '+(e.message||'revisa los permisos'))}
+  finally{window.__routineTrashBusy=false}
+}
+
+async function renderClientTrash(){
+  const box=$('trash'); if(!box)return;
+  box.innerHTML='<div class="card"><h2 style="margin:0 0 4px">🗑️ Papelera</h2><div class="muted">Rutinas que has quitado de tus rutinas.</div></div><div class="card"><div class="muted">Cargando...</div></div>';
+  try{
+    const r=await db.from('routine_assignments')
+      .select('id,trainer_routine_id,created_at,client_deleted_at')
+      .eq('client_id',user.id)
+      .not('client_deleted_at','is',null)
+      .order('client_deleted_at',{ascending:false});
+    if(r.error)throw r.error;
+    let html='<div class="card"><h2 style="margin:0 0 4px">🗑️ Papelera</h2><div class="muted">Puedes restaurar las rutinas que hayas quitado por error.</div></div>';
+    let count=0;
+    for(const a of (r.data||[])){
+      const rr=await db.from('routines').select('id,name,description,deleted_at').eq('id',a.trainer_routine_id).maybeSingle();
+      if(rr.error)throw rr.error;
+      if(!rr.data)continue;
+      count++;
+      const unavailable=rr.data.deleted_at!=null;
+      const restoreButton=unavailable?'':`<button class="btn" onclick="restoreClientRoutine('${a.id}')">↩ Restaurar</button>`;
+      html+=`<div class="card routine">
+        <div><h3>${esc(rr.data.name)}</h3><div class="muted">${esc(rr.data.description||'Sin descripción')}</div>
+        <div class="muted" style="margin-top:5px">Quitada: ${new Date(a.client_deleted_at).toLocaleString('es-ES')}</div>
+        ${unavailable?'<div class="muted" style="margin-top:5px">El entrenador también la ha eliminado.</div>':''}</div>
+        <div class="buttons">${restoreButton}</div>
+      </div>`;
+    }
+    if(!count)html+='<div class="card"><div class="empty">La papelera está vacía.</div></div>';
+    box.innerHTML=html;
+  }catch(e){
+    console.error('renderClientTrash:',e);
+    box.innerHTML='<div class="card"><div class="empty">No se pudo cargar la papelera.</div></div>';
+  }
+}
+async function restoreClientRoutine(assignmentId){
+  if(window.__clientTrashBusy)return;
+  window.__clientTrashBusy=true;
+  try{
+    const r=await db.from('routine_assignments')
+      .update({client_deleted_at:null})
+      .eq('id',assignmentId)
+      .eq('client_id',user.id)
+      .not('client_deleted_at','is',null);
+    if(r.error)throw r.error;
+    await reload(); await renderShared(); await renderClientTrash();
+    toast('Rutina restaurada');
+  }catch(e){
+    console.error('restoreClientRoutine:',e);
+    toast('No se pudo restaurar la rutina: '+(e.message||'revisa los permisos'));
+  }finally{window.__clientTrashBusy=false}
+}
+
+
+async function renderTodayCard(){
+  const host=$('todayCard'); if(!host)return;
+  try{
+    const todayNames=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+    const today=todayNames[new Date().getDay()];
+    const list=Array.isArray(assignments)?assignments:[];
+    let candidate=null;
+    for(const a of list){
+      const routineId=a.trainer_routine_id;
+      const ds=await days(routineId);
+      const hit=ds.find(d=>String(d.name||'').toLowerCase().includes(today));
+      if(hit){candidate={a,d:hit};break;}
+    }
+    if(!candidate){
+      host.innerHTML='<div class="card"><b>¿Qué toca hoy?</b><div class="muted" style="margin-top:5px">No hay una sesión asignada para hoy.</div></div>';
+      return;
+    }
+    host.innerHTML=`<div class="card"><div class="muted">¿Qué toca hoy?</div><h3 style="margin:5px 0">${esc(candidate.d.name)}</h3>
+      <div class="muted">${candidate.d.exercises.length} ejercicio${candidate.d.exercises.length===1?'':'s'}</div>
+      <div class="buttons" style="margin-top:10px"><button class="btn primary" onclick="openRoutine('${candidate.a.trainer_routine_id}')">Ver rutina</button></div></div>`;
+  }catch(e){console.error('renderTodayCard:',e);}
+}
 function view(v){
-  ['mine','new','shared','clients','history'].forEach(x=>{
+  if(v==='dashboard' && profile?.role==='trainer') renderDashboard();
+  ['mine','new','shared','clients','history','trash'].forEach(x=>{
     if($(x)) $(x).style.display=x===v?'block':'none';
   });
 
@@ -821,6 +1020,7 @@ function view(v){
   if(v==='new') renderNew();
   if(v==='shared') renderShared();
   if(v==='clients') renderClients();
+  if(v==='trash') profile?.role==='client' ? renderClientTrash() : renderTrash();
 }
 
 async function revokeClientRoutine(assignmentId){
@@ -937,32 +1137,35 @@ function formatProgressValue(value,metric){
   return Number(value).toLocaleString('es-ES',{maximumFractionDigits:1});
 }
 
+let __progressRenderToken=0;
 function renderClientProgressChart(){
+  const myToken=++__progressRenderToken;
   const root=$('clientProgressChart');
   const select=$('clientProgressExercise');
   const metricSelect=$('clientProgressMetric');
   if(!root||!select||!metricSelect)return;
 
-  const exerciseName=select.value;
+  const exerciseName=String(select.value||'');
   const metric=metricSelect.value;
   clientProgressChartState.metric=metric;
 
-  const points=getExercisePoints(clientProgressChartState.sessions,exerciseName,metric);
+  let sourceSessions=clientProgressChartState.filteredSessions||clientProgressChartState.sessions||[];
+  let points=getExercisePoints(sourceSessions,exerciseName,metric);
   const pointDetail=$('clientProgressPointDetail');
   if(pointDetail){pointDetail.style.display='none';pointDetail.innerHTML='';}
-  if(!points.length){
-    root.innerHTML='<div class="progress-chart-empty">No hay datos suficientes para este ejercicio.</div>';
-    $('clientProgressChartSummary').innerHTML='';
-    return;
-  }
 
-  // Keep only finite values and sort chronologically.
+  // Never let a huge/dirty history freeze the browser.
+  if(points.length>120)points=points.slice(-120);
+
   const clean=points
-    .filter(p=>p && p.date instanceof Date && !Number.isNaN(p.date.getTime()) && Number.isFinite(p.value))
+    .filter(p=>p && p.date instanceof Date && !Number.isNaN(p.date.getTime()) &&
+      Number.isFinite(p.value) && Math.abs(p.value)<1000000)
     .sort((a,b)=>a.date-b.date);
 
+  if(myToken!==__progressRenderToken)return;
+
   if(!clean.length){
-    root.innerHTML='<div class="progress-chart-empty">No hay datos válidos para este ejercicio.</div>';
+    root.innerHTML='<div class="progress-chart-empty">No hay datos suficientes para este ejercicio.</div>';
     $('clientProgressChartSummary').innerHTML='';
     return;
   }
@@ -972,42 +1175,48 @@ function renderClientProgressChart(){
   const values=clean.map(p=>p.value);
   let dataMin=Math.min(...values), dataMax=Math.max(...values);
 
-  // Nice Y-axis range. Never allow repeated labels.
+  if(!Number.isFinite(dataMin)||!Number.isFinite(dataMax)){
+    root.innerHTML='<div class="progress-chart-empty">No hay datos válidos para este ejercicio.</div>';
+    $('clientProgressChartSummary').innerHTML='';
+    return;
+  }
+
   const range=dataMax-dataMin;
   const base=Math.max(Math.abs(dataMax),Math.abs(dataMin),1);
-  const rawStep=range>0 ? range/4 : base/10;
+  const rawStep=range>0?range/4:base/10;
 
   function niceStep(step){
-    const power=Math.pow(10,Math.floor(Math.log10(Math.max(step,1e-9))));
+    if(!Number.isFinite(step)||step<=0)return 1;
+    const power=Math.pow(10,Math.floor(Math.log10(step)));
     const n=step/power;
     const nice=n<=1?1:n<=2?2:n<=2.5?2.5:n<=5?5:10;
     return nice*power;
   }
 
   let step=niceStep(rawStep);
-  if(metric==='reps' || metric==='rir') step=Math.max(step, metric==='reps'?1:0.5);
+  if(metric==='reps')step=Math.max(step,1);
+  if(metric==='rir')step=Math.max(step,.5);
 
   let axisMin=Math.floor(dataMin/step)*step;
   let axisMax=Math.ceil(dataMax/step)*step;
-
   if(axisMin===axisMax){
-    axisMin = Math.max(0, axisMin-step*2);
-    axisMax = axisMax+step*2;
-  } else {
-    const pad=step;
-    axisMin=Math.max(0,axisMin-pad);
-    axisMax=axisMax+pad;
+    axisMin=Math.max(0,axisMin-step*2);
+    axisMax=axisMax+step*2;
+  }else{
+    axisMin=Math.max(0,axisMin-step);
+    axisMax=axisMax+step;
   }
 
-  // Recalculate a final integer tick count and guarantee unique labels.
   let tickCount=Math.round((axisMax-axisMin)/step)+1;
-  while(tickCount>7){
+  let guard=0;
+  while(tickCount>7&&guard++<8){
     step=niceStep(step*1.5);
     axisMin=Math.max(0,Math.floor(dataMin/step)*step-step);
     axisMax=Math.ceil(dataMax/step)*step+step;
     tickCount=Math.round((axisMax-axisMin)/step)+1;
   }
-  while(tickCount<4){
+  guard=0;
+  while(tickCount<4&&guard++<8){
     step=niceStep(step/2);
     axisMin=Math.max(0,Math.floor(dataMin/step)*step-step);
     axisMax=Math.ceil(dataMax/step)*step+step;
@@ -1015,14 +1224,11 @@ function renderClientProgressChart(){
   }
 
   const ticks=[];
-  for(let v=axisMin,guard=0; v<=axisMax+step*0.001 && guard<20; v+=step,guard++){
+  for(let v=axisMin,n=0;v<=axisMax+step*.001&&n<12;v+=step,n++){
     ticks.push(Number(v.toPrecision(12)));
   }
   const uniqueTicks=[...new Set(ticks)];
-  if(uniqueTicks.length<2){
-    uniqueTicks.length=0;
-    uniqueTicks.push(axisMin,axisMax);
-  }
+  if(uniqueTicks.length<2)uniqueTicks.push(axisMax);
 
   const x=i=>clean.length===1?L+innerW/2:L+(i/(clean.length-1))*innerW;
   const y=v=>T+((axisMax-v)/(axisMax-axisMin))*innerH;
@@ -1037,84 +1243,162 @@ function renderClientProgressChart(){
     ? clean.map((p,i)=>`${x(i).toFixed(1)},${y(p.value).toFixed(1)}`).join(' ')
     : '';
 
-  const lineSvg=poly
-    ? `<polyline points="${poly}" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/>`
-    : '';
+  const pointsSvg=clean.map((p,i)=>`
+    <circle cx="${x(i).toFixed(1)}" cy="${y(p.value).toFixed(1)}" r="4"
+      fill="currentColor" opacity=".95"
+      data-progress-index="${i}"
+      style="cursor:pointer"
+      onclick="showProgressPoint(${i})"/>
+  `).join('');
 
-  const pointsSvg=clean.map((p,i)=>{
-    const dateText=p.date.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'2-digit'});
-    const rirText=Number.isFinite(p.rir)?`${Math.round(Number(p.rir))}`:'—';
-    const metricText=progressMetricLabel(metric)==='Peso (kg)' ? `${fmt(p.value)} kg`
-      : progressMetricLabel(metric)==='Repeticiones' ? `${fmt(p.value)} reps`
-      : progressMetricLabel(metric)==='RIR medio' ? `${fmt(p.value)} RIR`
-      : `${fmt(p.value)} kg`;
-    const detail=`${dateText} - ${progressMetricLabel(metric)}: ${metricText} - RIR ${rirText}`;
-    return `<g tabindex="0" role="button" aria-label="${esc(detail)}" data-progress-point="${i}" style="cursor:pointer">
-      <circle cx="${x(i)}" cy="${y(p.value)}" r="8" fill="currentColor"/>
-      <text x="${x(i)}" y="${H-24}" text-anchor="middle" font-size="10" fill="currentColor" opacity=".7">${esc(p.date.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit'}))}</text>
-    </g>`;
+  const labels=clean.map((p,i)=>{
+    const every=Math.max(1,Math.ceil(clean.length/6));
+    if(i!==0&&i!==clean.length-1&&i%every!==0)return '';
+    return `<text x="${x(i).toFixed(1)}" y="${H-20}" text-anchor="middle" font-size="10" fill="currentColor" opacity=".65">${esc(p.date.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit'}))}</text>`;
   }).join('');
 
   root.innerHTML=`
-    <div class="progress-chart-wrap">
-      <svg class="progress-chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Evolución de ${esc(exerciseName)}">
+    <div class="progress-svg-wrap">
+      <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(progressMetricLabel(metric))}">
         ${gridSvg}
-        ${lineSvg}
+        ${poly?`<polyline points="${poly}" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`:''}
         ${pointsSvg}
-        <text x="${L}" y="15" font-size="12" fill="currentColor" opacity=".65">${esc(progressMetricLabel(metric))}</text>
+        ${labels}
       </svg>
     </div>`;
 
-  root.querySelectorAll('[data-progress-point]').forEach(node=>{
-    const showPoint=()=>{
-      const p=clean[Number(node.dataset.progressPoint)];
-      const dateText=p.date.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'2-digit'});
-      const rirText=Number.isFinite(p.rir)?Math.round(Number(p.rir)):'—';
-      const detail=$('clientProgressPointDetail');
-      if(detail){
-        detail.style.display='block';
-        const metricText=metric==='weight' ? `${fmt(p.value)} kg`
-          : metric==='reps' ? `${fmt(p.value)} reps`
-          : metric==='rir' ? `${fmt(p.value)} RIR`
-          : `${fmt(p.value)} kg`;
-        detail.innerHTML=`<span class="point-date">${esc(dateText)}</span> - ${esc(progressMetricLabel(metric))}: ${esc(metricText)} - <span class="point-rir">RIR ${esc(rirText)}</span>`;
-      }
-    };
-    node.addEventListener('click',showPoint);
-    node.addEventListener('keydown',e=>{
-      if(e.key==='Enter'||e.key===' '){e.preventDefault();showPoint();}
-    });
-  });
-
-  const first=clean[0].value,last=clean[clean.length-1].value,delta=last-first;
-  const trend=delta>0?'Progresando':delta<0?'Descenso':'Estable';
-  const trendText=clean.length<2?'Una sesión':trend;
-  const changeClass=delta>0?'progress-summary-positive':delta<0?'progress-summary-negative':'progress-summary-neutral';
-  const trendClass=delta>0?'progress-summary-positive':delta<0?'progress-summary-negative':'progress-summary-neutral';
+  const first=clean[0],last=clean[clean.length-1];
+  const delta=last.value-first.value;
+  const pct=first.value!==0?(delta/Math.abs(first.value))*100:null;
+  const isImprovement=delta>0;
+  const trendClass=delta===0?'neutral':(isImprovement?'positive':'negative');
+  const trendText=delta===0?'Sin cambio':(isImprovement?'Mejora':'Empeoramiento');
   $('clientProgressChartSummary').innerHTML=`
-    <div class="progress-chart-stat"><span class="muted">Inicio</span><b>${esc(fmt(first))}</b></div>
-    <div class="progress-chart-stat"><span class="muted">Actual</span><b>${esc(fmt(last))}</b></div>
-    <div class="progress-chart-stat"><span class="muted">Cambio</span><b class="${changeClass}">${clean.length<2?'—':(delta>0?'+':'')+esc(fmt(delta))}</b></div>
-    <div class="progress-chart-stat"><span class="muted">Tendencia</span><b class="${trendClass}">${esc(trendText)}</b></div>`;
+    <div class="progress-stat-card">
+      <span class="muted">Primera sesión</span>
+      <b>${fmt(first.value)}</b>
+      <small>${first.date.toLocaleDateString('es-ES')}</small>
+    </div>
+    <div class="progress-stat-card">
+      <span class="muted">Última sesión</span>
+      <b>${fmt(last.value)}</b>
+      <small>${last.date.toLocaleDateString('es-ES')}</small>
+    </div>
+    <div class="progress-stat-card">
+      <span class="muted">Mejor marca</span>
+      <b>${fmt(Math.max(...values))}</b>
+      <small>Mejor registro</small>
+    </div>
+    <div class="progress-stat-card ${trendClass}">
+      <span class="muted">${trendText}</span>
+      <b>${delta>0?'+':''}${fmt(delta)}</b>
+      <small>${pct!==null?`${pct>0?'+':''}${pct.toFixed(1)}% respecto a la primera sesión`:''}</small>
+    </div>`;
+
+  clientProgressChartState.points=clean;
+}
+
+function showProgressPoint(index){
+  const p=clientProgressChartState.points?.[index];
+  const el=$('clientProgressPointDetail');
+  if(!p||!el)return;
+  el.style.display='';
+  el.innerHTML=`<b>${p.date.toLocaleDateString('es-ES')}</b> · ${formatProgressValue(p.value,clientProgressChartState.metric)}${p.rir!=null?` · RIR ${Number(p.rir).toFixed(1)}`:''}`;
 }
 
 
+function getProgressDays(sessions,orderedRoutineDays=[]){
+  const map=new Map();
+  const ordered=orderedRoutineDays||[];
+  const byName=new Map(ordered.map(d=>[String(d.name||'').trim().toLowerCase(),String(d.id)]));
+
+  (sessions||[]).forEach(s=>{
+    const d=s?.data||{};
+    const rawId=d.day_id??d.dayId??null;
+    const rawName=String(d.day_name??d.dayName??d.day_title??s.variant??s.day??'Sesión').trim();
+    const normalizedName=rawName.toLowerCase();
+    const key=rawId!=null
+      ? String(rawId)
+      : (byName.get(normalizedName)||`name:${normalizedName}`);
+    if(!map.has(key))map.set(key,{key,name:rawName,sessions:[]});
+    map.get(key).sessions.push(s);
+  });
+
+  const order=new Map(ordered.map((d,i)=>[String(d.id),i]));
+  return [...map.values()].sort((a,b)=>{
+    const ai=order.has(String(a.key))?order.get(String(a.key)):999999;
+    const bi=order.has(String(b.key))?order.get(String(b.key)):999999;
+    if(ai!==bi)return ai-bi;
+    const an=String(a.name||'').toLowerCase(),bn=String(b.name||'').toLowerCase();
+    return an.localeCompare(bn,'es');
+  });
+}
+
+function progressPeriodStart(period){
+  const now=new Date();
+  const d=new Date(now);
+  if(period==='week'){
+    const day=(d.getDay()+6)%7;
+    d.setHours(0,0,0,0); d.setDate(d.getDate()-day);
+  }else if(period==='month'){
+    d.setDate(1);d.setHours(0,0,0,0);
+  }else if(period==='quarter'){
+    d.setMonth(Math.floor(d.getMonth()/3)*3,1);d.setHours(0,0,0,0);
+  }else if(period==='year'){
+    d.setMonth(0,1);d.setHours(0,0,0,0);
+  }else return null;
+  return d;
+}
+function filterProgressSessions(sessions,period){
+  const start=progressPeriodStart(period);
+  if(!start)return sessions||[];
+  return (sessions||[]).filter(s=>{
+    const raw=s?.workout_date??s?.date??s?.created_at??s?.data?.workout_date??s?.data?.date??s?.data?.created_at;
+    const d=new Date(raw);
+    return !Number.isNaN(d.getTime())&&d>=start;
+  });
+}
 function setupClientProgressChart(sessions){
-  clientProgressChartState.sessions=sessions;
-  clientProgressChartState.exerciseNames=getProgressExercises(sessions);
-  const select=$('clientProgressExercise'), metric=$('clientProgressMetric');
-  if(!select||!metric)return;
-  select.innerHTML=clientProgressChartState.exerciseNames.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
-  if(!clientProgressChartState.exerciseNames.length){
-    select.disabled=true;
-    metric.disabled=true;
-    $('clientProgressChart').innerHTML='<div class="progress-chart-empty">No hay ejercicios con datos registrados.</div>';
-    return;
+  clientProgressChartState.sessions=Array.isArray(sessions)?sessions:[];
+  const daySelect=$('clientProgressDay'), exerciseSelect=$('clientProgressExercise');
+  const metric=$('clientProgressMetric'), periodSelect=$('clientProgressPeriod');
+  if(!exerciseSelect||!metric)return;
+
+  const allDays=getProgressDays(clientProgressChartState.sessions,clientProgressChartState.orderedRoutineDays||[]);
+  clientProgressChartState.days=allDays;
+
+  if(daySelect){
+    daySelect.innerHTML=allDays.map(d=>`<option value="${esc(d.key)}">${esc(d.name)}</option>`).join('');
+    daySelect.disabled=!allDays.length;
   }
-  select.disabled=false;metric.disabled=false;
-  select.onchange=renderClientProgressChart;
-  metric.onchange=renderClientProgressChart;
-  renderClientProgressChart();
+
+  const rebuildExercises=()=>{
+    const period=periodSelect?.value||'month';
+    clientProgressChartState.period=period;
+    const key=daySelect?.value??allDays[0]?.key;
+    const day=allDays.find(d=>String(d.key)===String(key));
+    const periodSessions=filterProgressSessions(day?.sessions||clientProgressChartState.sessions,period);
+    clientProgressChartState.selectedDayKey=key;
+    clientProgressChartState.filteredSessions=periodSessions;
+    const names=getProgressExercises(periodSessions);
+    exerciseSelect.innerHTML=names.slice(0,200).map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
+    exerciseSelect.disabled=!names.length;
+    metric.disabled=!names.length;
+    if(names.length)renderClientProgressChart();
+    else{
+      $('clientProgressChart').innerHTML='<div class="progress-chart-empty">No hay datos en este periodo para este día.</div>';
+      $('clientProgressChartSummary').innerHTML='';
+    }
+  };
+  const schedule=()=>{
+    clearTimeout(window.__progressDebounce);
+    window.__progressDebounce=setTimeout(renderClientProgressChart,80);
+  };
+  exerciseSelect.onchange=schedule;
+  metric.onchange=schedule;
+  if(daySelect)daySelect.onchange=rebuildExercises;
+  if(periodSelect)periodSelect.onchange=rebuildExercises;
+  rebuildExercises();
 }
 
 async function openRoutineProgress(routineId){
@@ -1145,6 +1429,8 @@ async function openRoutineProgress(routineId){
       return;
     }
     subtitle.textContent=`${sessions.length} sesión${sessions.length===1?'':'es'} registrada${sessions.length===1?'':'s'}`;
+    let orderedRoutineDays=[];
+    try{orderedRoutineDays=await days(routineId);}catch(e){console.warn('Orden de días:',e);}
     body.innerHTML=`
       <div class="card" style="margin:0 0 12px">
         <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">
@@ -1154,8 +1440,22 @@ async function openRoutineProgress(routineId){
       </div>
       <div class="card client-progress-chart">
         <div style="margin-bottom:10px"><b style="font-size:18px">Evolución del ejercicio</b>
-        <div class="muted">Selecciona un ejercicio para ver tu progresión.</div></div>
-        <div class="progress-chart-controls">
+        <div class="muted">Selecciona el día/sesión y el ejercicio para comparar tus sesiones equivalentes.</div></div>
+        <div class="progress-chart-controls"><div>
+            <label for="clientProgressPeriod">Periodo</label>
+            <select id="clientProgressPeriod" class="input">
+              <option value="week">Semana</option>
+              <option value="month" selected>Mes</option>
+              <option value="quarter">Trimestre</option>
+              <option value="year">Año</option>
+              <option value="all">Todo</option>
+            </select>
+          </div>
+          <div>
+            <label>Día / sesión</label>
+            <select id="clientProgressDay"></select>
+          </div>
+          
           <div><label for="clientProgressExercise">Ejercicio</label><select id="clientProgressExercise" class="input"></select></div>
           <div><label for="clientProgressMetric">Métrica</label><select id="clientProgressMetric" class="input">
             <option value="weight">Peso máximo</option><option value="reps">Repeticiones máximas</option><option value="1rm">1RM estimado</option>
@@ -1182,6 +1482,7 @@ async function openRoutineProgress(routineId){
               ${e.notes?`<div class="history-notes"><span>Notas:</span> ${esc(e.notes)}</div>`:''}</div>`;
           }).join(''):'<div class="muted">Sin ejercicios registrados.</div>'}</div></details>`;
       }).join('')}`;
+    clientProgressChartState.orderedRoutineDays=orderedRoutineDays;
     setupClientProgressChart(sessions);
   }catch(e){
     console.error('openRoutineProgress:',e);
@@ -1223,6 +1524,9 @@ async function openClientRoutineProgress(clientId,routineId,routineName){
     });
 
     subtitle.textContent=`${sessions.length} sesión${sessions.length===1?'':'es'} registrada${sessions.length===1?'':'s'}`;
+    let orderedRoutineDays=[];
+    try{ orderedRoutineDays=await days(routineId); }
+    catch(e){ console.warn('No se pudo cargar el orden de los días:',e); }
 
     if(!sessions.length){
       body.innerHTML='<div class="empty">El cliente todavía no tiene sesiones registradas de esta rutina.</div>';
@@ -1242,7 +1546,21 @@ async function openClientRoutineProgress(clientId,routineId,routineName){
           <b style="font-size:18px">Evolución del ejercicio</b>
           <div class="muted">Selecciona un ejercicio para ver cómo progresa a lo largo de las sesiones.</div>
         </div>
-        <div class="progress-chart-controls">
+        <div class="progress-chart-controls"><div>
+            <label for="clientProgressPeriod">Periodo</label>
+            <select id="clientProgressPeriod" class="input">
+              <option value="week">Semana</option>
+              <option value="month" selected>Mes</option>
+              <option value="quarter">Trimestre</option>
+              <option value="year">Año</option>
+              <option value="all">Todo</option>
+            </select>
+          </div>
+          <div>
+            <label for="clientProgressDay">Día / sesión</label>
+            <select id="clientProgressDay" class="input"></select>
+          </div>
+          
           <div>
             <label for="clientProgressExercise">Ejercicio</label>
             <select id="clientProgressExercise" class="input"></select>
@@ -1303,6 +1621,7 @@ async function openClientRoutineProgress(clientId,routineId,routineName){
           </div>
         </details>`;
       }).join('')}`;
+    clientProgressChartState.orderedRoutineDays=orderedRoutineDays;
     setupClientProgressChart(sessions);
   }catch(e){
     console.error('openClientRoutineProgress:',e);
@@ -1455,6 +1774,51 @@ async function renderClients(){
 }
 
 
+
+async function renderDashboard(){
+  const box=$('dashboardContent'); if(!box)return;
+  box.innerHTML='<div class="card"><h2 style="margin:0">Resumen</h2><div class="muted">Cargando...</div></div>';
+  try{
+    const rows=Array.isArray(assignments)?assignments:[];
+    const ids=[...new Set(rows.map(a=>a.client_id).filter(Boolean))];
+    const since=new Date(); since.setDate(since.getDate()-7); since.setHours(0,0,0,0);
+
+    let profiles=[];
+    if(ids.length){
+      const q=await db.from('profiles').select('id,name').in('id',ids);
+      if(!q.error)profiles=q.data||[];
+    }
+    const nameById=new Map(profiles.map(c=>[c.id,String(c.name||'Cliente')]));
+    let weeklySessions=0,lastRows=[];
+    if(ids.length){
+      const q=await db.from('workouts').select('user_id,workout_date,routine_id')
+        .in('user_id',ids).gte('workout_date',since.toISOString()).order('workout_date',{ascending:false});
+      if(!q.error){weeklySessions=(q.data||[]).length;lastRows=q.data||[];}
+    }
+    const lastByClient=new Map();
+    lastRows.forEach(w=>{if(!lastByClient.has(w.user_id))lastByClient.set(w.user_id,w);});
+
+    box.innerHTML=`
+      <div class="card"><h2 style="margin:0 0 4px">Resumen</h2><div class="muted">Una vista rápida de tus clientes.</div></div>
+      <div class="dashboard-stats">
+        <div class="progress-stat-card"><span class="muted">Mis clientes</span><b>${ids.length}</b></div>
+        <div class="progress-stat-card"><span class="muted">Sesiones esta semana</span><b>${weeklySessions}</b></div>
+        <div class="progress-stat-card"><span class="muted">Clientes activos</span><b>${[...lastByClient.keys()].length}</b></div>
+      </div>
+      <div class="card"><h3 style="margin-top:0">Clientes</h3>
+      ${ids.length?ids.map(id=>{
+        const w=lastByClient.get(id),when=w?.workout_date;
+        return `<div class="dashboard-client-row">
+          <div><b>${esc(nameById.get(id)||'Cliente')}</b><div class="muted">${when?'Última sesión: '+new Date(when).toLocaleDateString('es-ES'):'Sin sesiones esta semana'}</div></div>
+          <button class="btn" onclick="openClientProfile('${id}')">Ver cliente</button>
+        </div>`;
+      }).join(''):'<div class="empty">No tienes clientes todavía.</div>'}
+      </div>`;
+  }catch(e){
+    console.error('renderDashboard:',e);
+    box.innerHTML='<div class="card"><div class="empty">No se pudo cargar el resumen.</div></div>';
+  }
+}
 function renderMine(){$('mine').innerHTML='<div class="card"><h2 style="margin:0 0 4px">Mis rutinas</h2><div class="muted">Tus rutinas solo pertenecen a tu cuenta.</div></div>'+(routines.length?routines.map(r=>`<div class="card routine"><div><h3>${esc(r.name)}</h3><div class="muted">${esc(r.description||'Sin descripción')}</div></div><div class="buttons"><button class="btn primary" onclick="openRoutine('${r.id}')">Abrir</button><button class="btn" onclick="editRoutine('${r.id}')">Editar</button><button class="btn" onclick="openRoutineProgress('${r.id}')">Progreso</button><button class="btn" onclick="openShare('${r.id}')">Compartir</button><button class="btn danger" onclick="delRoutine('${r.id}')">Eliminar</button></div></div>`).join(''):'<div class="card empty"><b style="color:#fff">No tienes rutinas todavía.</b><div style="margin-top:6px">Crea la primera desde aquí.</div><button class="btn primary" style="margin-top:14px" onclick="view(\'new\')">Crear rutina</button></div>')}
 let newDays=[];
 function renderNew(){
@@ -1538,68 +1902,134 @@ async function editRoutine(id){if(profile?.role!=='trainer')return toast('Solo e
 function renderEditor(){
   let h='';
   editDays.forEach((d,di)=>{
-    h+=`<div class="card">
+    h+=`<div class="card routine-editor-day"
+      ondragover="dragOverDay(event)"
+      ondrop="dropDay(event,${di})">
+
       <div class="dayhead">
-        <input value="${esc(d.name)}" onchange="editDays[${di}].name=this.value">
-        <div class="buttons">
-          <button class="btn" type="button" onclick="moveDay(${di},-1)" ${di===0?'disabled':''}>↑</button>
-          <button class="btn" type="button" onclick="moveDay(${di},1)" ${di===editDays.length-1?'disabled':''}>↓</button>
-          <button class="btn danger" type="button" onclick="removeDay(${di})">Eliminar</button>
+        <div style="display:flex;align-items:center;gap:9px;min-width:0;flex:1">
+          <span class="drag-handle" draggable="true" title="Arrastrar sesión"
+            ondragstart="dragDayStart(event,${di})" ondragend="dragEndItem(event)">☷</span>
+          <input value="${esc(d.name)}" onchange="editDays[${di}].name=this.value">
         </div>
+        <button class="btn danger" type="button" onclick="removeDay(${di})">Eliminar</button>
       </div>
 
+      <div class="exercise-drop-zone"
+        ondragover="dragOverDropZone(event)"
+        ondrop="dropExerciseAt(event,${di},0)"></div>
+
       ${d.exercises.map((e,ei)=>`
-        <div class="exercise">
-          <div class="grid3">
-            <div>
-              <label>Ejercicio</label>
-              <input value="${esc(e.name)}"
-                onchange="editDays[${di}].exercises[${ei}].name=this.value">
-            </div>
-            <div>
-              <label>Series</label>
-              <input type="number" min="1" value="${e.sets||1}"
-                onchange="editDays[${di}].exercises[${ei}].sets=Math.max(1,+this.value||1)">
-            </div>
-            <div>
-              <label>Descanso (min)</label>
-              <input type="number" min="0" step="0.5"
-                value="${(e.rest_seconds||120)/60}"
-                onchange="editDays[${di}].exercises[${ei}].rest_seconds=(+this.value||0)*60">
+        <div class="exercise routine-editor-exercise"
+          ondragover="dragOverExercise(event)"
+          ondrop="dropExercise(event,${di},${ei})">
+
+          <div style="display:flex;align-items:flex-start;gap:8px">
+            <span class="drag-handle" draggable="true" title="Arrastrar ejercicio"
+              ondragstart="dragExerciseStart(event,${di},${ei})" ondragend="dragEndItem(event)">☷</span>
+            <div style="flex:1">
+              <div class="grid3">
+                <div><label>Ejercicio</label><input value="${esc(e.name)}" onchange="editDays[${di}].exercises[${ei}].name=this.value"></div>
+                <div><label>Series</label><input type="number" min="1" value="${e.sets||1}" onchange="editDays[${di}].exercises[${ei}].sets=Math.max(1,+this.value||1)"></div>
+                <div><label>Descanso (min)</label><input type="number" min="0" step="0.5" value="${(e.rest_seconds||120)/60}" onchange="editDays[${di}].exercises[${ei}].rest_seconds=(+this.value||0)*60"></div>
+              </div>
+              <div class="grid" style="margin-top:8px">
+                <div><label>Objetivo</label><input value="${esc(e.target||'')}" placeholder="2x10-15" onchange="editDays[${di}].exercises[${ei}].target=this.value"></div>
+                <div><label>RIR</label><input value="${esc(e.rir??'')}" onchange="editDays[${di}].exercises[${ei}].rir=this.value"></div>
+              </div>
+              <div style="margin-top:8px"><label>Notas</label><input value="${esc(e.notes||'')}" onchange="editDays[${di}].exercises[${ei}].notes=this.value"></div>
             </div>
           </div>
-
-          <div class="grid" style="margin-top:8px">
-            <div>
-              <label>Objetivo</label>
-              <input value="${esc(e.target||'')}" placeholder="2x10-15"
-                onchange="editDays[${di}].exercises[${ei}].target=this.value">
-            </div>
-            <div>
-              <label>RIR</label>
-              <input value="${esc(e.rir??'')}"
-                onchange="editDays[${di}].exercises[${ei}].rir=this.value">
-            </div>
-          </div>
-
-          <div style="margin-top:8px">
-            <label>Notas</label>
-            <input value="${esc(e.notes||'')}"
-              onchange="editDays[${di}].exercises[${ei}].notes=this.value">
-          </div>
-
           <div class="buttons" style="justify-content:flex-end;margin-top:7px">
-            <button class="btn" type="button" onclick="moveEx(${di},${ei},-1)" ${ei===0?'disabled':''}>↑</button>
-            <button class="btn" type="button" onclick="moveEx(${di},${ei},1)" ${ei===d.exercises.length-1?'disabled':''}>↓</button>
             <button class="btn danger" type="button" onclick="removeEx(${di},${ei})">Eliminar ejercicio</button>
           </div>
         </div>
+
+        <div class="exercise-drop-zone"
+          ondragover="dragOverDropZone(event)"
+          ondrop="dropExerciseAt(event,${di},${ei+1})"></div>
       `).join('')}
 
       <button class="btn" type="button" onclick="addEx(${di})">Añadir ejercicio</button>
     </div>`;
   });
   $('daysEditor').innerHTML=h||'<div class="empty">Añade un día.</div>';
+}
+
+function dragDayStart(e,i){
+  __dragItem={type:'day',i};
+  e.dataTransfer.effectAllowed='move';
+  e.dataTransfer.setData('text/plain','day:'+i);
+  e.currentTarget.classList.add('dragging');
+}
+function dragExerciseStart(e,di,ei){
+  e.stopPropagation();
+  __dragItem={type:'exercise',di,ei};
+  e.dataTransfer.effectAllowed='move';
+  e.dataTransfer.setData('text/plain','exercise:'+di+':'+ei);
+  e.currentTarget.classList.add('dragging');
+}
+function clearDropIndicators(){
+  document.querySelectorAll('.drag-over,.drop-active').forEach(x=>x.classList.remove('drag-over','drop-active'));
+}
+function dragOverDropZone(e){
+  e.preventDefault(); e.stopPropagation();
+  e.dataTransfer.dropEffect='move';
+  clearDropIndicators();
+  e.currentTarget.classList.add('drop-active');
+}
+function dragOverExercise(e){
+  e.preventDefault(); e.stopPropagation();
+  e.dataTransfer.dropEffect='move';
+  clearDropIndicators();
+  e.currentTarget.classList.add('drag-over');
+}
+function dragOverDay(e){
+  e.preventDefault(); e.stopPropagation();
+  e.dataTransfer.dropEffect='move';
+  e.currentTarget.classList.add('drag-over');
+}
+function dropExerciseAt(e,targetDay,targetIndex){
+  e.preventDefault(); e.stopPropagation();
+  if(!__dragItem || __dragItem.type!=='exercise')return;
+
+  const fromDay=__dragItem.di, fromIndex=__dragItem.ei;
+  const source=editDays[fromDay]?.exercises;
+  const target=editDays[targetDay]?.exercises;
+  if(!source || !target)return;
+
+  const [item]=source.splice(fromIndex,1);
+  let at=targetIndex;
+  if(fromDay===targetDay && fromIndex<at)at--;
+  at=Math.max(0,Math.min(at,target.length));
+  target.splice(at,0,item);
+
+  editDays.forEach(d=>d.exercises.forEach((ex,i)=>ex.exercise_order=i));
+  __dragItem=null;
+  clearDropIndicators();
+  renderEditor();
+}
+function dropExercise(e,targetDay,targetIndex){
+  dropExerciseAt(e,targetDay,targetIndex);
+}
+function dropDay(e,target){
+  e.preventDefault(); e.stopPropagation();
+  if(!__dragItem || __dragItem.type!=='day')return;
+  const from=__dragItem.i;
+  if(from!==target){
+    const [x]=editDays.splice(from,1);
+    let at=target;
+    if(from<target)at--;
+    editDays.splice(Math.max(0,at),0,x);
+    editDays.forEach((d,i)=>d.day_order=i);
+  }
+  __dragItem=null;
+  clearDropIndicators();
+  renderEditor();
+}
+function dragEndItem(){
+  clearDropIndicators();
+  __dragItem=null;
 }
 
 function moveEx(dayIndex, exerciseIndex, direction){
@@ -1679,17 +2109,17 @@ async function saveEditor(id){
 async function delRoutine(id){
   if(window.__routineDeleting)return;
   if(!user?.id)return toast('Debes iniciar sesión.');
-  if(!confirm('¿Eliminar esta rutina y TODO su contenido?'))return;
+  if(!confirm('¿Mover esta rutina a la papelera?'))return;
   window.__routineDeleting=true;
   try{
-    const r=await db.from('routines').delete().eq('id',id).eq('owner_id',user.id);
+    const r=await db.from('routines').update({deleted_at:new Date().toISOString()})
+      .eq('id',id).eq('owner_id',user.id).is('deleted_at',null);
     if(r.error)throw r.error;
-    const check=await db.from('routines').select('id').eq('id',id).maybeSingle();
-    if(check.error)throw check.error;
-    if(check.data)throw new Error('La rutina sigue existiendo después del borrado.');
-    await reload();renderMine();toast('Rutina eliminada completamente');
-  }catch(e){console.error('delRoutine:',e);toast('No se pudo eliminar la rutina: '+(e.message||'revisa los permisos'))}
-  finally{window.__routineDeleting=false}
+    await reload();renderMine();toast('Rutina movida a la papelera');
+  }catch(e){
+    console.error('delRoutine:',e);
+    toast('No se pudo mover la rutina a la papelera: '+(e.message||'revisa los permisos'));
+  }finally{window.__routineDeleting=false}
 }
 async function editOpenRoutine(){
   if(profile?.role!=='trainer')return toast('Solo el entrenador puede editar la rutina.');
@@ -1941,6 +2371,7 @@ async function saveEditedWorkout(id){
   }
 }
 function showHistory(){
+  window.__editingWorkout=null;
   const h=window.workoutHistory||[];
   $('trainTitle').textContent='Historial';
   $('trainSubtitle').textContent='Tus sesiones guardadas';
@@ -2245,7 +2676,15 @@ function saveWorkoutDraft(){
       savedAt:Date.now(),
       routineId:workoutRoutine.id,
       dayId:activeWorkout.day.id,
-      sets:activeWorkout.sets
+      sets:Object.fromEntries(
+        Object.entries(activeWorkout.sets||{}).map(([id,arr])=>[
+          id,
+          {
+            rows:Array.isArray(arr)?arr.map(x=>({...x})):[],
+            note:String(arr?.note??'')
+          }
+        ])
+      )
     }));
   }catch(e){console.warn('No se pudo guardar el borrador:',e);}
 }
@@ -2259,11 +2698,29 @@ function loadWorkoutDraft(){
     if(!draft?.sets)return false;
     for(const e of activeWorkout.exercises){
       const base=Array.from({length:e.sets||1},()=>({kg:'',reps:'',rir:'',done:false}));
-      const saved=Array.isArray(draft.sets?.[e.id])?draft.sets[e.id]:null;
-      activeWorkout.sets[e.id]=saved
-        ? base.map((s,i)=>({...s,...(saved[i]||{})}))
+      const rawSaved=draft.sets?.[e.id];
+      const savedRows=Array.isArray(rawSaved)
+        ? rawSaved
+        : (Array.isArray(rawSaved?.rows)?rawSaved.rows:null);
+      activeWorkout.sets[e.id]=savedRows
+        ? base.map((s,i)=>({...s,...(savedRows[i]||{})}))
         : base;
-      if(saved && Object.prototype.hasOwnProperty.call(saved,'note'))activeWorkout.sets[e.id].note=String(saved.note??'');
+
+      const savedNote=Array.isArray(rawSaved)
+        ? (Object.prototype.hasOwnProperty.call(rawSaved,'note') ? rawSaved.note : undefined)
+        : rawSaved?.note;
+
+      if(savedNote!==undefined){
+        activeWorkout.sets[e.id].note=String(savedNote??'');
+      }else{
+        const noteKey=workoutNotesKey();
+        try{
+          const notes=noteKey ? JSON.parse(localStorage.getItem(noteKey)||'{}')||{} : {};
+          if(Object.prototype.hasOwnProperty.call(notes,e.id)){
+            activeWorkout.sets[e.id].note=String(notes[e.id]??'');
+          }
+        }catch(_){}
+      }
     }
     return true;
   }catch(e){console.warn('No se pudo recuperar el borrador:',e);return false;}
@@ -2688,36 +3145,52 @@ async function createShareCode(routineId){
 
 
 async function removeSharedRoutine(assignmentId, routineName){
-  if(window.__removeSharedBusy) return;
-  const ok = confirm(
-    `¿Quieres dejar de tener "${routineName}" en tus rutinas compartidas?\n\n` +
-    `La rutina no se eliminará para el entrenador.`
-  );
-  if(!ok) return;
-
-  window.__removeSharedBusy = true;
+  if(window.__removeSharedBusy)return;
+  const ok=confirm(`¿Quieres mover "${routineName||'esta rutina'}" a la papelera?\n\nPodrás restaurarla después.`);
+  if(!ok)return;
+  window.__removeSharedBusy=true;
   try{
-    const r = await db
-      .from('routine_assignments')
-      .delete()
-      .eq('id', assignmentId)
-      .eq('client_id', user.id);
-
-    if(r.error) throw r.error;
-
-    await reload();
-    await renderShared();
-    toast('Rutina eliminada de tus rutinas compartidas');
+    const r=await db.from('routine_assignments')
+      .update({client_deleted_at:new Date().toISOString()})
+      .eq('id',assignmentId)
+      .eq('client_id',user.id)
+      .is('client_deleted_at',null);
+    if(r.error)throw r.error;
+    await reload(); await renderShared();
+    toast('Rutina movida a la papelera');
   }catch(e){
-    console.error('remove shared routine:', e);
-    toast(e?.message || 'No se pudo eliminar la rutina.');
-  }finally{
-    window.__removeSharedBusy = false;
-  }
+    console.error('remove shared routine:',e);
+    toast(e?.message||'No se pudo mover la rutina a la papelera.');
+  }finally{window.__removeSharedBusy=false}
+}
+
+async function renderTodayCard(){
+  const host=$('todayCard'); if(!host)return;
+  try{
+    const today=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'][new Date().getDay()];
+    let found=null;
+    for(const a of (assignments||[])){
+      const ds=await days(a.trainer_routine_id);
+      const d=ds.find(x=>String(x.name||'').trim().toLowerCase()===today);
+      if(d){found={a,d};break;}
+    }
+    if(!found){
+      host.innerHTML='<div class="card"><b>¿Qué toca hoy?</b><div class="muted" style="margin-top:5px">No hay una sesión asignada para hoy.</div></div>';
+      return;
+    }
+    const rr=await db.from('routines').select('name').eq('id',found.a.trainer_routine_id).maybeSingle();
+    host.innerHTML=`<div class="card">
+      <div class="muted">¿Qué toca hoy?</div>
+      <h3 style="margin:5px 0">${esc(rr.data?.name||'Rutina')}</h3>
+      <div><b>${esc(found.d.name)}</b> · ${Array.isArray(found.d.exercises)?found.d.exercises.length:0} ejercicio${Array.isArray(found.d.exercises)&&found.d.exercises.length===1?'':'s'}</div>
+      <div class="buttons" style="margin-top:10px"><button class="btn primary" onclick="openSharedRoutine('${found.a.trainer_routine_id}')">Ver rutina</button></div>
+    </div>`;
+  }catch(e){console.error('renderTodayCard:',e);}
 }
 
 async function renderShared(){
-  let h=`<div class="card">
+  let h=`<div id="todayCard"></div>
+  <div class="card">
     <h2 style="margin:0 0 4px">Rutinas compartidas</h2>
     <div class="muted">Rutinas que un entrenador te ha asignado.</div>
     <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
@@ -2737,6 +3210,7 @@ async function renderShared(){
     </div>`;
   }
   $('shared').innerHTML=h;
+  await renderTodayCard();
 }
 
 async function openSharedRoutine(id){
@@ -2876,5 +3350,10 @@ document.addEventListener('DOMContentLoaded',()=>{
   }
 });
 document.addEventListener('DOMContentLoaded',resetPasswordVisibility);
+/* trash-tab-trainer-only-v1 */
+document.addEventListener('DOMContentLoaded',()=>{
+  const b=document.getElementById('tTrash');
+  if(b && profile?.role!=='trainer') b.style.display='none';
+});
 </script>
 </body></html>
