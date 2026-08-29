@@ -295,6 +295,52 @@
 .dashboard-stats{display:flex;gap:12px;flex-wrap:wrap;margin:12px 0}
 .dashboard-client-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid rgba(127,127,127,.15)}
 .dashboard-client-row:last-child{border-bottom:0}
+.compact-progress-stat{min-width:0;flex:1 1 150px;padding:10px 12px}
+.compact-progress-stat b{display:block;font-size:1.05rem;margin-top:2px}
+.compact-progress-stat small{display:block;margin-top:2px}
+@media(max-width:600px){.compact-progress-stat{flex:1 1 calc(50% - 6px);padding:8px 9px}.compact-progress-stat b{font-size:.98rem}}
+
+.progress-svg-wrap{position:relative}
+.progress-point-tooltip{position:absolute;display:none;z-index:5;min-width:132px;max-width:180px;padding:9px 11px;border:1px solid rgba(255,255,255,.18);border-radius:10px;background:rgba(22,25,31,.96);box-shadow:0 8px 24px rgba(0,0,0,.28);pointer-events:none;transform:translateX(-50%);backdrop-filter:blur(6px)}
+.progress-tooltip-date{font-size:12px;opacity:.72;margin-bottom:3px}
+.progress-tooltip-value{font-weight:700;white-space:nowrap}
+.progress-tooltip-rir{font-weight:500;opacity:.85;margin-left:5px}
+.progress-chart-stat.progress-point-detail{display:none!important}
+@media(max-width:600px){
+  .progress-point-tooltip{min-width:120px;padding:7px 9px;font-size:12px}
+}
+
+.routine-sortable.routine-drag-over{border-color:var(--ok);box-shadow:0 0 0 2px rgba(255,255,255,.12)}
+.open-day-row{display:flex;align-items:center;gap:8px;width:100%;margin:6px 0;transition:opacity .12s ease,transform .12s ease}
+.open-day-row.dragging{opacity:.45}
+.open-day-row.open-day-drag-over{outline:2px solid var(--ok);border-radius:12px}
+.open-day-handle{font-size:20px;flex:0 0 30px;text-align:center;cursor:grab}
+.open-day-button{margin:0 !important;width:auto !important;min-width:0}
+.open-day-drop-zone{height:7px;border-radius:8px;transition:all .12s ease}
+.open-day-drop-zone.open-day-drop-active{height:30px;border:1px dashed var(--ok);background:rgba(255,255,255,.04)}
+
+.routine-drag-handle{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;cursor:grab;user-select:none;touch-action:none}
+.routine-drag-handle:active{cursor:grabbing}
+.routine-sortable{user-select:none}
+
+.routine-pointer-dragging{cursor:grabbing!important;user-select:none}
+.routine-drag-handle{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;cursor:grab!important;touch-action:none;user-select:none}
+.routine-drag-handle:active{cursor:grabbing!important}
+.routine-sortable.routine-drag-over{border-color:var(--ok)!important;box-shadow:0 0 0 2px rgba(255,255,255,.14)}
+.routine-sortable.dragging{opacity:.45;transform:scale(.99)}
+
+#mine .routine-order-zone{height:12px;min-height:12px}
+#mine .routine-order-zone-active{height:36px;min-height:36px;border:2px dashed var(--ok);background:rgba(255,255,255,.05);margin:4px 0}
+#mine .routine-sortable.drag-over{border-color:var(--ok)!important;box-shadow:0 0 0 2px rgba(255,255,255,.15)}
+#mine .routine-drag-handle{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;cursor:grab!important;touch-action:none;user-select:none}
+#mine .routine-drag-handle:active{cursor:grabbing!important}
+
+#routineModal .open-day-handle{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;touch-action:none;cursor:grab;user-select:none}
+#routineModal .open-day-handle:active{cursor:grabbing}
+#routineModal .open-day-row{touch-action:pan-y}
+#routineModal .open-day-row.dragging{opacity:.45;transform:scale(.99)}
+#routineModal .open-day-row.open-day-drag-over{outline:2px solid var(--ok);border-radius:12px}
+.open-day-pointer-dragging{user-select:none;cursor:grabbing!important}
 </style>
 </head>
 <body>
@@ -319,7 +365,6 @@
 </div><button type="button" id="forgotBtn" class="btn" style="margin-top:8px">¿Has olvidado tu contraseña?</button><button type="button" id="authBtn" class="btn primary">Iniciar sesión</button><button type="button" id="authSwitch" class="btn">Crear cuenta</button><div id="authMsg" class="msg"></div></div></div>
 <div id="app" style="display:none"><div class="wrap"><header><div><h1>SIMPLE</h1><div class="sub"><span id="role"></span> · <span id="mail"></span></div></div><div class="actions"><button class="btn" onclick="shareHeaderOpen()">Compartir</button><button class="btn" onclick="logout()">Salir</button></div></header>
 <div id="tabs" class="tabs"></div>
-<section id="dashboard" class="view"><div id="dashboardContent"></div></section>
 <div id="mine"></div>
 <div id="new" style="display:none"></div>
 <div id="shared" style="display:none"></div>
@@ -826,7 +871,7 @@ function renderTabs(){
   $('tabs').innerHTML=trainer
     ? `<button id="tMine" class="active" onclick="view('mine')">Mis rutinas</button>
        <button id="tNew" onclick="view('new')">Crear rutina</button>
-       <button id="tDashboard" onclick="view('dashboard')">Resumen</button><button id="tClients" onclick="view('clients')">Mis clientes</button><button class="btn icon-trash-btn" id="tTrash" onclick="view('trash')" title="Papelera" aria-label="Abrir papelera">🗑️</button>`
+       <button id="tClients" onclick="view('clients')">Mis clientes</button><button class="btn icon-trash-btn" id="tTrash" onclick="view('trash')" title="Papelera" aria-label="Abrir papelera">🗑️</button>`
     : `<button id="tShared" class="active" onclick="view('shared')">Mis rutinas</button><button class="btn icon-trash-btn" id="tTrashClient" onclick="view('trash')" title="Papelera" aria-label="Abrir papelera">🗑️</button>`;
 
   // El cliente ya no tiene un apartado de Historial independiente.
@@ -839,10 +884,10 @@ async function reload(){
   if(!user) throw new Error('No hay una sesión activa.');
 
   const r=await db.from('routines')
-    .select('id,name,description,share_code,source_routine_id,created_at,deleted_at')
-    .eq('owner_id',user.id)
-    .is('deleted_at',null)
-    .order('created_at',{ascending:false});
+    .select('id,name,description,share_code,source_routine_id,created_at,deleted_at,routine_order')
+     .eq('owner_id',user.id)
+     .is('deleted_at',null)
+     .order('routine_order',{ascending:true,nullsFirst:false});
 
   if(r.error){
     console.error('Carga de rutinas:',r.error);
@@ -866,7 +911,8 @@ async function reload(){
     assignments=a.data||[];
   }else{
     assignments=[];
-    // Trainer: load assignments for routines owned by this trainer.
+    // Trainer: load exactly the assignments belonging to this trainer.
+    // Keep the same query shape used by the known-working SIMPLE build.
     const mineIds=routines.map(r=>r.id);
     if(mineIds.length){
       const a=await db.from('routine_assignments')
@@ -882,8 +928,7 @@ async function reload(){
     }else{
       assignments=[];
     }
-  }
-}
+  }}
 
 async function renderTrash(){
   const box=$('trash');
@@ -984,30 +1029,8 @@ async function restoreClientRoutine(assignmentId){
 }
 
 
-async function renderTodayCard(){
-  const host=$('todayCard'); if(!host)return;
-  try{
-    const todayNames=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
-    const today=todayNames[new Date().getDay()];
-    const list=Array.isArray(assignments)?assignments:[];
-    let candidate=null;
-    for(const a of list){
-      const routineId=a.trainer_routine_id;
-      const ds=await days(routineId);
-      const hit=ds.find(d=>String(d.name||'').toLowerCase().includes(today));
-      if(hit){candidate={a,d:hit};break;}
-    }
-    if(!candidate){
-      host.innerHTML='<div class="card"><b>¿Qué toca hoy?</b><div class="muted" style="margin-top:5px">No hay una sesión asignada para hoy.</div></div>';
-      return;
-    }
-    host.innerHTML=`<div class="card"><div class="muted">¿Qué toca hoy?</div><h3 style="margin:5px 0">${esc(candidate.d.name)}</h3>
-      <div class="muted">${candidate.d.exercises.length} ejercicio${candidate.d.exercises.length===1?'':'s'}</div>
-      <div class="buttons" style="margin-top:10px"><button class="btn primary" onclick="openRoutine('${candidate.a.trainer_routine_id}')">Ver rutina</button></div></div>`;
-  }catch(e){console.error('renderTodayCard:',e);}
-}
+
 function view(v){
-  if(v==='dashboard' && profile?.role==='trainer') renderDashboard();
   ['mine','new','shared','clients','history','trash'].forEach(x=>{
     if($(x)) $(x).style.display=x===v?'block':'none';
   });
@@ -1132,9 +1155,10 @@ function progressMetricLabel(metric){
 }
 
 function formatProgressValue(value,metric){
-  if(metric==='reps')return `${Math.round(value)}`;
-  if(metric==='rir')return Number(value).toFixed(1);
-  return Number(value).toLocaleString('es-ES',{maximumFractionDigits:1});
+  if(value===null||value===undefined||!Number.isFinite(Number(value)))return '—';
+  if(metric==='reps')return `${Math.round(Number(value))} reps`;
+  if(metric==='rir')return `RIR ${Number(value).toFixed(1)}`;
+  return `${Number(value).toLocaleString('es-ES',{maximumFractionDigits:1})} kg`;
 }
 
 let __progressRenderToken=0;
@@ -1153,6 +1177,8 @@ function renderClientProgressChart(){
   let points=getExercisePoints(sourceSessions,exerciseName,metric);
   const pointDetail=$('clientProgressPointDetail');
   if(pointDetail){pointDetail.style.display='none';pointDetail.innerHTML='';}
+  const oldTooltip=$('progressPointTooltip');
+  if(oldTooltip){oldTooltip.style.display='none';oldTooltip.innerHTML='';}
 
   // Never let a huge/dirty history freeze the browser.
   if(points.length>120)points=points.slice(-120);
@@ -1244,11 +1270,12 @@ function renderClientProgressChart(){
     : '';
 
   const pointsSvg=clean.map((p,i)=>`
-    <circle cx="${x(i).toFixed(1)}" cy="${y(p.value).toFixed(1)}" r="4"
-      fill="currentColor" opacity=".95"
+    <circle cx="${x(i).toFixed(1)}" cy="${y(p.value).toFixed(1)}" r="5"
+      fill="currentColor" opacity=".98"
+      stroke="currentColor" stroke-width="1"
       data-progress-index="${i}"
       style="cursor:pointer"
-      onclick="showProgressPoint(${i})"/>
+      onclick="showProgressPoint(${i},this)"/>
   `).join('');
 
   const labels=clean.map((p,i)=>{
@@ -1265,6 +1292,7 @@ function renderClientProgressChart(){
         ${pointsSvg}
         ${labels}
       </svg>
+      <div id="progressPointTooltip" class="progress-point-tooltip" aria-live="polite"></div>
     </div>`;
 
   const first=clean[0],last=clean[clean.length-1];
@@ -1272,38 +1300,60 @@ function renderClientProgressChart(){
   const pct=first.value!==0?(delta/Math.abs(first.value))*100:null;
   const isImprovement=delta>0;
   const trendClass=delta===0?'neutral':(isImprovement?'positive':'negative');
-  const trendText=delta===0?'Sin cambio':(isImprovement?'Mejora':'Empeoramiento');
-  $('clientProgressChartSummary').innerHTML=`
-    <div class="progress-stat-card">
-      <span class="muted">Primera sesión</span>
-      <b>${fmt(first.value)}</b>
-      <small>${first.date.toLocaleDateString('es-ES')}</small>
-    </div>
-    <div class="progress-stat-card">
-      <span class="muted">Última sesión</span>
-      <b>${fmt(last.value)}</b>
-      <small>${last.date.toLocaleDateString('es-ES')}</small>
-    </div>
-    <div class="progress-stat-card">
-      <span class="muted">Mejor marca</span>
-      <b>${fmt(Math.max(...values))}</b>
-      <small>Mejor registro</small>
-    </div>
-    <div class="progress-stat-card ${trendClass}">
-      <span class="muted">${trendText}</span>
-      <b>${delta>0?'+':''}${fmt(delta)}</b>
-      <small>${pct!==null?`${pct>0?'+':''}${pct.toFixed(1)}% respecto a la primera sesión`:''}</small>
-    </div>`;
+  const trendText=delta===0?'Sin cambio':(isImprovement?'Mejora':'Empeoramiento');    const bestPoint=clean.reduce((best,p)=>p.value>best.value?p:best,clean[0]);
+    const deltaLabel=delta>0?`+${formatProgressValue(delta,metric)}`:formatProgressValue(delta,metric);
+    $('clientProgressChartSummary').innerHTML=`
+      <div class="progress-stat-card compact-progress-stat">
+        <span class="muted">Primera sesión</span>
+        <b>${formatProgressValue(first.value,metric)}</b>
+        <small>${first.date.toLocaleDateString('es-ES')}</small>
+      </div>
+      <div class="progress-stat-card compact-progress-stat">
+        <span class="muted">Última sesión</span>
+        <b>${formatProgressValue(last.value,metric)}</b>
+        <small>${last.date.toLocaleDateString('es-ES')}</small>
+      </div>
+      <div class="progress-stat-card compact-progress-stat">
+        <span class="muted">Mejor marca</span>
+        <b>${formatProgressValue(bestPoint.value,metric)}</b>
+        <small>${bestPoint.date.toLocaleDateString('es-ES')}${bestPoint.rir!=null?` · RIR ${Number(bestPoint.rir).toFixed(1)}`:''}</small>
+      </div>
+      <div class="progress-stat-card compact-progress-stat ${trendClass}">
+        <span class="muted">% respecto a la primera</span>
+        <b>${pct!==null?(pct>0?'+':'')+pct.toFixed(1)+'%':'—'}</b>
+        <small>${trendText} · ${deltaLabel}</small>
+      </div>`;
 
   clientProgressChartState.points=clean;
 }
 
-function showProgressPoint(index){
+function showProgressPoint(index,node){
   const p=clientProgressChartState.points?.[index];
-  const el=$('clientProgressPointDetail');
-  if(!p||!el)return;
-  el.style.display='';
-  el.innerHTML=`<b>${p.date.toLocaleDateString('es-ES')}</b> · ${formatProgressValue(p.value,clientProgressChartState.metric)}${p.rir!=null?` · RIR ${Number(p.rir).toFixed(1)}`:''}`;
+  const wrap=$('clientProgressChart');
+  const tooltip=$('progressPointTooltip');
+  if(!p||!wrap||!tooltip)return;
+
+  const value=formatProgressValue(p.value,clientProgressChartState.metric);
+  const rir=p.rir!=null?`<span class="progress-tooltip-rir">RIR ${Number(p.rir).toFixed(1)}</span>`:'';
+  tooltip.innerHTML=`
+    <div class="progress-tooltip-date">${p.date.toLocaleDateString('es-ES')}</div>
+    <div class="progress-tooltip-value">${esc(value)} ${rir}</div>`;
+
+  const svg=wrap.querySelector('svg');
+  if(!svg||!node)return;
+  const vb=svg.viewBox.baseVal;
+  const svgRect=svg.getBoundingClientRect();
+  const wrapRect=wrap.getBoundingClientRect();
+  const cx=Number(node.getAttribute('cx')), cy=Number(node.getAttribute('cy'));
+  const px=svgRect.left+(cx/vb.width)*svgRect.width-wrapRect.left;
+  const py=svgRect.top+(cy/vb.height)*svgRect.height-wrapRect.top;
+
+  tooltip.style.display='block';
+  tooltip.style.left=`${Math.max(8,Math.min(wrapRect.width-170,px))}px`;
+  tooltip.style.top=`${Math.max(8,py-72)}px`;
+
+  const detail=$('clientProgressPointDetail');
+  if(detail){detail.style.display='none';detail.innerHTML='';}
 }
 
 
@@ -1635,47 +1685,95 @@ async function openClientRoutineProgress(clientId,routineId,routineName){
 async function openClientProfile(clientId){
   if(!user?.id)return toast('Debes iniciar sesión.');
   const cid=String(clientId);
-  const clientAssignments=(assignments||[]).filter(a=>String(a.client_id)===cid);
+
+  // Always refresh this client's assignments directly from Supabase.
+  const aq=await db.from('routine_assignments')
+    .select('id,client_id,trainer_id,trainer_routine_id,client_routine_id,created_at,client_deleted_at')
+    .eq('trainer_id',user.id)
+    .eq('client_id',cid)
+    .is('client_deleted_at',null)
+    .order('created_at',{ascending:false});
+
+  if(aq.error){
+    console.error('openClientProfile assignments:',aq.error);
+    return toast('No se pudieron cargar las rutinas del cliente.');
+  }
+
+  const clientAssignments=aq.data||[];
   if(!clientAssignments.length)return toast('Este cliente ya no tiene rutinas asignadas.');
 
   const title=$('clientModalTitle'), subtitle=$('clientModalSubtitle'), body=$('clientModalBody');
   if(!title||!body)return;
+
   title.textContent='Cliente';
   subtitle.textContent='Cargando...';
   body.innerHTML='<div class="muted">Cargando información...</div>';
   openM('clientModal');
 
   try{
-    const p=await db.from('profiles').select('id,name,role').eq('id',cid).maybeSingle();
-    if(p.error)throw p.error;
-    if(!p.data || p.data.role!=='client')throw new Error('Perfil de cliente no encontrado.');
+    // Profile name is useful, but a profile RLS failure must never hide routines.
+    let name='Cliente';
+    try{
+      const rpc=await db.rpc('get_public_profile_names',{p_user_ids:[cid]});
+      const row=(rpc.data||[]).find(x=>String(x.id)===cid);
+      if(row?.name)name=String(row.name).trim()||name;
+    }catch(_){}
 
-    const name=(p.data.name||'').trim()||'Cliente sin nombre';
+    if(name==='Cliente'){
+      try{
+        const pr=await db.from('profiles').select('id,name').eq('id',cid).maybeSingle();
+        if(!pr.error && pr.data?.name)name=String(pr.data.name).trim()||name;
+      }catch(_){}
+    }
+
     title.textContent=name;
     subtitle.textContent=`${clientAssignments.length} rutina${clientAssignments.length===1?'':'s'} asignada${clientAssignments.length===1?'':'s'}`;
 
-    const items=clientAssignments.map(a=>{
-      const routine=routines.find(r=>String(r.id)===String(a.trainer_routine_id));
-      return {assignment:a,routine};
-    }).filter(x=>x.routine);
+    // Fetch the exact assigned trainer routines. Do not rely on the global
+    // routine list, which may be filtered/ordered independently.
+    const routineIds=[...new Set(clientAssignments.map(a=>a.trainer_routine_id).filter(Boolean).map(String))];
+    const routineMap=new Map();
+
+    if(routineIds.length){
+      const rq=await db.from('routines')
+        .select('id,name,description,share_code,source_routine_id,created_at,deleted_at')
+        .in('id',routineIds);
+
+      if(!rq.error){
+        for(const r of (rq.data||[]))routineMap.set(String(r.id),r);
+      }else{
+        console.warn('openClientProfile routines:',rq.error);
+      }
+    }
+
+    // Never discard an assignment merely because the routine-name query was
+    // restricted by RLS. The assignment itself proves which routine was sent.
+    const items=clientAssignments.map(a=>({
+      assignment:a,
+      routine:routineMap.get(String(a.trainer_routine_id)) || {
+        id:a.trainer_routine_id,
+        name:'Rutina asignada',
+        description:''
+      }
+    }));
 
     body.innerHTML=`
       <div class="card" style="margin:0 0 12px">
         <div class="muted">Rutinas asignadas</div>
       </div>
-      ${items.length?items.map(x=>`
+      ${items.map(x=>`
         <div class="card" style="margin:8px 0">
           <div style="display:flex;justify-content:space-between;gap:10px;align-items:center">
             <div>
-              <b>${esc(x.routine.name)}</b>
+              <b>${esc(x.routine.name||'Rutina asignada')}</b>
               <div class="muted">Asignada ${new Date(x.assignment.created_at).toLocaleDateString('es-ES')}</div>
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
-              <button class="btn" onclick="openClientRoutineProgress('${cid}','${x.routine.id}','${esc(x.routine.name)}')">Ver progreso</button>
+              <button class="btn" onclick="openClientRoutineProgress('${cid}','${x.routine.id}','${esc(x.routine.name||'Rutina')}')">Ver progreso</button>
               <button class="btn danger" onclick="revokeFromClientProfile('${x.assignment.id}')">Revocar</button>
             </div>
           </div>
-        </div>`).join(''):'<div class="empty">No hay rutinas asignadas.</div>'}`;
+        </div>`).join('')}`;
   }catch(e){
     console.error('openClientProfile:',e);
     body.innerHTML='<div class="error">No se pudo cargar el perfil del cliente.</div>';
@@ -1694,50 +1792,95 @@ async function revokeFromClientProfile(assignmentId){
 async function renderClients(){
   const box=$('clients');
   if(!box)return;
-  box.innerHTML=`<div class="card"><h2 style="margin:0 0 4px">Mis clientes</h2><div class="muted">Clientes con al menos una de tus rutinas asignada.</div><div class="muted" style="margin-top:12px">Cargando...</div></div>`;
+  box.innerHTML=`<div class="card"><h2 style="margin:0 0 4px">Mis clientes</h2><div class="muted">Cargando...</div></div>`;
 
   try{
-    const ids=[...new Set((assignments||[]).map(a=>a.client_id).filter(Boolean))];
+    // IMPORTANT: do not depend on `routines` being loaded correctly.
+    // The assignment table itself contains the trainer_id and client_id,
+    // so this is the authoritative source for the trainer's client list.
+    const q=await db.from('routine_assignments')
+      .select('id,client_id,trainer_id,trainer_routine_id,client_routine_id,created_at,client_deleted_at')
+      .eq('trainer_id',user.id)
+      .is('client_deleted_at',null)
+      .order('created_at',{ascending:false});
+
+    if(q.error)throw q.error;
+
+    const activeAssignments=q.data||[];
+    assignments=activeAssignments;
+
+    const ids=[...new Set(
+      activeAssignments.map(a=>a.client_id).filter(Boolean).map(String)
+    )];
 
     if(!ids.length){
       box.innerHTML=`
         <div class="card">
           <h2 style="margin:0 0 4px">Mis clientes</h2>
-          <div class="muted">Clientes con al menos una de tus rutinas asignada.</div>
-          <div class="empty" style="margin-top:14px">
-            Todavía no tienes clientes con rutinas asignadas.
-          </div>
+          <div class="empty" style="margin-top:14px">Todavía no tienes clientes con rutinas asignadas.</div>
         </div>`;
       return;
     }
 
-    const p=await db.from('profiles')
-      .select('id,name,role')
-      .in('id',ids);
+    // Get routine names independently from the global routines array.
+    const routineIds=[...new Set(
+      activeAssignments.map(a=>a.trainer_routine_id).filter(Boolean).map(String)
+    )];
 
-    if(p.error)throw p.error;
+    const routineMap=new Map();
+    if(routineIds.length){
+      const rq=await db.from('routines')
+        .select('id,name,description,deleted_at')
+        .in('id',routineIds);
 
-    const names=new Map((p.data||[]).map(x=>[String(x.id),x.name||'']));
-    // Some older client profiles may have an empty name. Try the public
-    // display-name RPC if the project exposes it; otherwise keep a clear fallback.
-    const missing=[...ids].filter(id=>!String(names.get(String(id))||'').trim());
+      if(!rq.error){
+        for(const r of (rq.data||[]))routineMap.set(String(r.id),r);
+      }else{
+        console.warn('No se pudieron leer nombres de rutinas:',rq.error);
+      }
+    }
+
+    // Names: try public RPC first, then profiles. Neither failure hides clients.
+    const names=new Map();
+
+    try{
+      const rpc=await db.rpc('get_public_profile_names',{p_user_ids:ids});
+      if(!rpc.error){
+        for(const row of (rpc.data||[])){
+          if(row?.id)names.set(String(row.id),row.name||'');
+        }
+      }
+    }catch(err){
+      console.warn('RPC nombres:',err);
+    }
+
+    const missing=ids.filter(id=>!String(names.get(id)||'').trim());
     if(missing.length){
       try{
-        const rpc=await db.rpc('get_public_profile_names',{p_user_ids:missing});
-        if(!rpc.error){
-          for(const row of (rpc.data||[])){
-            if(row?.id) names.set(String(row.id),row.name||'');
+        const prof=await db.from('profiles').select('id,name').in('id',missing);
+        if(!prof.error){
+          for(const row of (prof.data||[])){
+            if(row?.id)names.set(String(row.id),row.name||'');
           }
         }
-      }catch(_){}
+      }catch(err){
+        console.warn('profiles:',err);
+      }
     }
-    const grouped=new Map();
 
-    for(const a of assignments||[]){
+    const grouped=new Map();
+    for(const a of activeAssignments){
       const cid=String(a.client_id);
       if(!grouped.has(cid))grouped.set(cid,[]);
-      const routine=routines.find(r=>String(r.id)===String(a.trainer_routine_id));
-      if(routine)grouped.get(cid).push({assignment:a,routine});
+
+      const routine=routineMap.get(String(a.trainer_routine_id)) ||
+        (routines||[]).find(r=>String(r.id)===String(a.trainer_routine_id)) || {
+          id:a.trainer_routine_id,
+          name:'Rutina asignada',
+          description:''
+        };
+
+      grouped.get(cid).push({assignment:a,routine});
     }
 
     box.innerHTML=`
@@ -1749,7 +1892,7 @@ async function renderClients(){
         <div class="card">
           <div style="display:flex;justify-content:space-between;gap:12px;align-items:center">
             <div>
-              <h3 style="margin:0">${esc((names.get(cid)||'').trim() || 'Cliente sin nombre')}</h3>
+              <h3 style="margin:0">${esc((names.get(cid)||'').trim() || cid)}</h3>
               <div class="muted">${items.length} rutina${items.length===1?'':'s'} asignada${items.length===1?'':'s'}</div>
             </div>
             <button class="btn primary" onclick="openClientProfile('${cid}')">Ver cliente</button>
@@ -1759,7 +1902,7 @@ async function renderClients(){
               <div class="card" style="margin:8px 0;padding:12px">
                 <div style="display:flex;justify-content:space-between;gap:10px;align-items:center">
                   <div>
-                    <b>${esc(x.routine.name)}</b>
+                    <b>${esc(x.routine.name||'Rutina asignada')}</b>
                     <div class="muted">Asignada ${new Date(x.assignment.created_at).toLocaleDateString('es-ES')}</div>
                   </div>
                   <button class="btn danger" onclick="revokeClientRoutine('${x.assignment.id}')">Revocar</button>
@@ -1769,57 +1912,45 @@ async function renderClients(){
         </div>`).join('')}`;
   }catch(e){
     console.error('renderClients:',e);
-    box.innerHTML=`<div class="card"><h2>Mis clientes</h2><div class="error">No se pudieron cargar los clientes.</div></div>`;
+    box.innerHTML=`<div class="card">
+      <h2>Mis clientes</h2>
+      <div class="error">Error cargando clientes: ${esc(e?.message||'Error desconocido')}</div>
+    </div>`;
   }
 }
 
 
 
-async function renderDashboard(){
-  const box=$('dashboardContent'); if(!box)return;
-  box.innerHTML='<div class="card"><h2 style="margin:0">Resumen</h2><div class="muted">Cargando...</div></div>';
-  try{
-    const rows=Array.isArray(assignments)?assignments:[];
-    const ids=[...new Set(rows.map(a=>a.client_id).filter(Boolean))];
-    const since=new Date(); since.setDate(since.getDate()-7); since.setHours(0,0,0,0);
 
-    let profiles=[];
-    if(ids.length){
-      const q=await db.from('profiles').select('id,name').in('id',ids);
-      if(!q.error)profiles=q.data||[];
-    }
-    const nameById=new Map(profiles.map(c=>[c.id,String(c.name||'Cliente')]));
-    let weeklySessions=0,lastRows=[];
-    if(ids.length){
-      const q=await db.from('workouts').select('user_id,workout_date,routine_id')
-        .in('user_id',ids).gte('workout_date',since.toISOString()).order('workout_date',{ascending:false});
-      if(!q.error){weeklySessions=(q.data||[]).length;lastRows=q.data||[];}
-    }
-    const lastByClient=new Map();
-    lastRows.forEach(w=>{if(!lastByClient.has(w.user_id))lastByClient.set(w.user_id,w);});
-
-    box.innerHTML=`
-      <div class="card"><h2 style="margin:0 0 4px">Resumen</h2><div class="muted">Una vista rápida de tus clientes.</div></div>
-      <div class="dashboard-stats">
-        <div class="progress-stat-card"><span class="muted">Mis clientes</span><b>${ids.length}</b></div>
-        <div class="progress-stat-card"><span class="muted">Sesiones esta semana</span><b>${weeklySessions}</b></div>
-        <div class="progress-stat-card"><span class="muted">Clientes activos</span><b>${[...lastByClient.keys()].length}</b></div>
+let __routineDrag=null;
+function renderMine(){
+  const box=$('mine'); if(!box)return;
+  const header='<div class="card"><h2 style="margin:0 0 4px">Mis rutinas</h2></div>';
+  if(!routines.length){
+    box.innerHTML=header+'<div class="card empty"><b style="color:#fff">No tienes rutinas todavía.</b><div style="margin-top:6px">Crea la primera desde aquí.</div><button class="btn primary" style="margin-top:14px" onclick="view(\'new\')">Crear rutina</button></div>';
+    return;
+  }
+  const cards=routines.map((r,i)=>`
+    <div class="routine-order-zone" ondragover="dragOverRoutineZone(event)" ondrop="dropRoutineAt(event,${i})"></div>
+    <div class="card routine routine-sortable"
+      ondragover="dragOverRoutineCard(event)" ondrop="dropRoutineOnCard(event,${i})">
+      <div style="display:flex;align-items:center;gap:10px;min-width:0">
+        <span class="drag-handle routine-drag-handle" draggable="true"
+          ondragstart="dragRoutineStart(event,${i})"
+          ondragend="dragRoutineEnd(event)"
+          title="Arrastrar rutina" aria-label="Arrastrar rutina">☷</span>
+        <div style="min-width:0"><h3>${esc(r.name)}</h3><div class="muted">${esc(r.description||'Sin descripción')}</div></div>
       </div>
-      <div class="card"><h3 style="margin-top:0">Clientes</h3>
-      ${ids.length?ids.map(id=>{
-        const w=lastByClient.get(id),when=w?.workout_date;
-        return `<div class="dashboard-client-row">
-          <div><b>${esc(nameById.get(id)||'Cliente')}</b><div class="muted">${when?'Última sesión: '+new Date(when).toLocaleDateString('es-ES'):'Sin sesiones esta semana'}</div></div>
-          <button class="btn" onclick="openClientProfile('${id}')">Ver cliente</button>
-        </div>`;
-      }).join(''):'<div class="empty">No tienes clientes todavía.</div>'}
-      </div>`;
-  }catch(e){
-    console.error('renderDashboard:',e);
-    box.innerHTML='<div class="card"><div class="empty">No se pudo cargar el resumen.</div></div>';
-  }
+      <div class="buttons">
+        <button class="btn primary" onclick="openRoutine('${r.id}')">Abrir</button>
+        <button class="btn" onclick="editRoutine('${r.id}')">Editar</button>
+        <button class="btn" onclick="openRoutineProgress('${r.id}')">Progreso</button>
+        <button class="btn" onclick="openShare('${r.id}')">Compartir</button>
+        <button class="btn danger" onclick="delRoutine('${r.id}')">Eliminar</button>
+      </div>
+    </div>`).join('');
+  box.innerHTML=header+cards+`<div class="routine-order-zone routine-order-zone-last" ondragover="dragOverRoutineZone(event)" ondrop="dropRoutineAt(event,${routines.length})"></div>`;
 }
-function renderMine(){$('mine').innerHTML='<div class="card"><h2 style="margin:0 0 4px">Mis rutinas</h2><div class="muted">Tus rutinas solo pertenecen a tu cuenta.</div></div>'+(routines.length?routines.map(r=>`<div class="card routine"><div><h3>${esc(r.name)}</h3><div class="muted">${esc(r.description||'Sin descripción')}</div></div><div class="buttons"><button class="btn primary" onclick="openRoutine('${r.id}')">Abrir</button><button class="btn" onclick="editRoutine('${r.id}')">Editar</button><button class="btn" onclick="openRoutineProgress('${r.id}')">Progreso</button><button class="btn" onclick="openShare('${r.id}')">Compartir</button><button class="btn danger" onclick="delRoutine('${r.id}')">Eliminar</button></div></div>`).join(''):'<div class="card empty"><b style="color:#fff">No tienes rutinas todavía.</b><div style="margin-top:6px">Crea la primera desde aquí.</div><button class="btn primary" style="margin-top:14px" onclick="view(\'new\')">Crear rutina</button></div>')}
 let newDays=[];
 function renderNew(){
   let h=`<div class="card">
@@ -1872,7 +2003,8 @@ async function createRoutine(){
   if(newDays.some(d=>d.exercises.some(e=>!e.name.trim())))return toast('Pon nombre a todos los ejercicios');
   window.__routineSaving=true;
   try{
-    const r=await db.from('routines').insert({owner_id:user.id,name,description:$('rd').value.trim()}).select().single();
+    const nextOrder=(routines||[]).reduce((m,r)=>Math.max(m,Number.isFinite(Number(r.routine_order))?Number(r.routine_order):-1),-1)+1;
+    const r=await db.from('routines').insert({owner_id:user.id,name,description:$('rd').value.trim(),routine_order:nextOrder}).select().single();
     if(r.error)throw r.error;
     try{
       for(let di=0;di<newDays.length;di++){
@@ -1902,9 +2034,8 @@ async function editRoutine(id){if(profile?.role!=='trainer')return toast('Solo e
 function renderEditor(){
   let h='';
   editDays.forEach((d,di)=>{
-    h+=`<div class="card routine-editor-day"
-      ondragover="dragOverDay(event)"
-      ondrop="dropDay(event,${di})">
+    h+=`<div class="day-drop-zone" ondragover="dragOverDayZone(event)" ondrop="dropDayAt(event,${di})"></div>
+    <div class="card routine-editor-day">
 
       <div class="dayhead">
         <div style="display:flex;align-items:center;gap:9px;min-width:0;flex:1">
@@ -1953,8 +2084,10 @@ function renderEditor(){
       <button class="btn" type="button" onclick="addEx(${di})">Añadir ejercicio</button>
     </div>`;
   });
+  if(editDays.length)h+=`<div class="day-drop-zone day-drop-zone-last" ondragover="dragOverDayZone(event)" ondrop="dropDayAt(event,${editDays.length})"></div>`;
   $('daysEditor').innerHTML=h||'<div class="empty">Añade un día.</div>';
 }
+
 
 function dragDayStart(e,i){
   __dragItem={type:'day',i};
@@ -1984,10 +2117,12 @@ function dragOverExercise(e){
   clearDropIndicators();
   e.currentTarget.classList.add('drag-over');
 }
-function dragOverDay(e){
+function dragOverDayZone(e){
   e.preventDefault(); e.stopPropagation();
+  if(!__dragItem || __dragItem.type!=='day')return;
   e.dataTransfer.dropEffect='move';
-  e.currentTarget.classList.add('drag-over');
+  clearDropIndicators();
+  e.currentTarget.classList.add('drop-active');
 }
 function dropExerciseAt(e,targetDay,targetIndex){
   e.preventDefault(); e.stopPropagation();
@@ -2012,24 +2147,103 @@ function dropExerciseAt(e,targetDay,targetIndex){
 function dropExercise(e,targetDay,targetIndex){
   dropExerciseAt(e,targetDay,targetIndex);
 }
-function dropDay(e,target){
+function dropDayAt(e,targetIndex){
   e.preventDefault(); e.stopPropagation();
   if(!__dragItem || __dragItem.type!=='day')return;
   const from=__dragItem.i;
-  if(from!==target){
-    const [x]=editDays.splice(from,1);
-    let at=target;
-    if(from<target)at--;
-    editDays.splice(Math.max(0,at),0,x);
-    editDays.forEach((d,i)=>d.day_order=i);
-  }
-  __dragItem=null;
-  clearDropIndicators();
-  renderEditor();
+  if(from<0 || from>=editDays.length){__dragItem=null;return;}
+  const [item]=editDays.splice(from,1);
+  let at=targetIndex;
+  if(from<at)at--;
+  at=Math.max(0,Math.min(at,editDays.length));
+  editDays.splice(at,0,item);
+  editDays.forEach((d,i)=>d.day_order=i);
+  __dragItem=null; clearDropIndicators(); renderEditor();
 }
 function dragEndItem(){
   clearDropIndicators();
   __dragItem=null;
+}
+
+function dragRoutineStart(e,index){
+  e.stopPropagation();
+  __routineDrag={index};
+  e.dataTransfer.effectAllowed='move';
+  e.dataTransfer.setData('text/plain','routine:'+index);
+  e.currentTarget.closest('.routine-sortable')?.classList.add('dragging');
+}
+function dragRoutineEnd(){
+  document.querySelectorAll('#mine .routine-sortable').forEach(c=>c.classList.remove('drag-over','dragging'));
+  document.querySelectorAll('#mine .routine-order-zone').forEach(z=>z.classList.remove('routine-order-zone-active'));
+  __routineDrag=null;
+}
+function dragOverRoutineZone(e){
+  if(!__routineDrag)return;
+  e.preventDefault();
+  e.stopPropagation();
+  e.dataTransfer.dropEffect='move';
+  document.querySelectorAll('#mine .routine-order-zone').forEach(z=>z.classList.remove('routine-order-zone-active'));
+  e.currentTarget.classList.add('routine-order-zone-active');
+}
+function dragOverRoutineCard(e){
+  if(!__routineDrag)return;
+  e.preventDefault();
+  e.stopPropagation();
+  e.dataTransfer.dropEffect='move';
+  document.querySelectorAll('#mine .routine-sortable').forEach(c=>c.classList.remove('drag-over'));
+  e.currentTarget.classList.add('drag-over');
+}
+function dropRoutineOnCard(e,targetIndex){
+  if(!__routineDrag)return;
+  e.preventDefault();
+  e.stopPropagation();
+  const rect=e.currentTarget.getBoundingClientRect();
+  const before=e.clientY < rect.top + rect.height/2;
+  reorderRoutine(__routineDrag.index,before?targetIndex:targetIndex+1);
+  __routineDrag=null;
+}
+async function dropRoutineAt(e,targetIndex){
+  if(!__routineDrag)return;
+  e.preventDefault();
+  e.stopPropagation();
+  const from=__routineDrag.index;
+  __routineDrag=null;
+  await reorderRoutine(from,targetIndex);
+}
+async function reorderRoutine(from,targetIndex){
+  if(from<0 || from>=routines.length)return;
+
+  const previous=routines.slice();
+  const copy=routines.slice();
+  const [item]=copy.splice(from,1);
+  let at=targetIndex;
+  if(from<at)at--;
+  at=Math.max(0,Math.min(at,copy.length));
+
+  if(at===from){renderMine();return;}
+
+  copy.splice(at,0,item);
+  routines=copy.map((r,i)=>({...r,routine_order:i}));
+  renderMine();
+
+  try{
+    // Persist all rows together. This keeps positions contiguous (0..n-1).
+    const results=await Promise.all(
+      routines.map((r,i)=>db.from('routines')
+        .update({routine_order:i})
+        .eq('id',r.id)
+        .eq('owner_id',user.id)
+        .is('deleted_at',null))
+    );
+    const failed=results.find(x=>x.error);
+    if(failed)throw failed.error;
+    toast('Orden guardado');
+  }catch(err){
+    console.error('reorderRoutine:',err);
+    routines=previous;
+    renderMine();
+    toast('No se pudo guardar el orden');
+  }
 }
 
 function moveEx(dayIndex, exerciseIndex, direction){
@@ -2136,6 +2350,7 @@ async function addSessionToOpenRoutine(){
 }
 
 async function openRoutine(id){
+  window.__openRoutineId=String(routineId);
   const r=routines.find(x=>x.id===id); workoutRoutine=r;
   if(!r)return toast('Rutina no encontrada');
   try{
@@ -2145,13 +2360,123 @@ async function openRoutine(id){
     $('trainBody').innerHTML=d.length?`
       <div class="card">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><h3 style="margin:0">Días de entrenamiento</h3>${profile?.role==='trainer'?'<button class="btn" onclick="addSessionToOpenRoutine()">+ Añadir sesión</button>':''}</div>
-        ${d.map(x=>`<button class="btn" style="width:100%;margin:6px 0;text-align:left" onclick="startWorkoutDay('${x.id}')">
-          <b>${esc(x.name)}</b><span class="muted" style="float:right">${x.exercises.length} ejercicios</span>
-        </button>`).join('')}
+        ${profile?.role==='trainer'
+          ? d.map((x,i)=>`
+            <div class="open-day-drop-zone" ondragover="dragOverOpenDayZone(event)" ondrop="dropOpenDayAt(event,${i})"></div>
+            <div class="open-day-row" draggable="true"
+              ondragstart="dragOpenDayStart(event,${i})" ondragend="dragOpenDayEnd(event)"
+              ondragover="dragOverOpenDay(event)" ondrop="dropOpenDayOnRow(event,${i})">
+              <span class="drag-handle open-day-handle"
+              onpointerdown="startOpenDayPointerDrag(event,${i})"
+              title="Arrastrar sesión" aria-label="Arrastrar sesión">☷</span>
+              <button class="btn open-day-button" style="flex:1;text-align:left" onclick="startWorkoutDay('${x.id}')">
+                <b>${esc(x.name)}</b><span class="muted" style="float:right">${x.exercises.length} ejercicios</span>
+              </button>
+            </div>`).join('')
+          : d.map(x=>`<button class="btn" style="width:100%;margin:6px 0;text-align:left" onclick="startWorkoutDay('${x.id}')">
+              <b>${esc(x.name)}</b><span class="muted" style="float:right">${x.exercises.length} ejercicios</span>
+            </button>`).join('')}
       </div>`:
       '<div class="empty">Esta rutina todavía no tiene días.</div>';
     openM('trainModal');
   }catch(e){console.error(e);toast('No se pudo abrir la rutina')}
+}
+
+let __openDayDrag=null;
+
+function startOpenDayPointerDrag(e,index){
+  if(profile?.role!=='trainer')return;
+  if(e.button!==undefined && e.button!==0)return;
+  e.preventDefault(); e.stopPropagation();
+
+  const row=e.currentTarget.closest('.open-day-row');
+  __openDayDrag={index,startX:e.clientX,startY:e.clientY,active:false,row,pointerId:e.pointerId};
+
+  try{e.currentTarget.setPointerCapture(e.pointerId)}catch(_){}
+  document.addEventListener('pointermove',openDayPointerMove,{passive:false});
+  document.addEventListener('pointerup',openDayPointerUp,{passive:false});
+  document.addEventListener('pointercancel',openDayPointerCancel,{passive:false});
+}
+function openDayPointerMove(e){
+  if(!__openDayDrag)return;
+  e.preventDefault();
+  const d=__openDayDrag;
+  if(!d.active && Math.hypot(e.clientX-d.startX,e.clientY-d.startY)<7)return;
+  if(!d.active){d.active=true;d.row?.classList.add('dragging');document.body.classList.add('open-day-pointer-dragging')}
+
+  const rows=[...document.querySelectorAll('#routineModal .open-day-row')];
+  rows.forEach(r=>r.classList.remove('open-day-drag-over'));
+  const target=rows.find(r=>{
+    if(r===d.row)return false;
+    const rct=r.getBoundingClientRect();
+    return e.clientY>=rct.top&&e.clientY<=rct.bottom;
+  });
+  if(target)target.classList.add('open-day-drag-over');
+}
+function openDayPointerUp(e){
+  if(!__openDayDrag)return;
+  e.preventDefault();
+  const d=__openDayDrag;
+  if(d.active){
+    const rows=[...document.querySelectorAll('#routineModal .open-day-row')];
+    const target=rows.find(r=>{
+      if(r===d.row)return false;
+      const rct=r.getBoundingClientRect();
+      return e.clientY>=rct.top&&e.clientY<=rct.bottom;
+    });
+    let targetIndex=rows.length;
+    if(target){
+      const idx=rows.indexOf(target),rct=target.getBoundingClientRect();
+      targetIndex=e.clientY<rct.top+rct.height/2?idx:idx+1;
+    }else if(rows.length){
+      if(e.clientY<rows[0].getBoundingClientRect().top)targetIndex=0;
+    }
+    const routineId=window.__openRoutineId;
+    finishOpenDayPointerDrag();
+    if(routineId)reorderOpenDay(routineId,d.index,targetIndex);
+    return;
+  }
+  finishOpenDayPointerDrag();
+}
+function openDayPointerCancel(){finishOpenDayPointerDrag()}
+function finishOpenDayPointerDrag(){
+  document.querySelectorAll('#routineModal .open-day-row').forEach(r=>r.classList.remove('open-day-drag-over','dragging'));
+  document.body.classList.remove('open-day-pointer-dragging');
+  document.removeEventListener('pointermove',openDayPointerMove);
+  document.removeEventListener('pointerup',openDayPointerUp);
+  document.removeEventListener('pointercancel',openDayPointerCancel);
+  __openDayDrag=null;
+}
+function dragOpenDayStart(){}
+function dragOpenDayEnd(){finishOpenDayPointerDrag()}
+function dragOverOpenDay(e){e.preventDefault()}
+function dragOverOpenDayZone(e){e.preventDefault()}
+function dropOpenDayOnRow(e){e.preventDefault()}
+function dropOpenDayAt(e){e.preventDefault()}
+
+async function reorderOpenDay(routineId,from,targetIndex){
+  try{
+    const current=await days(routineId);
+    if(from<0||from>=current.length)return;
+    const copy=current.slice();
+    const [item]=copy.splice(from,1);
+    let at=targetIndex;
+    if(from<at)at--;
+    at=Math.max(0,Math.min(at,copy.length));
+    if(at===from)return;
+    copy.splice(at,0,item);
+
+    const results=await Promise.all(copy.map((d,i)=>
+      db.from('routine_days').update({day_order:i}).eq('id',d.id).eq('routine_id',routineId)
+    ));
+    const failed=results.find(x=>x.error);
+    if(failed)throw failed.error;
+    await openRoutine(routineId);
+    toast('Orden de sesiones guardado');
+  }catch(err){
+    console.error('reorderOpenDay:',err);
+    toast('No se pudo guardar el orden de las sesiones');
+  }
 }
 
 let activeWorkout={day:null,exercises:[],sets:{}};
@@ -2726,6 +3051,8 @@ function loadWorkoutDraft(){
   }catch(e){console.warn('No se pudo recuperar el borrador:',e);return false;}
 }
 function clearWorkoutDraft(){
+  // KG, REPS y RIR pertenecen a la sesión actual.
+  // El borrador solo existe mientras una sesión está sin guardar.
   const key=workoutDraftKey();
   if(key)try{localStorage.removeItem(key);}catch(_){}
 }
@@ -2776,23 +3103,7 @@ function formatStipulatedRest(e){
   const min=Math.floor(sec/60), rem=sec%60;
   return rem?`${min}:${String(rem).padStart(2,'0')}`:`${min}'`;
 }
-function applyPresetLoads(exercise, state){
-  // Las cargas predefinidas pertenecen únicamente a la rutina PPL-UL / VLC.
-  // XTV y UPPER-LOWER-FULL BODY empiezan KG/REPS/RIR vacíos.
-  const routineName=String(workoutRoutine?.name||'').trim().toLowerCase();
-  if(!routineName.includes('vlc'))return false;
-
-  const preset=routinePresetForExercise(exercise?.name);
-  if(!preset?.sets?.length)return false;
-  let changed=false;
-  // Only prefill empty fields, so an existing saved draft is never overwritten.
-  preset.sets.forEach((v,i)=>{
-    if(!state[i])return;
-    if(state[i].kg==='' && v.kg!==''){state[i].kg=v.kg;changed=true;}
-    if(state[i].reps==='' && v.reps!==''){state[i].reps=v.reps;changed=true;}
-  });
-  return changed;
-}
+function applyPresetLoads(){ return false; }
 
 function renderWorkoutDay(){
   const exs=activeWorkout.exercises;
@@ -2804,9 +3115,7 @@ function renderWorkoutDay(){
   $('trainBody').innerHTML=exs.map((e)=>{
     const key=e.id;
     const state=activeWorkout.sets[key]||Array.from({length:e.sets||1},()=>({kg:'',reps:'',rir:'',done:false}));
-    const presetChanged=applyPresetLoads(e,state);
     activeWorkout.sets[key]=state;
-    if(presetChanged) saveWorkoutDraft();
     const plannedRir=(e.rir!==null&&e.rir!==undefined&&e.rir!=='')?e.rir:'0';
     const disabledAttr=locked?' disabled readonly':'';
     return `<div class="card">
@@ -3164,33 +3473,10 @@ async function removeSharedRoutine(assignmentId, routineName){
   }finally{window.__removeSharedBusy=false}
 }
 
-async function renderTodayCard(){
-  const host=$('todayCard'); if(!host)return;
-  try{
-    const today=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'][new Date().getDay()];
-    let found=null;
-    for(const a of (assignments||[])){
-      const ds=await days(a.trainer_routine_id);
-      const d=ds.find(x=>String(x.name||'').trim().toLowerCase()===today);
-      if(d){found={a,d};break;}
-    }
-    if(!found){
-      host.innerHTML='<div class="card"><b>¿Qué toca hoy?</b><div class="muted" style="margin-top:5px">No hay una sesión asignada para hoy.</div></div>';
-      return;
-    }
-    const rr=await db.from('routines').select('name').eq('id',found.a.trainer_routine_id).maybeSingle();
-    host.innerHTML=`<div class="card">
-      <div class="muted">¿Qué toca hoy?</div>
-      <h3 style="margin:5px 0">${esc(rr.data?.name||'Rutina')}</h3>
-      <div><b>${esc(found.d.name)}</b> · ${Array.isArray(found.d.exercises)?found.d.exercises.length:0} ejercicio${Array.isArray(found.d.exercises)&&found.d.exercises.length===1?'':'s'}</div>
-      <div class="buttons" style="margin-top:10px"><button class="btn primary" onclick="openSharedRoutine('${found.a.trainer_routine_id}')">Ver rutina</button></div>
-    </div>`;
-  }catch(e){console.error('renderTodayCard:',e);}
-}
+
 
 async function renderShared(){
-  let h=`<div id="todayCard"></div>
-  <div class="card">
+  let h=`<div class="card">
     <h2 style="margin:0 0 4px">Rutinas compartidas</h2>
     <div class="muted">Rutinas que un entrenador te ha asignado.</div>
     <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
@@ -3210,7 +3496,6 @@ async function renderShared(){
     </div>`;
   }
   $('shared').innerHTML=h;
-  await renderTodayCard();
 }
 
 async function openSharedRoutine(id){
