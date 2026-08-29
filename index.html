@@ -346,6 +346,12 @@
 #trainModal .open-day-row.dragging{opacity:.45;pointer-events:none}
 #trainModal .open-day-row.open-day-drag-over{outline:2px solid var(--ok);outline-offset:2px}
 .open-day-pointer-dragging{user-select:none!important;-webkit-user-select:none!important}
+
+#trainModal .open-day-handle{touch-action:none;-webkit-user-select:none;user-select:none}
+#daysEditor .editor-drag-handle{touch-action:none;-webkit-user-select:none;user-select:none;cursor:grab;display:inline-flex;width:34px;height:34px;align-items:center;justify-content:center}
+#daysEditor .routine-editor-day.dragging,#daysEditor .exercise-row.dragging{opacity:.45}
+#daysEditor .exercise-row.drag-over,#daysEditor .day-drop-zone.drop-active{outline:2px solid var(--ok);outline-offset:2px}
+.editor-pointer-dragging,.open-day-pointer-dragging{user-select:none!important;-webkit-user-select:none!important}
 </style>
 </head>
 <body>
@@ -2055,8 +2061,7 @@ function renderEditor(){
 
       <div class="dayhead">
         <div style="display:flex;align-items:center;gap:9px;min-width:0;flex:1">
-          <span class="drag-handle" draggable="true" title="Arrastrar sesión"
-            ondragstart="dragDayStart(event,${di})" ondragend="dragEndItem(event)">☷</span>
+          <span class="drag-handle editor-drag-handle" onpointerdown="startEditorPointerDrag(event,'day',${di},null)" title="Arrastrar sesión">☷</span>
           <input value="${esc(d.name)}" onchange="editDays[${di}].name=this.value">
         </div>
         <button class="btn danger" type="button" onclick="removeDay(${di})">Eliminar</button>
@@ -2415,10 +2420,10 @@ function startOpenDayPointerDrag(e,index){
   if(profile?.role!=='trainer'||__openDayDragLock)return;
   if(e.pointerType==='mouse'&&e.button!==0)return;
   e.preventDefault();e.stopPropagation();
-  const handle=e.currentTarget,row=handle.closest('.open-day-row');
+  const h=e.currentTarget,row=h.closest('.open-day-row');
   if(!row)return;
-  __openDayDrag={index:Number(index),startX:e.clientX,startY:e.clientY,active:false,row,handle,pointerId:e.pointerId,routineId:String(window.__openRoutineId||'')};
-  try{handle.setPointerCapture(e.pointerId)}catch(_){}
+  __openDayDrag={index:Number(index),startX:e.clientX,startY:e.clientY,active:false,row,h,pointerId:e.pointerId,routineId:String(window.__openRoutineId||'')};
+  try{h.setPointerCapture(e.pointerId)}catch(_){}
   document.addEventListener('pointermove',openDayPointerMove,{passive:false});
   document.addEventListener('pointerup',openDayPointerUp,{passive:false});
   document.addEventListener('pointercancel',openDayPointerCancel,{passive:false});
@@ -2427,42 +2432,39 @@ function openDayPointerMove(e){
   const d=__openDayDrag;if(!d||e.pointerId!==d.pointerId)return;
   e.preventDefault();
   if(!d.active){
-    if(Math.hypot(e.clientX-d.startX,e.clientY-d.startY)<10)return;
+    if(Math.hypot(e.clientX-d.startX,e.clientY-d.startY)<8)return;
     d.active=true;d.row.classList.add('dragging');document.body.classList.add('open-day-pointer-dragging');
   }
   document.querySelectorAll('#trainModal .open-day-row').forEach(r=>r.classList.remove('open-day-drag-over'));
-  const target=[...document.querySelectorAll('#trainModal .open-day-row')].find(r=>{
-    if(r===d.row)return false;const rect=r.getBoundingClientRect();
-    return e.clientY>=rect.top&&e.clientY<=rect.bottom;
+  const t=[...document.querySelectorAll('#trainModal .open-day-row')].find(r=>{
+    if(r===d.row)return false;const z=r.getBoundingClientRect();
+    return e.clientY>=z.top&&e.clientY<=z.bottom;
   });
-  if(target)target.classList.add('open-day-drag-over');
+  if(t)t.classList.add('open-day-drag-over');
 }
 function openDayPointerUp(e){
   const d=__openDayDrag;if(!d||e.pointerId!==d.pointerId)return;
   e.preventDefault();
   if(!d.active){finishOpenDayPointerDrag();return;}
   const rows=[...document.querySelectorAll('#trainModal .open-day-row')],from=d.index;
-  let targetIndex=rows.length;
-  const target=rows.find(r=>r!==d.row&&e.clientY>=r.getBoundingClientRect().top&&e.clientY<=r.getBoundingClientRect().bottom);
-  if(target){
-    const idx=rows.indexOf(target),rect=target.getBoundingClientRect();
-    targetIndex=e.clientY<rect.top+rect.height/2?idx:idx+1;
-  }else if(rows.length&&e.clientY<rows[0].getBoundingClientRect().top)targetIndex=0;
-  const routineId=d.routineId;
-  finishOpenDayPointerDrag();
-  if(routineId)reorderOpenDay(routineId,from,targetIndex);
+  let to=rows.length;
+  const t=rows.find(r=>r!==d.row&&e.clientY>=r.getBoundingClientRect().top&&e.clientY<=r.getBoundingClientRect().bottom);
+  if(t){
+    const i=rows.indexOf(t),z=t.getBoundingClientRect();
+    to=e.clientY<z.top+z.height/2?i:i+1;
+  }else if(rows.length&&e.clientY<rows[0].getBoundingClientRect().top)to=0;
+  const rid=d.routineId;finishOpenDayPointerDrag();if(rid)reorderOpenDay(rid,from,to);
 }
 function openDayPointerCancel(){finishOpenDayPointerDrag()}
 function finishOpenDayPointerDrag(){
-  document.querySelectorAll('#trainModal .open-day-row').forEach(r=>r.classList.remove('open-day-drag-over','dragging'));
+  document.querySelectorAll('#trainModal .open-day-row').forEach(r=>r.classList.remove('dragging','open-day-drag-over'));
   document.body.classList.remove('open-day-pointer-dragging');
-  if(__openDayDrag?.handle&&__openDayDrag.pointerId!=null){try{__openDayDrag.handle.releasePointerCapture(__openDayDrag.pointerId)}catch(_){}}
+  if(__openDayDrag?.h&&__openDayDrag.pointerId!=null){try{__openDayDrag.h.releasePointerCapture(__openDayDrag.pointerId)}catch(_){}}
   document.removeEventListener('pointermove',openDayPointerMove);
   document.removeEventListener('pointerup',openDayPointerUp);
   document.removeEventListener('pointercancel',openDayPointerCancel);
   __openDayDrag=null;__openDayDragLock=false;
 }
-
 async function reorderOpenDay(routineId,from,targetIndex){
   try{
     const current=await days(routineId);
@@ -2472,19 +2474,76 @@ async function reorderOpenDay(routineId,from,targetIndex){
     if(from<at)at--;
     if(at===from)return;
     copy.splice(at,0,item);
-
     for(let i=0;i<copy.length;i++){
-      const r=await db.from('routine_days').update({day_order:i}).eq('id',copy[i].id).eq('routine_id',routineId);
-      if(r.error)throw r.error;
+      const q=await db.from('routine_days').update({day_order:i}).eq('id',copy[i].id).eq('routine_id',routineId);
+      if(q.error)throw q.error;
     }
-    const verified=await days(routineId);
-    if(verified.map(x=>x.id).join('|')!==copy.map(x=>x.id).join('|'))throw new Error('Orden no verificado');
-    await openRoutine(routineId);
-    toast('Orden de sesiones guardado');
-  }catch(err){
-    console.error('reorderOpenDay:',err);toast('No se pudo guardar el orden');
-    try{await openRoutine(routineId)}catch(_){}
+    const verify=await days(routineId);
+    if(verify.map(x=>x.id).join('|')!==copy.map(x=>x.id).join('|'))throw new Error('Orden no verificado');
+    await openRoutine(routineId);toast('Orden de sesiones guardado');
+  }catch(err){console.error('reorderOpenDay:',err);toast('No se pudo guardar el orden');}
+}
+
+let __editorPointerDrag=null;
+function startEditorPointerDrag(e,type,di,ei){
+  if(profile?.role!=='trainer'||__editorPointerDrag)return;
+  if(e.pointerType==='mouse'&&e.button!==0)return;
+  e.preventDefault();e.stopPropagation();
+  const h=e.currentTarget,row=h.closest('.routine-editor-day,.exercise-row');
+  if(!row)return;
+  __editorPointerDrag={type,di:Number(di),ei:ei==null?null:Number(ei),h,row,pointerId:e.pointerId,x:e.clientX,y:e.clientY,active:false};
+  try{h.setPointerCapture(e.pointerId)}catch(_){}
+  document.addEventListener('pointermove',editorPointerMove,{passive:false});
+  document.addEventListener('pointerup',editorPointerUp,{passive:false});
+  document.addEventListener('pointercancel',editorPointerCancel,{passive:false});
+}
+function editorPointerMove(e){
+  const d=__editorPointerDrag;if(!d||e.pointerId!==d.pointerId)return;e.preventDefault();
+  if(!d.active){if(Math.hypot(e.clientX-d.x,e.clientY-d.y)<8)return;d.active=true;d.row.classList.add('dragging');document.body.classList.add('editor-pointer-dragging')}
+  clearDropIndicators();
+  if(d.type==='day'){
+    const zones=[...document.querySelectorAll('#daysEditor .day-drop-zone')];
+    let best=null,dist=Infinity;
+    zones.forEach(z=>{const r=z.getBoundingClientRect(),q=Math.abs(e.clientY-(r.top+r.height/2));if(q<dist){dist=q;best=z}});
+    if(best)best.classList.add('drop-active');
+  }else{
+    const rows=[...document.querySelectorAll('#daysEditor .exercise-row')].filter(x=>x!==d.row);
+    let best=null,dist=Infinity;
+    rows.forEach(r=>{const z=r.getBoundingClientRect();if(e.clientY>=z.top-12&&e.clientY<=z.bottom+12){const q=Math.abs(e.clientY-(z.top+z.height/2));if(q<dist){dist=q;best=r}}});
+    if(best)best.classList.add('drag-over');
   }
+}
+function editorPointerUp(e){
+  const d=__editorPointerDrag;if(!d||e.pointerId!==d.pointerId)return;e.preventDefault();
+  if(!d.active){finishEditorPointerDrag();return;}
+  if(d.type==='day'){
+    const zones=[...document.querySelectorAll('#daysEditor .day-drop-zone')];let to=0,dist=Infinity;
+    zones.forEach((z,i)=>{const r=z.getBoundingClientRect(),q=Math.abs(e.clientY-(r.top+r.height/2));if(q<dist){dist=q;to=i}});
+    const from=d.di;finishEditorPointerDrag();moveEditorDay(from,to);
+  }else{
+    const rows=[...document.querySelectorAll('#daysEditor .exercise-row')].filter(x=>x!==d.row);let t=null,dist=Infinity;
+    rows.forEach(r=>{const z=r.getBoundingClientRect();if(e.clientY>=z.top-12&&e.clientY<=z.bottom+12){const q=Math.abs(e.clientY-(z.top+z.height/2));if(q<dist){dist=q;t=r}}});
+    if(!t){finishEditorPointerDrag();return}
+    const td=Number(t.dataset.dayIndex),ti=Number(t.dataset.exerciseIndex),fd=d.di,fi=d.ei;finishEditorPointerDrag();moveEditorExercise(fd,fi,td,ti);
+  }
+}
+function editorPointerCancel(){finishEditorPointerDrag()}
+function finishEditorPointerDrag(){
+  document.querySelectorAll('#daysEditor .dragging,#daysEditor .drag-over,#daysEditor .drop-active').forEach(x=>x.classList.remove('dragging','drag-over','drop-active'));
+  document.body.classList.remove('editor-pointer-dragging');
+  if(__editorPointerDrag?.h&&__editorPointerDrag.pointerId!=null){try{__editorPointerDrag.h.releasePointerCapture(__editorPointerDrag.pointerId)}catch(_){}}
+  document.removeEventListener('pointermove',editorPointerMove);document.removeEventListener('pointerup',editorPointerUp);document.removeEventListener('pointercancel',editorPointerCancel);
+  __editorPointerDrag=null;
+}
+function moveEditorDay(from,to){
+  if(from<0||from>=editDays.length)return;
+  if(to>from)to--;to=Math.max(0,Math.min(to,editDays.length-1));if(to===from)return;
+  const [x]=editDays.splice(from,1);editDays.splice(to,0,x);editDays.forEach((d,i)=>d.day_order=i);renderEditor();
+}
+function moveEditorExercise(fd,fi,td,ti){
+  const a=editDays[fd]?.exercises,b=editDays[td]?.exercises;if(!a||!b)return;
+  const [x]=a.splice(fi,1);let at=ti;if(fd===td&&fi<at)at--;at=Math.max(0,Math.min(at,b.length));b.splice(at,0,x);
+  editDays.forEach(d=>d.exercises.forEach((x,i)=>x.exercise_order=i));renderEditor();
 }
 
 let activeWorkout={day:null,exercises:[],sets:{}};
