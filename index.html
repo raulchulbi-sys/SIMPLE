@@ -341,6 +341,11 @@
 #trainModal .open-day-row.dragging{opacity:.45;transform:scale(.99)}
 #trainModal .open-day-row.open-day-drag-over{outline:2px solid var(--ok);border-radius:12px}
 .open-day-pointer-dragging{user-select:none;cursor:grabbing!important}
+
+#trainModal .open-day-handle{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;cursor:grab}
+#trainModal .open-day-row.dragging{opacity:.45;pointer-events:none}
+#trainModal .open-day-row.open-day-drag-over{outline:2px solid var(--ok);outline-offset:2px}
+.open-day-pointer-dragging{user-select:none!important;-webkit-user-select:none!important}
 </style>
 </head>
 <body>
@@ -2386,9 +2391,7 @@ async function openRoutine(id){
         ${profile?.role==='trainer'
           ? d.map((x,i)=>`
             <div class="open-day-drop-zone" ondragover="dragOverOpenDayZone(event)" ondrop="dropOpenDayAt(event,${i})"></div>
-            <div class="open-day-row" draggable="true"
-              ondragstart="dragOpenDayStart(event,${i})" ondragend="dragOpenDayEnd(event)"
-              ondragover="dragOverOpenDay(event)" ondrop="dropOpenDayOnRow(event,${i})">
+            <div class="open-day-row">
               <span class="drag-handle open-day-handle"
               onpointerdown="startOpenDayPointerDrag(event,${i})"
               title="Arrastrar sesión" aria-label="Arrastrar sesión">☷</span>
@@ -2406,99 +2409,81 @@ async function openRoutine(id){
 }
 
 let __openDayDrag=null;
+let __openDayDragLock=false;
 
 function startOpenDayPointerDrag(e,index){
-  if(profile?.role!=='trainer')return;
-  if(e.button!==undefined && e.button!==0)return;
-  e.preventDefault(); e.stopPropagation();
-
-  const row=e.currentTarget.closest('.open-day-row');
-  __openDayDrag={index,startX:e.clientX,startY:e.clientY,active:false,row,pointerId:e.pointerId};
-
-  try{e.currentTarget.setPointerCapture(e.pointerId)}catch(_){}
+  if(profile?.role!=='trainer'||__openDayDragLock)return;
+  if(e.pointerType==='mouse'&&e.button!==0)return;
+  e.preventDefault();e.stopPropagation();
+  const handle=e.currentTarget,row=handle.closest('.open-day-row');
+  if(!row)return;
+  __openDayDrag={index:Number(index),startX:e.clientX,startY:e.clientY,active:false,row,handle,pointerId:e.pointerId,routineId:String(window.__openRoutineId||'')};
+  try{handle.setPointerCapture(e.pointerId)}catch(_){}
   document.addEventListener('pointermove',openDayPointerMove,{passive:false});
   document.addEventListener('pointerup',openDayPointerUp,{passive:false});
   document.addEventListener('pointercancel',openDayPointerCancel,{passive:false});
 }
 function openDayPointerMove(e){
-  if(!__openDayDrag)return;
+  const d=__openDayDrag;if(!d||e.pointerId!==d.pointerId)return;
   e.preventDefault();
-  const d=__openDayDrag;
-  if(!d.active && Math.hypot(e.clientX-d.startX,e.clientY-d.startY)<7)return;
-  if(!d.active){d.active=true;d.row?.classList.add('dragging');document.body.classList.add('open-day-pointer-dragging')}
-
-  const rows=[...document.querySelectorAll('#trainModal .open-day-row')];
-  rows.forEach(r=>r.classList.remove('open-day-drag-over'));
-  const target=rows.find(r=>{
-    if(r===d.row)return false;
-    const rct=r.getBoundingClientRect();
-    return e.clientY>=rct.top&&e.clientY<=rct.bottom;
+  if(!d.active){
+    if(Math.hypot(e.clientX-d.startX,e.clientY-d.startY)<10)return;
+    d.active=true;d.row.classList.add('dragging');document.body.classList.add('open-day-pointer-dragging');
+  }
+  document.querySelectorAll('#trainModal .open-day-row').forEach(r=>r.classList.remove('open-day-drag-over'));
+  const target=[...document.querySelectorAll('#trainModal .open-day-row')].find(r=>{
+    if(r===d.row)return false;const rect=r.getBoundingClientRect();
+    return e.clientY>=rect.top&&e.clientY<=rect.bottom;
   });
   if(target)target.classList.add('open-day-drag-over');
 }
 function openDayPointerUp(e){
-  if(!__openDayDrag)return;
+  const d=__openDayDrag;if(!d||e.pointerId!==d.pointerId)return;
   e.preventDefault();
-  const d=__openDayDrag;
-  if(d.active){
-    const rows=[...document.querySelectorAll('#trainModal .open-day-row')];
-    const target=rows.find(r=>{
-      if(r===d.row)return false;
-      const rct=r.getBoundingClientRect();
-      return e.clientY>=rct.top&&e.clientY<=rct.bottom;
-    });
-    let targetIndex=rows.length;
-    if(target){
-      const idx=rows.indexOf(target),rct=target.getBoundingClientRect();
-      targetIndex=e.clientY<rct.top+rct.height/2?idx:idx+1;
-    }else if(rows.length){
-      if(e.clientY<rows[0].getBoundingClientRect().top)targetIndex=0;
-    }
-    const routineId=window.__openRoutineId;
-    finishOpenDayPointerDrag();
-    if(routineId)reorderOpenDay(routineId,d.index,targetIndex);
-    return;
-  }
+  if(!d.active){finishOpenDayPointerDrag();return;}
+  const rows=[...document.querySelectorAll('#trainModal .open-day-row')],from=d.index;
+  let targetIndex=rows.length;
+  const target=rows.find(r=>r!==d.row&&e.clientY>=r.getBoundingClientRect().top&&e.clientY<=r.getBoundingClientRect().bottom);
+  if(target){
+    const idx=rows.indexOf(target),rect=target.getBoundingClientRect();
+    targetIndex=e.clientY<rect.top+rect.height/2?idx:idx+1;
+  }else if(rows.length&&e.clientY<rows[0].getBoundingClientRect().top)targetIndex=0;
+  const routineId=d.routineId;
   finishOpenDayPointerDrag();
+  if(routineId)reorderOpenDay(routineId,from,targetIndex);
 }
 function openDayPointerCancel(){finishOpenDayPointerDrag()}
 function finishOpenDayPointerDrag(){
   document.querySelectorAll('#trainModal .open-day-row').forEach(r=>r.classList.remove('open-day-drag-over','dragging'));
   document.body.classList.remove('open-day-pointer-dragging');
+  if(__openDayDrag?.handle&&__openDayDrag.pointerId!=null){try{__openDayDrag.handle.releasePointerCapture(__openDayDrag.pointerId)}catch(_){}}
   document.removeEventListener('pointermove',openDayPointerMove);
   document.removeEventListener('pointerup',openDayPointerUp);
   document.removeEventListener('pointercancel',openDayPointerCancel);
-  __openDayDrag=null;
+  __openDayDrag=null;__openDayDragLock=false;
 }
-function dragOpenDayStart(){}
-function dragOpenDayEnd(){finishOpenDayPointerDrag()}
-function dragOverOpenDay(e){e.preventDefault()}
-function dragOverOpenDayZone(e){e.preventDefault()}
-function dropOpenDayOnRow(e){e.preventDefault()}
-function dropOpenDayAt(e){e.preventDefault()}
 
 async function reorderOpenDay(routineId,from,targetIndex){
   try{
     const current=await days(routineId);
-    if(from<0||from>=current.length)return;
-    const copy=current.slice();
-    const [item]=copy.splice(from,1);
-    let at=targetIndex;
+    if(!Array.isArray(current)||from<0||from>=current.length)return;
+    const copy=current.slice(),[item]=copy.splice(from,1);
+    let at=Math.max(0,Math.min(Number(targetIndex)||0,copy.length));
     if(from<at)at--;
-    at=Math.max(0,Math.min(at,copy.length));
     if(at===from)return;
     copy.splice(at,0,item);
 
-    const results=await Promise.all(copy.map((d,i)=>
-      db.from('routine_days').update({day_order:i}).eq('id',d.id).eq('routine_id',routineId)
-    ));
-    const failed=results.find(x=>x.error);
-    if(failed)throw failed.error;
+    for(let i=0;i<copy.length;i++){
+      const r=await db.from('routine_days').update({day_order:i}).eq('id',copy[i].id).eq('routine_id',routineId);
+      if(r.error)throw r.error;
+    }
+    const verified=await days(routineId);
+    if(verified.map(x=>x.id).join('|')!==copy.map(x=>x.id).join('|'))throw new Error('Orden no verificado');
     await openRoutine(routineId);
     toast('Orden de sesiones guardado');
   }catch(err){
-    console.error('reorderOpenDay:',err);
-    toast('No se pudo guardar el orden de las sesiones');
+    console.error('reorderOpenDay:',err);toast('No se pudo guardar el orden');
+    try{await openRoutine(routineId)}catch(_){}
   }
 }
 
