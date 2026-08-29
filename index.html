@@ -1942,7 +1942,7 @@ function renderMine(){
         <div style="min-width:0"><h3>${esc(r.name)}</h3><div class="muted">${esc(r.description||'Sin descripción')}</div></div>
       </div>
       <div class="buttons">
-        <button class="btn primary" onclick="openRoutine('${r.id}')">Abrir</button>
+        <button type="button" class="btn primary" data-open-routine="${r.id}" onclick="event.preventDefault();event.stopPropagation();openRoutine('${r.id}')">Abrir</button>
         <button class="btn" onclick="editRoutine('${r.id}')">Editar</button>
         <button class="btn" onclick="openRoutineProgress('${r.id}')">Progreso</button>
         <button class="btn" onclick="openShare('${r.id}')">Compartir</button>
@@ -1951,6 +1951,17 @@ function renderMine(){
     </div>`).join('');
   box.innerHTML=header+cards+`<div class="routine-order-zone routine-order-zone-last" ondragover="dragOverRoutineZone(event)" ondrop="dropRoutineAt(event,${routines.length})"></div>`;
 }
+
+// Reliable routine-open fallback for dynamically rendered routine cards.
+// Captures clicks before drag/drop handlers can interfere.
+document.addEventListener('click',function(e){
+  const btn=e.target.closest?.('[data-open-routine]');
+  if(!btn)return;
+  e.preventDefault();
+  e.stopPropagation();
+  const id=btn.getAttribute('data-open-routine');
+  if(id)openRoutine(id);
+},true);
 let newDays=[];
 function renderNew(){
   let h=`<div class="card">
