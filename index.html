@@ -335,11 +335,11 @@
 #mine .routine-drag-handle{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;cursor:grab!important;touch-action:none;user-select:none}
 #mine .routine-drag-handle:active{cursor:grabbing!important}
 
-#routineModal .open-day-handle{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;touch-action:none;cursor:grab;user-select:none}
-#routineModal .open-day-handle:active{cursor:grabbing}
-#routineModal .open-day-row{touch-action:pan-y}
-#routineModal .open-day-row.dragging{opacity:.45;transform:scale(.99)}
-#routineModal .open-day-row.open-day-drag-over{outline:2px solid var(--ok);border-radius:12px}
+#trainModal .open-day-handle{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;touch-action:none;cursor:grab;user-select:none}
+#trainModal .open-day-handle:active{cursor:grabbing}
+#trainModal .open-day-row{touch-action:pan-y}
+#trainModal .open-day-row.dragging{opacity:.45;transform:scale(.99)}
+#trainModal .open-day-row.open-day-drag-over{outline:2px solid var(--ok);border-radius:12px}
 .open-day-pointer-dragging{user-select:none;cursor:grabbing!important}
 </style>
 </head>
@@ -2350,8 +2350,20 @@ async function addSessionToOpenRoutine(){
 }
 
 async function openRoutine(id){
-  window.__openRoutineId=String(routineId);
-  const r=routines.find(x=>x.id===id); workoutRoutine=r;
+  window.__openRoutineId=String(id);
+  let r=routines.find(x=>String(x.id)===String(id));
+  if(!r){
+    const rq=await db.from('routines')
+      .select('id,name,description,share_code,source_routine_id,created_at,deleted_at,routine_order')
+      .eq('id',id).eq('owner_id',user.id).is('deleted_at',null).maybeSingle();
+    if(rq.error){
+      console.error('openRoutine routine fetch:',rq.error);
+      return toast('No se pudo cargar la rutina');
+    }
+    r=rq.data;
+    if(r) routines=[...(routines||[]),r];
+  }
+  workoutRoutine=r;
   if(!r)return toast('Rutina no encontrada');
   try{
     const d=await days(id);
@@ -2404,7 +2416,7 @@ function openDayPointerMove(e){
   if(!d.active && Math.hypot(e.clientX-d.startX,e.clientY-d.startY)<7)return;
   if(!d.active){d.active=true;d.row?.classList.add('dragging');document.body.classList.add('open-day-pointer-dragging')}
 
-  const rows=[...document.querySelectorAll('#routineModal .open-day-row')];
+  const rows=[...document.querySelectorAll('#trainModal .open-day-row')];
   rows.forEach(r=>r.classList.remove('open-day-drag-over'));
   const target=rows.find(r=>{
     if(r===d.row)return false;
@@ -2418,7 +2430,7 @@ function openDayPointerUp(e){
   e.preventDefault();
   const d=__openDayDrag;
   if(d.active){
-    const rows=[...document.querySelectorAll('#routineModal .open-day-row')];
+    const rows=[...document.querySelectorAll('#trainModal .open-day-row')];
     const target=rows.find(r=>{
       if(r===d.row)return false;
       const rct=r.getBoundingClientRect();
@@ -2440,7 +2452,7 @@ function openDayPointerUp(e){
 }
 function openDayPointerCancel(){finishOpenDayPointerDrag()}
 function finishOpenDayPointerDrag(){
-  document.querySelectorAll('#routineModal .open-day-row').forEach(r=>r.classList.remove('open-day-drag-over','dragging'));
+  document.querySelectorAll('#trainModal .open-day-row').forEach(r=>r.classList.remove('open-day-drag-over','dragging'));
   document.body.classList.remove('open-day-pointer-dragging');
   document.removeEventListener('pointermove',openDayPointerMove);
   document.removeEventListener('pointerup',openDayPointerUp);
