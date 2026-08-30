@@ -635,6 +635,112 @@
 .workout-reorder-zone{height:10px;min-height:10px;border:2px solid transparent;border-radius:9px;box-sizing:border-box}
 .workout-reorder-zone.active{height:38px;min-height:38px;border:2px dashed var(--ok);background:rgba(255,255,255,.05)}
 .workout-reorder-bar.dragging{opacity:.4}
+
+.workout-reorder-list{gap:0}
+.workout-reorder-bar{
+  border-radius:12px;
+  min-height:56px;
+  transition:opacity .12s ease,transform .12s ease;
+}
+.workout-reorder-handle{
+  flex:0 0 34px;
+  border-radius:9px;
+  touch-action:none!important;
+  -webkit-user-select:none!important;
+  user-select:none!important;
+}
+.workout-reorder-zone{transition:height .08s ease,background .08s ease,border-color .08s ease}
+.workout-reorder-zone.active{height:34px;min-height:34px}
+@media(max-width:700px){
+  .workout-reorder-bar{min-height:52px;padding:11px 12px}
+  .workout-reorder-handle{width:38px;height:38px;flex-basis:38px;font-size:18px}
+  .workout-reorder-zone.active{height:38px;min-height:38px}
+  .workout-session-actions{gap:6px}
+  .workout-session-actions .btn{padding:8px 11px}
+}
+
+#trainModal .train-modal-head{
+  align-items:center;
+  gap:12px;
+}
+#trainModal .train-modal-title{
+  min-width:0;
+  flex:1;
+}
+#trainModal .train-modal-actions{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  flex:0 0 auto;
+}
+#trainModal .train-modal-actions .btn{
+  white-space:nowrap;
+}
+@media(max-width:700px){
+  #trainModal .train-modal-head{gap:8px}
+  #trainModal .train-modal-actions{gap:5px}
+  #trainModal .train-modal-actions .btn{
+    padding:8px 10px;
+    font-size:12px;
+  }
+}
+
+.routine-note-card{margin-bottom:10px}
+.routine-note-head{
+  display:flex;align-items:flex-start;justify-content:space-between;
+  gap:12px;
+}
+.routine-note-title{font-weight:700;margin-bottom:5px}
+.routine-note-text{
+  color:var(--text);
+  white-space:pre-wrap;
+  line-height:1.45;
+  max-width:760px;
+}
+.routine-note-text.empty-note{color:var(--muted);font-style:italic}
+.routine-note-edit{flex:0 0 auto}
+@media(max-width:700px){
+  .routine-note-head{gap:8px}
+  .routine-note-edit{padding:8px 10px;font-size:12px}
+  .routine-note-text{font-size:13px}
+}
+
+.routine-note-modal-sheet{max-width:620px}
+.routine-note-modal-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.routine-note-input{
+  width:100%;min-height:150px;resize:vertical;box-sizing:border-box;
+  margin-top:16px;padding:13px 14px;border-radius:12px;
+  border:1px solid var(--border);background:var(--input,#111);
+  color:var(--text);font:inherit;line-height:1.5;
+}
+.routine-note-modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+@media(max-width:700px){
+  .routine-note-modal-sheet{width:calc(100% - 24px)}
+  .routine-note-input{min-height:130px}
+}
+
+.routine-note-modal-sheet{padding:18px}
+.routine-note-input:focus{
+  outline:none;
+  border-color:var(--ok);
+  box-shadow:0 0 0 2px rgba(255,255,255,.08);
+}
+
+#routineNoteModal{
+  z-index:9999 !important;
+}
+#routineNoteModal .routine-note-modal-sheet{
+  position:relative;
+  z-index:10000;
+}
+#routineNoteModal.open,
+#routineNoteModal[style*="display: block"],
+#routineNoteModal[style*="display:block"]{
+  z-index:9999 !important;
+}
+
+#routineNoteModal.front-layer{z-index:9999 !important}
+#routineNoteModal.front-layer .routine-note-modal-sheet{z-index:10000 !important}
 </style>
 </head>
 <body>
@@ -682,6 +788,23 @@
     </div>
   </div>
 </div>
+<div id="routineNoteModal" class="modal center">
+  <div class="sheet routine-note-modal-sheet">
+    <div class="routine-note-modal-head">
+      <div>
+        <h2 style="margin:0">Nota de la rutina</h2>
+        <div class="muted">Información general de esta rutina</div>
+      </div>
+      <button class="btn" type="button" onclick="closeM('routineNoteModal')">Cerrar</button>
+    </div>
+    <textarea id="routineNoteInput" class="routine-note-input" maxlength="2000"
+      placeholder="Escribe una nota para esta rutina..." autofocus></textarea>
+    <div class="routine-note-modal-actions">
+      <button class="btn" type="button" onclick="closeM('routineNoteModal')">Cancelar</button>
+      <button class="btn primary" type="button" onclick="saveOpenRoutineNote()">Guardar</button>
+    </div>
+  </div>
+</div>
 <div id="editModal" class="modal center"><div class="sheet"><div style="display:flex;justify-content:space-between;align-items:center"><h2 style="margin:0">Editar rutina</h2><button class="btn" onclick="closeM('editModal')">Cerrar</button></div><div id="editor"></div></div></div>
 <div id="clientProgressModal" class="modal center">
   <div class="sheet">
@@ -725,12 +848,15 @@
 </div>
 <div id="trainModal" class="modal">
   <div class="sheet">
-    <div class="dayhead">
-      <div>
+    <div class="dayhead train-modal-head">
+      <div class="train-modal-title">
         <h2 id="trainTitle" style="margin:0">Entrenamiento</h2>
         <div class="muted" id="trainSubtitle"></div>
       </div>
-      <button class="btn" onclick="loadHistory(workoutRoutine?.id).then(showHistory)">Historial</button><button class="btn" onclick="closeM('trainModal')">Cerrar</button>
+      <div class="train-modal-actions">
+        <button class="btn" onclick="loadHistory(workoutRoutine?.id).then(showHistory)">Historial</button>
+        <button class="btn" onclick="closeM('trainModal')">Cerrar</button>
+      </div>
     </div>
     <div id="trainBody" style="margin-top:12px"></div>
   </div>
@@ -2807,6 +2933,56 @@ async function addSessionToOpenRoutine(){
   toast('Nueva sesión preparada. Añade los ejercicios y guarda la rutina.');
 }
 
+function editOpenRoutineNote(){
+  if(profile?.role!=='trainer'){
+    toast('Solo el entrenador puede editar la nota.');
+    return;
+  }
+  const routineId=String(window.__openRoutineId||workoutRoutine?.id||'');
+  if(!routineId){toast('Rutina no encontrada.');return;}
+  const routine=(routines||[]).find(x=>String(x.id)===routineId)||workoutRoutine;
+  const input=$('routineNoteInput');
+  if(!input){toast('No se pudo abrir el editor de notas.');return;}
+  input.value=String(routine?.description||'');
+  window.__editingRoutineNoteId=routineId;
+  openM('routineNoteModal');
+  const modal=$('routineNoteModal');
+  if(modal){
+    modal.style.zIndex='9999';
+    modal.classList.add('front-layer');
+  }
+  requestAnimationFrame(()=>{
+    input.focus();
+    const end=input.value.length;
+    input.setSelectionRange(end,end);
+  });
+}
+async function saveOpenRoutineNote(){
+  if(profile?.role!=='trainer')return;
+  const routineId=String(window.__editingRoutineNoteId||window.__openRoutineId||workoutRoutine?.id||'');
+  const input=$('routineNoteInput');
+  if(!routineId||!input){toast('Rutina no encontrada.');return;}
+  const description=String(input.value||'').trim();
+  if(description.length>2000){toast('La nota es demasiado larga');return;}
+  if(window.__savingRoutineNote)return;
+  window.__savingRoutineNote=true;
+  try{
+    const q=await db.from('routines').update({description})
+      .eq('id',routineId).eq('owner_id',user.id);
+    if(q.error)throw q.error;
+    const routine=(routines||[]).find(x=>String(x.id)===routineId);
+    if(routine)routine.description=description;
+    if(workoutRoutine&&String(workoutRoutine.id)===routineId)workoutRoutine.description=description;
+    closeM('routineNoteModal');
+    await openRoutine(routineId);
+    toast('Nota de la rutina guardada');
+  }catch(e){
+    console.error('saveOpenRoutineNote:',e);
+    toast('No se pudo guardar la nota');
+  }finally{
+    window.__savingRoutineNote=false;
+  }
+}
 async function openRoutine(id){
   window.__openRoutineId=String(id);
   let r=routines.find(x=>String(x.id)===String(id));
@@ -2828,6 +3004,15 @@ async function openRoutine(id){
     $('trainTitle').textContent=r.name;
     $('trainSubtitle').textContent='Selecciona el día que vas a entrenar.';
     $('trainBody').innerHTML=d.length?`
+      <div class="card routine-note-card">
+        <div class="routine-note-head">
+          <div>
+            <div class="routine-note-title">📝 Nota de la rutina</div>
+            <div class="routine-note-text ${r.description?'':'empty-note'}">${esc(r.description||'Sin nota')}</div>
+          </div>
+          ${profile?.role==='trainer'?'<button class="btn routine-note-edit" type="button" onclick="editOpenRoutineNote()">Editar</button>':''}
+        </div>
+      </div>
       <div class="card">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><h3 style="margin:0">Días de entrenamiento</h3>${profile?.role==='trainer'?'<button class="btn" onclick="addSessionToOpenRoutine()">+ Añadir sesión</button>':''}</div>
         ${profile?.role==='trainer'
@@ -2858,7 +3043,15 @@ async function openRoutine(id){
               <b>${esc(x.name)}</b><span class="muted" style="float:right">${x.exercises.length} ejercicios</span>
             </button>`).join('')}
       </div>`:
-      '<div class="empty">Esta rutina todavía no tiene días.</div>';
+      `<div class="card routine-note-card">
+        <div class="routine-note-head">
+          <div>
+            <div class="routine-note-title">📝 Nota de la rutina</div>
+            <div class="routine-note-text ${r.description?'':'empty-note'}">${esc(r.description||'Sin nota')}</div>
+          </div>
+          ${profile?.role==='trainer'?'<button class="btn routine-note-edit" type="button" onclick="editOpenRoutineNote()">Editar</button>':''}
+        </div>
+      </div><div class="empty">Esta rutina todavía no tiene días.</div>`;
     openM('trainModal');
   }catch(e){console.error(e);toast('No se pudo abrir la rutina')}
 }
@@ -3919,7 +4112,8 @@ function renderWorkoutDay(){
     <div class="workout-reorder-list">
       <div class="workout-reorder-zone" ondragover="workoutReorderOver(event)" ondrop="workoutReorderDrop(event,0)"></div>
       ${exs.map((e,i)=>`<div class="card workout-reorder-bar">
-        <span class="workout-reorder-handle" draggable="true" ondragstart="workoutReorderStart(event,${i})" ondragend="workoutReorderEnd()">☷</span>
+        <span class="workout-reorder-handle"
+          onpointerdown="workoutReorderStart(event,${i})">☷</span>
         <b>${esc(e.name)}</b><span class="muted">${e.sets||1} series</span>
       </div>
       <div class="workout-reorder-zone" ondragover="workoutReorderOver(event)" ondrop="workoutReorderDrop(event,${i+1})"></div>`).join('')}
@@ -3927,6 +4121,13 @@ function renderWorkoutDay(){
 
   $('trainBody').innerHTML=controls+reorder+`<div id="restBox" class="rest-floating" style="display:none"></div>
     ${locked?'':`<div class="buttons" style="justify-content:flex-end"><button class="btn primary" onclick="saveWorkoutSession()">Guardar sesión</button></div>`}`;
+  if(reordering){
+    workoutReorderRows=[...document.querySelectorAll('#trainModal .workout-reorder-bar')];
+    workoutReorderZones=[...document.querySelectorAll('#trainModal .workout-reorder-zone')];
+  }else{
+    workoutReorderRows=[];workoutReorderZones=[];
+  }
+
 }
 function summarizePreviousExercise(previous){
   if(!previous?.exercise)return null;
@@ -3999,17 +4200,105 @@ async function saveWorkoutRoutineEdits(){
   finally{window.__savingRoutineEdits=false;}
 }
 
+let workoutReorderRows=[];
+let workoutReorderZones=[];
 let __workoutReorderDrag=null;
 function workoutReorderStart(e,index){
   if(!activeWorkout?.reordering)return;
-  e.stopPropagation();__workoutReorderDrag={index:Number(index)};
-  e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain','exercise:'+index);
-  e.currentTarget.closest('.workout-reorder-bar')?.classList.add('dragging');
+  e.preventDefault();e.stopPropagation();
+  const handle=e.currentTarget;
+  const row=handle.closest('.workout-reorder-bar');
+  if(!row)return;
+  __workoutReorderDrag={
+    index:Number(index),handle,row,startX:e.clientX,startY:e.clientY,
+    active:false,pointerId:e.pointerId,zone:null,raf:0
+  };
+  try{handle.setPointerCapture(e.pointerId)}catch(_){}
+  document.addEventListener('pointermove',workoutReorderPointerMove,{passive:false});
+  document.addEventListener('pointerup',workoutReorderPointerUp,{passive:false});
+  document.addEventListener('pointercancel',workoutReorderPointerCancel,{passive:false});
 }
 function workoutReorderEnd(){
+  const d=__workoutReorderDrag;
+  if(d?.raf)cancelAnimationFrame(d.raf);
   document.querySelectorAll('.workout-reorder-bar').forEach(x=>x.classList.remove('dragging'));
   document.querySelectorAll('.workout-reorder-zone').forEach(x=>x.classList.remove('active'));
+  document.removeEventListener('pointermove',workoutReorderPointerMove);
+  document.removeEventListener('pointerup',workoutReorderPointerUp);
+  document.removeEventListener('pointercancel',workoutReorderPointerCancel);
+  if(d?.handle&&d.pointerId!=null){try{d.handle.releasePointerCapture(d.pointerId)}catch(_){}}
   __workoutReorderDrag=null;
+}
+function workoutReorderPointerMove(e){
+  const d=__workoutReorderDrag;
+  if(!d||e.pointerId!==d.pointerId)return;
+  e.preventDefault();
+  if(!d.active){
+    if(Math.hypot(e.clientX-d.startX,e.clientY-d.startY)<5)return;
+    d.active=true;d.row.classList.add('dragging');
+  }
+  if(d.raf)return;
+  d.lastY=e.clientY;
+  d.raf=requestAnimationFrame(()=>{
+    d.raf=0;
+    const zones=workoutReorderZones||[];
+    let target=zones.length-1;
+    const rows=workoutReorderRows||[];
+    for(let i=0;i<rows.length;i++){
+      if(i===d.index)continue;
+      const r=rows[i].getBoundingClientRect();
+      if(d.lastY<r.top+r.height/2){target=i;break;}
+    }
+    const z=zones[target];
+    if(z!==d.zone){
+      if(d.zone)d.zone.classList.remove('active');
+      d.zone=z||null;
+      if(d.zone)d.zone.classList.add('active');
+    }
+  });
+}
+async function workoutReorderPointerUp(e){
+  const d=__workoutReorderDrag;
+  if(!d||e.pointerId!==d.pointerId)return;
+  e.preventDefault();
+  if(!d.active){workoutReorderEnd();return;}
+  const rows=workoutReorderRows||[];
+  let target=rows.length;
+  for(let i=0;i<rows.length;i++){
+    if(i===d.index)continue;
+    const r=rows[i].getBoundingClientRect();
+    if(e.clientY<r.top+r.height/2){target=i;break;}
+  }
+  const from=d.index;
+  workoutReorderEnd();
+  if(from!==target&&from+1!==target)await workoutReorderCommit(from,target);
+}
+function workoutReorderPointerCancel(){workoutReorderEnd();}
+async function workoutReorderCommit(from,to){
+  if(window.__workoutExerciseReordering)return;
+  window.__workoutExerciseReordering=true;
+  try{
+    const next=activeWorkout.exercises.slice();
+    const [item]=next.splice(from,1);
+    const at=Math.max(0,Math.min(from<to?to-1:to,next.length));
+    next.splice(at,0,item);
+    for(let i=0;i<next.length;i++){
+      const q=await db.from('routine_exercises').update({exercise_order:10000+i}).eq('id',next[i].id).eq('day_id',activeWorkout.day.id);
+      if(q.error)throw q.error;
+    }
+    for(let i=0;i<next.length;i++){
+      const q=await db.from('routine_exercises').update({exercise_order:i}).eq('id',next[i].id).eq('day_id',activeWorkout.day.id);
+      if(q.error)throw q.error;
+    }
+    const verify=await db.from('routine_exercises').select('id').eq('day_id',activeWorkout.day.id).order('exercise_order',{ascending:true});
+    if(verify.error)throw verify.error;
+    const ids=(verify.data||[]).map(x=>String(x.id));
+    if(ids.join('|')!==next.map(x=>String(x.id)).join('|'))throw new Error('Orden de ejercicios no verificado');
+    activeWorkout.exercises=next;
+    renderWorkoutDay();
+    toast('Orden de ejercicios guardado');
+  }catch(err){console.error('exercise reorder:',err);toast('No se pudo guardar el orden');}
+  finally{window.__workoutExerciseReordering=false;}
 }
 function workoutReorderOver(e){
   if(!__workoutReorderDrag)return;e.preventDefault();e.stopPropagation();
