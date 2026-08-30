@@ -458,6 +458,35 @@
 #daysEditor .routine-editor-day.dragging,
 #daysEditor .routine-editor-exercise.dragging{opacity:.35}
 .editor-pointer-dragging{user-select:none!important;-webkit-user-select:none!important}
+
+#mine .routine-drag-handle,#daysEditor .editor-drag-handle{
+  touch-action:none!important;
+  -webkit-user-select:none;
+  user-select:none;
+  -webkit-touch-callout:none;
+  cursor:grab;
+  min-width:34px;
+  min-height:34px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+#mine .routine-drag-placeholder,#daysEditor .editor-drag-placeholder{
+  display:block;width:100%;margin:8px 0;
+  min-height:46px;
+  border:2px dashed var(--ok);
+  border-radius:12px;
+  background:rgba(128,128,128,.08);
+  box-sizing:border-box;
+  pointer-events:none;
+  flex:none;
+}
+#mine .routine-dragging,#daysEditor .routine-editor-day.dragging,
+#daysEditor .routine-editor-exercise.dragging{opacity:.35}
+.routine-pointer-dragging,.editor-pointer-dragging{
+  user-select:none!important;
+  -webkit-user-select:none!important;
+}
 </style>
 </head>
 <body>
@@ -2051,7 +2080,7 @@ function renderMine(){
     <div class="routine-order-zone"></div>
     <div class="card routine routine-sortable" data-routine-index="${i}">
       <div style="display:flex;align-items:center;gap:10px;min-width:0">
-        <span class="drag-handle routine-drag-handle"
+        <span class="drag-handle routine-drag-handle" onpointerdown="startRoutinePointerDrag(event,${i})"
          
          
           title="Arrastrar rutina" aria-label="Arrastrar rutina">☷</span>
@@ -2080,8 +2109,10 @@ document.addEventListener('click',function(e){
 },true);
 
 let __routinePointerDrag=null;
+let __routineDragRaf=0;
 
 function routineDragCleanup(){
+  if(__routineDragRaf){cancelAnimationFrame(__routineDragRaf);__routineDragRaf=0;}
   const d=__routinePointerDrag;
   if(!d)return;
   d.placeholder?.remove();
@@ -2100,17 +2131,17 @@ function startRoutinePointerDrag(e,index){
   e.preventDefault();e.stopPropagation();
 
   const handle=e.currentTarget;
-  const card=handle.closest('.routine-sortable');
+  const card=handle.closest('#mine .routine-sortable');
   if(!card)return;
 
-  const placeholder=document.createElement('div');
-  placeholder.className='routine-drag-placeholder';
-  placeholder.style.height=Math.max(70,card.getBoundingClientRect().height)+'px';
-  card.parentNode.insertBefore(placeholder,card);
+  const ph=document.createElement('div');
+  ph.className='routine-drag-placeholder';
+  ph.style.height=Math.max(72,card.getBoundingClientRect().height)+'px';
+  card.parentNode.insertBefore(ph,card);
 
   __routinePointerDrag={
-    index:Number(index),handle,card,placeholder,pointerId:e.pointerId,
-    startX:e.clientX,startY:e.clientY,active:false,target:null
+    index:Number(index),handle,card,placeholder:ph,pointerId:e.pointerId,
+    x:e.clientX,y:e.clientY,lastY:e.clientY,active:false,target:null
   };
 
   try{handle.setPointerCapture(e.pointerId)}catch(_){}
@@ -2123,25 +2154,36 @@ function routinePointerMove(e){
   const d=__routinePointerDrag;
   if(!d||e.pointerId!==d.pointerId)return;
   e.preventDefault();
+  d.lastY=e.clientY;
 
   if(!d.active){
-    if(Math.hypot(e.clientX-d.startX,e.clientY-d.startY)<7)return;
+    if(Math.hypot(e.clientX-d.x,e.clientY-d.y)<6)return;
     d.active=true;
     d.card.classList.add('routine-dragging');
     document.body.classList.add('routine-pointer-dragging');
   }
 
-  const cards=[...document.querySelectorAll('#mine .routine-sortable')].filter(x=>x!==d.card);
-  let before=null;
-  for(const card of cards){
-    const r=card.getBoundingClientRect();
-    if(e.clientY<r.top+r.height/2){before=card;break}
-  }
+  if(__routineDragRaf)return;
+  __routineDragRaf=requestAnimationFrame(()=>{
+    __routineDragRaf=0;
+    const d=__routinePointerDrag;
+    if(!d)return;
 
-  if(before)before.parentNode.insertBefore(d.placeholder,before);
-  else if(cards.length)cards[cards.length-1].parentNode.insertBefore(d.placeholder,cards[cards.length-1].nextSibling);
+    const cards=[...document.querySelectorAll('#mine .routine-sortable')]
+      .filter(x=>x!==d.card);
 
-  d.target=before?Number(before.dataset.routineIndex):routines.length;
+    let before=null,best=Infinity;
+    for(const card of cards){
+      const r=card.getBoundingClientRect();
+      const dist=Math.abs(d.lastY-(r.top+r.height/2));
+      if(dist<best){best=dist;before=card}
+    }
+
+    if(before)before.parentNode.insertBefore(d.placeholder,before);
+    else if(cards.length)cards[cards.length-1].parentNode.insertBefore(d.placeholder,cards[cards.length-1].nextSibling);
+
+    d.target=before?Number(before.dataset.routineIndex):routines.length;
+  });
 }
 
 async function routinePointerUp(e){
@@ -2149,7 +2191,13 @@ async function routinePointerUp(e){
   if(!d||e.pointerId!==d.pointerId)return;
   e.preventDefault();
 
-  const result={active:d.active,from:d.index,to:d.target==null?d.index:d.target};
+  if(__routineDragRaf){cancelAnimationFrame(__routineDragRaf);__routineDragRaf=0;}
+
+  const result={
+    active:d.active,from:d.index,
+    to:d.target==null?d.index:d.target
+  };
+
   routineDragCleanup();
   if(!result.active||result.from===result.to||result.from+1===result.to)return;
 
@@ -2246,7 +2294,7 @@ function renderEditor(){
 
       <div class="dayhead">
         <div style="display:flex;align-items:center;gap:9px;min-width:0;flex:1">
-          <span class="drag-handle editor-drag-handle" onpointerdown="startEditorPointerDrag(event,'day',${di},null)" title="Arrastrar sesión">☷</span>
+          <span class="drag-handle editor-drag-handle" onpointerdown="startEditorPointerDrag(event,'day',${di},null)" title="Arrastrar sesión">☷</span>☷</span>
           <input value="${esc(d.name)}" onchange="editDays[${di}].name=this.value">
         </div>
         <button class="btn danger" type="button" onclick="removeDay(${di})">Eliminar</button>
@@ -2419,18 +2467,24 @@ async function reorderRoutine(from,targetIndex){
   if(from<0||from>=routines.length)return;
 
   const previous=routines.slice();
-  const copy=routines.slice();
-  const [item]=copy.splice(from,1);
-  let at=Number(targetIndex);
-  if(from<at)at--;
-  at=Math.max(0,Math.min(at,copy.length));
-  if(at===from){renderMine();return;}
+  const next=routines.slice();
+  const [item]=next.splice(from,1);
 
-  copy.splice(at,0,item);
-  routines=copy.map((r,i)=>({...r,routine_order:i}));
+  let to=Number(targetIndex);
+  to=Math.max(0,Math.min(to,next.length));
+  if(from<to)to--;
+
+  if(to===from){
+    renderMine();
+    return;
+  }
+
+  next.splice(to,0,item);
+  routines=next.map((r,i)=>({...r,routine_order:i}));
   renderMine();
 
   try{
+    // Write every position in sequence. No Promise.all race.
     for(let i=0;i<routines.length;i++){
       const q=await db.from('routines')
         .update({routine_order:i})
@@ -2440,16 +2494,19 @@ async function reorderRoutine(from,targetIndex){
       if(q.error)throw q.error;
     }
 
-    const check=await db.from('routines')
+    // Verify the database order before confirming success.
+    const q=await db.from('routines')
       .select('id,routine_order')
       .eq('owner_id',user.id)
       .is('deleted_at',null)
       .order('routine_order',{ascending:true});
 
-    if(check.error)throw check.error;
-    const actual=(check.data||[]).map(x=>x.id).join('|');
-    const expected=routines.map(x=>x.id).join('|');
-    if(actual!==expected)throw new Error('El orden de rutinas no coincide con el guardado');
+    if(q.error)throw q.error;
+
+    const dbIds=(q.data||[]).map(x=>x.id).join('|');
+    const localIds=routines.map(x=>x.id).join('|');
+
+    if(dbIds!==localIds)throw new Error('Orden de rutinas no verificado');
 
     toast('Orden guardado');
   }catch(err){
@@ -2680,7 +2737,6 @@ async function reorderOpenDay(routineId,from,targetIndex){
 
 let __editorPointerDrag=null;
 let __editorDragRaf=0;
-let __editorLastY=0;
 
 function editorDragCleanup(){
   if(__editorDragRaf){cancelAnimationFrame(__editorDragRaf);__editorDragRaf=0;}
@@ -2719,8 +2775,7 @@ function startEditorPointerDrag(e,type,di,ei){
   __editorPointerDrag={
     type,di:Number(di),ei:ei==null?null:Number(ei),
     h,row,placeholder:p,pointerId:e.pointerId,
-    startX:e.clientX,startY:e.clientY,lastY:e.clientY,
-    active:false,target:null
+    x:e.clientX,y:e.clientY,lastY:e.clientY,active:false,target:null
   };
 
   try{h.setPointerCapture(e.pointerId)}catch(_){}
@@ -2734,18 +2789,14 @@ function editorPointerMove(e){
   if(!d||e.pointerId!==d.pointerId)return;
   e.preventDefault();
   d.lastY=e.clientY;
-  __editorLastY=e.clientY;
 
   if(!d.active){
-    if(Math.hypot(e.clientX-d.startX,e.clientY-d.startY)<6)return;
+    if(Math.hypot(e.clientX-d.x,e.clientY-d.y)<6)return;
     d.active=true;
     d.row.classList.add('dragging');
     document.body.classList.add('editor-pointer-dragging');
   }
 
-  // Throttle DOM measurement/reordering to one frame. This avoids lag on
-  // mobile Safari/Chrome caused by doing many getBoundingClientRect calls
-  // per touch event.
   if(__editorDragRaf)return;
   __editorDragRaf=requestAnimationFrame(()=>{
     __editorDragRaf=0;
@@ -2757,7 +2808,7 @@ function editorPointerMove(e){
       let before=null,best=Infinity;
       for(const card of cards){
         const r=card.getBoundingClientRect();
-        const dist=Math.abs(__editorLastY-(r.top+r.height/2));
+        const dist=Math.abs(d.lastY-(r.top+r.height/2));
         if(dist<best){best=dist;before=card}
       }
       if(before)before.parentNode.insertBefore(d.placeholder,before);
@@ -2768,13 +2819,13 @@ function editorPointerMove(e){
       let target=null,best=Infinity;
       for(const row of rows){
         const r=row.getBoundingClientRect();
-        if(__editorLastY<r.top-12||__editorLastY>r.bottom+12)continue;
-        const dist=Math.abs(__editorLastY-(r.top+r.height/2));
+        if(d.lastY<r.top-10||d.lastY>r.bottom+10)continue;
+        const dist=Math.abs(d.lastY-(r.top+r.height/2));
         if(dist<best){best=dist;target=row}
       }
       if(target){
         const r=target.getBoundingClientRect();
-        const before=__editorLastY<r.top+r.height/2;
+        const before=d.lastY<r.top+r.height/2;
         if(before)target.parentNode.insertBefore(d.placeholder,target);
         else target.parentNode.insertBefore(d.placeholder,target.nextSibling);
         d.target={day:Number(target.dataset.dayIndex),index:Number(target.dataset.exerciseIndex),before};
@@ -2788,20 +2839,7 @@ function editorPointerUp(e){
   if(!d||e.pointerId!==d.pointerId)return;
   e.preventDefault();
 
-  if(__editorDragRaf){
-    cancelAnimationFrame(__editorDragRaf);
-    __editorDragRaf=0;
-  }
-
-  // Recalculate once at the final pointer position before committing.
-  if(d.active){
-    const fake={pointerId:d.pointerId,clientX:e.clientX,clientY:e.clientY};
-    editorPointerMove(fake);
-    if(__editorDragRaf){
-      cancelAnimationFrame(__editorDragRaf);
-      __editorDragRaf=0;
-    }
-  }
+  if(__editorDragRaf){cancelAnimationFrame(__editorDragRaf);__editorDragRaf=0;}
 
   const result={active:d.active,type:d.type,di:d.di,ei:d.ei,target:d.target};
   editorDragCleanup();
@@ -2811,10 +2849,8 @@ function editorPointerUp(e){
   if(result.type==='day'){
     moveEditorDay(result.di,result.target==null?editDays.length:result.target);
   }else if(result.target){
-    moveEditorExercise(
-      result.di,result.ei,result.target.day,
-      result.target.index+(result.target.before?0:1)
-    );
+    moveEditorExercise(result.di,result.ei,result.target.day,
+      result.target.index+(result.target.before?0:1));
   }
 }
 
@@ -2832,16 +2868,13 @@ function moveEditorDay(from,to){
 }
 
 function moveEditorExercise(fd,fi,td,ti){
-  const source=editDays[fd]?.exercises;
-  const target=editDays[td]?.exercises;
+  const source=editDays[fd]?.exercises,target=editDays[td]?.exercises;
   if(!source||!target||fi<0||fi>=source.length)return;
-
   const [item]=source.splice(fi,1);
   let at=ti;
   if(fd===td&&fi<at)at--;
   at=Math.max(0,Math.min(at,target.length));
   target.splice(at,0,item);
-
   editDays.forEach(d=>d.exercises.forEach((x,i)=>x.exercise_order=i));
   renderEditor();
 }
