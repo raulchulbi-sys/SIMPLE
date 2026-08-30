@@ -444,6 +444,20 @@
 
 #daysEditor .routine-editor-exercise.dragging{opacity:.35}
 #daysEditor .routine-editor-exercise{position:relative}
+
+#daysEditor .editor-drag-placeholder{
+  display:block;width:100%;min-height:46px;margin:8px 0;
+  border:2px dashed var(--ok);border-radius:12px;
+  background:rgba(128,128,128,.08);box-sizing:border-box;
+  pointer-events:none;flex:none;
+}
+#daysEditor .editor-drag-handle{
+  touch-action:none!important;-webkit-user-select:none;user-select:none;
+  -webkit-touch-callout:none;cursor:grab;
+}
+#daysEditor .routine-editor-day.dragging,
+#daysEditor .routine-editor-exercise.dragging{opacity:.35}
+.editor-pointer-dragging{user-select:none!important;-webkit-user-select:none!important}
 </style>
 </head>
 <body>
@@ -2665,16 +2679,17 @@ async function reorderOpenDay(routineId,from,targetIndex){
 
 
 let __editorPointerDrag=null;
+let __editorDragRaf=0;
+let __editorLastY=0;
 
 function editorDragCleanup(){
+  if(__editorDragRaf){cancelAnimationFrame(__editorDragRaf);__editorDragRaf=0;}
   const d=__editorPointerDrag;
   if(!d)return;
   d.placeholder?.remove();
   d.row?.classList.remove('dragging');
   document.body.classList.remove('editor-pointer-dragging');
-  if(d.h&&d.pointerId!=null){
-    try{d.h.releasePointerCapture(d.pointerId)}catch(_){}
-  }
+  if(d.h&&d.pointerId!=null){try{d.h.releasePointerCapture(d.pointerId)}catch(_){}}
   document.removeEventListener('pointermove',editorPointerMove);
   document.removeEventListener('pointerup',editorPointerUp);
   document.removeEventListener('pointercancel',editorPointerCancel);
@@ -2689,70 +2704,26 @@ function editorMakePlaceholder(type,height){
   return p;
 }
 
-function editorGetDayCards(exclude){
-  return [...document.querySelectorAll('#daysEditor .routine-editor-day')].filter(x=>x!==exclude);
-}
-
-function editorGetExerciseRows(exclude){
-  return [...document.querySelectorAll('#daysEditor .routine-editor-exercise')].filter(x=>x!==exclude);
-}
-
-function editorPlaceDayPlaceholder(d,y){
-  const cards=editorGetDayCards(d.row);
-  let before=null;
-  let best=Infinity;
-  for(const card of cards){
-    const r=card.getBoundingClientRect();
-    const dist=Math.abs(y-(r.top+r.height/2));
-    if(dist<best){best=dist;before=card}
-  }
-  if(!before){
-    if(cards.length)cards[cards.length-1].parentNode.insertBefore(d.placeholder,cards[cards.length-1].nextSibling);
-    return editDays.length;
-  }
-  before.parentNode.insertBefore(d.placeholder,before);
-  return Number(before.dataset.dayIndex);
-}
-
-function editorPlaceExercisePlaceholder(d,y){
-  const rows=editorGetExerciseRows(d.row);
-  let target=null,best=Infinity;
-  for(const row of rows){
-    const r=row.getBoundingClientRect();
-    if(y<r.top-8||y>r.bottom+8)continue;
-    const dist=Math.abs(y-(r.top+r.height/2));
-    if(dist<best){best=dist;target=row}
-  }
-  if(!target)return null;
-  const r=target.getBoundingClientRect();
-  const before=y<r.top+r.height/2;
-  if(before)target.parentNode.insertBefore(d.placeholder,target);
-  else target.parentNode.insertBefore(d.placeholder,target.nextSibling);
-  return {day:Number(target.dataset.dayIndex),index:Number(target.dataset.exerciseIndex),before};
-}
-
 function startEditorPointerDrag(e,type,di,ei){
   if(profile?.role!=='trainer'||__editorPointerDrag)return;
   if(e.pointerType==='mouse'&&e.button!==0)return;
-
-  e.preventDefault();
-  e.stopPropagation();
+  e.preventDefault();e.stopPropagation();
 
   const h=e.currentTarget;
   const row=h.closest('.routine-editor-day,.routine-editor-exercise');
   if(!row)return;
 
-  const placeholder=editorMakePlaceholder(type,row.getBoundingClientRect().height);
-  row.parentNode.insertBefore(placeholder,row);
+  const p=editorMakePlaceholder(type,row.getBoundingClientRect().height);
+  row.parentNode.insertBefore(p,row);
 
   __editorPointerDrag={
     type,di:Number(di),ei:ei==null?null:Number(ei),
-    h,row,placeholder,pointerId:e.pointerId,
-    startX:e.clientX,startY:e.clientY,active:false,target:null
+    h,row,placeholder:p,pointerId:e.pointerId,
+    startX:e.clientX,startY:e.clientY,lastY:e.clientY,
+    active:false,target:null
   };
 
   try{h.setPointerCapture(e.pointerId)}catch(_){}
-
   document.addEventListener('pointermove',editorPointerMove,{passive:false});
   document.addEventListener('pointerup',editorPointerUp,{passive:false});
   document.addEventListener('pointercancel',editorPointerCancel,{passive:false});
@@ -2761,8 +2732,9 @@ function startEditorPointerDrag(e,type,di,ei){
 function editorPointerMove(e){
   const d=__editorPointerDrag;
   if(!d||e.pointerId!==d.pointerId)return;
-
   e.preventDefault();
+  d.lastY=e.clientY;
+  __editorLastY=e.clientY;
 
   if(!d.active){
     if(Math.hypot(e.clientX-d.startX,e.clientY-d.startY)<6)return;
@@ -2771,23 +2743,67 @@ function editorPointerMove(e){
     document.body.classList.add('editor-pointer-dragging');
   }
 
-  if(d.type==='day'){
-    d.target=editorPlaceDayPlaceholder(d,e.clientY);
-  }else{
-    d.target=editorPlaceExercisePlaceholder(d,e.clientY);
-  }
+  // Throttle DOM measurement/reordering to one frame. This avoids lag on
+  // mobile Safari/Chrome caused by doing many getBoundingClientRect calls
+  // per touch event.
+  if(__editorDragRaf)return;
+  __editorDragRaf=requestAnimationFrame(()=>{
+    __editorDragRaf=0;
+    const d=__editorPointerDrag;
+    if(!d)return;
+
+    if(d.type==='day'){
+      const cards=[...document.querySelectorAll('#daysEditor .routine-editor-day')].filter(x=>x!==d.row);
+      let before=null,best=Infinity;
+      for(const card of cards){
+        const r=card.getBoundingClientRect();
+        const dist=Math.abs(__editorLastY-(r.top+r.height/2));
+        if(dist<best){best=dist;before=card}
+      }
+      if(before)before.parentNode.insertBefore(d.placeholder,before);
+      else if(cards.length)cards[cards.length-1].parentNode.insertBefore(d.placeholder,cards[cards.length-1].nextSibling);
+      d.target=before?Number(before.dataset.dayIndex):editDays.length;
+    }else{
+      const rows=[...document.querySelectorAll('#daysEditor .routine-editor-exercise')].filter(x=>x!==d.row);
+      let target=null,best=Infinity;
+      for(const row of rows){
+        const r=row.getBoundingClientRect();
+        if(__editorLastY<r.top-12||__editorLastY>r.bottom+12)continue;
+        const dist=Math.abs(__editorLastY-(r.top+r.height/2));
+        if(dist<best){best=dist;target=row}
+      }
+      if(target){
+        const r=target.getBoundingClientRect();
+        const before=__editorLastY<r.top+r.height/2;
+        if(before)target.parentNode.insertBefore(d.placeholder,target);
+        else target.parentNode.insertBefore(d.placeholder,target.nextSibling);
+        d.target={day:Number(target.dataset.dayIndex),index:Number(target.dataset.exerciseIndex),before};
+      }
+    }
+  });
 }
 
 function editorPointerUp(e){
   const d=__editorPointerDrag;
   if(!d||e.pointerId!==d.pointerId)return;
-
   e.preventDefault();
 
-  const result={
-    active:d.active,type:d.type,di:d.di,ei:d.ei,target:d.target
-  };
+  if(__editorDragRaf){
+    cancelAnimationFrame(__editorDragRaf);
+    __editorDragRaf=0;
+  }
 
+  // Recalculate once at the final pointer position before committing.
+  if(d.active){
+    const fake={pointerId:d.pointerId,clientX:e.clientX,clientY:e.clientY};
+    editorPointerMove(fake);
+    if(__editorDragRaf){
+      cancelAnimationFrame(__editorDragRaf);
+      __editorDragRaf=0;
+    }
+  }
+
+  const result={active:d.active,type:d.type,di:d.di,ei:d.ei,target:d.target};
   editorDragCleanup();
 
   if(!result.active)return;
@@ -2795,8 +2811,10 @@ function editorPointerUp(e){
   if(result.type==='day'){
     moveEditorDay(result.di,result.target==null?editDays.length:result.target);
   }else if(result.target){
-    const at=result.target.index+(result.target.before?0:1);
-    moveEditorExercise(result.di,result.ei,result.target.day,at);
+    moveEditorExercise(
+      result.di,result.ei,result.target.day,
+      result.target.index+(result.target.before?0:1)
+    );
   }
 }
 
@@ -2804,15 +2822,11 @@ function editorPointerCancel(){editorDragCleanup()}
 
 function moveEditorDay(from,to){
   if(from<0||from>=editDays.length)return;
-
-  // `to` is the insertion point in the original array.
   to=Math.max(0,Math.min(to,editDays.length));
   if(to===from||to===from+1)return;
-
   const [item]=editDays.splice(from,1);
   if(from<to)to--;
   editDays.splice(to,0,item);
-
   editDays.forEach((d,i)=>d.day_order=i);
   renderEditor();
 }
@@ -2825,14 +2839,10 @@ function moveEditorExercise(fd,fi,td,ti){
   const [item]=source.splice(fi,1);
   let at=ti;
   if(fd===td&&fi<at)at--;
-
   at=Math.max(0,Math.min(at,target.length));
   target.splice(at,0,item);
 
-  editDays.forEach(d=>{
-    d.exercises.forEach((x,i)=>x.exercise_order=i);
-  });
-
+  editDays.forEach(d=>d.exercises.forEach((x,i)=>x.exercise_order=i));
   renderEditor();
 }
 
