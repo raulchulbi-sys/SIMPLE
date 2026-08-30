@@ -460,32 +460,159 @@
 .editor-pointer-dragging{user-select:none!important;-webkit-user-select:none!important}
 
 #mine .routine-drag-handle,#daysEditor .editor-drag-handle{
+  touch-action:none;-webkit-user-select:none;user-select:none;
+  -webkit-touch-callout:none;cursor:grab;
+}
+#mine .routine-drag-placeholder,#daysEditor .editor-drag-placeholder{
+  display:block;width:100%;min-height:46px;margin:8px 0;
+  border:2px dashed var(--ok);border-radius:12px;
+  background:rgba(128,128,128,.08);box-sizing:border-box;pointer-events:none;
+}
+
+#mine .routine-order-zone{
+  min-height:10px;
+  margin:3px 0;
+  border-radius:10px;
+  transition:min-height .12s ease,background .12s ease,border .12s ease;
+}
+#mine .routine-order-zone.routine-order-zone-active{
+  min-height:52px;
+  border:2px dashed var(--ok);
+  background:rgba(128,128,128,.08);
+}
+#mine .routine-drag-handle,#daysEditor .editor-drag-handle{
   touch-action:none!important;
   -webkit-user-select:none;
   user-select:none;
   -webkit-touch-callout:none;
-  cursor:grab;
-  min-width:34px;
-  min-height:34px;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
 }
 #mine .routine-drag-placeholder,#daysEditor .editor-drag-placeholder{
-  display:block;width:100%;margin:8px 0;
-  min-height:46px;
-  border:2px dashed var(--ok);
-  border-radius:12px;
-  background:rgba(128,128,128,.08);
-  box-sizing:border-box;
-  pointer-events:none;
-  flex:none;
+  display:block;width:100%;min-height:46px;margin:8px 0;
+  border:2px dashed var(--ok);border-radius:12px;
+  background:rgba(128,128,128,.08);box-sizing:border-box;pointer-events:none;
 }
-#mine .routine-dragging,#daysEditor .routine-editor-day.dragging,
-#daysEditor .routine-editor-exercise.dragging{opacity:.35}
-.routine-pointer-dragging,.editor-pointer-dragging{
-  user-select:none!important;
+
+  width:100%;height:8px;margin:4px 0;border:2px solid transparent;border-radius:10px;
+  box-sizing:border-box;background:transparent;transition:height .08s ease,background .08s ease,border-color .08s ease;
+}
+  height:44px;border-color:var(--ok);background:rgba(128,128,128,.08);
+}
+#mine .routine-sortable.dragging,#daysEditor .routine-editor-day.dragging,#daysEditor .routine-editor-exercise.dragging{opacity:.4}
+
+  width:100%;height:8px;margin:4px 0;border:2px solid transparent;
+  border-radius:10px;background:transparent;box-sizing:border-box;
+}
+  height:44px;border-color:var(--ok);background:rgba(128,128,128,.08);
+}
+
+#mine .routine-order-zone{height:12px;min-height:12px}
+#mine .routine-order-zone-active{
+  height:36px;min-height:36px;border:2px dashed var(--ok);
+  background:rgba(255,255,255,.05);margin:4px 0;border-radius:10px;
+}
+#daysEditor .day-drop-zone{
+  height:10px;margin:3px 0;border-radius:8px;transition:height .12s ease,background .12s ease,border .12s ease;
+}
+#daysEditor .day-drop-zone.drop-active{
+  height:36px;border:2px dashed var(--ok);background:rgba(255,255,255,.05);
+}
+#daysEditor .exercise-drop-zone{
+  height:8px;margin:2px 0;border-radius:6px;transition:height .12s ease,background .12s ease;
+}
+#daysEditor .exercise-drop-zone.drop-active{
+  height:24px;background:rgba(120,160,255,.18);outline:2px dashed var(--accent,#888);outline-offset:-2px;
+}
+
+#daysEditor .day-order-gap{
+  display:block;width:100%;height:12px;margin:4px 0;
+  border:2px solid transparent;border-radius:10px;
+  background:transparent;box-sizing:border-box;
+}
+#daysEditor .day-order-gap.active{
+  height:40px;border-color:var(--ok);
+  background:rgba(255,255,255,.05);
+}
+#daysEditor .routine-editor-day.dragging{opacity:.4}
+
+#daysEditor .day-order-zone{
+  height:12px;min-height:12px;margin:3px 0;border-radius:9px;
+  border:2px solid transparent;box-sizing:border-box;background:transparent;
+}
+#daysEditor .day-order-zone-active{
+  height:38px;min-height:38px;border:2px dashed var(--ok);
+  background:rgba(255,255,255,.05);margin:4px 0;
+}
+#daysEditor .routine-editor-day.dragging{opacity:.45}
+
+#daysEditor .day-sortable{cursor:grab}
+#daysEditor .day-sortable.dragging{opacity:.45;cursor:grabbing}
+#daysEditor .day-sortable input,#daysEditor .day-sortable button{cursor:auto}
+#daysEditor .day-order-zone{
+  height:12px;min-height:12px;margin:3px 0;border-radius:9px;
+  border:2px solid transparent;box-sizing:border-box;background:transparent;
+}
+#daysEditor .day-order-zone-active{
+  height:38px;min-height:38px;border:2px dashed var(--ok);
+  background:rgba(255,255,255,.05);margin:4px 0;
+}
+
+#trainModal .open-day-order-zone{
+  height:12px;min-height:12px;margin:3px 0;border-radius:9px;
+  border:2px solid transparent;box-sizing:border-box;background:transparent;
+}
+#trainModal .open-day-order-zone-active{
+  height:38px;min-height:38px;margin:4px 0;
+  border:2px dashed var(--ok);background:rgba(255,255,255,.05);
+}
+#trainModal .open-day-row.dragging{opacity:.42}
+#trainModal .open-day-handle{cursor:grab}
+#trainModal .open-day-handle:active{cursor:grabbing}
+
+#trainModal .open-day-order-zone{
+  display:block;width:100%;height:10px;min-height:10px;margin:3px 0;
+  border:2px solid transparent;border-radius:9px;box-sizing:border-box;background:transparent;
+}
+#trainModal .open-day-order-zone-active{
+  height:38px;min-height:38px;margin:4px 0;
+  border:2px dashed var(--ok);background:rgba(255,255,255,.05);
+}
+#trainModal .open-day-row{cursor:grab;user-select:none}
+#trainModal .open-day-row.dragging{opacity:.42;cursor:grabbing}
+
+#trainModal .open-day-handle{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:34px;height:34px;cursor:grab!important;
+  -webkit-user-select:none;user-select:none;
+  -webkit-touch-callout:none;
+}
+#trainModal .open-day-handle:active{cursor:grabbing!important}
+#trainModal .open-day-order-zone{
+  display:block;width:100%;height:10px;min-height:10px;margin:3px 0;
+  border:2px solid transparent;border-radius:9px;
+  box-sizing:border-box;background:transparent;
+}
+#trainModal .open-day-order-zone-active{
+  height:38px;min-height:38px;margin:4px 0;
+  border:2px dashed var(--ok);background:rgba(255,255,255,.05);
+}
+#trainModal .open-day-row.dragging{opacity:.42}
+
+#trainModal .open-day-handle{
+  touch-action:none!important;
   -webkit-user-select:none!important;
+  user-select:none!important;
+  cursor:grab!important;
+}
+#trainModal .open-day-handle:active{cursor:grabbing!important}
+#trainModal .open-day-order-zone{
+  pointer-events:auto;
+  touch-action:none;
+}
+#trainModal .open-day-order-zone-active{
+  height:42px!important;
+  min-height:42px!important;
+  border:2px dashed var(--ok)!important;
+  background:rgba(255,255,255,.06)!important;
 }
 </style>
 </head>
@@ -2077,12 +2204,14 @@ function renderMine(){
     return;
   }
   const cards=routines.map((r,i)=>`
-    <div class="routine-order-zone"></div>
-    <div class="card routine routine-sortable" data-routine-index="${i}">
+    <div class="routine-order-zone" ondragover="dragOverRoutineZone(event)" ondrop="dropRoutineAt(event,${i})"></div>
+    <div class="card routine routine-sortable"
+      ondragover="dragOverRoutineCard(event)" ondrop="dropRoutineOnCard(event,${i})">
       <div style="display:flex;align-items:center;gap:10px;min-width:0">
-        <span class="drag-handle routine-drag-handle" onpointerdown="startRoutinePointerDrag(event,${i})"
-         
-         
+        <span class="drag-handle routine-drag-handle" draggable="true"
+          ondragstart="dragRoutineStart(event,${i})"
+          onpointerdown="startRoutinePointerDrag(event,${i})"
+          ondragend="dragRoutineEnd(event)"
           title="Arrastrar rutina" aria-label="Arrastrar rutina">☷</span>
         <div style="min-width:0"><h3>${esc(r.name)}</h3><div class="muted">${esc(r.description||'Sin descripción')}</div></div>
       </div>
@@ -2094,7 +2223,7 @@ function renderMine(){
         <button class="btn danger" onclick="delRoutine('${r.id}')">Eliminar</button>
       </div>
     </div>`).join('');
-  box.innerHTML=header+cards+`<div class="routine-order-zone routine-order-zone-last"></div>`;
+  box.innerHTML=header+cards+`<div class="routine-order-zone routine-order-zone-last" ondragover="dragOverRoutineZone(event)" ondrop="dropRoutineAt(event,${routines.length})"></div>`;
 }
 
 // Reliable routine-open fallback for dynamically rendered routine cards.
@@ -2109,10 +2238,8 @@ document.addEventListener('click',function(e){
 },true);
 
 let __routinePointerDrag=null;
-let __routineDragRaf=0;
 
 function routineDragCleanup(){
-  if(__routineDragRaf){cancelAnimationFrame(__routineDragRaf);__routineDragRaf=0;}
   const d=__routinePointerDrag;
   if(!d)return;
   d.placeholder?.remove();
@@ -2127,21 +2254,21 @@ function routineDragCleanup(){
 
 function startRoutinePointerDrag(e,index){
   if(profile?.role!=='trainer'||__routinePointerDrag)return;
-  if(e.pointerType==='mouse'&&e.button!==0)return;
+  if(e.pointerType!=='touch' && e.pointerType!=='pen')return;
   e.preventDefault();e.stopPropagation();
 
   const handle=e.currentTarget;
-  const card=handle.closest('#mine .routine-sortable');
+  const card=handle.closest('.routine-sortable');
   if(!card)return;
 
-  const ph=document.createElement('div');
-  ph.className='routine-drag-placeholder';
-  ph.style.height=Math.max(72,card.getBoundingClientRect().height)+'px';
-  card.parentNode.insertBefore(ph,card);
+  const placeholder=document.createElement('div');
+  placeholder.className='routine-drag-placeholder';
+  placeholder.style.height=Math.max(70,card.getBoundingClientRect().height)+'px';
+  card.parentNode.insertBefore(placeholder,card);
 
   __routinePointerDrag={
-    index:Number(index),handle,card,placeholder:ph,pointerId:e.pointerId,
-    x:e.clientX,y:e.clientY,lastY:e.clientY,active:false,target:null
+    index:Number(index),handle,card,placeholder,pointerId:e.pointerId,
+    startX:e.clientX,startY:e.clientY,active:false,target:null
   };
 
   try{handle.setPointerCapture(e.pointerId)}catch(_){}
@@ -2154,36 +2281,25 @@ function routinePointerMove(e){
   const d=__routinePointerDrag;
   if(!d||e.pointerId!==d.pointerId)return;
   e.preventDefault();
-  d.lastY=e.clientY;
 
   if(!d.active){
-    if(Math.hypot(e.clientX-d.x,e.clientY-d.y)<6)return;
+    if(Math.hypot(e.clientX-d.startX,e.clientY-d.startY)<7)return;
     d.active=true;
     d.card.classList.add('routine-dragging');
     document.body.classList.add('routine-pointer-dragging');
   }
 
-  if(__routineDragRaf)return;
-  __routineDragRaf=requestAnimationFrame(()=>{
-    __routineDragRaf=0;
-    const d=__routinePointerDrag;
-    if(!d)return;
+  const cards=[...document.querySelectorAll('#mine .routine-sortable')].filter(x=>x!==d.card);
+  let before=null;
+  for(const card of cards){
+    const r=card.getBoundingClientRect();
+    if(e.clientY<r.top+r.height/2){before=card;break}
+  }
 
-    const cards=[...document.querySelectorAll('#mine .routine-sortable')]
-      .filter(x=>x!==d.card);
+  if(before)before.parentNode.insertBefore(d.placeholder,before);
+  else if(cards.length)cards[cards.length-1].parentNode.insertBefore(d.placeholder,cards[cards.length-1].nextSibling);
 
-    let before=null,best=Infinity;
-    for(const card of cards){
-      const r=card.getBoundingClientRect();
-      const dist=Math.abs(d.lastY-(r.top+r.height/2));
-      if(dist<best){best=dist;before=card}
-    }
-
-    if(before)before.parentNode.insertBefore(d.placeholder,before);
-    else if(cards.length)cards[cards.length-1].parentNode.insertBefore(d.placeholder,cards[cards.length-1].nextSibling);
-
-    d.target=before?Number(before.dataset.routineIndex):routines.length;
-  });
+  d.target=before?Number(before.dataset.routineIndex):routines.length;
 }
 
 async function routinePointerUp(e){
@@ -2191,13 +2307,7 @@ async function routinePointerUp(e){
   if(!d||e.pointerId!==d.pointerId)return;
   e.preventDefault();
 
-  if(__routineDragRaf){cancelAnimationFrame(__routineDragRaf);__routineDragRaf=0;}
-
-  const result={
-    active:d.active,from:d.index,
-    to:d.target==null?d.index:d.target
-  };
-
+  const result={active:d.active,from:d.index,to:d.target==null?d.index:d.target};
   routineDragCleanup();
   if(!result.active||result.from===result.to||result.from+1===result.to)return;
 
@@ -2289,64 +2399,97 @@ async function editRoutine(id){if(profile?.role!=='trainer')return toast('Solo e
 function renderEditor(){
   let h='';
   editDays.forEach((d,di)=>{
-    h+=`<div class="day-drop-zone"></div>
-    <div class="card routine-editor-day" data-day-index="${di}">
-
-      <div class="dayhead">
-        <div style="display:flex;align-items:center;gap:9px;min-width:0;flex:1">
-          <span class="drag-handle editor-drag-handle" onpointerdown="startEditorPointerDrag(event,'day',${di},null)" title="Arrastrar sesión">☷</span>☷</span>
-          <input value="${esc(d.name)}" onchange="editDays[${di}].name=this.value">
-        </div>
-        <button class="btn danger" type="button" onclick="removeDay(${di})">Eliminar</button>
-      </div>
-
-      <div class="exercise-drop-zone"
-       
-       ></div>
-
-      ${d.exercises.map((e,ei)=>`
-        <div class="exercise routine-editor-exercise" data-day-index="${di}" data-exercise-index="${ei}">
-
-          <div style="display:flex;align-items:flex-start;gap:8px">
-            <span class="drag-handle editor-drag-handle"
-              onpointerdown="startEditorPointerDrag(event,'exercise',${di},${ei})"
-              title="Arrastrar ejercicio">☷</span>
-            <div style="flex:1">
-              <div class="grid3">
-                <div><label>Ejercicio</label><input value="${esc(e.name)}" onchange="editDays[${di}].exercises[${ei}].name=this.value"></div>
-                <div><label>Series</label><input type="number" min="1" value="${e.sets||1}" onchange="editDays[${di}].exercises[${ei}].sets=Math.max(1,+this.value||1)"></div>
-                <div><label>Descanso (min)</label><input type="number" min="0" step="0.5" value="${(e.rest_seconds||120)/60}" onchange="editDays[${di}].exercises[${ei}].rest_seconds=(+this.value||0)*60"></div>
-              </div>
-              <div class="grid" style="margin-top:8px">
-                <div><label>Objetivo</label><input value="${esc(e.target||'')}" placeholder="2x10-15" onchange="editDays[${di}].exercises[${ei}].target=this.value"></div>
-                <div><label>RIR</label><input value="${esc(e.rir??'')}" onchange="editDays[${di}].exercises[${ei}].rir=this.value"></div>
-              </div>
-              <div style="margin-top:8px"><label>Notas</label><input value="${esc(e.notes||'')}" onchange="editDays[${di}].exercises[${ei}].notes=this.value"></div>
-            </div>
+    h+=`
+      <div class="day-order-zone" ondragover="dragOverDayZone(event)" ondrop="dropDayAt(event,${di})"></div>
+      <div class="card routine-editor-day day-sortable" data-day-index="${di}"
+        draggable="true"
+        ondragstart="dragDayStart(event,${di})"
+        ondragend="dragEndItem()">
+        <div class="dayhead">
+          <div style="display:flex;align-items:center;gap:9px;min-width:0;flex:1">
+            <span class="drag-handle editor-drag-handle" draggable="true"
+              ondragstart="dragDayStart(event,${di})" ondragend="dragEndItem()"
+              onpointerdown="startEditorPointerDrag(event,'day',${di},null)"
+              title="Arrastrar sesión">☷</span>
+            <input value="${esc(d.name)}" draggable="false"
+              ondragstart="event.preventDefault();event.stopPropagation()"
+              onchange="editDays[${di}].name=this.value">
           </div>
-          <div class="buttons" style="justify-content:flex-end;margin-top:7px">
-            <button class="btn danger" type="button" onclick="removeEx(${di},${ei})">Eliminar ejercicio</button>
-          </div>
+          <button class="btn danger" type="button" draggable="false"
+              ondragstart="event.preventDefault();event.stopPropagation()"
+              onclick="removeDay(${di})">Eliminar</button>
         </div>
 
         <div class="exercise-drop-zone"
-         
-         ></div>
-      `).join('')}
+          ondragover="dragOverDropZone(event)"
+          ondrop="dropExerciseAt(event,${di},0)"></div>
 
-      <button class="btn" type="button" onclick="addEx(${di})">Añadir ejercicio</button>
-    </div>`;
+        ${d.exercises.map((e,ei)=>`
+          <div class="exercise routine-editor-exercise" data-day-index="${di}" data-exercise-index="${ei}"
+            ondragover="dragOverExercise(event)"
+            ondrop="dropExercise(event,${di},${ei})">
+
+            <div style="display:flex;align-items:flex-start;gap:8px">
+              <span class="drag-handle editor-drag-handle" draggable="true"
+                ondragstart="dragExerciseStart(event,${di},${ei})" ondragend="dragEndItem()"
+                onpointerdown="startEditorPointerDrag(event,'exercise',${di},${ei})"
+                title="Arrastrar ejercicio">☷</span>
+              <div style="flex:1">
+                <div class="grid3">
+                  <div><label>Ejercicio</label><input value="${esc(e.name)}" onchange="editDays[${di}].exercises[${ei}].name=this.value"></div>
+                  <div><label>Series</label><input type="number" min="1" value="${e.sets||1}" onchange="editDays[${di}].exercises[${ei}].sets=Math.max(1,+this.value||1)"></div>
+                  <div><label>Descanso (min)</label><input type="number" min="0" step="0.5" value="${(e.rest_seconds||120)/60}" onchange="editDays[${di}].exercises[${ei}].rest_seconds=(+this.value||0)*60"></div>
+                </div>
+                <div class="grid" style="margin-top:8px">
+                  <div><label>Objetivo</label><input value="${esc(e.target||'')}" placeholder="2x10-15" onchange="editDays[${di}].exercises[${ei}].target=this.value"></div>
+                  <div><label>RIR</label><input value="${esc(e.rir??'')}" onchange="editDays[${di}].exercises[${ei}].rir=this.value"></div>
+                </div>
+                <div style="margin-top:8px"><label>Notas</label><input value="${esc(e.notes||'')}" onchange="editDays[${di}].exercises[${ei}].notes=this.value"></div>
+              </div>
+            </div>
+            <div class="buttons" style="justify-content:flex-end;margin-top:7px">
+              <button class="btn danger" type="button" onclick="removeEx(${di},${ei})">Eliminar ejercicio</button>
+            </div>
+          </div>
+
+          <div class="exercise-drop-zone"
+            ondragover="dragOverDropZone(event)"
+            ondrop="dropExerciseAt(event,${di},${ei+1})"></div>
+        `).join('')}
+
+        <button class="btn" type="button" onclick="addEx(${di})">Añadir ejercicio</button>
+      </div>`;
   });
-  if(editDays.length)h+=`<div class="day-drop-zone day-drop-zone-last"></div>`;
+  h += `<div class="day-order-zone day-order-zone-last"
+        ondragover="dragOverDayZone(event)"
+        ondrop="dropDayAt(event,${editDays.length})"></div>`;
   $('daysEditor').innerHTML=h||'<div class="empty">Añade un día.</div>';
 }
 
 
+let __dayDrag=null;
 function dragDayStart(e,i){
-  __dragItem={type:'day',i};
+  e.stopPropagation();
+  __dayDrag={index:Number(i)};
   e.dataTransfer.effectAllowed='move';
   e.dataTransfer.setData('text/plain','day:'+i);
-  e.currentTarget.classList.add('dragging');
+  e.currentTarget.closest('.routine-editor-day')?.classList.add('dragging');
+  document.querySelectorAll('#daysEditor .day-order-zone').forEach(z=>z.classList.remove('day-order-zone-active'));
+}
+function showExerciseDropGaps(){
+  const box=document.querySelector('#daysEditor');if(!box)return;
+  box.querySelectorAll('.exercise-drop-gap').forEach(x=>x.remove());
+  const rows=[...box.querySelectorAll('.routine-editor-exercise')];
+  for(let i=rows.length;i>=0;i--){
+    const gap=document.createElement('div');gap.className='exercise-drop-gap';
+    gap.ondragover=ev=>{ev.preventDefault();ev.stopPropagation();ev.dataTransfer.dropEffect='move';gap.classList.add('active')};
+    gap.ondragleave=()=>gap.classList.remove('active');
+    gap.ondrop=ev=>{
+      ev.preventDefault();ev.stopPropagation();
+      if(i<rows.length)dropExerciseSlot(ev,Number(rows[i].dataset.dayIndex),Number(rows[i].dataset.exerciseIndex));
+    };
+    if(i<rows.length)rows[i].parentNode.insertBefore(gap,rows[i]);else box.appendChild(gap);
+  }
 }
 function dragExerciseStart(e,di,ei){
   e.stopPropagation();
@@ -2371,11 +2514,11 @@ function dragOverExercise(e){
   e.currentTarget.classList.add('drag-over');
 }
 function dragOverDayZone(e){
-  e.preventDefault(); e.stopPropagation();
-  if(!__dragItem || __dragItem.type!=='day')return;
+  if(!__dayDrag)return;
+  e.preventDefault();e.stopPropagation();
   e.dataTransfer.dropEffect='move';
-  clearDropIndicators();
-  e.currentTarget.classList.add('drop-active');
+  document.querySelectorAll('#daysEditor .day-order-zone').forEach(z=>z.classList.remove('day-order-zone-active'));
+  e.currentTarget.classList.add('day-order-zone-active');
 }
 function dropExerciseAt(e,targetDay,targetIndex){
   e.preventDefault(); e.stopPropagation();
@@ -2401,21 +2544,25 @@ function dropExercise(e,targetDay,targetIndex){
   dropExerciseAt(e,targetDay,targetIndex);
 }
 function dropDayAt(e,targetIndex){
-  e.preventDefault(); e.stopPropagation();
-  if(!__dragItem || __dragItem.type!=='day')return;
-  const from=__dragItem.i;
-  if(from<0 || from>=editDays.length){__dragItem=null;return;}
-  const [item]=editDays.splice(from,1);
-  let at=targetIndex;
-  if(from<at)at--;
-  at=Math.max(0,Math.min(at,editDays.length));
-  editDays.splice(at,0,item);
-  editDays.forEach((d,i)=>d.day_order=i);
-  __dragItem=null; clearDropIndicators(); renderEditor();
+  if(!__dayDrag)return;
+  e.preventDefault();e.stopPropagation();
+  const from=Number(__dayDrag.index),to=Number(targetIndex);
+  if(from===to||from+1===to){dragEndItem();return;}
+  const next=editDays.slice();
+  const [item]=next.splice(from,1);
+  const at=from<to?to-1:to;
+  next.splice(Math.max(0,Math.min(at,next.length)),0,item);
+  editDays=next.map((d,i)=>({...d,day_order:i}));
+  dragEndItem();renderEditor();
 }
 function dragEndItem(){
-  clearDropIndicators();
-  __dragItem=null;
+  document.querySelectorAll('#daysEditor .routine-editor-day,#daysEditor .routine-editor-exercise')
+    .forEach(x=>x.classList.remove('dragging'));
+  document.querySelectorAll('#daysEditor .day-order-zone')
+    .forEach(x=>x.classList.remove('day-order-zone-active'));
+  document.querySelectorAll('#daysEditor .day-order-gap,#daysEditor .exercise-drop-gap')
+    .forEach(x=>x.remove());
+  __dragItem=null;__dayDrag=null;
 }
 
 function dragRoutineStart(e,index){
@@ -2464,50 +2611,32 @@ async function dropRoutineAt(e,targetIndex){
   await reorderRoutine(from,targetIndex);
 }
 async function reorderRoutine(from,targetIndex){
-  if(from<0||from>=routines.length)return;
+  if(from<0 || from>=routines.length)return;
 
   const previous=routines.slice();
-  const next=routines.slice();
-  const [item]=next.splice(from,1);
+  const copy=routines.slice();
+  const [item]=copy.splice(from,1);
+  let at=targetIndex;
+  if(from<at)at--;
+  at=Math.max(0,Math.min(at,copy.length));
 
-  let to=Number(targetIndex);
-  to=Math.max(0,Math.min(to,next.length));
-  if(from<to)to--;
+  if(at===from){renderMine();return;}
 
-  if(to===from){
-    renderMine();
-    return;
-  }
-
-  next.splice(to,0,item);
-  routines=next.map((r,i)=>({...r,routine_order:i}));
+  copy.splice(at,0,item);
+  routines=copy.map((r,i)=>({...r,routine_order:i}));
   renderMine();
 
   try{
-    // Write every position in sequence. No Promise.all race.
-    for(let i=0;i<routines.length;i++){
-      const q=await db.from('routines')
+    // Persist all rows together. This keeps positions contiguous (0..n-1).
+    const results=await Promise.all(
+      routines.map((r,i)=>db.from('routines')
         .update({routine_order:i})
-        .eq('id',routines[i].id)
+        .eq('id',r.id)
         .eq('owner_id',user.id)
-        .is('deleted_at',null);
-      if(q.error)throw q.error;
-    }
-
-    // Verify the database order before confirming success.
-    const q=await db.from('routines')
-      .select('id,routine_order')
-      .eq('owner_id',user.id)
-      .is('deleted_at',null)
-      .order('routine_order',{ascending:true});
-
-    if(q.error)throw q.error;
-
-    const dbIds=(q.data||[]).map(x=>x.id).join('|');
-    const localIds=routines.map(x=>x.id).join('|');
-
-    if(dbIds!==localIds)throw new Error('Orden de rutinas no verificado');
-
+        .is('deleted_at',null))
+    );
+    const failed=results.find(x=>x.error);
+    if(failed)throw failed.error;
     toast('Orden guardado');
   }catch(err){
     console.error('reorderRoutine:',err);
@@ -2527,6 +2656,44 @@ function moveEx(dayIndex, exerciseIndex, direction){
   renderEditor();
 }
 
+function dropDaySlot(e,targetIndex){
+  e.preventDefault();e.stopPropagation();
+  if(!__dragItem||__dragItem.type!=='day')return;
+  const from=__dragItem.i;
+  let to=Number(targetIndex);
+  if(from<to)to--;
+  if(from===to){dragEndItem();return}
+  const [item]=editDays.splice(from,1);
+  editDays.splice(Math.max(0,Math.min(to,editDays.length)),0,item);
+  editDays.forEach((d,i)=>d.day_order=i);
+  dragEndItem();renderEditor();
+}
+function showExerciseDropGaps(){
+  const box=document.querySelector('#daysEditor');
+  if(!box)return;
+  box.querySelectorAll('.exercise-drop-gap').forEach(x=>x.remove());
+  const rows=[...box.querySelectorAll('.routine-editor-exercise')];
+  rows.forEach(row=>{
+    const gap=document.createElement('div');
+    gap.className='exercise-drop-gap';
+    gap.ondragover=ev=>{ev.preventDefault();ev.dataTransfer.dropEffect='move';gap.classList.add('active')};
+    gap.ondragleave=()=>gap.classList.remove('active');
+    gap.ondrop=ev=>{ev.preventDefault();const d=Number(row.dataset.dayIndex),i=Number(row.dataset.exerciseIndex);dropExerciseSlot(ev,d,i)};
+    row.parentNode.insertBefore(gap,row);
+  });
+}
+function dropExerciseSlot(e,targetDay,targetIndex){
+  e.preventDefault();e.stopPropagation();
+  if(!__dragItem||__dragItem.type!=='exercise')return;
+  const source=editDays[__dragItem.di]?.exercises,target=editDays[targetDay]?.exercises;
+  if(!source||!target){dragEndItem();return}
+  const [item]=source.splice(__dragItem.ei,1);
+  let at=Number(targetIndex);
+  if(__dragItem.di===targetDay&&__dragItem.ei<at)at--;
+  target.splice(Math.max(0,Math.min(at,target.length)),0,item);
+  editDays.forEach(d=>d.exercises.forEach((x,i)=>x.exercise_order=i));
+  dragEndItem();renderEditor();
+}
 function moveDay(dayIndex, direction){
   const target=dayIndex+direction;
   if(target<0 || target>=editDays.length)return;
@@ -2645,15 +2812,25 @@ async function openRoutine(id){
         <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><h3 style="margin:0">Días de entrenamiento</h3>${profile?.role==='trainer'?'<button class="btn" onclick="addSessionToOpenRoutine()">+ Añadir sesión</button>':''}</div>
         ${profile?.role==='trainer'
           ? d.map((x,i)=>`
-            <div class="open-day-drop-zone"></div>
-            <div class="open-day-row">
+            <div class="open-day-order-zone"
+              ondragenter="dragOverOpenDayZone(event)"
+              ondragover="dragOverOpenDayZone(event)"
+              ondrop="dropOpenDayAt(event,${i})"></div>
+            <div class="open-day-row" data-open-day-index="${i}">
               <span class="drag-handle open-day-handle"
+              
               onpointerdown="startOpenDayPointerDrag(event,${i})"
               title="Arrastrar sesión" aria-label="Arrastrar sesión">☷</span>
-              <button class="btn open-day-button" style="flex:1;text-align:left" onclick="startWorkoutDay('${x.id}')">
+              <button class="btn open-day-button" draggable="false"
+                ondragstart="event.preventDefault();event.stopPropagation()"
+                style="flex:1;text-align:left" onclick="startWorkoutDay('${x.id}')">
                 <b>${esc(x.name)}</b><span class="muted" style="float:right">${x.exercises.length} ejercicios</span>
               </button>
-            </div>`).join('')
+            </div>`).join('') +
+          `<div class="open-day-order-zone open-day-order-zone-last"
+              ondragenter="dragOverOpenDayZone(event)"
+              ondragover="dragOverOpenDayZone(event)"
+              ondrop="dropOpenDayAt(event,${d.length})"></div>`
           : d.map(x=>`<button class="btn" style="width:100%;margin:6px 0;text-align:left" onclick="startWorkoutDay('${x.id}')">
               <b>${esc(x.name)}</b><span class="muted" style="float:right">${x.exercises.length} ejercicios</span>
             </button>`).join('')}
@@ -2664,56 +2841,141 @@ async function openRoutine(id){
 }
 
 let __openDayDrag=null;
+let __openDayNativeDrag=null;
 let __openDayDragLock=false;
+
+function dragOpenDayStart(e,index){
+  e.stopPropagation();
+  const rid=String(window.__openRoutineId||'');
+  if(!rid)return;
+  __openDayNativeDrag={index:Number(index),routineId:rid};
+  try{
+    e.dataTransfer.effectAllowed='move';
+    e.dataTransfer.setData('text/plain',`simple-open-day:${index}`);
+  }catch(_){}
+  const row=e.currentTarget.closest('.open-day-row');
+  if(row)row.classList.add('dragging');
+  document.querySelectorAll('#trainModal .open-day-order-zone')
+    .forEach(z=>z.classList.remove('open-day-order-zone-active'));
+}
+function dragOpenDayEnd(){
+  document.querySelectorAll('#trainModal .open-day-row')
+    .forEach(r=>r.classList.remove('dragging'));
+  document.querySelectorAll('#trainModal .open-day-order-zone')
+    .forEach(z=>z.classList.remove('open-day-order-zone-active'));
+  __openDayNativeDrag=null;
+}
+function dragOverOpenDayZone(e){
+  if(!__openDayNativeDrag)return;
+  e.preventDefault();
+  e.stopPropagation();
+  try{e.dataTransfer.dropEffect='move'}catch(_){}
+  document.querySelectorAll('#trainModal .open-day-order-zone')
+    .forEach(z=>z.classList.remove('open-day-order-zone-active'));
+  e.currentTarget.classList.add('open-day-order-zone-active');
+}
+async function dropOpenDayAt(e,targetIndex){
+  if(!__openDayNativeDrag)return;
+  e.preventDefault();
+  e.stopPropagation();
+  const drag=__openDayNativeDrag;
+  const from=Number(drag.index);
+  const to=Number(targetIndex);
+  const rid=String(drag.routineId||'');
+  dragOpenDayEnd();
+  if(!rid||!Number.isInteger(from)||!Number.isInteger(to)||from===to||from+1===to)return;
+  await reorderOpenDay(rid,from,to);
+}
 
 function startOpenDayPointerDrag(e,index){
   if(profile?.role!=='trainer'||__openDayDragLock)return;
-  if(e.pointerType==='mouse'&&e.button!==0)return;
-  e.preventDefault();e.stopPropagation();
+  e.preventDefault();
+  e.stopPropagation();
   const h=e.currentTarget,row=h.closest('.open-day-row');
   if(!row)return;
-  __openDayDrag={index:Number(index),startX:e.clientX,startY:e.clientY,active:false,row,h,pointerId:e.pointerId,routineId:String(window.__openRoutineId||'')};
+  __openDayDragLock=true;
+  __openDayDrag={
+    index:Number(index),
+    startX:e.clientX,startY:e.clientY,active:false,
+    row,h,pointerId:e.pointerId,
+    routineId:String(window.__openRoutineId||'')
+  };
   try{h.setPointerCapture(e.pointerId)}catch(_){}
   document.addEventListener('pointermove',openDayPointerMove,{passive:false});
   document.addEventListener('pointerup',openDayPointerUp,{passive:false});
   document.addEventListener('pointercancel',openDayPointerCancel,{passive:false});
 }
 function openDayPointerMove(e){
-  const d=__openDayDrag;if(!d||e.pointerId!==d.pointerId)return;
+  const d=__openDayDrag;
+  if(!d||e.pointerId!==d.pointerId)return;
   e.preventDefault();
+
   if(!d.active){
-    if(Math.hypot(e.clientX-d.startX,e.clientY-d.startY)<8)return;
-    d.active=true;d.row.classList.add('dragging');document.body.classList.add('open-day-pointer-dragging');
+    if(Math.hypot(e.clientX-d.startX,e.clientY-d.startY)<5)return;
+    d.active=true;
+    d.row.classList.add('dragging');
+    document.body.classList.add('open-day-pointer-dragging');
   }
-  document.querySelectorAll('#trainModal .open-day-row').forEach(r=>r.classList.remove('open-day-drag-over'));
-  const t=[...document.querySelectorAll('#trainModal .open-day-row')].find(r=>{
-    if(r===d.row)return false;const z=r.getBoundingClientRect();
-    return e.clientY>=z.top&&e.clientY<=z.bottom;
-  });
-  if(t)t.classList.add('open-day-drag-over');
+
+  const zones=[...document.querySelectorAll('#trainModal .open-day-order-zone')];
+  zones.forEach(z=>z.classList.remove('open-day-order-zone-active'));
+
+  const rows=[...document.querySelectorAll('#trainModal .open-day-row')];
+  let target=rows.length;
+  for(let i=0;i<rows.length;i++){
+    if(rows[i]===d.row)continue;
+    const r=rows[i].getBoundingClientRect();
+    const mid=r.top+r.height/2;
+    if(e.clientY<mid){target=i;break;}
+  }
+
+  const zone=zones[target];
+  if(zone)zone.classList.add('open-day-order-zone-active');
 }
 function openDayPointerUp(e){
-  const d=__openDayDrag;if(!d||e.pointerId!==d.pointerId)return;
+  const d=__openDayDrag;
+  if(!d||e.pointerId!==d.pointerId)return;
   e.preventDefault();
-  if(!d.active){finishOpenDayPointerDrag();return;}
-  const rows=[...document.querySelectorAll('#trainModal .open-day-row')],from=d.index;
+
+  if(!d.active){
+    finishOpenDayPointerDrag();
+    return;
+  }
+
+  const rows=[...document.querySelectorAll('#trainModal .open-day-row')];
+  const from=d.index;
   let to=rows.length;
-  const t=rows.find(r=>r!==d.row&&e.clientY>=r.getBoundingClientRect().top&&e.clientY<=r.getBoundingClientRect().bottom);
-  if(t){
-    const i=rows.indexOf(t),z=t.getBoundingClientRect();
-    to=e.clientY<z.top+z.height/2?i:i+1;
-  }else if(rows.length&&e.clientY<rows[0].getBoundingClientRect().top)to=0;
-  const rid=d.routineId;finishOpenDayPointerDrag();if(rid)reorderOpenDay(rid,from,to);
+
+  for(let i=0;i<rows.length;i++){
+    if(rows[i]===d.row)continue;
+    const r=rows[i].getBoundingClientRect();
+    if(e.clientY<r.top+r.height/2){to=i;break;}
+  }
+
+  const rid=d.routineId;
+  finishOpenDayPointerDrag();
+
+  if(rid&&Number.isInteger(from)&&Number.isInteger(to)&&from!==to&&from+1!==to){
+    reorderOpenDay(rid,from,to);
+  }
 }
 function openDayPointerCancel(){finishOpenDayPointerDrag()}
 function finishOpenDayPointerDrag(){
-  document.querySelectorAll('#trainModal .open-day-row').forEach(r=>r.classList.remove('dragging','open-day-drag-over'));
+  document.querySelectorAll('#trainModal .open-day-row')
+    .forEach(r=>r.classList.remove('dragging','open-day-drag-over'));
+  document.querySelectorAll('#trainModal .open-day-order-zone')
+    .forEach(z=>z.classList.remove('open-day-order-zone-active'));
   document.body.classList.remove('open-day-pointer-dragging');
-  if(__openDayDrag?.h&&__openDayDrag.pointerId!=null){try{__openDayDrag.h.releasePointerCapture(__openDayDrag.pointerId)}catch(_){}}
+
+  const d=__openDayDrag;
+  if(d?.h&&d.pointerId!=null){
+    try{d.h.releasePointerCapture(d.pointerId)}catch(_){}
+  }
   document.removeEventListener('pointermove',openDayPointerMove);
   document.removeEventListener('pointerup',openDayPointerUp);
   document.removeEventListener('pointercancel',openDayPointerCancel);
-  __openDayDrag=null;__openDayDragLock=false;
+  __openDayDrag=null;
+  __openDayDragLock=false;
 }
 async function reorderOpenDay(routineId,from,targetIndex){
   try{
@@ -2737,6 +2999,7 @@ async function reorderOpenDay(routineId,from,targetIndex){
 
 let __editorPointerDrag=null;
 let __editorDragRaf=0;
+let __editorLastY=0;
 
 function editorDragCleanup(){
   if(__editorDragRaf){cancelAnimationFrame(__editorDragRaf);__editorDragRaf=0;}
@@ -2762,7 +3025,7 @@ function editorMakePlaceholder(type,height){
 
 function startEditorPointerDrag(e,type,di,ei){
   if(profile?.role!=='trainer'||__editorPointerDrag)return;
-  if(e.pointerType==='mouse'&&e.button!==0)return;
+  if(e.pointerType!=='touch' && e.pointerType!=='pen')return;
   e.preventDefault();e.stopPropagation();
 
   const h=e.currentTarget;
@@ -2775,7 +3038,8 @@ function startEditorPointerDrag(e,type,di,ei){
   __editorPointerDrag={
     type,di:Number(di),ei:ei==null?null:Number(ei),
     h,row,placeholder:p,pointerId:e.pointerId,
-    x:e.clientX,y:e.clientY,lastY:e.clientY,active:false,target:null
+    startX:e.clientX,startY:e.clientY,lastY:e.clientY,
+    active:false,target:null
   };
 
   try{h.setPointerCapture(e.pointerId)}catch(_){}
@@ -2789,14 +3053,18 @@ function editorPointerMove(e){
   if(!d||e.pointerId!==d.pointerId)return;
   e.preventDefault();
   d.lastY=e.clientY;
+  __editorLastY=e.clientY;
 
   if(!d.active){
-    if(Math.hypot(e.clientX-d.x,e.clientY-d.y)<6)return;
+    if(Math.hypot(e.clientX-d.startX,e.clientY-d.startY)<6)return;
     d.active=true;
     d.row.classList.add('dragging');
     document.body.classList.add('editor-pointer-dragging');
   }
 
+  // Throttle DOM measurement/reordering to one frame. This avoids lag on
+  // mobile Safari/Chrome caused by doing many getBoundingClientRect calls
+  // per touch event.
   if(__editorDragRaf)return;
   __editorDragRaf=requestAnimationFrame(()=>{
     __editorDragRaf=0;
@@ -2808,7 +3076,7 @@ function editorPointerMove(e){
       let before=null,best=Infinity;
       for(const card of cards){
         const r=card.getBoundingClientRect();
-        const dist=Math.abs(d.lastY-(r.top+r.height/2));
+        const dist=Math.abs(__editorLastY-(r.top+r.height/2));
         if(dist<best){best=dist;before=card}
       }
       if(before)before.parentNode.insertBefore(d.placeholder,before);
@@ -2819,13 +3087,13 @@ function editorPointerMove(e){
       let target=null,best=Infinity;
       for(const row of rows){
         const r=row.getBoundingClientRect();
-        if(d.lastY<r.top-10||d.lastY>r.bottom+10)continue;
-        const dist=Math.abs(d.lastY-(r.top+r.height/2));
+        if(__editorLastY<r.top-12||__editorLastY>r.bottom+12)continue;
+        const dist=Math.abs(__editorLastY-(r.top+r.height/2));
         if(dist<best){best=dist;target=row}
       }
       if(target){
         const r=target.getBoundingClientRect();
-        const before=d.lastY<r.top+r.height/2;
+        const before=__editorLastY<r.top+r.height/2;
         if(before)target.parentNode.insertBefore(d.placeholder,target);
         else target.parentNode.insertBefore(d.placeholder,target.nextSibling);
         d.target={day:Number(target.dataset.dayIndex),index:Number(target.dataset.exerciseIndex),before};
@@ -2839,7 +3107,20 @@ function editorPointerUp(e){
   if(!d||e.pointerId!==d.pointerId)return;
   e.preventDefault();
 
-  if(__editorDragRaf){cancelAnimationFrame(__editorDragRaf);__editorDragRaf=0;}
+  if(__editorDragRaf){
+    cancelAnimationFrame(__editorDragRaf);
+    __editorDragRaf=0;
+  }
+
+  // Recalculate once at the final pointer position before committing.
+  if(d.active){
+    const fake={pointerId:d.pointerId,clientX:e.clientX,clientY:e.clientY};
+    editorPointerMove(fake);
+    if(__editorDragRaf){
+      cancelAnimationFrame(__editorDragRaf);
+      __editorDragRaf=0;
+    }
+  }
 
   const result={active:d.active,type:d.type,di:d.di,ei:d.ei,target:d.target};
   editorDragCleanup();
@@ -2849,8 +3130,10 @@ function editorPointerUp(e){
   if(result.type==='day'){
     moveEditorDay(result.di,result.target==null?editDays.length:result.target);
   }else if(result.target){
-    moveEditorExercise(result.di,result.ei,result.target.day,
-      result.target.index+(result.target.before?0:1));
+    moveEditorExercise(
+      result.di,result.ei,result.target.day,
+      result.target.index+(result.target.before?0:1)
+    );
   }
 }
 
@@ -2868,13 +3151,16 @@ function moveEditorDay(from,to){
 }
 
 function moveEditorExercise(fd,fi,td,ti){
-  const source=editDays[fd]?.exercises,target=editDays[td]?.exercises;
+  const source=editDays[fd]?.exercises;
+  const target=editDays[td]?.exercises;
   if(!source||!target||fi<0||fi>=source.length)return;
+
   const [item]=source.splice(fi,1);
   let at=ti;
   if(fd===td&&fi<at)at--;
   at=Math.max(0,Math.min(at,target.length));
   target.splice(at,0,item);
+
   editDays.forEach(d=>d.exercises.forEach((x,i)=>x.exercise_order=i));
   renderEditor();
 }
