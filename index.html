@@ -1431,7 +1431,9 @@ async function renderClientTrash(){
       if(!rr.data)continue;
       count++;
       const unavailable=rr.data.deleted_at!=null;
-      const restoreButton=unavailable?'':`<button class="btn" onclick="restoreClientRoutine('${a.id}')">↩ Restaurar</button>`;
+      const restoreButton=unavailable
+        ? '<div class="muted" style="margin-top:8px">Esta rutina ya no está disponible porque fue eliminada por su entrenador.</div>'
+        : `<button class="btn" onclick="restoreClientRoutine('${a.id}')">↩ Restaurar</button>`;
       html+=`<div class="card routine">
         <div><h3>${esc(rr.data.name)}</h3><div class="muted">${esc(rr.data.description||'Sin descripción')}</div>
         <div class="muted" style="margin-top:5px">Quitada: ${new Date(a.client_deleted_at).toLocaleString('es-ES')}</div>
@@ -1447,21 +1449,23 @@ async function renderClientTrash(){
   }
 }
 async function restoreClientRoutine(assignmentId){
-  if(window.__clientTrashBusy)return;
-  window.__clientTrashBusy=true;
+  if(window.__routineTrashBusy)return;
+  window.__routineTrashBusy=true;
   try{
-    const r=await db.from('routine_assignments')
-      .update({client_deleted_at:null})
-      .eq('id',assignmentId)
-      .eq('client_id',user.id)
-      .not('client_deleted_at','is',null);
-    if(r.error)throw r.error;
-    await reload(); await renderShared(); await renderClientTrash();
+    const q=await db.from('routine_assignments').update({client_deleted_at:null})
+      .eq('id',assignmentId).eq('client_id',user.id)
+      .not('client_deleted_at','is',null)
+      .select('id,client_deleted_at').single();
+    if(q.error)throw q.error;
+    if(!q.data||q.data.client_deleted_at!==null)throw new Error('La rutina no se pudo restaurar.');
+    await reload();
+    renderShared();
+    await renderClientTrash();
     toast('Rutina restaurada');
   }catch(e){
     console.error('restoreClientRoutine:',e);
     toast('No se pudo restaurar la rutina: '+(e.message||'revisa los permisos'));
-  }finally{window.__clientTrashBusy=false}
+  }finally{window.__routineTrashBusy=false}
 }
 
 
@@ -2924,16 +2928,42 @@ async function delRoutine(id){
   if(!confirm('¿Mover esta rutina a la papelera?'))return;
   window.__routineDeleting=true;
   try{
-    const r=await db.from('routines').update({deleted_at:new Date().toISOString()})
+    const stamp=new Date().toISOString();
+
+    // If this is a client-assigned routine, delete only the client's copy.
+    if(profile?.role==='client'){
+      const a=await db.from('routine_assignments').update({client_deleted_at:stamp})
+        .eq('client_id',user.id)
+        .eq('trainer_routine_id',id)
+        .is('client_deleted_at',null)
+        .select('id,client_deleted_at')
+        .maybeSingle();
+      if(a.error)throw a.error;
+      if(a.data?.id){
+        await reload();
+        renderShared();
+        await renderClientTrash();
+        toast('Rutina movida a la papelera');
+        return;
+      }
+    }
+
+    // Trainer-owned routine: soft-delete the routine itself.
+    const r=await db.from('routines').update({deleted_at:stamp})
       .eq('id',id).eq('owner_id',user.id).is('deleted_at',null)
       .select('id,deleted_at').single();
     if(r.error)throw r.error;
     if(!r.data?.deleted_at)throw new Error('La rutina no quedó marcada como eliminada.');
-    await reload();renderMine();await renderTrash();toast('Rutina movida a la papelera');
+    await reload();
+    renderMine();
+    await renderTrash();
+    toast('Rutina movida a la papelera');
   }catch(e){
     console.error('delRoutine:',e);
     toast('No se pudo mover la rutina a la papelera: '+(e.message||'revisa los permisos'));
-  }finally{window.__routineDeleting=false}
+  }finally{
+    window.__routineDeleting=false;
+  }
 }
 async function editOpenRoutine(){
   if(profile?.role!=='trainer')return toast('Solo el entrenador puede editar la rutina.');
