@@ -1420,37 +1420,80 @@ async function renderClientTrash(){
     const key='simple_client_trash_'+user.id;
     let cached=[];try{cached=JSON.parse(localStorage.getItem(key)||'[]')}catch(_){}
     if(!Array.isArray(cached))cached=[];
-    const q=await db.from('routine_assignments').select('id,trainer_routine_id,created_at,client_deleted_at')
-      .eq('client_id',user.id).not('client_deleted_at','is',null).order('client_deleted_at',{ascending:false});
+
+    // The deleted assignment may be invisible to SELECT because of RLS.
+    // Merge whatever the database exposes with our locally captured row.
+    const q=await db.from('routine_assignments')
+      .select('id,trainer_routine_id,created_at,client_deleted_at')
+      .eq('client_id',user.id)
+      .not('client_deleted_at','is',null)
+      .order('client_deleted_at',{ascending:false});
     const rows=q.error?[]:(q.data||[]);
     const map=new Map();
     [...cached,...rows].forEach(x=>{if(x?.id)map.set(String(x.id),x)});
     const assignments=[...map.values()].filter(x=>x?.trainer_routine_id);
+
     let html='<div class="card"><h2 style="margin:0 0 4px">🗑️ Papelera</h2><div class="muted">Puedes restaurar las rutinas que hayas quitado por error.</div></div>';
-    let valid=[],count=0;
+    let shown=[];
+
     for(const a of assignments){
-      const rr=await db.from('routines').select('id,name,description,deleted_at').eq('id',a.trainer_routine_id).maybeSingle();
-      if(rr.error||!rr.data)continue;
-      count++;valid.push(a);
-      const unavailable=rr.data.deleted_at!=null;
-      const action=unavailable?'<div class="muted">Esta rutina ya no está disponible porque fue eliminada por su entrenador.</div>':`<button class="btn" type="button" onclick="restoreClientRoutine('${a.id}')">↩ Restaurar</button>`;
-      html+=`<div class="card routine"><div><h3>${esc(rr.data.name)}</h3><div class="muted">${esc(rr.data.description||'Sin descripción')}</div><div class="muted" style="margin-top:5px">Quitada: ${new Date(a.client_deleted_at).toLocaleString('es-ES')}</div></div><div class="buttons">${action}</div></div>`;
+      let name=a.routine_name||'Rutina';
+      let description=a.routine_description||'';
+      let deletedByTrainer=false;
+      try{
+        const mk='simple_shared_routine_meta_'+user.id;
+        const meta=JSON.parse(localStorage.getItem(mk)||'{}')?.[String(a.trainer_routine_id)]||{};
+        if((!name||name==='Rutina')&&meta.name)name=meta.name;
+        if(!description&&meta.description)description=meta.description;
+      }catch(_){}
+
+      // If visible, refresh the cached metadata from the source routine.
+      const rr=await db.from('routines')
+        .select('id,name,description,deleted_at')
+        .eq('id',a.trainer_routine_id).maybeSingle();
+
+      if(!rr.error && rr.data){
+        name=rr.data.name||name;
+        description=rr.data.description||description;
+        deletedByTrainer=rr.data.deleted_at!=null;
+      }
+
+      const safe={...a,routine_name:name,routine_description:description};
+      shown.push(safe);
+
+      const action=deletedByTrainer
+        ? '<div class="muted">Esta rutina ya no está disponible porque fue eliminada por su entrenador.</div>'
+        : `<button class="btn" type="button" onclick="restoreClientRoutine('${a.id}')">↩ Restaurar</button>`;
+
+      html+=`<div class="card routine"><div><h3>${esc(name)}</h3><div class="muted">${esc(description||'Sin descripción')}</div><div class="muted" style="margin-top:5px">Quitada: ${a.client_deleted_at?new Date(a.client_deleted_at).toLocaleString('es-ES'):'—'}</div></div><div class="buttons">${action}</div></div>`;
     }
-    localStorage.setItem(key,JSON.stringify(valid));
-    if(!count)html+='<div class="card"><div class="empty">La papelera está vacía.</div></div>';
+
+    // IMPORTANT: never replace a good local trash row with [] just because
+    // Supabase RLS hid it from the subsequent SELECT.
+    localStorage.setItem(key,JSON.stringify(shown));
+    if(!shown.length)html+='<div class="card"><div class="empty">La papelera está vacía.</div></div>';
     box.innerHTML=html;
-  }catch(e){console.error('renderClientTrash:',e);box.innerHTML='<div class="card"><div class="empty">No se pudo cargar la papelera.</div></div>'}
+  }catch(e){
+    console.error('renderClientTrash:',e);
+    box.innerHTML='<div class="card"><div class="empty">No se pudo cargar la papelera.</div></div>';
+  }
 }
 async function restoreClientRoutine(assignmentId){
   if(window.__routineTrashBusy)return;
   window.__routineTrashBusy=true;
   try{
-    const q=await db.from('routine_assignments').update({client_deleted_at:null})
-      .eq('id',assignmentId).eq('client_id',user.id)
-      .not('client_deleted_at','is',null)
-      .select('id,client_deleted_at').single();
+    const q=await db.from('routine_assignments')
+      .update({client_deleted_at:null})
+      .eq('id',assignmentId)
+      .eq('client_id',user.id)
+      .not('client_deleted_at','is',null);
     if(q.error)throw q.error;
-    if(!q.data||q.data.client_deleted_at!==null)throw new Error('La rutina no se pudo restaurar.');
+
+    const key='simple_client_trash_'+user.id;
+    let cached=[];try{cached=JSON.parse(localStorage.getItem(key)||'[]')}catch(_){}
+    if(!Array.isArray(cached))cached=[];
+    localStorage.setItem(key,JSON.stringify(cached.filter(x=>String(x.id)!==String(assignmentId))));
+
     await reload();
     renderShared();
     await renderClientTrash();
@@ -2923,30 +2966,50 @@ async function delRoutine(id){
   try{
     const stamp=new Date().toISOString();
 
-    // If this is a client-assigned routine, delete only the client's copy.
+    // Client: only soft-delete this client's assignment. Never touch routines.
     if(profile?.role==='client'){
-      const a=await db.from('routine_assignments').update({client_deleted_at:stamp})
-        .eq('client_id',user.id)
-        .eq('trainer_routine_id',id)
-        .is('client_deleted_at',null)
-        .select('id,trainer_routine_id,created_at,client_deleted_at')
-        .maybeSingle();
-      if(a.error)throw a.error;
-
-      // A client deletion is ONLY a deletion of the client's assignment.
-      // Never fall through to routines.deleted_at, even if the assignment
-      // cannot be found/updated. That routine belongs to the trainer.
-      if(!a.data?.id){
+      const a0=(assignments||[]).find(x=>String(x.trainer_routine_id)===String(id) && String(x.client_id)===String(user.id));
+      if(!a0?.id){
         throw new Error('No se encontró la asignación de esta rutina. No se ha borrado nada.');
       }
+
+      const a=await db.from('routine_assignments')
+        .update({client_deleted_at:stamp})
+        .eq('id',a0.id)
+        .eq('client_id',user.id)
+        .is('client_deleted_at',null);
+      if(a.error)throw a.error;
 
       const key='simple_client_trash_'+user.id;
       let cached=[];try{cached=JSON.parse(localStorage.getItem(key)||'[]')}catch(_){}
       if(!Array.isArray(cached))cached=[];
+      // Clients don't load trainer-owned routines into `routines`, so obtain
+      // the real metadata before hiding the assignment. This prevents the
+      // paper bin from showing the generic name "Rutina".
+      let meta={};
+      try{
+        const mk='simple_shared_routine_meta_'+user.id;
+        meta=JSON.parse(localStorage.getItem(mk)||'{}')?.[String(a0.trainer_routine_id)]||{};
+      }catch(_){}
+      const sourceRoutine=await db.from('routines')
+        .select('id,name,description')
+        .eq('id',a0.trainer_routine_id)
+        .maybeSingle();
+      if(sourceRoutine.error)throw sourceRoutine.error;
+
+      const trashRow={
+        id:a0.id,
+        trainer_routine_id:a0.trainer_routine_id,
+        created_at:a0.created_at||stamp,
+        client_deleted_at:stamp,
+        routine_name:sourceRoutine.data?.name||meta.name||'Rutina',
+        routine_description:sourceRoutine.data?.description||meta.description||''
+      };
       localStorage.setItem(key,JSON.stringify([
-        {...a.data},
-        ...cached.filter(x=>String(x.id)!==String(a.data.id))
+        trashRow,
+        ...cached.filter(x=>String(x.id)!==String(trashRow.id))
       ]));
+
       await reload();
       renderShared();
       await renderClientTrash();
@@ -4719,19 +4782,49 @@ async function removeSharedRoutine(assignmentId, routineName){
   if(!ok)return;
   window.__removeSharedBusy=true;
   try{
+    const a0=(assignments||[]).find(x=>String(x.id)===String(assignmentId) && String(x.client_id)===String(user.id));
+    if(!a0?.id||!a0?.trainer_routine_id){
+      throw new Error('No se encontró la asignación. No se ha borrado nada.');
+    }
+
     const stamp=new Date().toISOString();
     const r=await db.from('routine_assignments')
       .update({client_deleted_at:stamp})
-      .eq('id',assignmentId).eq('client_id',user.id)
-      .is('client_deleted_at',null)
-      .select('id,trainer_routine_id,created_at,client_deleted_at').single();
+      .eq('id',a0.id)
+      .eq('client_id',user.id)
+      .is('client_deleted_at',null);
     if(r.error)throw r.error;
-    if(!r.data?.id)throw new Error('No se pudo registrar la rutina en la papelera.');
+
     const key='simple_client_trash_'+user.id;
     let cached=[];try{cached=JSON.parse(localStorage.getItem(key)||'[]')}catch(_){}
     if(!Array.isArray(cached))cached=[];
-    localStorage.setItem(key,JSON.stringify([{...r.data},...cached.filter(x=>String(x.id)!==String(r.data.id))]));
-    await reload();await renderShared();await renderClientTrash();
+    let meta={};
+    try{
+      const mk='simple_shared_routine_meta_'+user.id;
+      meta=JSON.parse(localStorage.getItem(mk)||'{}')?.[String(a0.trainer_routine_id)]||{};
+    }catch(_){}
+    // routineName comes directly from the visible routine card, so it is the
+    // authoritative fallback when trainer-owned routine SELECT is hidden by RLS.
+    const sourceRoutine=await db.from('routines')
+      .select('id,name,description').eq('id',a0.trainer_routine_id).maybeSingle();
+    const realName=sourceRoutine?.data?.name||routineName||meta.name||'Rutina';
+    const realDescription=sourceRoutine?.data?.description||meta.description||'';
+    const trashRow={
+      id:a0.id,
+      trainer_routine_id:a0.trainer_routine_id,
+      created_at:a0.created_at||stamp,
+      client_deleted_at:stamp,
+      routine_name:realName,
+      routine_description:realDescription
+    };
+    localStorage.setItem(key,JSON.stringify([
+      trashRow,
+      ...cached.filter(x=>String(x.id)!==String(trashRow.id))
+    ]));
+
+    await reload();
+    renderShared();
+    await renderClientTrash();
     toast('Rutina movida a la papelera');
   }catch(e){
     console.error('remove shared routine:',e);
@@ -4753,6 +4846,14 @@ async function renderShared(){
 
   for(const a of assignments){
     const r=await db.from('routines').select('id,name,description').eq('id',a.trainer_routine_id).maybeSingle();
+    if(r.data){
+      try{
+        const mk='simple_shared_routine_meta_'+user.id;
+        let mm={};try{mm=JSON.parse(localStorage.getItem(mk)||'{}')}catch(_){}
+        mm[String(r.data.id)]={name:r.data.name||'Rutina',description:r.data.description||''};
+        localStorage.setItem(mk,JSON.stringify(mm));
+      }catch(_){}
+    }
     if(r.data)h+=`<div class="card routine">
       <div><h3>${esc(r.data.name)}</h3><div class="muted">${esc(r.data.description||'')}</div></div>
       <div class="buttons">
