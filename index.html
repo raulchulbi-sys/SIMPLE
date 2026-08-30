@@ -352,6 +352,67 @@
 #daysEditor .routine-editor-day.dragging,#daysEditor .exercise-row.dragging{opacity:.45}
 #daysEditor .exercise-row.drag-over,#daysEditor .day-drop-zone.drop-active{outline:2px solid var(--ok);outline-offset:2px}
 .editor-pointer-dragging,.open-day-pointer-dragging{user-select:none!important;-webkit-user-select:none!important}
+
+#daysEditor .editor-drag-placeholder{
+  margin:8px 0;
+  border:2px dashed var(--ok);
+  border-radius:12px;
+  background:rgba(128,128,128,.08);
+  box-sizing:border-box;
+  pointer-events:none;
+}
+#daysEditor .editor-drag-handle{
+  touch-action:none;
+  -webkit-user-select:none;
+  user-select:none;
+  -webkit-touch-callout:none;
+  cursor:grab;
+  display:inline-flex;
+  width:34px;
+  height:34px;
+  align-items:center;
+  justify-content:center;
+}
+#daysEditor .routine-editor-day.dragging,
+#daysEditor .exercise-row.dragging{
+  opacity:.38;
+}
+.editor-pointer-dragging{
+  user-select:none!important;
+  -webkit-user-select:none!important;
+}
+
+#daysEditor .editor-drag-handle{
+  touch-action:none!important;
+  -webkit-user-select:none;
+  user-select:none;
+  -webkit-touch-callout:none;
+  cursor:grab;
+  min-width:34px;
+  min-height:34px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+#daysEditor .editor-drag-placeholder{
+  display:block;
+  width:100%;
+  margin:8px 0;
+  min-height:46px;
+  border:2px dashed var(--ok);
+  border-radius:12px;
+  background:rgba(128,128,128,.08);
+  box-sizing:border-box;
+  pointer-events:none;
+}
+#daysEditor .routine-editor-day.dragging,
+#daysEditor .exercise-row.dragging{
+  opacity:.35;
+}
+.editor-pointer-dragging{
+  user-select:none!important;
+  -webkit-user-select:none!important;
+}
 </style>
 </head>
 <body>
@@ -1942,13 +2003,13 @@ function renderMine(){
     return;
   }
   const cards=routines.map((r,i)=>`
-    <div class="routine-order-zone" ondragover="dragOverRoutineZone(event)" ondrop="dropRoutineAt(event,${i})"></div>
+    <div class="routine-order-zone"></div>
     <div class="card routine routine-sortable"
-      ondragover="dragOverRoutineCard(event)" ondrop="dropRoutineOnCard(event,${i})">
+     >
       <div style="display:flex;align-items:center;gap:10px;min-width:0">
-        <span class="drag-handle routine-drag-handle" draggable="true"
-          ondragstart="dragRoutineStart(event,${i})"
-          ondragend="dragRoutineEnd(event)"
+        <span class="drag-handle routine-drag-handle"
+         
+         
           title="Arrastrar rutina" aria-label="Arrastrar rutina">☷</span>
         <div style="min-width:0"><h3>${esc(r.name)}</h3><div class="muted">${esc(r.description||'Sin descripción')}</div></div>
       </div>
@@ -1960,7 +2021,7 @@ function renderMine(){
         <button class="btn danger" onclick="delRoutine('${r.id}')">Eliminar</button>
       </div>
     </div>`).join('');
-  box.innerHTML=header+cards+`<div class="routine-order-zone routine-order-zone-last" ondragover="dragOverRoutineZone(event)" ondrop="dropRoutineAt(event,${routines.length})"></div>`;
+  box.innerHTML=header+cards+`<div class="routine-order-zone routine-order-zone-last"></div>`;
 }
 
 // Reliable routine-open fallback for dynamically rendered routine cards.
@@ -2056,8 +2117,8 @@ async function editRoutine(id){if(profile?.role!=='trainer')return toast('Solo e
 function renderEditor(){
   let h='';
   editDays.forEach((d,di)=>{
-    h+=`<div class="day-drop-zone" ondragover="dragOverDayZone(event)" ondrop="dropDayAt(event,${di})"></div>
-    <div class="card routine-editor-day">
+    h+=`<div class="day-drop-zone"></div>
+    <div class="card routine-editor-day" data-day-index="${di}">
 
       <div class="dayhead">
         <div style="display:flex;align-items:center;gap:9px;min-width:0;flex:1">
@@ -2068,17 +2129,18 @@ function renderEditor(){
       </div>
 
       <div class="exercise-drop-zone"
-        ondragover="dragOverDropZone(event)"
-        ondrop="dropExerciseAt(event,${di},0)"></div>
+       
+       ></div>
 
       ${d.exercises.map((e,ei)=>`
         <div class="exercise routine-editor-exercise"
-          ondragover="dragOverExercise(event)"
-          ondrop="dropExercise(event,${di},${ei})">
+         
+         >
 
           <div style="display:flex;align-items:flex-start;gap:8px">
-            <span class="drag-handle" draggable="true" title="Arrastrar ejercicio"
-              ondragstart="dragExerciseStart(event,${di},${ei})" ondragend="dragEndItem(event)">☷</span>
+            <span class="drag-handle editor-drag-handle"
+              onpointerdown="startEditorPointerDrag(event,'exercise',${di},${ei})"
+              title="Arrastrar ejercicio">☷</span>
             <div style="flex:1">
               <div class="grid3">
                 <div><label>Ejercicio</label><input value="${esc(e.name)}" onchange="editDays[${di}].exercises[${ei}].name=this.value"></div>
@@ -2098,14 +2160,14 @@ function renderEditor(){
         </div>
 
         <div class="exercise-drop-zone"
-          ondragover="dragOverDropZone(event)"
-          ondrop="dropExerciseAt(event,${di},${ei+1})"></div>
+         
+         ></div>
       `).join('')}
 
       <button class="btn" type="button" onclick="addEx(${di})">Añadir ejercicio</button>
     </div>`;
   });
-  if(editDays.length)h+=`<div class="day-drop-zone day-drop-zone-last" ondragover="dragOverDayZone(event)" ondrop="dropDayAt(event,${editDays.length})"></div>`;
+  if(editDays.length)h+=`<div class="day-drop-zone day-drop-zone-last"></div>`;
   $('daysEditor').innerHTML=h||'<div class="empty">Añade un día.</div>';
 }
 
@@ -2395,7 +2457,7 @@ async function openRoutine(id){
         <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><h3 style="margin:0">Días de entrenamiento</h3>${profile?.role==='trainer'?'<button class="btn" onclick="addSessionToOpenRoutine()">+ Añadir sesión</button>':''}</div>
         ${profile?.role==='trainer'
           ? d.map((x,i)=>`
-            <div class="open-day-drop-zone" ondragover="dragOverOpenDayZone(event)" ondrop="dropOpenDayAt(event,${i})"></div>
+            <div class="open-day-drop-zone"></div>
             <div class="open-day-row">
               <span class="drag-handle open-day-handle"
               onpointerdown="startOpenDayPointerDrag(event,${i})"
@@ -2484,66 +2546,177 @@ async function reorderOpenDay(routineId,from,targetIndex){
   }catch(err){console.error('reorderOpenDay:',err);toast('No se pudo guardar el orden');}
 }
 
+
 let __editorPointerDrag=null;
+
+function editorDragCleanup(){
+  const d=__editorPointerDrag;
+  if(!d)return;
+  d.placeholder?.remove();
+  d.row?.classList.remove('dragging');
+  document.body.classList.remove('editor-pointer-dragging');
+  if(d.h&&d.pointerId!=null){
+    try{d.h.releasePointerCapture(d.pointerId)}catch(_){}
+  }
+  document.removeEventListener('pointermove',editorPointerMove);
+  document.removeEventListener('pointerup',editorPointerUp);
+  document.removeEventListener('pointercancel',editorPointerCancel);
+  __editorPointerDrag=null;
+}
+
+function editorMakePlaceholder(type,height){
+  const p=document.createElement('div');
+  p.className='editor-drag-placeholder';
+  p.dataset.type=type;
+  p.style.height=Math.max(46,height||46)+'px';
+  return p;
+}
+
+function editorGetDayCards(exclude){
+  return [...document.querySelectorAll('#daysEditor .routine-editor-day')].filter(x=>x!==exclude);
+}
+
+function editorGetExerciseRows(exclude){
+  return [...document.querySelectorAll('#daysEditor .exercise-row')].filter(x=>x!==exclude);
+}
+
+function editorPlaceDayPlaceholder(d,y){
+  const cards=editorGetDayCards(d.row);
+  let before=null;
+  let best=Infinity;
+  for(const card of cards){
+    const r=card.getBoundingClientRect();
+    const dist=Math.abs(y-(r.top+r.height/2));
+    if(dist<best){best=dist;before=card}
+  }
+  if(!before){
+    if(cards.length)cards[cards.length-1].parentNode.insertBefore(d.placeholder,cards[cards.length-1].nextSibling);
+    return editDays.length;
+  }
+  before.parentNode.insertBefore(d.placeholder,before);
+  return Number(before.dataset.dayIndex);
+}
+
+function editorPlaceExercisePlaceholder(d,y){
+  const rows=editorGetExerciseRows(d.row);
+  let target=null,best=Infinity;
+  for(const row of rows){
+    const r=row.getBoundingClientRect();
+    if(y<r.top-8||y>r.bottom+8)continue;
+    const dist=Math.abs(y-(r.top+r.height/2));
+    if(dist<best){best=dist;target=row}
+  }
+  if(!target)return null;
+  const r=target.getBoundingClientRect();
+  const before=y<r.top+r.height/2;
+  if(before)target.parentNode.insertBefore(d.placeholder,target);
+  else target.parentNode.insertBefore(d.placeholder,target.nextSibling);
+  return {day:Number(target.dataset.dayIndex),index:Number(target.dataset.exerciseIndex),before};
+}
+
 function startEditorPointerDrag(e,type,di,ei){
   if(profile?.role!=='trainer'||__editorPointerDrag)return;
   if(e.pointerType==='mouse'&&e.button!==0)return;
-  e.preventDefault();e.stopPropagation();
-  const h=e.currentTarget,row=h.closest('.routine-editor-day,.exercise-row');
+
+  e.preventDefault();
+  e.stopPropagation();
+
+  const h=e.currentTarget;
+  const row=h.closest('.routine-editor-day,.exercise-row');
   if(!row)return;
-  __editorPointerDrag={type,di:Number(di),ei:ei==null?null:Number(ei),h,row,pointerId:e.pointerId,x:e.clientX,y:e.clientY,active:false};
+
+  const placeholder=editorMakePlaceholder(type,row.getBoundingClientRect().height);
+  row.parentNode.insertBefore(placeholder,row);
+
+  __editorPointerDrag={
+    type,di:Number(di),ei:ei==null?null:Number(ei),
+    h,row,placeholder,pointerId:e.pointerId,
+    startX:e.clientX,startY:e.clientY,active:false,target:null
+  };
+
   try{h.setPointerCapture(e.pointerId)}catch(_){}
+
   document.addEventListener('pointermove',editorPointerMove,{passive:false});
   document.addEventListener('pointerup',editorPointerUp,{passive:false});
   document.addEventListener('pointercancel',editorPointerCancel,{passive:false});
 }
+
 function editorPointerMove(e){
-  const d=__editorPointerDrag;if(!d||e.pointerId!==d.pointerId)return;e.preventDefault();
-  if(!d.active){if(Math.hypot(e.clientX-d.x,e.clientY-d.y)<8)return;d.active=true;d.row.classList.add('dragging');document.body.classList.add('editor-pointer-dragging')}
-  clearDropIndicators();
+  const d=__editorPointerDrag;
+  if(!d||e.pointerId!==d.pointerId)return;
+
+  e.preventDefault();
+
+  if(!d.active){
+    if(Math.hypot(e.clientX-d.startX,e.clientY-d.startY)<6)return;
+    d.active=true;
+    d.row.classList.add('dragging');
+    document.body.classList.add('editor-pointer-dragging');
+  }
+
   if(d.type==='day'){
-    const zones=[...document.querySelectorAll('#daysEditor .day-drop-zone')];
-    let best=null,dist=Infinity;
-    zones.forEach(z=>{const r=z.getBoundingClientRect(),q=Math.abs(e.clientY-(r.top+r.height/2));if(q<dist){dist=q;best=z}});
-    if(best)best.classList.add('drop-active');
+    d.target=editorPlaceDayPlaceholder(d,e.clientY);
   }else{
-    const rows=[...document.querySelectorAll('#daysEditor .exercise-row')].filter(x=>x!==d.row);
-    let best=null,dist=Infinity;
-    rows.forEach(r=>{const z=r.getBoundingClientRect();if(e.clientY>=z.top-12&&e.clientY<=z.bottom+12){const q=Math.abs(e.clientY-(z.top+z.height/2));if(q<dist){dist=q;best=r}}});
-    if(best)best.classList.add('drag-over');
+    d.target=editorPlaceExercisePlaceholder(d,e.clientY);
   }
 }
+
 function editorPointerUp(e){
-  const d=__editorPointerDrag;if(!d||e.pointerId!==d.pointerId)return;e.preventDefault();
-  if(!d.active){finishEditorPointerDrag();return;}
-  if(d.type==='day'){
-    const zones=[...document.querySelectorAll('#daysEditor .day-drop-zone')];let to=0,dist=Infinity;
-    zones.forEach((z,i)=>{const r=z.getBoundingClientRect(),q=Math.abs(e.clientY-(r.top+r.height/2));if(q<dist){dist=q;to=i}});
-    const from=d.di;finishEditorPointerDrag();moveEditorDay(from,to);
-  }else{
-    const rows=[...document.querySelectorAll('#daysEditor .exercise-row')].filter(x=>x!==d.row);let t=null,dist=Infinity;
-    rows.forEach(r=>{const z=r.getBoundingClientRect();if(e.clientY>=z.top-12&&e.clientY<=z.bottom+12){const q=Math.abs(e.clientY-(z.top+z.height/2));if(q<dist){dist=q;t=r}}});
-    if(!t){finishEditorPointerDrag();return}
-    const td=Number(t.dataset.dayIndex),ti=Number(t.dataset.exerciseIndex),fd=d.di,fi=d.ei;finishEditorPointerDrag();moveEditorExercise(fd,fi,td,ti);
+  const d=__editorPointerDrag;
+  if(!d||e.pointerId!==d.pointerId)return;
+
+  e.preventDefault();
+
+  const result={
+    active:d.active,type:d.type,di:d.di,ei:d.ei,target:d.target
+  };
+
+  editorDragCleanup();
+
+  if(!result.active)return;
+
+  if(result.type==='day'){
+    moveEditorDay(result.di,result.target==null?editDays.length:result.target);
+  }else if(result.target){
+    const at=result.target.index+(result.target.before?0:1);
+    moveEditorExercise(result.di,result.ei,result.target.day,at);
   }
 }
-function editorPointerCancel(){finishEditorPointerDrag()}
-function finishEditorPointerDrag(){
-  document.querySelectorAll('#daysEditor .dragging,#daysEditor .drag-over,#daysEditor .drop-active').forEach(x=>x.classList.remove('dragging','drag-over','drop-active'));
-  document.body.classList.remove('editor-pointer-dragging');
-  if(__editorPointerDrag?.h&&__editorPointerDrag.pointerId!=null){try{__editorPointerDrag.h.releasePointerCapture(__editorPointerDrag.pointerId)}catch(_){}}
-  document.removeEventListener('pointermove',editorPointerMove);document.removeEventListener('pointerup',editorPointerUp);document.removeEventListener('pointercancel',editorPointerCancel);
-  __editorPointerDrag=null;
-}
+
+function editorPointerCancel(){editorDragCleanup()}
+
 function moveEditorDay(from,to){
   if(from<0||from>=editDays.length)return;
-  if(to>from)to--;to=Math.max(0,Math.min(to,editDays.length-1));if(to===from)return;
-  const [x]=editDays.splice(from,1);editDays.splice(to,0,x);editDays.forEach((d,i)=>d.day_order=i);renderEditor();
+
+  // `to` is the insertion point in the original array.
+  to=Math.max(0,Math.min(to,editDays.length));
+  if(to===from||to===from+1)return;
+
+  const [item]=editDays.splice(from,1);
+  if(from<to)to--;
+  editDays.splice(to,0,item);
+
+  editDays.forEach((d,i)=>d.day_order=i);
+  renderEditor();
 }
+
 function moveEditorExercise(fd,fi,td,ti){
-  const a=editDays[fd]?.exercises,b=editDays[td]?.exercises;if(!a||!b)return;
-  const [x]=a.splice(fi,1);let at=ti;if(fd===td&&fi<at)at--;at=Math.max(0,Math.min(at,b.length));b.splice(at,0,x);
-  editDays.forEach(d=>d.exercises.forEach((x,i)=>x.exercise_order=i));renderEditor();
+  const source=editDays[fd]?.exercises;
+  const target=editDays[td]?.exercises;
+  if(!source||!target||fi<0||fi>=source.length)return;
+
+  const [item]=source.splice(fi,1);
+  let at=ti;
+  if(fd===td&&fi<at)at--;
+
+  at=Math.max(0,Math.min(at,target.length));
+  target.splice(at,0,item);
+
+  editDays.forEach(d=>{
+    d.exercises.forEach((x,i)=>x.exercise_order=i);
+  });
+
+  renderEditor();
 }
 
 let activeWorkout={day:null,exercises:[],sets:{}};
