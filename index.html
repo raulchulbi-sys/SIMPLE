@@ -741,6 +741,22 @@
 
 #routineNoteModal.front-layer{z-index:9999 !important}
 #routineNoteModal.front-layer .routine-note-modal-sheet{z-index:10000 !important}
+
+#trainModal .workout-session-actions .reorder-only:disabled{
+  opacity:.45;
+  cursor:default;
+}
+
+.workout-edit-fields{
+  display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;
+}
+.workout-edit-field{display:flex;flex-direction:column;gap:5px;min-width:150px}
+.workout-edit-field input{min-width:0}
+@media(max-width:700px){
+  .workout-edit-fields{display:grid;grid-template-columns:1fr 110px;align-items:end}
+  .workout-edit-fields .btn{grid-column:1/-1;width:100%}
+  .workout-edit-field{min-width:0}
+}
 </style>
 </head>
 <body>
@@ -4073,6 +4089,7 @@ function renderWorkoutDay(){
   const controls=trainer&&!locked?`
     <div class="workout-session-actions">
       <button class="btn ${editing?'primary':''}" onclick="${editing?'saveWorkoutRoutineEdits()':'toggleWorkoutEditMode()'}">${editing?'Guardar cambios':'Editar'}</button>
+      <button class="btn ${editing?'':'reorder-only'}" ${editing?'onclick="addWorkoutExercise()"':'disabled'}>+ Añadir ejercicio</button>
       <button class="btn ${reordering?'primary':''}" onclick="toggleWorkoutReorderMode()">${reordering?'Listo':'Reordenar'}</button>
     </div>`:'';
 
@@ -4098,9 +4115,17 @@ function renderWorkoutDay(){
           ${editing&&!locked?`<button class="set-remove" type="button" onclick="removeWorkoutSet('${key}',${si})">×</button>`:''}
         </div>`).join('')}
       </div>
-      ${editing&&!locked?`<div class="workout-edit-row"><label>RIR previsto</label>
-        <input inputmode="numeric" min="0" max="10" value="${esc(e.rir??'')}" onchange="editWorkoutExerciseField('${key}','rir',this.value)">
-        <button class="btn" type="button" onclick="addWorkoutSet('${key}')">+ Añadir serie</button></div>`:''}
+      ${editing&&!locked?`<div class="workout-edit-row workout-edit-fields">
+        <div class="workout-edit-field">
+          <label>Objetivo de reps</label>
+          <input type="text" value="${esc(e.target||'')}" placeholder="2x10-15" onchange="editWorkoutExerciseField('${key}','target',this.value)">
+        </div>
+        <div class="workout-edit-field">
+          <label>RIR previsto</label>
+          <input inputmode="numeric" min="0" max="10" value="${esc(e.rir??'')}" onchange="editWorkoutExerciseField('${key}','rir',this.value)">
+        </div>
+        <button class="btn" type="button" onclick="addWorkoutSet('${key}')">+ Añadir serie</button>
+      </div>`:''}
       <div style="margin-top:12px"><label>Notas del ejercicio</label>
         <textarea placeholder="Escribe aquí..."${dis} oninput="updateExerciseNote('${key}',this.value)">${esc(state.note||'')}</textarea></div>
       ${locked?'<div class="muted" style="margin-top:12px">Sesión guardada hoy · solo lectura</div>':`
@@ -4168,7 +4193,21 @@ function editWorkoutExerciseField(id,field,value){
   if(profile?.role!=='trainer'||activeWorkout?.locked)return;
   const e=activeWorkout.exercises.find(x=>String(x.id)===String(id));if(!e)return;
   if(field==='name')e.name=String(value||'').trim()||e.name;
+  if(field==='target')e.target=String(value??'').trim();
   if(field==='rir')e.rir=String(value??'');
+}
+function addWorkoutExercise(){
+  if(profile?.role!=='trainer'||activeWorkout?.locked||!activeWorkout?.editing)return;
+  const name=prompt('Nombre del ejercicio:','Nuevo ejercicio');
+  if(name===null)return;
+  const clean=String(name).trim();
+  if(!clean)return toast('Pon un nombre al ejercicio');
+  const id='new-'+Date.now()+'-'+Math.random().toString(36).slice(2,8);
+  const e={id,name:clean,sets:2,target:'2x10-15',rir:'2',rest_seconds:120,notes:''};
+  activeWorkout.exercises.push(e);
+  activeWorkout.sets[id]=Array.from({length:e.sets},()=>({kg:'',reps:'',rir:'',done:false}));
+  renderWorkoutDay();
+  toast('Ejercicio añadido. Ajusta sus series, RIR y objetivo y guarda los cambios.');
 }
 function addWorkoutSet(id){
   if(profile?.role!=='trainer'||activeWorkout?.locked)return;
@@ -4187,17 +4226,37 @@ async function saveWorkoutRoutineEdits(){
   try{
     for(let i=0;i<activeWorkout.exercises.length;i++){
       const e=activeWorkout.exercises[i];
-      const q=await db.from('routine_exercises').update({
-        name:String(e.name||'').trim(),sets:Math.max(1,Number(e.sets)||1),
-        rir:e.rir===''||e.rir==null?null:Number(e.rir)
-      }).eq('id',e.id).eq('day_id',activeWorkout.day.id);
-      if(q.error)throw q.error;
+      const payload={
+        day_id:activeWorkout.day.id,
+        name:String(e.name||'').trim(),
+        sets:Math.max(1,Number(e.sets)||1),
+        target:e.target||'',
+        rir:e.rir===''||e.rir==null?null:Number(e.rir),
+        rest_seconds:Math.max(0,Number(e.rest_seconds)||0),
+        exercise_order:i,
+        notes:e.notes||null
+      };
+      let q;
+      if(String(e.id).startsWith('new-')){
+        q=await db.from('routine_exercises').insert(payload).select().single();
+        if(q.error)throw q.error;
+        e.id=q.data.id;
+        const oldSets=activeWorkout.sets['new-'+i]||activeWorkout.sets[e.id];
+        if(!activeWorkout.sets[e.id])
+          activeWorkout.sets[e.id]=Array.from({length:e.sets},()=>({kg:'',reps:'',rir:'',done:false}));
+      }else{
+        q=await db.from('routine_exercises').update(payload)
+          .eq('id',e.id).eq('day_id',activeWorkout.day.id);
+        if(q.error)throw q.error;
+      }
     }
     activeWorkout.editing=false;
     toast('Cambios guardados');
     await startWorkoutDay(activeWorkout.day.id);
-  }catch(e){console.error('saveWorkoutRoutineEdits:',e);toast('No se pudieron guardar los cambios');}
-  finally{window.__savingRoutineEdits=false;}
+  }catch(e){
+    console.error('saveWorkoutRoutineEdits:',e);
+    toast('No se pudieron guardar los cambios');
+  }finally{window.__savingRoutineEdits=false;}
 }
 
 let workoutReorderRows=[];
