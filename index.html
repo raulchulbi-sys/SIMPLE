@@ -2127,7 +2127,6 @@ async function openClientProfile(clientId){
     .select('id,client_id,trainer_id,trainer_routine_id,client_routine_id,created_at,client_deleted_at')
     .eq('trainer_id',user.id)
     .eq('client_id',cid)
-    .is('client_deleted_at',null)
     .order('created_at',{ascending:false});
 
   if(aq.error){
@@ -2237,7 +2236,6 @@ async function renderClients(){
     const q=await db.from('routine_assignments')
       .select('id,client_id,trainer_id,trainer_routine_id,client_routine_id,created_at,client_deleted_at')
       .eq('trainer_id',user.id)
-      .is('client_deleted_at',null)
       .order('created_at',{ascending:false});
 
     if(q.error)throw q.error;
@@ -2927,9 +2925,11 @@ async function delRoutine(id){
   window.__routineDeleting=true;
   try{
     const r=await db.from('routines').update({deleted_at:new Date().toISOString()})
-      .eq('id',id).eq('owner_id',user.id).is('deleted_at',null);
+      .eq('id',id).eq('owner_id',user.id).is('deleted_at',null)
+      .select('id,deleted_at').single();
     if(r.error)throw r.error;
-    await reload();renderMine();toast('Rutina movida a la papelera');
+    if(!r.data?.deleted_at)throw new Error('La rutina no quedó marcada como eliminada.');
+    await reload();renderMine();await renderTrash();toast('Rutina movida a la papelera');
   }catch(e){
     console.error('delRoutine:',e);
     toast('No se pudo mover la rutina a la papelera: '+(e.message||'revisa los permisos'));
@@ -4086,11 +4086,11 @@ function renderWorkoutDay(){
   const trainer=profile?.role==='trainer',editing=!!activeWorkout.editing,reordering=!!activeWorkout.reordering;
   if(!exs.length){$('trainBody').innerHTML='<div class="empty">Este día no tiene ejercicios.</div>';return;}
 
-  const controls=trainer&&!locked?`
+  const controls=trainer?`
     <div class="workout-session-actions">
       <button class="btn ${editing?'primary':''}" onclick="${editing?'saveWorkoutRoutineEdits()':'toggleWorkoutEditMode()'}">${editing?'Guardar cambios':'Editar'}</button>
       <button class="btn ${editing?'':'reorder-only'}" ${editing?'onclick="addWorkoutExercise()"':'disabled'}>+ Añadir ejercicio</button>
-      <button class="btn ${reordering?'primary':''}" onclick="toggleWorkoutReorderMode()">${reordering?'Listo':'Reordenar'}</button>
+      ${!reordering?'<button class="btn" onclick="toggleWorkoutReorderMode()">Reordenar</button>':''}
     </div>`:'';
 
   const normal=exs.map((e,ei)=>{
@@ -4100,7 +4100,7 @@ function renderWorkoutDay(){
     const dis=locked?' disabled readonly':'';
     return `<div class="card">
       <div class="dayhead"><div style="min-width:0;width:100%">
-        ${editing&&!locked?`<input class="workout-edit-name" value="${esc(e.name)}" onchange="editWorkoutExerciseField('${key}','name',this.value)">`:`<b>${esc(e.name)}</b>`}
+        ${editing?`<input class="workout-edit-name" value="${esc(e.name)}" onchange="editWorkoutExerciseField('${key}','name',this.value)">`:`<b>${esc(e.name)}</b>`}
         <div class="history-objective" style="margin-top:5px">Objetivo: ${esc(e.target||'—')} · ${e.sets||1} series · ${esc(formatStipulatedRest(e))} · RIR ${esc(String(planned))}</div>
         ${renderPreviousSession(e.id)}
       </div></div>
@@ -4112,10 +4112,10 @@ function renderWorkoutDay(){
           <input inputmode="numeric" placeholder="0" value="${esc(st.reps)}"${dis} oninput="updateSet('${key}',${si},'reps',this.value)">
           <input inputmode="numeric" placeholder="0" min="0" max="10" value="${esc(st.rir)}"${dis} oninput="updateSet('${key}',${si},'rir',this.value)">
           <button class="tick ${st.done?'done':''}"${locked?' disabled':''} onclick="toggleSet('${key}',${si})">${st.done?'✓':'○'}</button>
-          ${editing&&!locked?`<button class="set-remove" type="button" onclick="removeWorkoutSet('${key}',${si})">×</button>`:''}
+          ${editing?`<button class="set-remove" type="button" onclick="removeWorkoutSet('${key}',${si})">×</button>`:''}
         </div>`).join('')}
       </div>
-      ${editing&&!locked?`<div class="workout-edit-row workout-edit-fields">
+      ${editing?`<div class="workout-edit-row workout-edit-fields">
         <div class="workout-edit-field">
           <label>Objetivo de reps</label>
           <input type="text" value="${esc(e.target||'')}" placeholder="2x10-15" onchange="editWorkoutExerciseField('${key}','target',this.value)">
@@ -4178,26 +4178,26 @@ function summarizePreviousExercise(previous){
 }
 
 function toggleWorkoutEditMode(){
-  if(profile?.role!=='trainer'||activeWorkout?.locked)return;
+  if(profile?.role!=='trainer'||!activeWorkout)return;
   activeWorkout.editing=!activeWorkout.editing;
   if(activeWorkout.editing)activeWorkout.reordering=false;
   renderWorkoutDay();
 }
 function toggleWorkoutReorderMode(){
-  if(profile?.role!=='trainer'||activeWorkout?.locked)return;
+  if(profile?.role!=='trainer'||!activeWorkout)return;
   activeWorkout.reordering=!activeWorkout.reordering;
   if(activeWorkout.reordering)activeWorkout.editing=false;
   renderWorkoutDay();
 }
 function editWorkoutExerciseField(id,field,value){
-  if(profile?.role!=='trainer'||activeWorkout?.locked)return;
+  if(profile?.role!=='trainer'||!activeWorkout?.editing)return;
   const e=activeWorkout.exercises.find(x=>String(x.id)===String(id));if(!e)return;
   if(field==='name')e.name=String(value||'').trim()||e.name;
   if(field==='target')e.target=String(value??'').trim();
   if(field==='rir')e.rir=String(value??'');
 }
 function addWorkoutExercise(){
-  if(profile?.role!=='trainer'||activeWorkout?.locked||!activeWorkout?.editing)return;
+  if(profile?.role!=='trainer'||!activeWorkout?.editing)return;
   const name=prompt('Nombre del ejercicio:','Nuevo ejercicio');
   if(name===null)return;
   const clean=String(name).trim();
@@ -4210,12 +4210,12 @@ function addWorkoutExercise(){
   toast('Ejercicio añadido. Ajusta sus series, RIR y objetivo y guarda los cambios.');
 }
 function addWorkoutSet(id){
-  if(profile?.role!=='trainer'||activeWorkout?.locked)return;
+  if(profile?.role!=='trainer'||!activeWorkout?.editing)return;
   const e=activeWorkout.exercises.find(x=>String(x.id)===String(id)),arr=activeWorkout.sets[id];
   if(!e||!arr)return;arr.push({kg:'',reps:'',rir:'',done:false});e.sets=arr.length;renderWorkoutDay();
 }
 function removeWorkoutSet(id,index){
-  if(profile?.role!=='trainer'||activeWorkout?.locked)return;
+  if(profile?.role!=='trainer'||!activeWorkout?.editing)return;
   const e=activeWorkout.exercises.find(x=>String(x.id)===String(id)),arr=activeWorkout.sets[id];
   if(!e||!arr||arr.length<=1)return toast('Debe quedar al menos una serie');
   arr.splice(index,1);e.sets=arr.length;renderWorkoutDay();
@@ -4354,8 +4354,9 @@ async function workoutReorderCommit(from,to){
     const ids=(verify.data||[]).map(x=>String(x.id));
     if(ids.join('|')!==next.map(x=>String(x.id)).join('|'))throw new Error('Orden de ejercicios no verificado');
     activeWorkout.exercises=next;
+    activeWorkout.reordering=false;
     renderWorkoutDay();
-    toast('Orden de ejercicios guardado');
+    toast('Guardado automáticamente');
   }catch(err){console.error('exercise reorder:',err);toast('No se pudo guardar el orden');}
   finally{window.__workoutExerciseReordering=false;}
 }
@@ -4861,7 +4862,7 @@ document.addEventListener('DOMContentLoaded',resetPasswordVisibility);
 /* trash-tab-trainer-only-v1 */
 document.addEventListener('DOMContentLoaded',()=>{
   const b=document.getElementById('tTrash');
-  if(b && profile?.role!=='trainer') b.style.display='none';
+  if(b) b.style.display='';
 });
 </script>
 </body></html>
