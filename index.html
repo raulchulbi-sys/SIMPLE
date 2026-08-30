@@ -614,6 +614,27 @@
   border:2px dashed var(--ok)!important;
   background:rgba(255,255,255,.06)!important;
 }
+
+@media (max-width:700px){
+  #mine .routine{padding:9px 10px;gap:7px;min-height:58px}
+  #mine .routine .buttons{gap:5px}
+  #mine .routine .buttons .btn{padding:7px 9px;font-size:12px}
+  #mine .routine .drag-handle{width:28px;height:28px;min-width:28px}
+  #mine .routine h3{font-size:16px}
+  #mine .routine .muted{font-size:11px}
+}
+.workout-session-actions{display:flex;justify-content:flex-end;gap:8px;margin-bottom:10px}
+.workout-edit-row{display:flex;align-items:end;gap:8px;margin-top:10px;flex-wrap:wrap}
+.workout-edit-name{font-weight:700;font-size:17px;max-width:100%}
+.set-remove{border:0;background:transparent;color:var(--danger,#ff6b6b);font-size:20px;cursor:pointer;padding:0 4px}
+.open-day-menu{min-width:44px;padding:8px 10px;font-size:20px;line-height:1}
+.workout-reorder-list{display:flex;flex-direction:column}
+.workout-reorder-bar{display:flex;align-items:center;gap:12px;padding:14px 16px;margin:0}
+.workout-reorder-bar b{flex:1;min-width:0}
+.workout-reorder-handle{width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;cursor:grab;touch-action:none;user-select:none}
+.workout-reorder-zone{height:10px;min-height:10px;border:2px solid transparent;border-radius:9px;box-sizing:border-box}
+.workout-reorder-zone.active{height:38px;min-height:38px;border:2px dashed var(--ok);background:rgba(255,255,255,.05)}
+.workout-reorder-bar.dragging{opacity:.4}
 </style>
 </head>
 <body>
@@ -2217,7 +2238,6 @@ function renderMine(){
       </div>
       <div class="buttons">
         <button type="button" class="btn primary" data-open-routine="${r.id}" onclick="event.preventDefault();event.stopPropagation();openRoutine('${r.id}')">Abrir</button>
-        <button class="btn" onclick="editRoutine('${r.id}')">Editar</button>
         <button class="btn" onclick="openRoutineProgress('${r.id}')">Progreso</button>
         <button class="btn" onclick="openShare('${r.id}')">Compartir</button>
         <button class="btn danger" onclick="delRoutine('${r.id}')">Eliminar</button>
@@ -2826,6 +2846,9 @@ async function openRoutine(id){
                 style="flex:1;text-align:left" onclick="startWorkoutDay('${x.id}')">
                 <b>${esc(x.name)}</b><span class="muted" style="float:right">${x.exercises.length} ejercicios</span>
               </button>
+              <button class="btn open-day-menu" type="button" draggable="false"
+                title="Opciones de sesión" aria-label="Opciones de sesión"
+                onclick="event.preventDefault();event.stopPropagation();renameOpenDay('${x.id}')">⋯</button>
             </div>`).join('') +
           `<div class="open-day-order-zone open-day-order-zone-last"
               ondragenter="dragOverOpenDayZone(event)"
@@ -2977,23 +3000,52 @@ function finishOpenDayPointerDrag(){
   __openDayDrag=null;
   __openDayDragLock=false;
 }
+async function renameOpenDay(dayId){
+  if(profile?.role!=='trainer'||!workoutRoutine?.id)return;
+  try{
+    const current=await db.from('routine_days').select('name')
+      .eq('id',dayId).eq('routine_id',workoutRoutine.id).single();
+    if(current.error)throw current.error;
+    const next=prompt('Nombre de la sesión:',String(current.data?.name||''));
+    if(next===null)return;
+    const name=next.trim();
+    if(!name)return toast('El nombre no puede estar vacío');
+    if(name.length>80)return toast('El nombre es demasiado largo');
+    const q=await db.from('routine_days').update({name})
+      .eq('id',dayId).eq('routine_id',workoutRoutine.id);
+    if(q.error)throw q.error;
+    await openRoutine(workoutRoutine.id);
+    toast('Sesión renombrada');
+  }catch(e){console.error('renameOpenDay:',e);toast('No se pudo cambiar el nombre');}
+}
 async function reorderOpenDay(routineId,from,targetIndex){
+  if(window.__openDayReordering)return;
+  window.__openDayReordering=true;
   try{
     const current=await days(routineId);
-    if(!Array.isArray(current)||from<0||from>=current.length)return;
+    if(!Array.isArray(current)||from<0||from>=current.length)throw new Error('Índice inválido');
     const copy=current.slice(),[item]=copy.splice(from,1);
     let at=Math.max(0,Math.min(Number(targetIndex)||0,copy.length));
     if(from<at)at--;
     if(at===from)return;
     copy.splice(at,0,item);
     for(let i=0;i<copy.length;i++){
-      const q=await db.from('routine_days').update({day_order:i}).eq('id',copy[i].id).eq('routine_id',routineId);
+      const q=await db.from('routine_days').update({day_order:10000+i})
+        .eq('id',copy[i].id).eq('routine_id',routineId);
+      if(q.error)throw q.error;
+    }
+    for(let i=0;i<copy.length;i++){
+      const q=await db.from('routine_days').update({day_order:i})
+        .eq('id',copy[i].id).eq('routine_id',routineId);
       if(q.error)throw q.error;
     }
     const verify=await days(routineId);
-    if(verify.map(x=>x.id).join('|')!==copy.map(x=>x.id).join('|'))throw new Error('Orden no verificado');
-    await openRoutine(routineId);toast('Orden de sesiones guardado');
-  }catch(err){console.error('reorderOpenDay:',err);toast('No se pudo guardar el orden');}
+    if((verify||[]).map(x=>String(x.id)).join('|')!==copy.map(x=>String(x.id)).join('|'))
+      throw new Error('Orden de sesiones no verificado');
+    await openRoutine(routineId);
+    toast('Orden de sesiones guardado');
+  }catch(e){console.error('reorderOpenDay:',e);toast('No se pudo guardar el orden');}
+  finally{window.__openDayReordering=false;}
 }
 
 
@@ -3595,7 +3647,9 @@ async function startWorkoutDay(dayId){
       exercises:x.data||[],
       sets:{},
       locked:false,
-      lockedSession:null
+      lockedSession:null,
+      editing:false,
+      reordering:false
     };
 
     // Observaciones persistentes DEL USUARIO, nunca escribiendo sobre
@@ -3819,56 +3873,60 @@ function formatStipulatedRest(e){
 function applyPresetLoads(){ return false; }
 
 function renderWorkoutDay(){
-  const exs=activeWorkout.exercises;
-  const locked=!!activeWorkout.locked;
-  if(!exs.length){
-    $('trainBody').innerHTML='<div class="empty">Este día no tiene ejercicios.</div>';
-    return;
-  }
-  $('trainBody').innerHTML=exs.map((e)=>{
-    const key=e.id;
-    const state=activeWorkout.sets[key]||Array.from({length:e.sets||1},()=>({kg:'',reps:'',rir:'',done:false}));
+  const exs=activeWorkout.exercises||[],locked=!!activeWorkout.locked;
+  const trainer=profile?.role==='trainer',editing=!!activeWorkout.editing,reordering=!!activeWorkout.reordering;
+  if(!exs.length){$('trainBody').innerHTML='<div class="empty">Este día no tiene ejercicios.</div>';return;}
+
+  const controls=trainer&&!locked?`
+    <div class="workout-session-actions">
+      <button class="btn ${editing?'primary':''}" onclick="${editing?'saveWorkoutRoutineEdits()':'toggleWorkoutEditMode()'}">${editing?'Guardar cambios':'Editar'}</button>
+      <button class="btn ${reordering?'primary':''}" onclick="toggleWorkoutReorderMode()">${reordering?'Listo':'Reordenar'}</button>
+    </div>`:'';
+
+  const normal=exs.map((e,ei)=>{
+    const key=e.id,state=activeWorkout.sets[key]||Array.from({length:e.sets||1},()=>({kg:'',reps:'',rir:'',done:false}));
     activeWorkout.sets[key]=state;
-    const plannedRir=(e.rir!==null&&e.rir!==undefined&&e.rir!=='')?e.rir:'0';
-    const disabledAttr=locked?' disabled readonly':'';
+    const planned=(e.rir!==null&&e.rir!==undefined&&e.rir!=='')?e.rir:'0';
+    const dis=locked?' disabled readonly':'';
     return `<div class="card">
-      <div class="dayhead">
-        <div style="min-width:0;width:100%">
-          <b>${esc(e.name)}</b>
-          <div class="history-objective" style="margin-top:5px">
-            Objetivo: ${esc(e.target||'—')} · ${e.sets||1} series · ${esc(formatStipulatedRest(e))} · RIR ${esc(String(plannedRir))}
-          </div>
-          ${renderPreviousSession(e.id)}
-        </div>
-      </div>
+      <div class="dayhead"><div style="min-width:0;width:100%">
+        ${editing&&!locked?`<input class="workout-edit-name" value="${esc(e.name)}" onchange="editWorkoutExerciseField('${key}','name',this.value)">`:`<b>${esc(e.name)}</b>`}
+        <div class="history-objective" style="margin-top:5px">Objetivo: ${esc(e.target||'—')} · ${e.sets||1} series · ${esc(formatStipulatedRest(e))} · RIR ${esc(String(planned))}</div>
+        ${renderPreviousSession(e.id)}
+      </div></div>
       <div style="margin-top:10px">
-        <div class="setrow" style="font-size:11px;color:var(--muted)">
-          <span>Serie</span><span>KG</span><span>REPS</span><span>RIR</span><span>✓</span>
-        </div>
-        ${state.map((s,si)=>`
-          <div class="setrow">
-            <span>${si+1}</span>
-            <input inputmode="decimal" placeholder="0" value="${esc(s.kg)}"${disabledAttr} oninput="updateSet('${key}',${si},'kg',this.value)">
-            <input inputmode="numeric" placeholder="0" value="${esc(s.reps)}"${disabledAttr} oninput="updateSet('${key}',${si},'reps',this.value)">
-            <input inputmode="numeric" placeholder="0" min="0" max="10" value="${esc(s.rir)}"${disabledAttr} oninput="updateSet('${key}',${si},'rir',this.value)">
-            <button class="tick ${s.done?'done':''}"${locked?' disabled':''} onclick="toggleSet('${key}',${si})">${s.done?'✓':'○'}</button>
-          </div>`).join('')}
+        <div class="setrow" style="font-size:11px;color:var(--muted)"><span>Serie</span><span>KG</span><span>REPS</span><span>RIR</span><span>✓</span></div>
+        ${state.map((st,si)=>`<div class="setrow">
+          <span>${si+1}</span>
+          <input inputmode="decimal" placeholder="0" value="${esc(st.kg)}"${dis} oninput="updateSet('${key}',${si},'kg',this.value)">
+          <input inputmode="numeric" placeholder="0" value="${esc(st.reps)}"${dis} oninput="updateSet('${key}',${si},'reps',this.value)">
+          <input inputmode="numeric" placeholder="0" min="0" max="10" value="${esc(st.rir)}"${dis} oninput="updateSet('${key}',${si},'rir',this.value)">
+          <button class="tick ${st.done?'done':''}"${locked?' disabled':''} onclick="toggleSet('${key}',${si})">${st.done?'✓':'○'}</button>
+          ${editing&&!locked?`<button class="set-remove" type="button" onclick="removeWorkoutSet('${key}',${si})">×</button>`:''}
+        </div>`).join('')}
       </div>
-      <div style="margin-top:12px">
-        <label>Notas del ejercicio</label>
-        <textarea placeholder="Escribe aquí..."${disabledAttr} oninput="updateExerciseNote('${key}',this.value)">${esc(state.note||'')}</textarea>
-      </div>
-      ${locked ? '<div class="muted" style="margin-top:12px">Sesión guardada hoy · solo lectura</div>' : `
-      <div class="rest-buttons">
-        <span class="muted">Descanso</span>
-        ${[1,2,3,4,5].map(m=>`<button class="btn" onclick="startRestTimer(${m*60})">${m}'</button>`).join('')}
-      </div>`}
+      ${editing&&!locked?`<div class="workout-edit-row"><label>RIR previsto</label>
+        <input inputmode="numeric" min="0" max="10" value="${esc(e.rir??'')}" onchange="editWorkoutExerciseField('${key}','rir',this.value)">
+        <button class="btn" type="button" onclick="addWorkoutSet('${key}')">+ Añadir serie</button></div>`:''}
+      <div style="margin-top:12px"><label>Notas del ejercicio</label>
+        <textarea placeholder="Escribe aquí..."${dis} oninput="updateExerciseNote('${key}',this.value)">${esc(state.note||'')}</textarea></div>
+      ${locked?'<div class="muted" style="margin-top:12px">Sesión guardada hoy · solo lectura</div>':`
+        <div class="rest-buttons"><span class="muted">Descanso</span>${[1,2,3,4,5].map(m=>`<button class="btn" onclick="startRestTimer(${m*60})">${m}'</button>`).join('')}</div>`}
     </div>`;
-  }).join('')+`
-    <div id="restBox" class="rest-floating" style="display:none"></div>
-    ${locked ? '' : `<div class="buttons" style="justify-content:flex-end">
-      <button class="btn primary" onclick="saveWorkoutSession()">Guardar sesión</button>
-    </div>`}`;
+  }).join('');
+
+  const reorder=reordering?`
+    <div class="workout-reorder-list">
+      <div class="workout-reorder-zone" ondragover="workoutReorderOver(event)" ondrop="workoutReorderDrop(event,0)"></div>
+      ${exs.map((e,i)=>`<div class="card workout-reorder-bar">
+        <span class="workout-reorder-handle" draggable="true" ondragstart="workoutReorderStart(event,${i})" ondragend="workoutReorderEnd()">☷</span>
+        <b>${esc(e.name)}</b><span class="muted">${e.sets||1} series</span>
+      </div>
+      <div class="workout-reorder-zone" ondragover="workoutReorderOver(event)" ondrop="workoutReorderDrop(event,${i+1})"></div>`).join('')}
+    </div>`:normal;
+
+  $('trainBody').innerHTML=controls+reorder+`<div id="restBox" class="rest-floating" style="display:none"></div>
+    ${locked?'':`<div class="buttons" style="justify-content:flex-end"><button class="btn primary" onclick="saveWorkoutSession()">Guardar sesión</button></div>`}`;
 }
 function summarizePreviousExercise(previous){
   if(!previous?.exercise)return null;
@@ -3893,6 +3951,107 @@ function summarizePreviousExercise(previous){
   return {best,totalVolume,avgRir,sets:pool.length};
 }
 
+function toggleWorkoutEditMode(){
+  if(profile?.role!=='trainer'||activeWorkout?.locked)return;
+  activeWorkout.editing=!activeWorkout.editing;
+  if(activeWorkout.editing)activeWorkout.reordering=false;
+  renderWorkoutDay();
+}
+function toggleWorkoutReorderMode(){
+  if(profile?.role!=='trainer'||activeWorkout?.locked)return;
+  activeWorkout.reordering=!activeWorkout.reordering;
+  if(activeWorkout.reordering)activeWorkout.editing=false;
+  renderWorkoutDay();
+}
+function editWorkoutExerciseField(id,field,value){
+  if(profile?.role!=='trainer'||activeWorkout?.locked)return;
+  const e=activeWorkout.exercises.find(x=>String(x.id)===String(id));if(!e)return;
+  if(field==='name')e.name=String(value||'').trim()||e.name;
+  if(field==='rir')e.rir=String(value??'');
+}
+function addWorkoutSet(id){
+  if(profile?.role!=='trainer'||activeWorkout?.locked)return;
+  const e=activeWorkout.exercises.find(x=>String(x.id)===String(id)),arr=activeWorkout.sets[id];
+  if(!e||!arr)return;arr.push({kg:'',reps:'',rir:'',done:false});e.sets=arr.length;renderWorkoutDay();
+}
+function removeWorkoutSet(id,index){
+  if(profile?.role!=='trainer'||activeWorkout?.locked)return;
+  const e=activeWorkout.exercises.find(x=>String(x.id)===String(id)),arr=activeWorkout.sets[id];
+  if(!e||!arr||arr.length<=1)return toast('Debe quedar al menos una serie');
+  arr.splice(index,1);e.sets=arr.length;renderWorkoutDay();
+}
+async function saveWorkoutRoutineEdits(){
+  if(profile?.role!=='trainer'||!activeWorkout?.day?.id||window.__savingRoutineEdits)return;
+  window.__savingRoutineEdits=true;
+  try{
+    for(let i=0;i<activeWorkout.exercises.length;i++){
+      const e=activeWorkout.exercises[i];
+      const q=await db.from('routine_exercises').update({
+        name:String(e.name||'').trim(),sets:Math.max(1,Number(e.sets)||1),
+        rir:e.rir===''||e.rir==null?null:Number(e.rir)
+      }).eq('id',e.id).eq('day_id',activeWorkout.day.id);
+      if(q.error)throw q.error;
+    }
+    activeWorkout.editing=false;
+    toast('Cambios guardados');
+    await startWorkoutDay(activeWorkout.day.id);
+  }catch(e){console.error('saveWorkoutRoutineEdits:',e);toast('No se pudieron guardar los cambios');}
+  finally{window.__savingRoutineEdits=false;}
+}
+
+let __workoutReorderDrag=null;
+function workoutReorderStart(e,index){
+  if(!activeWorkout?.reordering)return;
+  e.stopPropagation();__workoutReorderDrag={index:Number(index)};
+  e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain','exercise:'+index);
+  e.currentTarget.closest('.workout-reorder-bar')?.classList.add('dragging');
+}
+function workoutReorderEnd(){
+  document.querySelectorAll('.workout-reorder-bar').forEach(x=>x.classList.remove('dragging'));
+  document.querySelectorAll('.workout-reorder-zone').forEach(x=>x.classList.remove('active'));
+  __workoutReorderDrag=null;
+}
+function workoutReorderOver(e){
+  if(!__workoutReorderDrag)return;e.preventDefault();e.stopPropagation();
+  document.querySelectorAll('.workout-reorder-zone').forEach(x=>x.classList.remove('active'));
+  e.currentTarget.classList.add('active');
+}
+async function workoutReorderDrop(e,target){
+  if(!__workoutReorderDrag)return;
+  e.preventDefault();e.stopPropagation();
+  const from=Number(__workoutReorderDrag.index),to=Number(target);
+  workoutReorderEnd();
+  if(!Number.isInteger(from)||!Number.isInteger(to)||from===to||from+1===to)return;
+  if(window.__workoutExerciseReordering)return;
+  window.__workoutExerciseReordering=true;
+  try{
+    const next=activeWorkout.exercises.slice();
+    if(from<0||from>=next.length)throw new Error('Índice inválido');
+    const [item]=next.splice(from,1);
+    const at=Math.max(0,Math.min(from<to?to-1:to,next.length));
+    next.splice(at,0,item);
+    for(let i=0;i<next.length;i++){
+      const q=await db.from('routine_exercises').update({exercise_order:10000+i})
+        .eq('id',next[i].id).eq('day_id',activeWorkout.day.id);
+      if(q.error)throw q.error;
+    }
+    for(let i=0;i<next.length;i++){
+      const q=await db.from('routine_exercises').update({exercise_order:i})
+        .eq('id',next[i].id).eq('day_id',activeWorkout.day.id);
+      if(q.error)throw q.error;
+    }
+    const verify=await db.from('routine_exercises').select('id')
+      .eq('day_id',activeWorkout.day.id).order('exercise_order',{ascending:true});
+    if(verify.error)throw verify.error;
+    const dbIds=(verify.data||[]).map(x=>String(x.id));
+    if(dbIds.join('|')!==next.map(x=>String(x.id)).join('|'))
+      throw new Error('Orden de ejercicios no verificado');
+    activeWorkout.exercises=next;
+    renderWorkoutDay();
+    toast('Orden de ejercicios guardado');
+  }catch(err){console.error('exercise reorder:',err);toast('No se pudo guardar el orden');}
+  finally{window.__workoutExerciseReordering=false;}
+}
 function updateSet(id,i,field,value){
   if(activeWorkout.locked)return;
   const arr=activeWorkout.sets[id];
