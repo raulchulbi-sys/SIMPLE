@@ -349,7 +349,7 @@
 
 #trainModal .open-day-handle{touch-action:none;-webkit-user-select:none;user-select:none}
 #daysEditor .editor-drag-handle{touch-action:none;-webkit-user-select:none;user-select:none;cursor:grab;display:inline-flex;width:34px;height:34px;align-items:center;justify-content:center}
-#daysEditor .routine-editor-day.dragging,#daysEditor .exercise-row.dragging{opacity:.45}
+#daysEditor .routine-editor-day.dragging,#daysEditor .routine-editor-exercise.dragging{opacity:.45}
 #daysEditor .exercise-row.drag-over,#daysEditor .day-drop-zone.drop-active{outline:2px solid var(--ok);outline-offset:2px}
 .editor-pointer-dragging,.open-day-pointer-dragging{user-select:none!important;-webkit-user-select:none!important}
 
@@ -413,6 +413,37 @@
   user-select:none!important;
   -webkit-user-select:none!important;
 }
+
+#mine .routine-drag-handle{
+  touch-action:none!important;
+  -webkit-user-select:none;
+  user-select:none;
+  -webkit-touch-callout:none;
+  cursor:grab;
+  min-width:34px;
+  min-height:34px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+#mine .routine-drag-placeholder{
+  width:100%;
+  margin:8px 0;
+  min-height:70px;
+  border:2px dashed var(--ok);
+  border-radius:14px;
+  background:rgba(128,128,128,.08);
+  box-sizing:border-box;
+  pointer-events:none;
+}
+#mine .routine-sortable.routine-dragging{opacity:.35}
+.routine-pointer-dragging{
+  user-select:none!important;
+  -webkit-user-select:none!important;
+}
+
+#daysEditor .routine-editor-exercise.dragging{opacity:.35}
+#daysEditor .routine-editor-exercise{position:relative}
 </style>
 </head>
 <body>
@@ -2004,8 +2035,7 @@ function renderMine(){
   }
   const cards=routines.map((r,i)=>`
     <div class="routine-order-zone"></div>
-    <div class="card routine routine-sortable"
-     >
+    <div class="card routine routine-sortable" data-routine-index="${i}">
       <div style="display:flex;align-items:center;gap:10px;min-width:0">
         <span class="drag-handle routine-drag-handle"
          
@@ -2034,6 +2064,86 @@ document.addEventListener('click',function(e){
   const id=btn.getAttribute('data-open-routine');
   if(id)openRoutine(id);
 },true);
+
+let __routinePointerDrag=null;
+
+function routineDragCleanup(){
+  const d=__routinePointerDrag;
+  if(!d)return;
+  d.placeholder?.remove();
+  d.card?.classList.remove('routine-dragging');
+  document.body.classList.remove('routine-pointer-dragging');
+  if(d.handle&&d.pointerId!=null){try{d.handle.releasePointerCapture(d.pointerId)}catch(_){}}
+  document.removeEventListener('pointermove',routinePointerMove);
+  document.removeEventListener('pointerup',routinePointerUp);
+  document.removeEventListener('pointercancel',routinePointerCancel);
+  __routinePointerDrag=null;
+}
+
+function startRoutinePointerDrag(e,index){
+  if(profile?.role!=='trainer'||__routinePointerDrag)return;
+  if(e.pointerType==='mouse'&&e.button!==0)return;
+  e.preventDefault();e.stopPropagation();
+
+  const handle=e.currentTarget;
+  const card=handle.closest('.routine-sortable');
+  if(!card)return;
+
+  const placeholder=document.createElement('div');
+  placeholder.className='routine-drag-placeholder';
+  placeholder.style.height=Math.max(70,card.getBoundingClientRect().height)+'px';
+  card.parentNode.insertBefore(placeholder,card);
+
+  __routinePointerDrag={
+    index:Number(index),handle,card,placeholder,pointerId:e.pointerId,
+    startX:e.clientX,startY:e.clientY,active:false,target:null
+  };
+
+  try{handle.setPointerCapture(e.pointerId)}catch(_){}
+  document.addEventListener('pointermove',routinePointerMove,{passive:false});
+  document.addEventListener('pointerup',routinePointerUp,{passive:false});
+  document.addEventListener('pointercancel',routinePointerCancel,{passive:false});
+}
+
+function routinePointerMove(e){
+  const d=__routinePointerDrag;
+  if(!d||e.pointerId!==d.pointerId)return;
+  e.preventDefault();
+
+  if(!d.active){
+    if(Math.hypot(e.clientX-d.startX,e.clientY-d.startY)<7)return;
+    d.active=true;
+    d.card.classList.add('routine-dragging');
+    document.body.classList.add('routine-pointer-dragging');
+  }
+
+  const cards=[...document.querySelectorAll('#mine .routine-sortable')].filter(x=>x!==d.card);
+  let before=null;
+  for(const card of cards){
+    const r=card.getBoundingClientRect();
+    if(e.clientY<r.top+r.height/2){before=card;break}
+  }
+
+  if(before)before.parentNode.insertBefore(d.placeholder,before);
+  else if(cards.length)cards[cards.length-1].parentNode.insertBefore(d.placeholder,cards[cards.length-1].nextSibling);
+
+  d.target=before?Number(before.dataset.routineIndex):routines.length;
+}
+
+async function routinePointerUp(e){
+  const d=__routinePointerDrag;
+  if(!d||e.pointerId!==d.pointerId)return;
+  e.preventDefault();
+
+  const result={active:d.active,from:d.index,to:d.target==null?d.index:d.target};
+  routineDragCleanup();
+  if(!result.active||result.from===result.to||result.from+1===result.to)return;
+
+  await reorderRoutine(result.from,result.to);
+}
+
+function routinePointerCancel(){routineDragCleanup()}
+
 let newDays=[];
 function renderNew(){
   let h=`<div class="card">
@@ -2133,9 +2243,7 @@ function renderEditor(){
        ></div>
 
       ${d.exercises.map((e,ei)=>`
-        <div class="exercise routine-editor-exercise"
-         
-         >
+        <div class="exercise routine-editor-exercise" data-day-index="${di}" data-exercise-index="${ei}">
 
           <div style="display:flex;align-items:flex-start;gap:8px">
             <span class="drag-handle editor-drag-handle"
@@ -2294,15 +2402,14 @@ async function dropRoutineAt(e,targetIndex){
   await reorderRoutine(from,targetIndex);
 }
 async function reorderRoutine(from,targetIndex){
-  if(from<0 || from>=routines.length)return;
+  if(from<0||from>=routines.length)return;
 
   const previous=routines.slice();
   const copy=routines.slice();
   const [item]=copy.splice(from,1);
-  let at=targetIndex;
+  let at=Number(targetIndex);
   if(from<at)at--;
   at=Math.max(0,Math.min(at,copy.length));
-
   if(at===from){renderMine();return;}
 
   copy.splice(at,0,item);
@@ -2310,16 +2417,26 @@ async function reorderRoutine(from,targetIndex){
   renderMine();
 
   try{
-    // Persist all rows together. This keeps positions contiguous (0..n-1).
-    const results=await Promise.all(
-      routines.map((r,i)=>db.from('routines')
+    for(let i=0;i<routines.length;i++){
+      const q=await db.from('routines')
         .update({routine_order:i})
-        .eq('id',r.id)
+        .eq('id',routines[i].id)
         .eq('owner_id',user.id)
-        .is('deleted_at',null))
-    );
-    const failed=results.find(x=>x.error);
-    if(failed)throw failed.error;
+        .is('deleted_at',null);
+      if(q.error)throw q.error;
+    }
+
+    const check=await db.from('routines')
+      .select('id,routine_order')
+      .eq('owner_id',user.id)
+      .is('deleted_at',null)
+      .order('routine_order',{ascending:true});
+
+    if(check.error)throw check.error;
+    const actual=(check.data||[]).map(x=>x.id).join('|');
+    const expected=routines.map(x=>x.id).join('|');
+    if(actual!==expected)throw new Error('El orden de rutinas no coincide con el guardado');
+
     toast('Orden guardado');
   }catch(err){
     console.error('reorderRoutine:',err);
@@ -2577,7 +2694,7 @@ function editorGetDayCards(exclude){
 }
 
 function editorGetExerciseRows(exclude){
-  return [...document.querySelectorAll('#daysEditor .exercise-row')].filter(x=>x!==exclude);
+  return [...document.querySelectorAll('#daysEditor .routine-editor-exercise')].filter(x=>x!==exclude);
 }
 
 function editorPlaceDayPlaceholder(d,y){
@@ -2622,7 +2739,7 @@ function startEditorPointerDrag(e,type,di,ei){
   e.stopPropagation();
 
   const h=e.currentTarget;
-  const row=h.closest('.routine-editor-day,.exercise-row');
+  const row=h.closest('.routine-editor-day,.routine-editor-exercise');
   if(!row)return;
 
   const placeholder=editorMakePlaceholder(type,row.getBoundingClientRect().height);
