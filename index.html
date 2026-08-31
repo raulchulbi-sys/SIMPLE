@@ -523,21 +523,23 @@
   height:24px;background:rgba(120,160,255,.18);outline:2px dashed var(--accent,#888);outline-offset:-2px;
 }
 
-#daysEditor .day-order-gap{
-  display:block;width:100%;height:12px;margin:4px 0;
-  border:2px solid transparent;border-radius:10px;
-  background:transparent;box-sizing:border-box;
+#daysEditor .day-order-gap,
+#clientSessionList .day-order-gap{
+  display:block;width:100%;height:14px;min-height:14px;margin:3px 0;
+  border:2px dashed rgba(255,255,255,.16);border-radius:10px;
+  background:rgba(255,255,255,.025);box-sizing:border-box;
+  transition:height .08s ease,background .08s ease,border-color .08s ease;
+  touch-action:none;
 }
-#daysEditor .day-order-gap.active{
-  height:40px;border-color:var(--ok);
-  background:rgba(255,255,255,.05);
+#daysEditor .day-order-gap.active,
+#clientSessionList .day-order-gap.active{
+  height:40px;min-height:40px;border-color:var(--ok);
+  background:rgba(255,255,255,.07);
 }
 #daysEditor .routine-editor-day.dragging{opacity:.4}
 
-#daysEditor .day-order-zone{
-  height:12px;min-height:12px;margin:3px 0;border-radius:9px;
-  border:2px solid transparent;box-sizing:border-box;background:transparent;
-}
+#daysEditor .day-order-zone{display:none!important}
+#daysEditor .day-order-zone-active{display:none!important}
 #daysEditor .day-order-zone-active{
   height:38px;min-height:38px;border:2px dashed var(--ok);
   background:rgba(255,255,255,.05);margin:4px 0;
@@ -2016,6 +2018,305 @@ async function openRoutineProgress(routineId){
   }
 }
 
+async function editClientAssignedRoutine(clientId,routineId,routineName){
+  if(profile?.role!=='trainer')return toast('Solo el entrenador puede editar la rutina.');
+  if(!user?.id||!clientId||!routineId)return toast('Rutina o cliente no encontrado.');
+  try{
+    const a=await db.from('routine_assignments')
+      .select('id,trainer_routine_id')
+      .eq('trainer_id',user.id)
+      .eq('client_id',clientId)
+      .eq('trainer_routine_id',routineId)
+      .is('client_deleted_at',null)
+      .maybeSingle();
+    if(a.error)throw a.error;
+    if(!a.data)return toast('Esta rutina ya no está asignada a este cliente.');
+
+    const r=routines.find(x=>String(x.id)===String(routineId)) ||
+      (await db.from('routines').select('id,name,description').eq('id',routineId).maybeSingle()).data;
+    if(!r)return toast('No se encontró la rutina.');
+
+    editDays=await days(routineId);
+    window.__clientRoutineEdit={clientId,routineId,assignmentId:a.data.id,reorder:false,dayIndex:null};
+
+    $('editor').innerHTML=`
+      <div class="card" style="margin:0 0 12px">
+        <div class="grid">
+          <div><label>Nombre de la rutina</label><input id="en" value="${esc(r.name||routineName||'Rutina')}"></div>
+          <div><label>Descripción</label><input id="ed" value="${esc(r.description||'')}"></div>
+        </div>
+      </div>
+      <div id="clientRoutineEditor"></div>`;
+    renderClientRoutineSessions();
+    closeM('clientModal');
+    openM('editModal');
+  }catch(e){
+    console.error('editClientAssignedRoutine:',e);
+    toast('No se pudo abrir el editor de la rutina.');
+  }
+}
+
+function renderClientRoutineSessions(){
+  const box=$('clientRoutineEditor'); if(!box)return;
+  const state=window.__clientRoutineEdit||{};
+  if(state.dayIndex!=null)return renderClientRoutineDayEditor(state.dayIndex);
+
+  box.innerHTML=`
+    <div class="card" style="margin:0 0 12px">
+      <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap">
+        <div>
+          <h3 style="margin:0">Sesiones de entrenamiento</h3>
+          <div class="muted">Selecciona una sesión para editar sus ejercicios.</div>
+        </div>
+        <div class="buttons">
+          <button class="btn" onclick="toggleClientSessionReorder()">${state.reorder?'Listo':'↕ Reordenar sesiones'}</button>
+          <button class="btn primary" onclick="addClientEditorDay()">+ Añadir sesión</button>
+        </div>
+      </div>
+    </div>
+    <div id="clientSessionList"></div>
+    <div class="buttons" style="justify-content:flex-end;margin-top:12px">
+      <button class="btn primary" onclick="saveClientRoutineEditor()">Guardar cambios</button>
+    </div>`;
+
+  const list=$('clientSessionList');
+  if(!list)return;
+  if(!editDays.length){
+    list.innerHTML='<div class="empty">No hay sesiones. Añade una sesión para empezar.</div>';
+    return;
+  }
+
+  let h='';
+  const gap=(target)=>state.reorder
+    ? `<div class="day-order-gap" data-drop-index="${target}"
+         ondragover="dragOverClientSessionGap(event)"
+         ondrop="dropClientSessionGap(event,${target})"
+         ondragenter="event.preventDefault()"
+         aria-label="Soltar aquí"></div>`
+    : '';
+
+  h+=gap(0);
+  editDays.forEach((d,i)=>{
+    h+=`
+      <div class="card routine-editor-day" data-day-index="${i}"
+        style="margin:0;cursor:default">
+        <div class="dayhead">
+          <div style="display:flex;align-items:center;gap:10px;min-width:0;flex:1">
+            ${state.reorder?`<span class="drag-handle editor-drag-handle" draggable="true"
+              ondragstart="dragDayStart(event,${i})"
+              ondragend="dragEndItem()"
+              onpointerdown="startEditorPointerDrag(event,'day',${i})"
+              ondragend="clientSessionDragFinished()"
+              title="Arrastrar sesión">☷</span>`:''}
+            <div style="min-width:0">
+              <b style="font-size:17px">${esc(d.name||'Sin nombre')}</b>
+              <div class="muted">${d.exercises?.length||0} ejercicios</div>
+            </div>
+          </div>
+          <div class="buttons" style="justify-content:flex-end">
+            <button class="btn" type="button" onclick="renameClientSession(${i})" title="Cambiar nombre">⋯</button>
+            <button class="btn primary" type="button" onclick="openClientRoutineDayEditor(${i})">Editar sesión</button>
+            <button class="btn danger" type="button" onclick="removeClientEditorDay(${i})">Eliminar</button>
+          </div>
+        </div>
+      </div>`;
+    h+=gap(i+1);
+  });
+  list.innerHTML=h;
+}
+
+function clientSessionDragFinished(){
+  // Do not clear __dayDrag here. On Chromium the dragend event can fire before
+  // the drop event reaches the insertion gap. dropDayAt() clears it after the
+  // actual move, making consecutive moves reliable.
+  document.querySelectorAll('#clientSessionList .routine-editor-day')
+    .forEach(x=>x.classList.remove('dragging'));
+  document.querySelectorAll('#clientSessionList .day-order-gap')
+    .forEach(x=>x.classList.remove('active'));
+}
+
+function dragOverClientSessionGap(e){
+  if(!__dayDrag)return;
+  e.preventDefault();
+  e.stopPropagation();
+  if(e.dataTransfer)e.dataTransfer.dropEffect='move';
+  document.querySelectorAll('#clientSessionList .day-order-gap')
+    .forEach(g=>g.classList.remove('active'));
+  e.currentTarget.classList.add('active');
+}
+
+function dropClientSessionGap(e,targetIndex){
+  if(!__dayDrag)return;
+  e.preventDefault();
+  e.stopPropagation();
+  dropDayAt(e,Number(targetIndex));
+}
+
+function renameClientSession(i){
+  const d=editDays[i]; if(!d)return;
+  const name=prompt('Nombre de la sesión:',d.name||'');
+  if(name===null)return;
+  const clean=name.trim();
+  if(!clean)return toast('El nombre no puede estar vacío.');
+  d.name=clean;
+  renderClientRoutineSessions();
+}
+
+function toggleClientSessionReorder(){
+  const state=window.__clientRoutineEdit||{};
+  state.reorder=!state.reorder;
+  window.__clientRoutineEdit=state;
+  if(!state.reorder)dragEndItem();
+  renderClientRoutineSessions();
+}
+
+function addClientEditorDay(){
+  editDays.push({
+    id:null,
+    name:'Nueva sesión',
+    day_order:editDays.length,
+    exercises:[]
+  });
+  const state=window.__clientRoutineEdit||{};
+  state.reorder=false; state.dayIndex=editDays.length-1;
+  window.__clientRoutineEdit=state;
+  renderClientRoutineDayEditor(state.dayIndex);
+}
+
+function removeClientEditorDay(i){
+  if(!editDays[i])return;
+  if(!confirm(`¿Eliminar la sesión "${editDays[i].name}" y todos sus ejercicios?`))return;
+  editDays.splice(i,1);
+  editDays=editDays.map((d,n)=>({...d,day_order:n}));
+  renderClientRoutineSessions();
+}
+
+function openClientRoutineDayEditor(i){
+  if(!editDays[i])return;
+  const state=window.__clientRoutineEdit||{};
+  state.dayIndex=i; state.reorder=false;
+  window.__clientRoutineEdit=state;
+  renderClientRoutineDayEditor(i);
+}
+
+function renderClientRoutineDayEditor(i){
+  const box=$('clientRoutineEditor'); if(!box)return;
+  const d=editDays[i];
+  if(!d){window.__clientRoutineEdit.dayIndex=null;return renderClientRoutineSessions();}
+
+  box.innerHTML=`
+    <div class="card" style="margin:0 0 12px">
+      <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap">
+        <div>
+          <div class="muted">Sesión</div>
+          <h3 style="margin:2px 0">${esc(d.name)}</h3>
+          <div class="muted">${d.exercises?.length||0} ejercicios</div>
+        </div>
+        <div class="buttons">
+          <button class="btn" onclick="backToClientRoutineSessions()">← Sesiones</button>
+          <button class="btn" onclick="renameClientSession(${i})">⋯ Cambiar nombre</button>
+          <button class="btn primary" onclick="toggleClientExerciseReorder(${i})">
+            ${window.__clientRoutineEdit?.exerciseReorder?'Listo':'↕ Reordenar ejercicios'}
+          </button>
+        </div>
+      </div>
+    </div>
+    <div id="daysEditor"></div>
+    <div class="buttons" style="justify-content:flex-end;margin-top:12px">
+      <button class="btn primary" onclick="saveClientRoutineEditor()">Guardar cambios</button>
+    </div>`;
+
+  renderClientSingleDayExercises(i);
+}
+
+function renderClientSingleDayExercises(di){
+  const box=$('daysEditor'); if(!box)return;
+  const d=editDays[di]; if(!d)return;
+  const reorder=!!window.__clientRoutineEdit?.exerciseReorder;
+  let h='';
+
+  if(reorder){
+    h+=`<div class="exercise-drop-zone" ondragover="dragOverDropZone(event)" ondrop="dropExerciseAt(event,${di},0)"></div>`;
+  }
+
+  d.exercises.forEach((e,ei)=>{
+    h+=`
+      <div class="exercise routine-editor-exercise" data-day-index="${di}" data-exercise-index="${ei}"
+        ${reorder?`ondragover="dragOverExercise(event)" ondrop="dropExercise(event,${di},${ei})"`:''}
+        style="margin:8px 0">
+        <div style="display:flex;align-items:flex-start;gap:9px">
+          ${reorder?`<span class="drag-handle editor-drag-handle" draggable="true"
+            ondragstart="dragExerciseStart(event,${di},${ei})" ondragend="dragEndItem()"
+            onpointerdown="startEditorPointerDrag(event,'exercise',${di},${ei})"
+            title="Arrastrar ejercicio">☷</span>`:''}
+          <div style="flex:1">
+            <div class="grid3">
+              <div><label>Ejercicio</label><input value="${esc(e.name)}" onchange="editDays[${di}].exercises[${ei}].name=this.value"></div>
+              <div><label>Series</label><input type="number" min="1" value="${e.sets||1}" onchange="editDays[${di}].exercises[${ei}].sets=Math.max(1,+this.value||1)"></div>
+              <div><label>Descanso (min)</label><input type="number" min="0" step="0.5" value="${(e.rest_seconds||0)/60}" onchange="editDays[${di}].exercises[${ei}].rest_seconds=(+this.value||0)*60"></div>
+            </div>
+            <div class="grid" style="margin-top:8px">
+              <div><label>Objetivo de reps</label><input value="${esc(e.target||'')}" placeholder="2x10-15" onchange="editDays[${di}].exercises[${ei}].target=this.value"></div>
+              <div><label>RIR</label><input value="${esc(e.rir??'')}" placeholder="2" onchange="editDays[${di}].exercises[${ei}].rir=this.value"></div>
+            </div>
+            <div style="margin-top:8px"><label>Notas</label><input value="${esc(e.notes||'')}" onchange="editDays[${di}].exercises[${ei}].notes=this.value"></div>
+          </div>
+        </div>
+        <div class="buttons" style="justify-content:flex-end;margin-top:8px">
+          <button class="btn danger" type="button" onclick="removeClientEditorExercise(${di},${ei})">Eliminar ejercicio</button>
+        </div>
+      </div>`;
+    if(reorder){
+      h+=`<div class="exercise-drop-zone" ondragover="dragOverDropZone(event)" ondrop="dropExerciseAt(event,${di},${ei+1})"></div>`;
+    }
+  });
+
+  h+=`<button class="btn" type="button" onclick="addClientEditorExercise(${di})">+ Añadir ejercicio</button>`;
+  box.innerHTML=h;
+}
+
+function toggleClientExerciseReorder(di){
+  const state=window.__clientRoutineEdit||{};
+  state.exerciseReorder=!state.exerciseReorder;
+  state.dayIndex=di;
+  window.__clientRoutineEdit=state;
+  if(!state.exerciseReorder)dragEndItem();
+  renderClientRoutineDayEditor(di);
+}
+
+function addClientEditorExercise(di){
+  editDays[di].exercises.push({
+    id:null,name:'Nuevo ejercicio',sets:2,target:'2x10-15',
+    rir:'2',rest_seconds:120,notes:''
+  });
+  renderClientRoutineDayEditor(di);
+}
+
+function removeClientEditorExercise(di,ei){
+  if(!editDays[di]?.exercises[ei])return;
+  if(!confirm(`¿Eliminar "${editDays[di].exercises[ei].name}"?`))return;
+  editDays[di].exercises.splice(ei,1);
+  renderClientRoutineDayEditor(di);
+}
+
+function backToClientRoutineSessions(){
+  const state=window.__clientRoutineEdit||{};
+  state.dayIndex=null; state.exerciseReorder=false; state.reorder=false;
+  window.__clientRoutineEdit=state;
+  dragEndItem();
+  renderClientRoutineSessions();
+}
+
+async function saveClientRoutineEditor(){
+  if(!window.__clientRoutineEdit?.routineId)return;
+  // saveEditor() is the single persistence path, so both trainer-owned
+  // routines and client-assigned routines use identical database semantics.
+  await saveEditor(window.__clientRoutineEdit.routineId);
+  window.__clientRoutineEdit.dayIndex=null;
+  window.__clientRoutineEdit.reorder=false;
+  window.__clientRoutineEdit.exerciseReorder=false;
+}
+
 async function openClientRoutineProgress(clientId,routineId,routineName){
   if(!user?.id)return toast('Debes iniciar sesión.');
   const title=$('clientProgressTitle'), subtitle=$('clientProgressSubtitle'), body=$('clientProgressBody');
@@ -2245,6 +2546,7 @@ async function openClientProfile(clientId){
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
               <button class="btn" onclick="openClientRoutineProgress('${cid}','${x.routine.id}','${esc(x.routine.name||'Rutina')}')">Ver progreso</button>
+              <button class="btn primary" onclick="editClientAssignedRoutine('${cid}','${x.routine.id}','${esc(x.routine.name||'Rutina')}')">Editar rutina</button>
               <button class="btn danger" onclick="revokeFromClientProfile('${x.assignment.id}')">Revocar</button>
             </div>
           </div>
@@ -2668,13 +2970,20 @@ function renderEditor(){
 
 
 let __dayDrag=null;
+function showDayDropGaps(){
+  // Session insertion gaps are rendered by renderClientRoutineSessions().
+  // Kept as a compatibility hook for the drag-start path.
+}
 function dragDayStart(e,i){
   e.stopPropagation();
-  __dayDrag={index:Number(i)};
-  e.dataTransfer.effectAllowed='move';
-  e.dataTransfer.setData('text/plain','day:'+i);
+  __dayDrag={index:Number(i),token:Date.now()};
+  if(e.dataTransfer){
+    e.dataTransfer.effectAllowed='move';
+    e.dataTransfer.setData('text/plain','day:'+i);
+  }
   e.currentTarget.closest('.routine-editor-day')?.classList.add('dragging');
-  document.querySelectorAll('#daysEditor .day-order-zone').forEach(z=>z.classList.remove('day-order-zone-active'));
+  document.querySelectorAll('#clientSessionList .day-order-gap')
+    .forEach(g=>g.classList.remove('active'));
 }
 function showExerciseDropGaps(){
   const box=document.querySelector('#daysEditor');if(!box)return;
@@ -2738,7 +3047,9 @@ function dropExerciseAt(e,targetDay,targetIndex){
   editDays.forEach(d=>d.exercises.forEach((ex,i)=>ex.exercise_order=i));
   __dragItem=null;
   clearDropIndicators();
-  renderEditor();
+  if(window.__clientRoutineEdit?.dayIndex!=null) renderClientRoutineDayEditor(window.__clientRoutineEdit.dayIndex);
+  else if(window.__clientRoutineEdit) renderClientRoutineSessions();
+  else renderEditor();
 }
 function dropExercise(e,targetDay,targetIndex){
   dropExerciseAt(e,targetDay,targetIndex);
@@ -2747,14 +3058,65 @@ function dropDayAt(e,targetIndex){
   if(!__dayDrag)return;
   e.preventDefault();e.stopPropagation();
   const from=Number(__dayDrag.index),to=Number(targetIndex);
-  if(from===to||from+1===to){dragEndItem();return;}
+  if(from===to||from+1===to){
+    __dayDrag=null;
+    if(window.__clientRoutineEdit?.reorder)renderClientRoutineSessions();
+    else dragEndItem();
+    return;
+  }
   const next=editDays.slice();
   const [item]=next.splice(from,1);
   const at=from<to?to-1:to;
   next.splice(Math.max(0,Math.min(at,next.length)),0,item);
   editDays=next.map((d,i)=>({...d,day_order:i}));
-  dragEndItem();renderEditor();
+  // Clear only the client-session drag state; preserve reorder mode.
+  __dayDrag=null;
+  document.querySelectorAll('#clientSessionList .routine-editor-day')
+    .forEach(x=>x.classList.remove('dragging'));
+  document.querySelectorAll('#clientSessionList .day-order-gap')
+    .forEach(x=>x.classList.remove('active'));
+  if(window.__clientRoutineEdit){
+    renderClientRoutineSessions();
+    persistClientSessionOrder();
+  }else{
+    dragEndItem();
+    renderEditor();
+  }
 }
+async function persistClientSessionOrder(){
+  const state=window.__clientRoutineEdit;
+  if(!state?.routineId||profile?.role!=='trainer')return false;
+  try{
+    const results=await Promise.all(
+      editDays.map((d,i)=>d.id
+        ? db.from('routine_days').update({day_order:i}).eq('id',d.id).eq('routine_id',state.routineId).select('id,day_order')
+        : Promise.resolve({data:[],error:null}))
+    );
+    const failed=results.find(x=>x?.error);
+    if(failed)throw failed.error;
+    const updated=results.flatMap(x=>x?.data||[]);
+    const persistedIds=new Set(updated.map(x=>String(x.id)));
+    const existingIds=editDays.filter(d=>d.id).map(d=>String(d.id));
+    if(existingIds.some(id=>!persistedIds.has(id))){
+      throw new Error('No se pudo verificar el guardado de una o más sesiones (posible RLS).');
+    }
+    const verify=await db.from('routine_days').select('id,day_order').eq('routine_id',state.routineId);
+    if(verify.error)throw verify.error;
+    const byId=new Map((verify.data||[]).map(x=>[String(x.id),Number(x.day_order)]));
+    for(let i=0;i<editDays.length;i++){
+      if(editDays[i].id && byId.get(String(editDays[i].id))!==i)
+        throw new Error('El orden de sesiones no coincide con la base de datos.');
+    }
+    editDays=editDays.map((d,i)=>({...d,day_order:i}));
+    toast('Orden de sesiones guardado automáticamente');
+    return true;
+  }catch(err){
+    console.error('persistClientSessionOrder:',err);
+    toast('No se pudo guardar el orden de las sesiones');
+    return false;
+  }
+}
+
 function dragEndItem(){
   document.querySelectorAll('#daysEditor .routine-editor-day,#daysEditor .routine-editor-exercise')
     .forEach(x=>x.classList.remove('dragging'));
@@ -2762,7 +3124,11 @@ function dragEndItem(){
     .forEach(x=>x.classList.remove('day-order-zone-active'));
   document.querySelectorAll('#daysEditor .day-order-gap,#daysEditor .exercise-drop-gap')
     .forEach(x=>x.remove());
-  __dragItem=null;__dayDrag=null;
+  if(!window.__clientRoutineEdit?.reorder){
+    document.querySelectorAll('#clientSessionList .day-order-gap').forEach(x=>x.remove());
+  }
+  __dragItem=null;
+  if(!window.__clientRoutineEdit?.reorder)__dayDrag=null;
 }
 
 function dragRoutineStart(e,index){
@@ -2899,7 +3265,11 @@ function moveDay(dayIndex, direction){
   if(target<0 || target>=editDays.length)return;
   [editDays[dayIndex],editDays[target]]=
     [editDays[target],editDays[dayIndex]];
-  renderEditor();
+  editDays=editDays.map((d,i)=>({...d,day_order:i}));
+  if(window.__clientRoutineEdit){
+    renderClientRoutineSessions();
+    persistClientSessionOrder();
+  }else renderEditor();
 }
 function addDay(){editDays.push({id:null,name:'Nuevo día',day_order:editDays.length,exercises:[]});renderEditor()}function removeDay(i){if(confirm('¿Eliminar este día?')){editDays.splice(i,1);renderEditor()}}function addEx(di){editDays[di].exercises.push({id:null,name:'Nuevo ejercicio',sets:2,target:'2x10-15',rir:'2',rest_seconds:120,notes:''});renderEditor()}function removeEx(di,ei){editDays[di].exercises.splice(ei,1);renderEditor()}
 async function saveEditor(id){
@@ -3392,7 +3762,9 @@ function startEditorPointerDrag(e,type,di,ei){
   const row=h.closest('.routine-editor-day,.routine-editor-exercise');
   if(!row)return;
 
-  const p=editorMakePlaceholder(type,row.getBoundingClientRect().height);
+  const p=document.createElement('div');
+  p.className=type==='day'?'day-order-gap active':'exercise-drop-gap active';
+  p.setAttribute('aria-hidden','true');
   row.parentNode.insertBefore(p,row);
 
   __editorPointerDrag={
@@ -3439,6 +3811,7 @@ function editorPointerMove(e){
         const dist=Math.abs(__editorLastY-(r.top+r.height/2));
         if(dist<best){best=dist;before=card}
       }
+      d.placeholder.className='day-order-gap active';
       if(before)before.parentNode.insertBefore(d.placeholder,before);
       else if(cards.length)cards[cards.length-1].parentNode.insertBefore(d.placeholder,cards[cards.length-1].nextSibling);
       d.target=before?Number(before.dataset.dayIndex):editDays.length;
@@ -3507,7 +3880,10 @@ function moveEditorDay(from,to){
   if(from<to)to--;
   editDays.splice(to,0,item);
   editDays.forEach((d,i)=>d.day_order=i);
-  renderEditor();
+  if(window.__clientRoutineEdit){
+    renderClientRoutineSessions();
+    persistClientSessionOrder();
+  }else renderEditor();
 }
 
 function moveEditorExercise(fd,fi,td,ti){
