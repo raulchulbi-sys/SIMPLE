@@ -2043,14 +2043,19 @@ function getProgressDays(sessions,orderedRoutineDays=[]){
 
 function progressPeriodStart(period){
   const now=new Date();
+  now.setHours(23,59,59,999);
   const d=new Date(now);
+  // Use rolling windows rather than calendar boundaries. This prevents a
+  // workout from yesterday (e.g. 31/08 when today is 01/09) disappearing
+  // from "Mes" just because the calendar month changed.
   if(period==='month'){
-    d.setDate(1);d.setHours(0,0,0,0);
+    d.setDate(d.getDate()-30);
   }else if(period==='quarter'){
-    d.setMonth(Math.floor(d.getMonth()/3)*3,1);d.setHours(0,0,0,0);
+    d.setDate(d.getDate()-90);
   }else if(period==='year'){
-    d.setMonth(0,1);d.setHours(0,0,0,0);
+    d.setDate(d.getDate()-365);
   }else return null;
+  d.setHours(0,0,0,0);
   return d;
 }
 function filterProgressSessions(sessions,period){
@@ -2088,7 +2093,12 @@ function setupClientProgressChart(sessions){
     exerciseSelect.innerHTML=names.slice(0,200).map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
     exerciseSelect.disabled=!names.length;
     metric.disabled=!names.length;
-    if(names.length)renderClientProgressChart();
+    if(names.length){
+      if(!exerciseSelect.value || !names.some(n=>String(n)===String(exerciseSelect.value))){
+        exerciseSelect.value=names[0];
+      }
+      renderClientProgressChart();
+    }
     else{
       $('clientProgressChart').innerHTML='<div class="progress-chart-empty">No hay datos en este periodo para este día.</div>';
       $('clientProgressChartSummary').innerHTML='';
@@ -2117,7 +2127,7 @@ async function openRoutineProgress(routineId){
   body.innerHTML='<div class="muted">Cargando sesiones...</div>';
   openM('clientProgressModal');
   setNestedView(true);
-  setTimeout(()=>window.fixProgressExerciseSelector?.(),0);
+  setTimeout(()=>{window.fixProgressExerciseSelector?.(); document.getElementById('clientProgressExercise')?.dispatchEvent(new Event('change',{bubbles:true}));},0);
   try{
     const r=await db.from('workouts').select('id,user_id,variant,day,workout_date,data')
       .eq('user_id',user.id)
@@ -7273,6 +7283,20 @@ window.updateClientTrashVisual=function(full){
   },true);
 })();
 </script>
+
+<style id="simple-progress-final-v40">
+@media(max-width:650px){
+  #clientProgressExercise,
+  #clientProgressDay,
+  #clientProgressPeriod,
+  #clientProgressMetric{
+    appearance:auto!important;
+    -webkit-appearance:auto!important;
+    pointer-events:auto!important;
+    touch-action:manipulation!important;
+  }
+}
+</style>
 </body></html>
 
 <style>
