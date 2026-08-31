@@ -1886,10 +1886,7 @@ function getProgressDays(sessions,orderedRoutineDays=[]){
 function progressPeriodStart(period){
   const now=new Date();
   const d=new Date(now);
-  if(period==='week'){
-    const day=(d.getDay()+6)%7;
-    d.setHours(0,0,0,0); d.setDate(d.getDate()-day);
-  }else if(period==='month'){
+  if(period==='month'){
     d.setDate(1);d.setHours(0,0,0,0);
   }else if(period==='quarter'){
     d.setMonth(Math.floor(d.getMonth()/3)*3,1);d.setHours(0,0,0,0);
@@ -1993,7 +1990,6 @@ async function openRoutineProgress(routineId){
         <div class="progress-chart-controls"><div>
             <label for="clientProgressPeriod">Periodo</label>
             <select id="clientProgressPeriod" class="input">
-              <option value="week">Semana</option>
               <option value="month" selected>Mes</option>
               <option value="quarter">Trimestre</option>
               <option value="year">Año</option>
@@ -2409,7 +2405,6 @@ async function openClientRoutineProgress(clientId,routineId,routineName){
         <div class="progress-chart-controls"><div>
             <label for="clientProgressPeriod">Periodo</label>
             <select id="clientProgressPeriod" class="input">
-              <option value="week">Semana</option>
               <option value="month" selected>Mes</option>
               <option value="quarter">Trimestre</option>
               <option value="year">Año</option>
