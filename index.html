@@ -6489,6 +6489,134 @@ label{
   .role-option{font-size:12px;padding:9px 6px}
 }
 </style>
+
+<style id="simple-final-polish-v27">
+/* =========================================================
+   SIMPLE V27 — final UX polish
+   No onboarding. Visual/interaction refinements only.
+   ========================================================= */
+
+/* Empty states: make them feel intentional, not like errors. */
+.empty{
+  position:relative;
+  overflow:hidden;
+  text-align:center;
+}
+.empty::before{
+  content:"";
+  position:absolute;
+  width:130px;height:130px;
+  left:50%;top:50%;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(131,230,160,.055),transparent 68%);
+  pointer-events:none;
+}
+.empty>*{position:relative}
+
+/* Better hierarchy for the first line of empty states. */
+.empty b{
+  display:block;
+  color:var(--text);
+  font-size:14px;
+  margin-bottom:5px;
+}
+
+/* Automatic-save feedback should feel like system status. */
+.save-status,.autosave-status,.saved-status{
+  color:var(--accent)!important;
+  font-size:11px;
+  font-weight:700;
+}
+
+/* Destructive confirmation dialogs. */
+.confirm-danger .btn.primary,
+.modal .btn.danger{
+  font-weight:760;
+}
+
+/* Profile/client cards get a slightly more premium rhythm. */
+.client-card,.profile-card{
+  background:linear-gradient(145deg,#151c21,#10161a);
+}
+
+/* Progress metrics: emphasize the value, not the label. */
+.progress-stat-card strong,
+.compact-progress-stat strong,
+.progress-chart-stat strong{
+  font-variant-numeric:tabular-nums;
+  letter-spacing:-.025em;
+}
+
+/* Cleaner history rows. */
+.history-row{
+  transition:background .14s ease;
+}
+.history-row:hover{
+  background:rgba(255,255,255,.018);
+}
+
+/* Notes remain visually distinct but restrained. */
+.routine-note-card{
+  box-shadow:0 7px 20px rgba(0,0,0,.08);
+}
+
+/* More app-like controls on touch devices. */
+@media(pointer:coarse){
+  .btn{
+    min-height:42px;
+  }
+  .tick{
+    min-width:42px;
+    min-height:42px;
+  }
+}
+
+/* Keep dense exercise/reorder UIs comfortable on narrow screens. */
+@media(max-width:600px){
+  .workout-reorder-list{
+    gap:5px;
+  }
+  .workout-reorder-bar{
+    padding:11px!important;
+  }
+  .session-back-row{
+    margin-bottom:8px!important;
+  }
+}
+
+/* Respect reduced-motion preference. */
+@media(prefers-reduced-motion:reduce){
+  .card:hover,.routine:hover,.exercise:hover{transform:none!important}
+}
+</style>
+
+<style id="simple-icons-v27">
+/* Consistent tiny action affordance for common icon buttons. */
+.icon-trash-btn .trash-empty-icon{
+  font-size:0!important;
+  width:18px;height:18px;
+  display:block;
+  position:relative;
+}
+.icon-trash-btn .trash-empty-icon::before{
+  content:"";
+  position:absolute;
+  inset:2px 3px 1px;
+  border:1.7px solid currentColor;
+  border-top:0;
+  border-radius:2px 2px 4px 4px;
+}
+.icon-trash-btn .trash-empty-icon::after{
+  content:"";
+  position:absolute;
+  left:5px;right:5px;top:1px;
+  height:2px;
+  border-radius:2px;
+  background:currentColor;
+  box-shadow:3px 3px 0 -0.5px currentColor;
+}
+</style>
 </body></html>
 
 <style>
