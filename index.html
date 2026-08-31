@@ -5998,6 +5998,497 @@ textarea{min-height:72px}
   .tick{width:40px}
 }
 </style>
+
+<style id="simple-polish-v24">
+/* ---------- Design tokens ---------- */
+:root{
+  --bg:#070a0c;
+  --surface:#101519;
+  --surface-2:#141a1f;
+  --surface-3:#181f24;
+  --surface-hover:#1b2329;
+  --line:rgba(255,255,255,.075);
+  --line-strong:rgba(255,255,255,.12);
+  --text:#f5f7f8;
+  --text-2:#c0c8ce;
+  --muted:#818d96;
+  --muted-2:#626e77;
+  --accent:#83e6a0;
+  --accent-strong:#69dc8b;
+  --accent-soft:rgba(131,230,160,.095);
+  --accent-line:rgba(131,230,160,.23);
+  --danger:#ff8087;
+  --danger-soft:rgba(255,128,135,.075);
+  --danger-line:rgba(255,128,135,.20);
+  --warning:#efd078;
+  --radius-lg:18px;
+  --radius:14px;
+  --radius-sm:11px;
+  --shadow:0 14px 40px rgba(0,0,0,.20);
+  --shadow-hover:0 18px 46px rgba(0,0,0,.26);
+  --ease:cubic-bezier(.22,.61,.36,1);
+}
+
+/* ---------- Base ---------- */
+html{background:var(--bg)}
+body{
+  background:
+    radial-gradient(720px 420px at 90% -12%,rgba(131,230,160,.045),transparent 68%),
+    radial-gradient(620px 380px at -12% 28%,rgba(131,230,160,.018),transparent 68%),
+    var(--bg);
+  color:var(--text);
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+.wrap{max-width:1160px;padding:28px 22px 88px}
+
+/* ---------- Typography ---------- */
+h1,h2,h3,h4{color:var(--text);letter-spacing:-.035em}
+h1{font-weight:820}
+h2{font-weight:790}
+h3{font-weight:760}
+.sub,.muted{color:var(--muted)}
+.sub{letter-spacing:.015em}
+
+/* ---------- Header ---------- */
+header{
+  padding:3px 1px 17px;
+  margin-bottom:22px;
+  border-bottom:1px solid rgba(131,230,160,.07);
+}
+header h1{font-size:29px;line-height:1.05}
+header .sub{margin-top:7px}
+
+/* ---------- Buttons ---------- */
+.btn{
+  min-height:40px;
+  border:1px solid var(--line-strong);
+  border-radius:11px;
+  background:#151b20;
+  color:var(--text-2);
+  padding:9px 14px;
+  font-weight:690;
+  box-shadow:0 1px 0 rgba(255,255,255,.025) inset;
+}
+.btn:hover{
+  color:var(--text);
+  border-color:rgba(255,255,255,.16);
+  background:var(--surface-hover);
+  transform:translateY(-1px);
+}
+.btn:focus-visible{
+  outline:0;
+  box-shadow:0 0 0 3px rgba(131,230,160,.12);
+}
+.btn.primary{
+  color:#07100a;
+  background:var(--accent);
+  border-color:var(--accent);
+  box-shadow:0 8px 24px rgba(131,230,160,.09);
+}
+.btn.primary:hover{
+  color:#07100a;
+  background:#95ecad;
+  border-color:#95ecad;
+}
+.btn.danger{
+  color:var(--danger);
+  background:var(--danger-soft);
+  border-color:var(--danger-line);
+}
+.btn.danger:hover{
+  background:rgba(255,128,135,.11);
+  border-color:rgba(255,128,135,.32);
+}
+.actions{gap:8px}
+
+/* ---------- Navigation ---------- */
+.tabs{
+  display:flex;
+  gap:3px;
+  padding:4px;
+  background:rgba(16,21,25,.82);
+  border:1px solid var(--line);
+  border-radius:14px;
+  box-shadow:0 8px 24px rgba(0,0,0,.13);
+  backdrop-filter:blur(12px);
+}
+.tabs button{
+  border-radius:10px;
+  color:var(--muted);
+  font-weight:700;
+  transition:all .16s var(--ease);
+}
+.tabs button:hover{background:rgba(255,255,255,.035);color:var(--text-2)}
+.tabs button.active{
+  color:#07100a;
+  background:var(--accent);
+  box-shadow:0 5px 17px rgba(131,230,160,.10);
+}
+
+/* ---------- Cards ---------- */
+.card{
+  background:linear-gradient(145deg,rgba(17,23,27,.98),rgba(13,18,22,.98));
+  border:1px solid var(--line);
+  border-radius:var(--radius-lg);
+  box-shadow:0 6px 22px rgba(0,0,0,.10);
+  transition:border-color .18s var(--ease),box-shadow .18s var(--ease),transform .18s var(--ease);
+}
+.card:hover{
+  border-color:rgba(255,255,255,.095);
+}
+.card h2,.card h3{margin-top:0}
+.empty{
+  border-style:dashed;
+  color:var(--muted);
+  background:rgba(16,21,25,.55);
+}
+
+/* ---------- Routine cards ---------- */
+.routine{
+  padding-top:17px;
+  padding-bottom:17px;
+}
+.routine h3{font-size:18px}
+.routine .muted{line-height:1.45}
+.routine .buttons .btn{white-space:nowrap}
+
+/* ---------- Drag / reorder ---------- */
+.routine-drag-handle,.drag-handle,.editor-drag-handle{
+  opacity:.72;
+  color:var(--muted-2)!important;
+}
+.routine-drag-handle:hover,.drag-handle:hover,.editor-drag-handle:hover{
+  opacity:1;
+  color:var(--accent)!important;
+  background:var(--accent-soft);
+}
+.routine-order-zone,.day-order-zone,.workout-reorder-zone,.exercise-drop-zone{
+  border-radius:11px;
+  transition:min-height .12s var(--ease),background .12s var(--ease),border-color .12s var(--ease);
+}
+.routine-order-zone.drag-over,.day-order-zone.drag-over,.workout-reorder-zone.drag-over,.exercise-drop-zone.drag-over{
+  background:var(--accent-soft);
+  border-color:var(--accent-line);
+}
+
+/* ---------- Sessions / exercises ---------- */
+.day{
+  border-top-color:var(--line);
+}
+.exercise{
+  background:linear-gradient(145deg,#161c21,#13191d);
+  border:1px solid var(--line);
+  border-radius:13px;
+  box-shadow:0 4px 13px rgba(0,0,0,.08);
+}
+.exercise:hover{border-color:rgba(255,255,255,.11)}
+.exname{color:var(--text)}
+.meta{color:var(--muted)}
+
+/* ---------- Forms ---------- */
+input,textarea,select{
+  background:#12181c;
+  border:1px solid rgba(255,255,255,.09);
+  color:var(--text);
+  border-radius:10px;
+  box-shadow:0 1px 0 rgba(255,255,255,.02) inset;
+}
+input:hover,textarea:hover,select:hover{border-color:rgba(255,255,255,.13)}
+input:focus,textarea:focus,select:focus{
+  border-color:rgba(131,230,160,.58);
+  box-shadow:0 0 0 3px rgba(131,230,160,.08);
+  background:#151c20;
+}
+label{
+  color:#7f8b94;
+  letter-spacing:.055em;
+}
+
+/* ---------- Set controls ---------- */
+.tick{
+  border:1px solid rgba(255,255,255,.10);
+  background:#11171b;
+}
+.tick:hover{border-color:var(--accent-line);color:var(--accent)}
+.tick.done{
+  color:#07100a;
+  background:var(--accent);
+  border-color:var(--accent);
+  box-shadow:0 4px 13px rgba(131,230,160,.10);
+}
+
+/* ---------- Badges / status ---------- */
+.badge{
+  color:var(--accent);
+  background:var(--accent-soft);
+  border:1px solid var(--accent-line);
+  border-radius:999px;
+}
+
+/* ---------- Modals ---------- */
+.modal{
+  background:rgba(0,0,0,.76);
+  backdrop-filter:blur(8px);
+}
+.sheet{
+  background:linear-gradient(150deg,#151b20,#0e1317);
+  border:1px solid rgba(255,255,255,.10);
+  box-shadow:0 -20px 65px rgba(0,0,0,.38);
+}
+.modal.center .sheet{box-shadow:0 24px 70px rgba(0,0,0,.38)}
+.toast{
+  background:var(--accent);
+  color:#07100a;
+  border-radius:11px;
+  box-shadow:0 12px 32px rgba(0,0,0,.30);
+}
+
+/* ---------- Progress ---------- */
+.progress-stat-card,.compact-progress-stat,.progress-chart-stat{
+  background:linear-gradient(145deg,#171e23,#12181c)!important;
+  border-color:var(--line)!important;
+  box-shadow:0 5px 17px rgba(0,0,0,.10);
+}
+.progress-stat-card strong,.compact-progress-stat strong{color:var(--accent)}
+.progress-chart-controls{
+  background:#11171b!important;
+  border-color:var(--line)!important;
+}
+.progress-point-detail,.progress-chart-summary{
+  background:#11171b!important;
+  border-color:var(--line)!important;
+}
+.progress-chart-empty{
+  background:#0f1418!important;
+  border-color:rgba(255,255,255,.10)!important;
+}
+
+/* ---------- Notes ---------- */
+.routine-note-card{
+  background:linear-gradient(145deg,rgba(131,230,160,.045),#11171b)!important;
+  border-color:var(--accent-line)!important;
+}
+.routine-note-title{color:var(--accent)!important}
+.routine-note-text{color:var(--text-2)!important}
+
+/* ---------- Editor ---------- */
+.routine-editor-day{
+  background:linear-gradient(145deg,#151b20,#11171b)!important;
+  border-color:var(--line)!important;
+}
+.routine-editor-exercise{
+  background:#161c21!important;
+  border-color:var(--line)!important;
+}
+.routine-editor-day:hover,.routine-editor-exercise:hover{border-color:rgba(255,255,255,.11)!important}
+.workout-reorder-list{gap:6px}
+.workout-reorder-bar{
+  background:#161c21!important;
+  border:1px solid var(--line)!important;
+  border-radius:12px!important;
+}
+.workout-reorder-handle{color:var(--muted-2)!important}
+.workout-reorder-bar:hover .workout-reorder-handle{color:var(--accent)!important}
+.workout-reorder-zone.active,.workout-reorder-zone.drag-over{
+  border-color:var(--accent-line)!important;
+  background:var(--accent-soft)!important;
+}
+.session-back-row .btn{
+  color:var(--accent);
+  background:var(--accent-soft);
+  border-color:var(--accent-line);
+}
+
+/* ---------- Trash ---------- */
+.icon-trash-btn{
+  border-radius:12px;
+}
+.icon-trash-btn.trash-full{
+  background:rgba(131,230,160,.045);
+  border-color:var(--accent-line);
+}
+.icon-trash-btn.trash-full .trash-reference-img{
+  width:34px!important;
+  height:34px!important;
+  filter:drop-shadow(0 4px 6px rgba(0,0,0,.24));
+}
+
+/* ---------- Login ---------- */
+.auth{
+  background:
+    radial-gradient(520px 330px at 50% 9%,rgba(131,230,160,.07),transparent 70%),
+    var(--bg);
+}
+.authbox{
+  background:linear-gradient(145deg,#151b20,#0f1418);
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:23px;
+  box-shadow:0 26px 75px rgba(0,0,0,.38);
+}
+.authbox h1{letter-spacing:-.055em}
+.authbox h1::after{
+  background:var(--accent);
+  border-radius:999px;
+}
+.role-picker{gap:9px}
+.role-option{
+  background:#11171b;
+  border-color:var(--line);
+  border-radius:13px;
+  color:var(--muted);
+  transition:all .17s var(--ease);
+}
+.role-option:hover{
+  border-color:rgba(255,255,255,.13);
+  background:#161d22;
+}
+.role-option:has(input:checked){
+  color:#07100a;
+  background:var(--accent);
+  border-color:var(--accent);
+  box-shadow:0 8px 24px rgba(131,230,160,.09);
+}
+
+/* ---------- Small screens ---------- */
+@media(max-width:760px){
+  .wrap{padding:19px 12px 72px}
+  header{margin-bottom:17px}
+  header h1{font-size:26px}
+  .tabs{
+    position:sticky;
+    top:8px;
+    z-index:30;
+  }
+  .card{border-radius:16px}
+  .routine>.buttons{
+    gap:7px;
+  }
+  .routine>.buttons .btn{
+    min-height:42px;
+  }
+}
+@media(max-width:430px){
+  .wrap{padding-left:9px;padding-right:9px}
+  .tabs button{font-size:11px}
+  .card{padding:14px}
+  .sheet{border-radius:19px 19px 0 0}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{
+    animation-duration:.01ms!important;
+    animation-iteration-count:1!important;
+    transition-duration:.01ms!important;
+    scroll-behavior:auto!important;
+  }
+}
+</style>
+
+<style id="simple-ux-v25">
+/* ---------- V25: app-like micro polish ---------- */
+::selection{background:rgba(131,230,160,.24);color:#fff}
+:focus-visible{outline:2px solid rgba(131,230,160,.55);outline-offset:2px}
+
+.card,.routine,.exercise,.routine-editor-day,.routine-editor-exercise{
+  will-change:transform;
+}
+.card:hover{
+  transform:translateY(-1px);
+  box-shadow:0 10px 28px rgba(0,0,0,.14);
+}
+.routine:hover{
+  transform:translateY(-1px);
+}
+.exercise:hover{
+  transform:translateY(-1px);
+}
+
+/* Give section headings a subtle visual anchor. */
+.card>h2:first-child,.card>h3:first-child{
+  position:relative;
+}
+.card>h2:first-child::after,.card>h3:first-child::after{
+  content:"";
+  display:block;
+  width:24px;
+  height:2px;
+  margin-top:8px;
+  border-radius:99px;
+  background:var(--accent);
+  opacity:.72;
+}
+
+/* Cleaner action grouping. */
+.buttons{gap:7px}
+.buttons .btn{flex:0 0 auto}
+
+/* Destructive actions stay visually quiet until needed. */
+.btn.danger{opacity:.9}
+.btn.danger:hover{opacity:1}
+
+/* Better disabled state without making disabled controls look broken. */
+.btn:disabled,input:disabled,select:disabled,textarea:disabled{
+  filter:saturate(.55);
+}
+
+/* Reorder mode gets a clear but restrained visual state. */
+.workout-reorder-bar[draggable="true"]{
+  cursor:grab;
+}
+.workout-reorder-bar[draggable="true"]:active{
+  cursor:grabbing;
+}
+.workout-reorder-zone.active,.workout-reorder-zone.drag-over{
+  box-shadow:inset 0 0 0 1px rgba(131,230,160,.08);
+}
+
+/* Sticky tabs on mobile should not feel like a floating slab. */
+@media(max-width:760px){
+  .tabs{
+    box-shadow:0 7px 20px rgba(0,0,0,.20);
+  }
+  .tabs button.active{
+    box-shadow:none;
+  }
+  .routine:hover,.exercise:hover,.card:hover{
+    transform:none;
+  }
+}
+
+/* Compact, elegant scrollbars on supported browsers. */
+*{
+  scrollbar-width:thin;
+  scrollbar-color:#303a42 transparent;
+}
+*::-webkit-scrollbar{width:8px;height:8px}
+*::-webkit-scrollbar-track{background:transparent}
+*::-webkit-scrollbar-thumb{
+  background:#303a42;
+  border-radius:99px;
+}
+*::-webkit-scrollbar-thumb:hover{background:#46525b}
+</style>
+
+<style id="simple-login-role-mobile-v26">
+/* Cliente + Entrenador stay side-by-side on mobile, like desktop. */
+@media(max-width:760px){
+  .role-picker{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    align-items:stretch;
+    gap:9px;
+  }
+  .role-option{
+    min-width:0;
+    min-height:52px;
+    width:100%;
+  }
+}
+@media(max-width:360px){
+  .role-picker{gap:7px}
+  .role-option{font-size:12px;padding:9px 6px}
+}
+</style>
 </body></html>
 
 <style>
