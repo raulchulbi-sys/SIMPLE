@@ -2117,6 +2117,7 @@ async function openRoutineProgress(routineId){
   body.innerHTML='<div class="muted">Cargando sesiones...</div>';
   openM('clientProgressModal');
   setNestedView(true);
+  setTimeout(()=>window.fixProgressExerciseSelector?.(),0);
   try{
     const r=await db.from('workouts').select('id,user_id,variant,day,workout_date,data')
       .eq('user_id',user.id)
@@ -7202,6 +7203,76 @@ window.updateClientTrashVisual=function(full){
   }
 }
 </style>
+
+<style id="simple-trash-density-v39">
+@media(max-width:650px){
+  #trash .trash-routine-card{
+    padding:9px 10px!important;
+    margin:6px 0!important;
+    gap:7px!important;
+    border-radius:11px!important;
+  }
+  #trash .trash-routine-main h3{
+    font-size:13px!important;
+    line-height:1.2!important;
+  }
+  #trash .trash-routine-main .muted{
+    font-size:9.5px!important;
+    line-height:1.25!important;
+    margin-top:3px!important;
+  }
+  #trash .trash-actions{
+    gap:5px!important;
+  }
+  #trash .trash-actions .btn{
+    min-height:34px!important;
+    padding:6px 7px!important;
+    font-size:10.5px!important;
+    line-height:1.15!important;
+    border-radius:8px!important;
+  }
+}
+@media(max-width:380px){
+  #trash .trash-routine-card{padding:8px 9px!important}
+  #trash .trash-actions .btn{font-size:10px!important}
+}
+</style>
+
+<style id="simple-progress-selector-v39">
+@media(max-width:650px){
+  #clientProgressModal select,
+  #clientProgressModal .progress-exercise-select{
+    width:100%!important;
+    min-height:42px!important;
+    font-size:13px!important;
+    padding:9px 11px!important;
+    border-radius:10px!important;
+    display:block!important;
+    opacity:1!important;
+    pointer-events:auto!important;
+  }
+}
+</style>
+
+<script id="simple-progress-selector-runtime-v39">
+(function(){
+  window.fixProgressExerciseSelector=function(){
+    const modal=document.getElementById('clientProgressModal');
+    if(!modal)return;
+    modal.querySelectorAll('select.progress-exercise-select, select[data-progress-exercise], select[name="progressExercise"]').forEach(sel=>{
+      sel.disabled=false;
+      sel.removeAttribute('disabled');
+      sel.style.pointerEvents='auto';
+      sel.style.opacity='1';
+    });
+  };
+  document.addEventListener('change',function(e){
+    if(e.target && e.target.matches('select.progress-exercise-select,select[data-progress-exercise],select[name="progressExercise"]')){
+      e.target.disabled=false;
+    }
+  },true);
+})();
+</script>
 </body></html>
 
 <style>
