@@ -7009,6 +7009,199 @@ window.updateClientTrashVisual=function(full){
   display:block!important;
 }
 </style>
+
+<style id="simple-mobile-typography-v38">
+/* SIMPLE V38 — mobile density & typography polish
+   Goal: less visual bulk, tighter hierarchy, easier scanning.
+   Desktop remains unchanged. */
+
+@media(max-width:650px){
+  /* General cards: reduce the feeling of giant blocks. */
+  .card{
+    padding:13px 12px;
+    margin:9px 0;
+    border-radius:14px;
+  }
+  .card h2{
+    font-size:18px;
+    line-height:1.2;
+  }
+  .card h3{
+    font-size:15px;
+    line-height:1.25;
+  }
+  .muted{
+    font-size:11px;
+    line-height:1.35;
+  }
+
+  /* History: compact session headers and content. */
+  .history-session{
+    margin-bottom:8px;
+    border-radius:13px;
+  }
+  .history-summary{
+    padding:12px 13px;
+    gap:9px;
+    min-height:0;
+  }
+  .history-title{
+    font-size:15px;
+    line-height:1.25;
+    display:block;
+  }
+  .history-summary .muted{
+    margin-top:2px;
+    font-size:10.5px;
+  }
+  .history-chevron{
+    font-size:18px;
+    flex:0 0 auto;
+  }
+  .history-content{
+    padding:0 12px 13px;
+  }
+  .history-exercise{
+    margin-top:10px;
+    padding-top:10px;
+  }
+  .history-exercise-head{
+    gap:7px;
+  }
+  .history-exercise-head b{
+    font-size:13px;
+  }
+  .history-objective{
+    font-size:10.5px;
+    line-height:1.35;
+  }
+  .history-table{
+    margin-top:7px;
+    font-size:11px;
+  }
+  .history-row{
+    grid-template-columns:50px 1fr 1fr 1fr;
+    padding:7px 8px;
+    gap:3px;
+  }
+  .history-label{
+    font-size:9.5px;
+  }
+  .history-notes{
+    margin-top:7px;
+    font-size:11px;
+  }
+
+  /* Trash: compact cards, no huge empty vertical areas. */
+  .trash-routine-card{
+    padding:12px!important;
+    margin:8px 0!important;
+    border-radius:13px!important;
+    gap:9px!important;
+  }
+  .trash-routine-card h3{
+    margin:0;
+    font-size:14px;
+    line-height:1.25;
+  }
+  .trash-routine-main .muted{
+    font-size:10.5px;
+    line-height:1.35;
+  }
+  .trash-actions{
+    gap:6px!important;
+  }
+  .trash-actions .btn{
+    min-height:38px!important;
+    padding:8px 9px!important;
+    font-size:11.5px!important;
+    line-height:1.2!important;
+    border-radius:9px!important;
+  }
+
+  /* Generic buttons: slightly less bulky while retaining touch targets. */
+  .btn{
+    padding:9px 11px;
+    font-size:12.5px;
+    border-radius:10px;
+  }
+
+  /* Routine cards in Mis rutinas: more information density. */
+  #mine .routine{
+    padding:12px;
+    margin:8px 0;
+    gap:9px;
+  }
+  #mine .routine h3{
+    font-size:15px;
+  }
+  #mine .routine .buttons{
+    gap:5px;
+    width:100%;
+  }
+  #mine .routine .buttons .btn{
+    flex:1 1 auto;
+    min-width:0;
+    padding:8px 7px;
+    font-size:11px;
+  }
+
+  /* Client cards and assigned-routine rows. */
+  .client-card,
+  .profile-card{
+    padding:12px!important;
+  }
+
+  /* Progress: reduce oversized metric/chart framing. */
+  .progress-stat-card{
+    min-width:0;
+    padding:10px 11px;
+    border-radius:10px;
+  }
+  .progress-stat-card b{
+    font-size:17px;
+  }
+  .progress-stat-card small{
+    font-size:10.5px;
+  }
+  .progress-chart-wrap{
+    padding:5px;
+    border-radius:11px;
+  }
+
+  /* Empty states shouldn't dominate a phone screen. */
+  .empty{
+    padding:25px 14px;
+  }
+
+  /* Section headers should breathe, but not create another giant block. */
+  #history>.card:first-child,
+  #trash>.card:first-child,
+  #mine>.card:first-child{
+    padding:12px;
+    margin-bottom:8px;
+  }
+}
+
+/* Very narrow phones: stack only where it genuinely improves readability. */
+@media(max-width:380px){
+  .history-summary{
+    padding:11px;
+  }
+  .history-content{
+    padding-left:10px;
+    padding-right:10px;
+  }
+  .trash-actions{
+    grid-template-columns:1fr!important;
+  }
+  .history-row{
+    grid-template-columns:44px 1fr 1fr 1fr;
+    padding-left:6px;
+    padding-right:6px;
+  }
+}
+</style>
 </body></html>
 
 <style>
