@@ -7341,73 +7341,103 @@ window.updateClientTrashVisual=function(full){
 }
 </style>
 
-<style id="simple-nav-smart-hide-v42">
+<style id="simple-nav-smart-hide-v43">
 @media(max-width:650px){
   #tabs{
     position:sticky!important;
     top:0!important;
     z-index:1000!important;
-    transition:transform .22s ease, opacity .18s ease!important;
+    transition:transform .20s ease,opacity .16s ease!important;
     will-change:transform;
   }
   #tabs.nav-hidden-on-scroll{
-    transform:translateY(-110%)!important;
+    transform:translate3d(0,-120%,0)!important;
     opacity:0!important;
     pointer-events:none!important;
   }
 }
 </style>
 
-<script id="simple-nav-smart-hide-runtime-v42">
+<script id="simple-nav-smart-hide-runtime-v43">
 (function(){
   let lastY=window.scrollY||0;
+  let touchStartY=null;
   let ticking=false;
-  const DOWN_THRESHOLD=8;
-  const TOP_ZONE=12;
+  const THRESHOLD=6;
+  const TOP=10;
 
-  function updateNavOnScroll(){
-    ticking=false;
-    const tabs=document.getElementById('tabs');
-    if(!tabs)return;
-    const y=window.scrollY||0;
-    const delta=y-lastY;
+  function tabs(){return document.getElementById('tabs')}
 
-    if(y<=TOP_ZONE){
-      tabs.classList.remove('nav-hidden-on-scroll');
-      lastY=y;
-      return;
-    }
-    if(Math.abs(delta)<DOWN_THRESHOLD){
-      lastY=y;
-      return;
-    }
-    if(delta>0){
-      tabs.classList.add('nav-hidden-on-scroll');
-    }else{
-      tabs.classList.remove('nav-hidden-on-scroll');
-    }
-    lastY=y;
+  function show(){
+    const el=tabs();
+    if(el)el.classList.remove('nav-hidden-on-scroll');
+  }
+  function hide(){
+    const el=tabs();
+    if(el)el.classList.add('nav-hidden-on-scroll');
   }
 
-  window.addEventListener('scroll',function(){
-    if(!ticking){
-      ticking=true;
-      requestAnimationFrame(updateNavOnScroll);
+  function apply(y){
+    const el=tabs();
+    if(!el)return;
+    const delta=y-lastY;
+    if(y<=TOP){show();lastY=y;return;}
+    if(Math.abs(delta)>=THRESHOLD){
+      if(delta>0)hide();
+      else show();
+      lastY=y;
     }
-  },{passive:true});
+  }
+
+  /* Normal browser/window scrolling. */
+  window.addEventListener('scroll',function(){
+    if(ticking)return;
+    ticking=true;
+    requestAnimationFrame(function(){
+      ticking=false;
+      apply(window.scrollY||document.documentElement.scrollTop||0);
+    });
+  },{passive:true,capture:true});
+
+  /*
+   * Mobile Safari/Chrome can scroll an inner page container without giving
+   * window.scrollY the useful delta. Detect the finger direction directly,
+   * so the nav follows the user's gesture regardless of which element owns
+   * the scroll.
+   */
+  document.addEventListener('touchstart',function(e){
+    if(e.touches&&e.touches.length)touchStartY=e.touches[0].clientY;
+  },{passive:true,capture:true});
+
+  document.addEventListener('touchmove',function(e){
+    if(touchStartY==null||!e.touches||!e.touches.length)return;
+    const y=e.touches[0].clientY;
+    const delta=touchStartY-y;
+    if(Math.abs(delta)>=THRESHOLD){
+      if(delta>0){
+        /* Finger moving up = content scrolling down. */
+        hide();
+      }else{
+        /* Finger moving down = content scrolling up. */
+        show();
+      }
+      touchStartY=y;
+    }
+  },{passive:true,capture:true});
+
+  document.addEventListener('touchend',function(){touchStartY=null},{passive:true,capture:true});
+  document.addEventListener('touchcancel',function(){touchStartY=null},{passive:true,capture:true});
 
   window.showSimpleTopNav=function(){
-    const tabs=document.getElementById('tabs');
-    if(tabs)tabs.classList.remove('nav-hidden-on-scroll');
-    lastY=window.scrollY||0;
+    show();
+    lastY=window.scrollY||document.documentElement.scrollTop||0;
   };
 
   document.addEventListener('click',function(e){
     if(e.target.closest('#tabs button')){
       requestAnimationFrame(function(){
-        const tabs=document.getElementById('tabs');
-        if(tabs)tabs.classList.remove('nav-hidden-on-scroll');
-        lastY=window.scrollY||0;
+        show();
+        lastY=window.scrollY||document.documentElement.scrollTop||0;
       });
     }
   },true);
