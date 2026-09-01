@@ -1532,7 +1532,7 @@ async function renderTrash(){
           </div>
           <div class="buttons trash-actions">
             <button class="btn" type="button" onclick="restoreRoutine('${r.id}')">↩ Restaurar</button>
-            <button class="btn danger trash-delete-permanent" type="button" onclick="permanentlyDeleteRoutine('${r.id}')">Eliminar definitivamente</button>
+            <button class="btn danger trash-delete-permanent" type="button" onclick="permanentlyDeleteRoutine('${r.id}')">Eliminar</button>
           </div>
         </div>`).join('');
       }
@@ -7295,6 +7295,49 @@ window.updateClientTrashVisual=function(full){
     pointer-events:auto!important;
     touch-action:manipulation!important;
   }
+}
+</style>
+
+<style id="simple-nav-fixed-trash-v41">
+@media(max-width:650px){
+  #tabs{
+    position:sticky!important;
+    top:0!important;
+    z-index:1000!important;
+    background:rgba(10,13,15,.96)!important;
+    backdrop-filter:blur(12px);
+    -webkit-backdrop-filter:blur(12px);
+  }
+  #trash .trash-routine-card{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) auto!important;
+    align-items:center!important;
+    column-gap:10px!important;
+    padding:9px 10px!important;
+    margin:6px 0!important;
+    min-height:0!important;
+  }
+  #trash .trash-routine-main{min-width:0!important}
+  #trash .trash-routine-main h3{
+    margin:0!important;font-size:13px!important;line-height:1.2!important;
+  }
+  #trash .trash-routine-main .muted{
+    font-size:9.5px!important;line-height:1.25!important;
+  }
+  #trash .trash-actions{
+    width:auto!important;display:flex!important;flex-direction:column!important;
+    align-items:stretch!important;justify-content:center!important;
+    gap:5px!important;flex:0 0 auto!important;
+  }
+  #trash .trash-actions .btn{
+    width:auto!important;min-width:94px!important;min-height:32px!important;
+    padding:6px 8px!important;font-size:10.5px!important;line-height:1.1!important;
+    white-space:nowrap!important;
+  }
+}
+@media(max-width:380px){
+  #trash .trash-routine-card{column-gap:7px!important;padding:8px 9px!important}
+  #trash .trash-actions .btn{min-width:84px!important;font-size:10px!important}
 }
 </style>
 </body></html>
