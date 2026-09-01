@@ -7340,6 +7340,79 @@ window.updateClientTrashVisual=function(full){
   #trash .trash-actions .btn{min-width:84px!important;font-size:10px!important}
 }
 </style>
+
+<style id="simple-nav-smart-hide-v42">
+@media(max-width:650px){
+  #tabs{
+    position:sticky!important;
+    top:0!important;
+    z-index:1000!important;
+    transition:transform .22s ease, opacity .18s ease!important;
+    will-change:transform;
+  }
+  #tabs.nav-hidden-on-scroll{
+    transform:translateY(-110%)!important;
+    opacity:0!important;
+    pointer-events:none!important;
+  }
+}
+</style>
+
+<script id="simple-nav-smart-hide-runtime-v42">
+(function(){
+  let lastY=window.scrollY||0;
+  let ticking=false;
+  const DOWN_THRESHOLD=8;
+  const TOP_ZONE=12;
+
+  function updateNavOnScroll(){
+    ticking=false;
+    const tabs=document.getElementById('tabs');
+    if(!tabs)return;
+    const y=window.scrollY||0;
+    const delta=y-lastY;
+
+    if(y<=TOP_ZONE){
+      tabs.classList.remove('nav-hidden-on-scroll');
+      lastY=y;
+      return;
+    }
+    if(Math.abs(delta)<DOWN_THRESHOLD){
+      lastY=y;
+      return;
+    }
+    if(delta>0){
+      tabs.classList.add('nav-hidden-on-scroll');
+    }else{
+      tabs.classList.remove('nav-hidden-on-scroll');
+    }
+    lastY=y;
+  }
+
+  window.addEventListener('scroll',function(){
+    if(!ticking){
+      ticking=true;
+      requestAnimationFrame(updateNavOnScroll);
+    }
+  },{passive:true});
+
+  window.showSimpleTopNav=function(){
+    const tabs=document.getElementById('tabs');
+    if(tabs)tabs.classList.remove('nav-hidden-on-scroll');
+    lastY=window.scrollY||0;
+  };
+
+  document.addEventListener('click',function(e){
+    if(e.target.closest('#tabs button')){
+      requestAnimationFrame(function(){
+        const tabs=document.getElementById('tabs');
+        if(tabs)tabs.classList.remove('nav-hidden-on-scroll');
+        lastY=window.scrollY||0;
+      });
+    }
+  },true);
+})();
+</script>
 </body></html>
 
 <style>
