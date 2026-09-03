@@ -1738,7 +1738,7 @@ function getProgressExercises(sessions){
       Array.isArray(s?.exercises)?s.exercises:[];
     ex.forEach(e=>{
       const name=String(e?.name||e?.exercise_name||'').trim();
-      const key=name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+      const key=name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\u00a0/g,' ').replace(/\s+/g,' ').trim().toLowerCase();
       if(name&&!seen.has(key)){seen.add(key);names.push(name);}
     });
   });
@@ -1750,16 +1750,30 @@ function getExercisePoints(sessions,exerciseName,metric){
   return ordered.map((s,idx)=>{
     const exs=Array.isArray(s?.data?.exercises)?s.data.exercises:
       Array.isArray(s?.exercises)?s.exercises:[];
-    const normalizeExerciseName=v=>String(v||'').trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+    const normalizeExerciseName=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\u00a0/g,' ').replace(/\s+/g,' ').trim().toLowerCase();
     const targetExerciseName=normalizeExerciseName(exerciseName);
-    const e=exs.find(x=>normalizeExerciseName(x?.name||x?.exercise_name)===targetExerciseName);
+    const e=exs.find(x=>normalizeExerciseName(x?.name||x?.exercise_name)===targetExerciseName)
+      || exs.find(x=>normalizeExerciseName(x?.name||x?.exercise_name).replace(/[^a-z0-9]+/g,'')===targetExerciseName.replace(/[^a-z0-9]+/g,''));
     if(!e)return null;
     const sets=Array.isArray(e?.sets)?e.sets:
       Array.isArray(e?.series)?e.series:[];
     const nums=sets.map((set,setIndex)=>{
-      const kg=Number(set?.kg ?? set?.weight);
-      const reps=Number(set?.reps ?? set?.repetitions);
-      const rir=Number(set?.rir);
+      const rawKg=set?.kg ?? set?.weight;
+      const rawReps=set?.reps ?? set?.repetitions;
+      const rawRir=set?.rir;
+      // Los datos antiguos pueden venir con decimal español (157,5).
+      // Number('157,5') devuelve NaN, lo que hacía que la gráfica dijera
+      // que no había datos aunque el registro sí existiera.
+      const toProgressNumber=v=>{
+        if(v===''||v==null)return NaN;
+        if(typeof v==='number')return Number.isFinite(v)?v:NaN;
+        const normalized=String(v).trim().replace(/\u00a0/g,' ').replace(/,/g,'.');
+        const n=Number(normalized);
+        return Number.isFinite(n)?n:NaN;
+      };
+      const kg=toProgressNumber(rawKg);
+      const reps=toProgressNumber(rawReps);
+      const rir=toProgressNumber(rawRir);
       const estimated1rm=(Number.isFinite(kg)&&Number.isFinite(reps)&&kg>0&&reps>0)
         ? 0.0333*kg*reps+kg : null;
       return {kg,reps,rir,estimated1rm,setIndex};
@@ -2017,17 +2031,51 @@ function showProgressPoint(index,node){
 function getProgressDays(sessions,orderedRoutineDays=[]){
   const map=new Map();
   const ordered=orderedRoutineDays||[];
-  const byName=new Map(ordered.map(d=>[String(d.name||'').trim().toLowerCase(),String(d.id)]));
+  const normalizeDayName=v=>String(v||'')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/\u00a0/g,' ').replace(/\s+/g,' ').trim().toLowerCase();
+
+  // A workout can contain the day id of a client-copy of the routine, while
+  // the progress screen may be opened from the trainer/source routine. Never
+  // trust an unknown routine_day_id blindly: first check that it belongs to
+  // the routine currently being displayed, then fall back to the day name.
+  const validIds=new Set(ordered.map(d=>String(d.id)));
+  const dayEntries=ordered.map(d=>({
+    id:String(d.id),
+    name:String(d.name||''),
+    norm:normalizeDayName(d.name)
+  }));
+
+  function resolveDayByName(rawName){
+    const n=normalizeDayName(rawName);
+    if(!n)return null;
+    let hit=dayEntries.find(d=>d.norm===n);
+    if(hit)return hit;
+
+    // Common saved labels are things like "MIÉRCOLES / LEGS". Match either
+    // side against the actual routine-day name.
+    const parts=n.split(/[\/|·-]+/).map(x=>x.trim()).filter(Boolean);
+    hit=dayEntries.find(d=>parts.includes(d.norm));
+    if(hit)return hit;
+
+    // Last resort: containment, but only when it is unambiguous.
+    const contains=dayEntries.filter(d=>d.norm && (n.includes(d.norm)||d.norm.includes(n)));
+    return contains.length===1?contains[0]:null;
+  }
 
   (sessions||[]).forEach(s=>{
     const d=s?.data||{};
-    const rawId=d.day_id??d.dayId??null;
+    const rawId=d.routine_day_id??d.routineDayId??d.day_id??d.dayId??null;
     const rawName=String(d.day_name??d.dayName??d.day_title??s.variant??s.day??'Sesión').trim();
-    const normalizedName=rawName.toLowerCase();
-    const key=rawId!=null
+    const byName=resolveDayByName(rawName);
+
+    // Only use an id directly when it is one of the current routine's day ids.
+    // Otherwise map the session to the equivalent day by its saved name.
+    const key=rawId!=null && validIds.has(String(rawId))
       ? String(rawId)
-      : (byName.get(normalizedName)||`name:${normalizedName}`);
-    if(!map.has(key))map.set(key,{key,name:rawName,sessions:[]});
+      : (byName?.id || `name:${normalizeDayName(rawName)}`);
+    const displayName=byName?.name || rawName || 'Sesión';
+    if(!map.has(key))map.set(key,{key,name:displayName,sessions:[]});
     map.get(key).sessions.push(s);
   });
 
@@ -2089,7 +2137,7 @@ function setupClientProgressChart(sessions){
     const periodSessions=filterProgressSessions(day?.sessions||clientProgressChartState.sessions,period);
     clientProgressChartState.selectedDayKey=key;
     clientProgressChartState.filteredSessions=periodSessions;
-    const names=getProgressExercises(periodSessions);
+    const names=getProgressExercises(periodSessions.length?periodSessions:(day?.sessions||clientProgressChartState.sessions));
     exerciseSelect.innerHTML=names.slice(0,200).map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
     exerciseSelect.disabled=!names.length;
     metric.disabled=!names.length;
@@ -2455,7 +2503,7 @@ function renderClientSingleDayExercises(di){
             <div class="grid3">
               <div><label>Ejercicio</label><input value="${esc(e.name)}" onchange="editDays[${di}].exercises[${ei}].name=this.value"></div>
               <div><label>Series</label><input type="number" min="1" value="${e.sets||1}" onchange="editDays[${di}].exercises[${ei}].sets=Math.max(1,+this.value||1)"></div>
-              <div><label>Descanso (min)</label><input type="number" min="0" step="0.5" value="${(e.rest_seconds||0)/60}" onchange="editDays[${di}].exercises[${ei}].rest_seconds=(+this.value||0)*60"></div>
+              <div><label>Descanso (min)</label><input type="number" min="0" step="0.5" value="${Number(e.rest_seconds||0)/60}" inputmode="decimal" onchange="editDays[${di}].exercises[${ei}].rest_seconds=Math.max(0,(parseFloat(this.value)||0)*60)"></div>
             </div>
             <div class="grid" style="margin-top:8px">
               <div><label>Objetivo de reps</label><input value="${esc(e.target||'')}" placeholder="2x10-15" onchange="editDays[${di}].exercises[${ei}].target=this.value"></div>
@@ -4736,6 +4784,33 @@ async function startWorkoutDay(dayId){
       window.workoutHistory=[];
     }
 
+    // Recuperación de respaldo: si una nota ya existía en una sesión anterior
+    // pero por alguna razón no está en la rutina/localStorage, la recuperamos
+    // del historial y la volvemos a dejar en el ejercicio.
+    try{
+      const history=Array.isArray(window.workoutHistory)?window.workoutHistory:[];
+      const previous=history
+        .filter(s=>String(s.data?.routine_id||'')===String(workoutRoutine?.id||''))
+        .filter(s=>String(s.data?.routine_day_id||'')===String(dayId))
+        .sort((a,b)=>new Date(b.workout_date||0)-new Date(a.workout_date||0));
+      if(previous.length){
+        const latest=previous[0];
+        for(const e of activeWorkout.exercises){
+          const current=String(activeWorkout.sets[e.id]?.note??'');
+          if(current.trim())continue;
+          const old=Array.isArray(latest.data?.exercises)
+            ? latest.data.exercises.find(se=>String(se.exercise_id||'')===String(e.id) || String(se.name||'').trim().toLowerCase()===String(e.name||'').trim().toLowerCase())
+            : null;
+          if(old && String(old.notes??'').trim()){
+            activeWorkout.sets[e.id].note=String(old.notes);
+            e.notes=String(old.notes);
+          }
+        }
+      }
+    }catch(noteRecoveryErr){
+      console.warn('No se pudieron recuperar notas antiguas:',noteRecoveryErr);
+    }
+
     const today=new Date().toISOString().slice(0,10);
     const todaySession=(window.workoutHistory||[]).find(session=>{
       const data=session.data||{};
@@ -5404,6 +5479,7 @@ async function saveWorkoutSession(){
       routine_name:workoutRoutine.name||'Entrenamiento',
       day_name:activeWorkout.day.name||'',
       workout_date:new Date().toISOString(),
+      completed_at:new Date().toISOString(),
       exercises:(activeWorkout.exercises||[]).map(e=>{
         const st=activeWorkout.sets[e.id]||[];
         return {
@@ -5436,8 +5512,12 @@ async function saveWorkoutSession(){
     const r=await db.from('workouts').insert(payload).select().single();
     if(r.error)throw r.error;
 
-    // Persistimos las notas en localStorage del usuario y en la sesión guardada.
-    // NO modificamos routine_exercises.
+    // Las notas de la sesión son también las notas persistentes del ejercicio.
+    // Regla: al completar una sesión, JAMÁS se pierden.
+    // Las guardamos en localStorage y, cuando la rutina pertenece al usuario,
+    // también las dejamos en routine_exercises para que sigan apareciendo
+    // al volver a abrir la rutina. Si es una rutina del entrenador, no
+    // intentamos modificar la plantilla ajena.
     const notes={};
     for(const e of (activeWorkout.exercises||[])){
       notes[e.id]=String(activeWorkout.sets[e.id]?.note??'');
@@ -5445,6 +5525,24 @@ async function saveWorkoutSession(){
     const notesKey=workoutNotesKey();
     if(notesKey){
       try{localStorage.setItem(notesKey,JSON.stringify(notes));}catch(e){}
+    }
+
+    // Persistencia definitiva de las notas en la rutina propia.
+    // Esto evita que desaparezcan al terminar la sesión o limpiar el draft.
+    try{
+      const rq=await db.from('routines').select('owner_id').eq('id',workoutRoutine.id).single();
+      if(!rq.error && String(rq.data?.owner_id||'')===String(user.id)){
+        for(const e of (activeWorkout.exercises||[])){
+          const note=String(activeWorkout.sets[e.id]?.note??'');
+          const nq=await db.from('routine_exercises')
+            .update({notes:note||null})
+            .eq('id',e.id)
+            .eq('day_id',activeWorkout.day.id);
+          if(nq.error)console.warn('No se pudo persistir la nota del ejercicio:',e.name,nq.error);
+        }
+      }
+    }catch(noteErr){
+      console.warn('Persistencia de notas de rutina no disponible:',noteErr);
     }
 
     window.__lastSavedWorkoutKey=currentKey;
@@ -5631,6 +5729,51 @@ function simpleWeekStartDate(){
   d.setDate(d.getDate()+(day===0?-6:1-day));
   return d.toISOString().slice(0,10);
 }
+function simpleSessionTimestamp(row){
+  const data=row?.data||{};
+  const raw=data.completed_at||data.workout_date||row?.workout_date||row?.created_at||data.date||data.created_at;
+  const t=Date.parse(raw||'');
+  return Number.isFinite(t)?t:0;
+}
+function simpleWeeklyProgressFromSessions(sessions,total,weekStart){
+  const now=Date.now();
+  const weekStartMs=Date.parse(`${weekStart}T00:00:00`);
+  const normalized=[];
+  for(const row of (sessions||[])){
+    const ts=simpleSessionTimestamp(row);
+    if(!ts)continue;
+    normalized.push({row,ts});
+  }
+  normalized.sort((a,b)=>a.ts-b.ts);
+  const sessionsInWeek=normalized.filter(x=>x.ts>=weekStartMs);
+  const countDays=(items)=>{
+    const seen=new Set();
+    for(const {row} of items){
+      const d=row?.data||{};
+      const day=String(d.day_name??row.variant??row.day??'').trim().toLowerCase();
+      const key=day||String(d.routine_day_id||row.id||'');
+      if(key)seen.add(key);
+    }
+    return Math.min(total,seen.size);
+  };
+  let done=countDays(sessionsInWeek);
+  if(done>=total && total>0){
+    const completedAt=Math.max(...sessionsInWeek.map(x=>x.ts));
+    // Keep 100% for the rest of the calendar day on which the final session
+    // was completed. At the next local calendar day, start a new cycle at 0.
+    const completedDate=new Date(completedAt);
+    const todayDate=new Date(now);
+    const sameCalendarDay=completedDate.getFullYear()===todayDate.getFullYear()
+      && completedDate.getMonth()===todayDate.getMonth()
+      && completedDate.getDate()===todayDate.getDate();
+    if(sameCalendarDay){
+      return total;
+    }
+    // A new cycle only counts sessions completed after the last full cycle.
+    done=countDays(sessionsInWeek.filter(x=>x.ts>completedAt));
+  }
+  return done;
+}
 async function getWeeklyRoutineProgressForUser(userId,routineIds,workoutRoutineAliases={},routineNames={}){
   const primaryIds=[...new Set((routineIds||[]).filter(Boolean).map(String))];
   const result=new Map(primaryIds.map(id=>[id,{total:0,done:0}]));
@@ -5668,16 +5811,7 @@ async function getWeeklyRoutineProgressForUser(userId,routineIds,workoutRoutineA
                  String(primary)===String(rid)&&String(savedRid)===String(alias));
         });
 
-        const seen=new Set();
-        for(const row of sessions){
-          const d=new Date(row.workout_date);
-          if(Number.isNaN(d.getTime()) || d.toISOString().slice(0,10)<weekStart)continue;
-          const data=row.data||{};
-          const day=String(data.day_name ?? row.variant ?? row.day ?? '').trim().toLowerCase();
-          const key=day || String(data.routine_day_id||row.id);
-          if(key)seen.add(key);
-        }
-        x.done=Math.min(x.total,seen.size);
+        x.done=simpleWeeklyProgressFromSessions(sessions,x.total,weekStart);
       }catch(e){
         console.warn('getWeeklyRoutineProgressForUser secure RPC:',e);
       }
@@ -5717,11 +5851,10 @@ async function getWeeklyRoutineProgressForUser(userId,routineIds,workoutRoutineA
     const w=await db.from('workouts')
       .select('id,workout_date,data,variant,day')
       .eq('user_id',userId)
-      .gte('workout_date',weekStart)
       .order('workout_date',{ascending:false});
     if(w.error)throw w.error;
 
-    const seen=new Map();
+    const sessionsByRoutine=new Map();
     for(const row of (w.data||[])){
       const data=row.data||{};
       const rid=String(data.routine_id||'');
@@ -5734,13 +5867,12 @@ async function getWeeklyRoutineProgressForUser(userId,routineIds,workoutRoutineA
         ||nameToPrimary.get(savedName)
         ||(primaryIds.includes(rid)?rid:null);
       if(!resolvedRid||!result.has(resolvedRid))continue;
-      if(!seen.has(resolvedRid))seen.set(resolvedRid,new Set());
-      const dayName=String(data.day_name ?? row.variant ?? row.day ?? '').trim().toLowerCase();
-      const key=dayName||dayId||String(row.id);
-      if(key)seen.get(resolvedRid).add(key);
+      if(!sessionsByRoutine.has(resolvedRid))sessionsByRoutine.set(resolvedRid,[]);
+      sessionsByRoutine.get(resolvedRid).push(row);
     }
-    for(const [rid,set] of seen){
-      result.get(rid).done=Math.min(result.get(rid).total,set.size);
+    for(const rid of primaryIds){
+      const x=result.get(rid);
+      x.done=simpleWeeklyProgressFromSessions(sessionsByRoutine.get(rid)||[],x.total,weekStart);
     }
   }catch(e){console.warn('getWeeklyRoutineProgressForUser:',e)}
   return result;
@@ -7696,6 +7828,14 @@ window.updateClientTrashVisual=function(full){
   };
 })();
 </script>
+
+<style id="simple-edit-rest-notes-chart-v51">
+/* Editing: make rest and notes fields comfortable on desktop and mobile. */
+.history-edit-note{font-family:inherit}
+@media(max-width:650px){
+  .history-edit-note{min-height:64px!important}
+}
+</style>
 </body></html>
 
 <style>
