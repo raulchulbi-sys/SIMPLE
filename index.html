@@ -5587,6 +5587,19 @@ async function saveWorkoutSession(){
     showHistory();
   }catch(e){
     console.error('saveWorkoutSession:',e);
+
+    if(e?.code==='23505'){
+      window.__lastSavedWorkoutKey=currentKey;
+
+      if(activeWorkout){
+        activeWorkout.locked=true;
+        activeWorkout.lockedSession=null;
+        renderWorkoutDay();
+      }
+
+      return toast('Este entrenamiento ya está guardado hoy.');
+    }
+
     toast('No se pudo guardar la sesión: '+(e.message||'revisa la tabla workouts'));
   }finally{
     window.__savingWorkout=false;
