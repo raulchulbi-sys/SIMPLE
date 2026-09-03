@@ -840,6 +840,23 @@
   }
 }
 </style>
+
+<style id="simple-weekly-progress-celebration-v58">
+.weekly-progress-complete-row{display:flex;align-items:center;gap:10px;width:100%;}
+.weekly-progress-complete-row .weekly-progress-bar{flex:1;min-width:0;}
+.weekly-progress-celebration{display:flex;align-items:center;gap:7px;flex:0 0 auto;}
+.weekly-progress-gif{display:block;width:54px;height:54px;object-fit:contain;border-radius:10px;background:rgba(255,255,255,.03);}
+.weekly-progress-celebration-copy{display:flex;flex-direction:column;gap:1px;white-space:nowrap;}
+.weekly-progress-celebration-copy b{font-size:10px;color:var(--accent,#83e6a0);}
+.weekly-progress-celebration-copy a{font-size:8px;color:var(--muted,#9aa3b2);text-decoration:none;}
+.weekly-progress-celebration-copy a:hover{text-decoration:underline;}
+@media(max-width:600px){
+  .weekly-progress-complete-row{gap:7px;}
+  .weekly-progress-gif{width:42px;height:42px;border-radius:8px;}
+  .weekly-progress-celebration-copy b{font-size:9px;}
+  .weekly-progress-celebration-copy a{font-size:7px;}
+}
+</style>
 </head>
 <body>
 <div id="auth" class="auth"><div class="authbox"><h1 class="simple-login-logo"><span>S</span>IMPLE</h1><p id="authText">Accede a tus rutinas y entrenamiento.</p>
@@ -5746,34 +5763,49 @@ function simpleWeeklyProgressFromSessions(sessions,total,weekStart){
   }
   normalized.sort((a,b)=>a.ts-b.ts);
   const sessionsInWeek=normalized.filter(x=>x.ts>=weekStartMs);
-  const countDays=(items)=>{
-    const seen=new Set();
-    for(const {row} of items){
-      const d=row?.data||{};
-      const day=String(d.day_name??row.variant??row.day??'').trim().toLowerCase();
-      const key=day||String(d.routine_day_id||row.id||'');
-      if(key)seen.add(key);
-    }
-    return Math.min(total,seen.size);
+  if(!sessionsInWeek.length||!total)return 0;
+
+  const getDayKey=({row})=>{
+    const d=row?.data||{};
+    const day=String(d.day_name??row.variant??row.day??'').trim().toLowerCase();
+    return day||String(d.routine_day_id||row.id||'');
   };
-  let done=countDays(sessionsInWeek);
-  if(done>=total && total>0){
-    const completedAt=Math.max(...sessionsInWeek.map(x=>x.ts));
-    // Keep 100% for the rest of the calendar day on which the final session
-    // was completed. At the next local calendar day, start a new cycle at 0.
-    const completedDate=new Date(completedAt);
+
+  // Find the exact session that completed the latest full cycle.
+  // This prevents an old 5/5 cycle plus today's first session from
+  // incorrectly becoming 100% again.
+  let cycleStartIndex=0;
+  let seen=new Set();
+  let latestFullCycleAt=0;
+  for(let i=0;i<sessionsInWeek.length;i++){
+    const key=getDayKey(sessionsInWeek[i]);
+    if(key)seen.add(key);
+    if(seen.size>=total){
+      latestFullCycleAt=sessionsInWeek[i].ts;
+      cycleStartIndex=i+1;
+      seen=new Set();
+    }
+  }
+
+  if(latestFullCycleAt){
+    const completedDate=new Date(latestFullCycleAt);
     const todayDate=new Date(now);
     const sameCalendarDay=completedDate.getFullYear()===todayDate.getFullYear()
       && completedDate.getMonth()===todayDate.getMonth()
       && completedDate.getDate()===todayDate.getDate();
-    if(sameCalendarDay){
-      return total;
-    }
-    // A new cycle only counts sessions completed after the last full cycle.
-    done=countDays(sessionsInWeek.filter(x=>x.ts>completedAt));
+    if(sameCalendarDay)return total;
   }
-  return done;
+
+  // New cycle: count only sessions completed after the latest full cycle.
+  const currentCycle=sessionsInWeek.slice(cycleStartIndex);
+  const currentSeen=new Set();
+  for(const item of currentCycle){
+    const key=getDayKey(item);
+    if(key)currentSeen.add(key);
+  }
+  return Math.min(total,currentSeen.size);
 }
+
 async function getWeeklyRoutineProgressForUser(userId,routineIds,workoutRoutineAliases={},routineNames={}){
   const primaryIds=[...new Set((routineIds||[]).filter(Boolean).map(String))];
   const result=new Map(primaryIds.map(id=>[id,{total:0,done:0}]));
@@ -5883,10 +5915,21 @@ function renderWeeklyRoutineProgress(totalDays,completedDays){
   const done=Math.min(total,Math.max(0,Number(completedDays)||0));
   const pct=total?Math.round(done/total*100):0;
   if(!total)return '';
+  const isComplete=done>=total;
+  const celebration=isComplete?`
+    <div class="weekly-progress-celebration" aria-label="Rutina completada">
+      <img class="weekly-progress-gif" src="https://media.tenor.com/uYAHiDSVAn4AAAA1/baldi-dance.webp" alt="Baile de celebración" loading="lazy" referrerpolicy="no-referrer">
+      <div class="weekly-progress-celebration-copy">
+        <b>¡Rutina completada! 🔥</b>
+      </div>
+    </div>`:'';
   return `<div class="weekly-routine-progress">
     <div class="weekly-routine-progress-head"><span>Progreso semanal</span><b>${done}/${total} · ${pct}%</b></div>
-    <div class="weekly-progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${total}" aria-valuenow="${done}">
-      ${Array.from({length:total},(_,i)=>`<span class="weekly-progress-segment ${i<done?'is-done':''}"></span>`).join('')}
+    <div class="weekly-progress-complete-row">
+      <div class="weekly-progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${total}" aria-valuenow="${done}">
+        ${Array.from({length:total},(_,i)=>`<span class="weekly-progress-segment ${i<done?'is-done':''}"></span>`).join('')}
+      </div>
+      ${celebration}
     </div>
   </div>`;
 }
