@@ -7322,22 +7322,23 @@ async function saveWorkoutSession(){
         if(sharedBox && getComputedStyle(sharedBox).display!=='none') await renderShared();
       }
     }catch(e){console.warn('weekly progress refresh:',e)}
-    // El guardado ya se ha confirmado en Supabase. Un fallo posterior al
-    // refrescar el historial/interfaz no debe convertir una sesión guardada
-    // correctamente en un falso mensaje de error.
-    // Tras guardar correctamente, salir de la sesión y volver al menú principal
-    // de rutinas. El historial sigue disponible desde su botón correspondiente.
+    // La sesión ya está guardada: cerramos el entrenamiento y volvemos
+    // automáticamente al menú principal correspondiente. Al marcarla como
+    // bloqueada antes de cerrar evitamos que closeM() cree un borrador.
     try{
       await loadHistory(workoutRoutine?.id);
     }catch(refreshErr){
       console.warn('Sesión guardada, pero no se pudo refrescar el historial:',refreshErr);
     }
+    activeWorkout.locked=true;
+    activeWorkout=null;
     closeM('trainModal');
-    try{
-      if(profile?.role==='trainer') await renderMine();
-      else await renderShared();
-    }catch(backErr){
-      console.warn('Sesión guardada, pero no se pudo refrescar Mis rutinas:',backErr);
+    if(profile?.role==='trainer'){
+      await renderMine();
+      view('mine');
+    }else{
+      await renderShared();
+      view('shared');
     }
   }catch(e){
     console.error('saveWorkoutSession:',e);
