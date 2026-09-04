@@ -193,15 +193,6 @@
 }
 .password-wrap input{
   width:100%;
-  padding-right:54px !important;
-  box-sizing:border-box;
-}
-.password-wrap{
-  position:relative;
-  width:100%;
-}
-.password-wrap input{
-  width:100%;
   box-sizing:border-box;
   padding-right:52px !important;
 }
@@ -857,6 +848,1632 @@
   .weekly-progress-celebration-copy a{font-size:7px;}
 }
 </style>
+<style>
+.trash-reference-img{
+  width:34px;
+  height:34px;
+  object-fit:contain;
+  display:block;
+}
+.icon-trash-btn.trash-full .trash-reference-img{
+  transform:scale(1.12);
+  transform-origin:center;
+}
+</style>
+
+<style>
+.trash-reference-img{opacity:0;position:absolute;inset:50% auto auto 50%;transform:translate(-50%,-50%) scale(.95)}
+.trash-empty-icon{display:block;font-size:19px;line-height:1}
+.icon-trash-btn.trash-full .trash-empty-icon{display:none}
+.icon-trash-btn.trash-full .trash-reference-img{opacity:1;transform:translate(-50%,-50%) scale(1.12)}
+</style>
+
+<style id="client-trash-final-visibility-v33">
+/* FINAL CLIENT TRASH: two real images, no emoji/canvas/filtering. */
+#tTrashClient .client-trash-visual{
+  position:relative!important;
+  width:34px!important;
+  height:34px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  overflow:visible!important;
+}
+#tTrashClient .client-trash-visual .client-trash-full-img,
+#tTrashClient .client-trash-visual .client-trash-empty-img{
+  position:absolute!important;
+  left:50%!important;
+  top:50%!important;
+  width:34px!important;
+  height:34px!important;
+  margin:0!important;
+  object-fit:contain!important;
+  opacity:1!important;
+  transform:translate(-50%,-50%) scale(.95)!important;
+  filter:none!important;
+}
+#tTrashClient .client-trash-visual .client-trash-full-img{
+  display:none!important;
+}
+#tTrashClient .client-trash-visual .client-trash-empty-img{
+  display:block!important;
+}
+#tTrashClient.trash-full .client-trash-visual .client-trash-full-img{
+  display:block!important;
+  opacity:1!important;
+  transform:translate(-50%,-50%) scale(1.02)!important;
+}
+#tTrashClient.trash-full .client-trash-visual .client-trash-empty-img{
+  display:none!important;
+}
+</style>
+<style id="simple-visual-refresh">
+/* =========================================================
+   SIMPLE — VISUAL REFRESH
+   Inspirado en el mockup: dark premium + verde fitness.
+   Solo estilos: no altera la lógica de la aplicación.
+   ========================================================= */
+:root{
+  --bg:#080b0d;
+  --bg-soft:#0d1115;
+  --card:#12171b;
+  --card2:#171d22;
+  --card3:#1b2228;
+  --text:#f5f7f8;
+  --muted:#929da7;
+  --muted2:#6f7a84;
+  --line:#273139;
+  --line-soft:#202930;
+  --accent:#83e6a0;
+  --accent-strong:#5fd884;
+  --accent-soft:rgba(131,230,160,.11);
+  --accent-glow:rgba(131,230,160,.18);
+  --danger:#ff7f86;
+  --danger-soft:rgba(255,127,134,.09);
+  --warning:#f2cf73;
+  --shadow:0 16px 45px rgba(0,0,0,.28);
+  --shadow-soft:0 8px 24px rgba(0,0,0,.20);
+  --radius:18px;
+  --radius-sm:12px;
+}
+
+html{background:var(--bg);scroll-behavior:smooth}
+body{
+  min-height:100vh;
+  background:
+    radial-gradient(900px 500px at 85% -10%,rgba(95,216,132,.055),transparent 60%),
+    radial-gradient(700px 420px at -10% 20%,rgba(95,216,132,.025),transparent 62%),
+    var(--bg);
+  color:var(--text);
+  letter-spacing:.01em;
+}
+body,button,input,textarea,select{font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button{transition:transform .16s ease,background .16s ease,border-color .16s ease,box-shadow .16s ease,color .16s ease}
+button:active{transform:translateY(1px)}
+button:disabled{cursor:not-allowed;opacity:.48}
+
+.wrap{max-width:1180px;padding:30px 22px 90px}
+header{
+  position:relative;
+  margin-bottom:24px;
+  padding:4px 2px 16px;
+  border-bottom:1px solid rgba(131,230,160,.08);
+}
+header h1{
+  font-size:30px;
+  font-weight:850;
+  letter-spacing:-1.3px;
+}
+header h1::first-letter{color:var(--accent)}
+.sub{color:var(--muted);font-size:12px;margin-top:5px}
+
+.actions{gap:9px}
+.btn{
+  border:1px solid var(--line);
+  background:linear-gradient(180deg,#171d22,#12171b);
+  color:var(--text);
+  padding:10px 14px;
+  border-radius:12px;
+  font-weight:650;
+  box-shadow:0 2px 0 rgba(255,255,255,.02) inset;
+}
+.btn:hover{
+  border-color:#3a464f;
+  background:#1a2127;
+  box-shadow:0 8px 22px rgba(0,0,0,.16);
+}
+.btn.primary{
+  background:var(--accent);
+  color:#08110c;
+  border-color:var(--accent);
+  box-shadow:0 7px 22px rgba(131,230,160,.12);
+}
+.btn.primary:hover{background:#9af0b3;border-color:#9af0b3}
+.btn.danger{color:var(--danger);border-color:rgba(255,127,134,.22);background:var(--danger-soft)}
+.btn.danger:hover{border-color:rgba(255,127,134,.45);background:rgba(255,127,134,.13)}
+
+.tabs{
+  background:rgba(18,23,27,.82);
+  border:1px solid var(--line);
+  padding:5px;
+  border-radius:15px;
+  margin-bottom:20px;
+  box-shadow:var(--shadow-soft);
+  backdrop-filter:blur(10px);
+}
+.tabs button{
+  color:var(--muted);
+  padding:11px 12px;
+  border-radius:10px;
+  font-weight:700;
+}
+.tabs button:hover{color:var(--text);background:rgba(255,255,255,.035)}
+.tabs button.active{
+  color:#08110c;
+  background:var(--accent);
+  box-shadow:0 5px 18px rgba(131,230,160,.10);
+}
+
+.card{
+  position:relative;
+  background:linear-gradient(145deg,rgba(21,27,32,.98),rgba(16,21,25,.98));
+  border:1px solid var(--line-soft);
+  border-radius:var(--radius);
+  padding:18px;
+  margin:13px 0;
+  box-shadow:0 5px 20px rgba(0,0,0,.10);
+}
+.card:hover{border-color:#303b44}
+.card h2{letter-spacing:-.45px}
+.card h3{letter-spacing:-.25px}
+.empty{
+  color:var(--muted);
+  padding:46px 20px;
+  border-style:dashed;
+  background:rgba(18,23,27,.58);
+}
+.empty b{color:var(--text)!important}
+
+.routine{
+  min-height:88px;
+  align-items:center;
+  gap:18px;
+}
+.routine h3{font-size:18px;margin:0 0 4px}
+.routine .buttons{justify-content:flex-end}
+
+.badge{
+  border:1px solid rgba(131,230,160,.20);
+  background:var(--accent-soft);
+  padding:5px 9px;
+  color:var(--accent);
+}
+
+.routine-drag-handle,.drag-handle,.editor-drag-handle{
+  color:var(--muted2)!important;
+  border-radius:9px;
+  transition:color .15s,background .15s;
+}
+.routine-drag-handle:hover,.drag-handle:hover,.editor-drag-handle:hover{
+  color:var(--accent)!important;
+  background:var(--accent-soft);
+}
+.routine-order-zone,.day-order-zone,.open-day-order-zone,.exercise-drop-zone,.workout-reorder-zone{
+  border-radius:10px;
+  transition:min-height .12s ease,background .12s ease,border-color .12s ease;
+}
+.routine-order-zone:not(:empty),.day-order-zone:not(:empty){background:var(--accent-soft)}
+
+.day{
+  border-top:1px solid var(--line);
+  margin-top:16px;
+  padding-top:16px;
+}
+.dayhead{gap:12px}
+.dayhead h3,.dayhead h2{letter-spacing:-.45px}
+
+.exercise{
+  background:linear-gradient(145deg,#171d22,#141a1f);
+  border:1px solid #273139;
+  border-radius:14px;
+  padding:14px;
+  margin:9px 0;
+}
+.exercise:hover{border-color:#35424b}
+.exercisehead{align-items:center}
+.exname{font-weight:750}
+.meta{color:var(--muted);font-size:11px}
+
+input,textarea,select{
+  width:100%;
+  background:#151b20;
+  border:1px solid #2a353d;
+  border-radius:11px;
+  color:var(--text);
+  padding:11px 12px;
+  outline:none;
+  box-shadow:0 1px 0 rgba(255,255,255,.025) inset;
+  transition:border-color .16s,box-shadow .16s,background .16s;
+}
+input::placeholder,textarea::placeholder{color:#5e6972}
+input:focus,textarea:focus,select:focus{
+  border-color:rgba(131,230,160,.65);
+  box-shadow:0 0 0 3px rgba(131,230,160,.09);
+  background:#171e23;
+}
+label{
+  color:#89949d;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.2px;
+  text-transform:uppercase;
+}
+textarea{min-height:72px}
+
+.grid,.grid3{gap:12px}
+.setrow{gap:8px;margin:8px 0}
+.tick{
+  border:1px solid #2e3941;
+  background:#12181c;
+  color:#7f8a93;
+  border-radius:10px;
+}
+.tick:hover{border-color:rgba(131,230,160,.45);color:var(--accent)}
+.tick.done{
+  background:var(--accent);
+  color:#07100a;
+  border-color:var(--accent);
+  box-shadow:0 4px 14px rgba(131,230,160,.12);
+}
+.rest-buttons{gap:8px}
+
+
+.previous-session{
+  background:#11171b;
+  border:1px solid #252f36;
+  border-radius:12px;
+}
+.previous-set{border-color:#2a343c;background:#151b20}
+
+.history-session{background:linear-gradient(145deg,#141a1f,#11161a)}
+.history-summary{padding:17px 19px}
+.history-summary:hover{background:#181f24}
+.history-title{font-weight:750}
+.history-chevron{color:#68747e}
+.history-table{border-color:#29343c}
+.history-row{border-top-color:#29343c}
+.history-label{background:#151b20}
+
+.modal{
+  background:rgba(0,0,0,.74);
+  backdrop-filter:blur(7px);
+}
+.sheet{
+  background:linear-gradient(150deg,#151b20,#101519);
+  border:1px solid #303a42;
+  border-radius:22px 22px 0 0;
+  padding:21px;
+  box-shadow:0 -18px 60px rgba(0,0,0,.35);
+}
+.modal.center .sheet{border-radius:22px}
+.sheet h2{font-size:22px;letter-spacing:-.6px}
+.modal .buttons{gap:8px}
+
+.auth{
+  background:
+    radial-gradient(500px 300px at 50% 15%,rgba(131,230,160,.09),transparent 70%),
+    var(--bg);
+}
+.authbox{
+  width:min(440px,100%);
+  background:linear-gradient(145deg,#151b20,#101519);
+  border:1px solid #2c373f;
+  border-radius:24px;
+  padding:30px;
+  box-shadow:0 24px 70px rgba(0,0,0,.38);
+}
+.authbox h1{
+  font-size:38px;
+  letter-spacing:-1.7px;
+}
+.authbox h1::after{
+  content:"";
+  display:block;
+  width:38px;
+  height:3px;
+  margin-top:9px;
+  border-radius:10px;
+  background:var(--accent);
+}
+.authbox p{color:var(--muted);line-height:1.5}
+.role-picker{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin:17px 0 8px;
+}
+.role-option{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:44px;
+  padding:10px;
+  border:1px solid #29343b;
+  border-radius:12px;
+  background:#11171b;
+  cursor:pointer;
+  color:var(--muted);
+  text-transform:none;
+  font-size:13px;
+}
+.role-option:has(input:checked){
+  color:#07100a;
+  background:var(--accent);
+  border-color:var(--accent);
+}
+.role-option input{display:none}
+.authbox input,.authbox button{margin-top:9px}
+.password-eye{background:transparent!important;border:0!important;box-shadow:none!important}
+
+.toast{
+  top:22px;
+  background:var(--accent);
+  color:#07100a;
+  font-weight:750;
+  border-radius:12px;
+  box-shadow:0 10px 30px rgba(0,0,0,.3);
+}
+
+.progress-stat-card,.compact-progress-stat,.progress-chart-stat{
+  background:linear-gradient(145deg,#171e23,#12181c)!important;
+  border:1px solid #29343b!important;
+  border-radius:14px!important;
+}
+.progress-stat-card strong,.compact-progress-stat strong{color:var(--accent)}
+.progress-chart-controls{
+  background:#11171b!important;
+  border:1px solid #27323a!important;
+  border-radius:14px!important;
+  padding:10px!important;
+}
+.progress-point-detail,.progress-chart-summary{
+  background:#11171b!important;
+  border:1px solid #27323a!important;
+  border-radius:14px!important;
+}
+.progress-chart-empty{
+  border:1px dashed #303b43!important;
+  border-radius:14px!important;
+  background:#101519!important;
+}
+
+.routine-note-card{
+  background:linear-gradient(145deg,rgba(131,230,160,.055),#12181c)!important;
+  border-color:rgba(131,230,160,.18)!important;
+}
+.routine-note-title{color:var(--accent)!important}
+.routine-note-text{color:#c3cbd0!important}
+
+.workout-session-actions,.history-toolbar{
+  gap:8px;
+}
+.workout-edit-field{gap:6px}
+.workout-reorder-list{
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+}
+.workout-reorder-bar{
+  margin:0!important;
+  min-height:58px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  border-radius:13px;
+  background:#171e23!important;
+}
+.workout-reorder-handle{
+  color:var(--muted2)!important;
+  cursor:grab;
+  font-size:20px;
+}
+.workout-reorder-bar:hover .workout-reorder-handle{color:var(--accent)!important}
+.workout-reorder-zone{
+  min-height:8px!important;
+  margin:0 4px!important;
+}
+.workout-reorder-zone.active,.workout-reorder-zone.drag-over{
+  min-height:42px!important;
+  border:1px dashed rgba(131,230,160,.45);
+  background:var(--accent-soft);
+}
+.session-back-row{
+  margin:0 0 10px!important;
+}
+.session-back-row .btn{
+  color:var(--accent);
+  border-color:rgba(131,230,160,.20);
+  background:var(--accent-soft);
+}
+
+.routine-editor-day{
+  background:linear-gradient(145deg,#151b20,#12171b)!important;
+  border:1px solid #29343b!important;
+  border-radius:16px!important;
+}
+.routine-editor-exercise{
+  background:#171d22!important;
+  border:1px solid #29343b!important;
+  border-radius:13px!important;
+}
+.routine-editor-day:hover,.routine-editor-exercise:hover{border-color:#36434c!important}
+.routine-order-zone,.day-order-zone{
+  min-height:8px;
+}
+.routine-order-zone.drag-over,.day-order-zone.drag-over{
+  min-height:42px;
+  background:var(--accent-soft);
+  border:1px dashed rgba(131,230,160,.42);
+}
+
+.icon-trash-btn{
+  min-width:48px;
+  min-height:44px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:visible;
+}
+.trash-visual{width:30px;height:34px}
+.icon-trash-btn.trash-full{
+  border-color:rgba(131,230,160,.28);
+  background:rgba(131,230,160,.06);
+}
+.icon-trash-btn.trash-full .trash-reference-img{width:34px;height:34px;filter:drop-shadow(0 4px 6px rgba(0,0,0,.24));}
+
+@media(max-width:760px){
+  .wrap{padding:20px 13px 75px}
+  header{padding-bottom:14px}
+  header h1{font-size:26px}
+  .actions .btn{padding:9px 11px}
+  .routine{
+    align-items:flex-start;
+    flex-direction:column;
+    gap:14px;
+  }
+  .routine>.buttons{
+    width:100%;
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .routine>.buttons .btn{width:100%}
+  .card{padding:15px;border-radius:16px}
+  .tabs button{padding:10px 7px;font-size:12px}
+  .sheet{padding:17px 14px}
+  .role-picker{grid-template-columns:1fr}
+  .workout-reorder-bar{
+    min-height:54px;
+    padding:12px!important;
+  }
+  .workout-reorder-zone.active,.workout-reorder-zone.drag-over{min-height:36px!important}
+}
+@media(max-width:430px){
+  .wrap{padding-left:10px;padding-right:10px}
+  .tabs{margin-left:-2px;margin-right:-2px}
+  .tabs button{font-size:11px;padding:9px 5px}
+  .setrow{grid-template-columns:32px repeat(3,minmax(0,1fr)) 40px;gap:4px}
+  .setrow input{padding:9px 5px;font-size:13px}
+  .tick{width:40px}
+}
+</style>
+<style id="simple-polish-v24">
+/* ---------- Design tokens ---------- */
+:root{
+  --bg:#070a0c;
+  --surface:#101519;
+  --surface-2:#141a1f;
+  --surface-3:#181f24;
+  --surface-hover:#1b2329;
+  --line:rgba(255,255,255,.075);
+  --line-strong:rgba(255,255,255,.12);
+  --text:#f5f7f8;
+  --text-2:#c0c8ce;
+  --muted:#818d96;
+  --muted-2:#626e77;
+  --accent:#83e6a0;
+  --accent-strong:#69dc8b;
+  --accent-soft:rgba(131,230,160,.095);
+  --accent-line:rgba(131,230,160,.23);
+  --danger:#ff8087;
+  --danger-soft:rgba(255,128,135,.075);
+  --danger-line:rgba(255,128,135,.20);
+  --warning:#efd078;
+  --radius-lg:18px;
+  --radius:14px;
+  --radius-sm:11px;
+  --shadow:0 14px 40px rgba(0,0,0,.20);
+  --shadow-hover:0 18px 46px rgba(0,0,0,.26);
+  --ease:cubic-bezier(.22,.61,.36,1);
+}
+
+/* ---------- Base ---------- */
+html{background:var(--bg)}
+body{
+  background:
+    radial-gradient(720px 420px at 90% -12%,rgba(131,230,160,.045),transparent 68%),
+    radial-gradient(620px 380px at -12% 28%,rgba(131,230,160,.018),transparent 68%),
+    var(--bg);
+  color:var(--text);
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+.wrap{max-width:1160px;padding:28px 22px 88px}
+
+/* ---------- Typography ---------- */
+h1,h2,h3,h4{color:var(--text);letter-spacing:-.035em}
+h1{font-weight:820}
+h2{font-weight:790}
+h3{font-weight:760}
+.sub,.muted{color:var(--muted)}
+.sub{letter-spacing:.015em}
+
+/* ---------- Header ---------- */
+header{
+  padding:3px 1px 17px;
+  margin-bottom:22px;
+  border-bottom:1px solid rgba(131,230,160,.07);
+}
+header h1{font-size:29px;line-height:1.05}
+header .sub{margin-top:7px}
+
+/* ---------- Buttons ---------- */
+.btn{
+  min-height:40px;
+  border:1px solid var(--line-strong);
+  border-radius:11px;
+  background:#151b20;
+  color:var(--text-2);
+  padding:9px 14px;
+  font-weight:690;
+  box-shadow:0 1px 0 rgba(255,255,255,.025) inset;
+}
+.btn:hover{
+  color:var(--text);
+  border-color:rgba(255,255,255,.16);
+  background:var(--surface-hover);
+  transform:translateY(-1px);
+}
+.btn:focus-visible{
+  outline:0;
+  box-shadow:0 0 0 3px rgba(131,230,160,.12);
+}
+.btn.primary{
+  color:#07100a;
+  background:var(--accent);
+  border-color:var(--accent);
+  box-shadow:0 8px 24px rgba(131,230,160,.09);
+}
+.btn.primary:hover{
+  color:#07100a;
+  background:#95ecad;
+  border-color:#95ecad;
+}
+.btn.danger{
+  color:var(--danger);
+  background:var(--danger-soft);
+  border-color:var(--danger-line);
+}
+.btn.danger:hover{
+  background:rgba(255,128,135,.11);
+  border-color:rgba(255,128,135,.32);
+}
+.actions{gap:8px}
+
+/* ---------- Navigation ---------- */
+.tabs{
+  display:flex;
+  gap:3px;
+  padding:4px;
+  background:rgba(16,21,25,.82);
+  border:1px solid var(--line);
+  border-radius:14px;
+  box-shadow:0 8px 24px rgba(0,0,0,.13);
+  backdrop-filter:blur(12px);
+}
+.tabs button{
+  border-radius:10px;
+  color:var(--muted);
+  font-weight:700;
+  transition:all .16s var(--ease);
+}
+.tabs button:hover{background:rgba(255,255,255,.035);color:var(--text-2)}
+.tabs button.active{
+  color:#07100a;
+  background:var(--accent);
+  box-shadow:0 5px 17px rgba(131,230,160,.10);
+}
+
+/* ---------- Cards ---------- */
+.card{
+  background:linear-gradient(145deg,rgba(17,23,27,.98),rgba(13,18,22,.98));
+  border:1px solid var(--line);
+  border-radius:var(--radius-lg);
+  box-shadow:0 6px 22px rgba(0,0,0,.10);
+  transition:border-color .18s var(--ease),box-shadow .18s var(--ease),transform .18s var(--ease);
+}
+.card:hover{
+  border-color:rgba(255,255,255,.095);
+}
+.card h2,.card h3{margin-top:0}
+.empty{
+  border-style:dashed;
+  color:var(--muted);
+  background:rgba(16,21,25,.55);
+}
+
+/* ---------- Routine cards ---------- */
+.routine{
+  padding-top:17px;
+  padding-bottom:17px;
+}
+.routine h3{font-size:18px}
+.routine .muted{line-height:1.45}
+.routine .buttons .btn{white-space:nowrap}
+
+/* ---------- Drag / reorder ---------- */
+.routine-drag-handle,.drag-handle,.editor-drag-handle{
+  opacity:.72;
+  color:var(--muted-2)!important;
+}
+.routine-drag-handle:hover,.drag-handle:hover,.editor-drag-handle:hover{
+  opacity:1;
+  color:var(--accent)!important;
+  background:var(--accent-soft);
+}
+.routine-order-zone,.day-order-zone,.workout-reorder-zone,.exercise-drop-zone{
+  border-radius:11px;
+  transition:min-height .12s var(--ease),background .12s var(--ease),border-color .12s var(--ease);
+}
+.routine-order-zone.drag-over,.day-order-zone.drag-over,.workout-reorder-zone.drag-over,.exercise-drop-zone.drag-over{
+  background:var(--accent-soft);
+  border-color:var(--accent-line);
+}
+
+/* ---------- Sessions / exercises ---------- */
+.day{
+  border-top-color:var(--line);
+}
+.exercise{
+  background:linear-gradient(145deg,#161c21,#13191d);
+  border:1px solid var(--line);
+  border-radius:13px;
+  box-shadow:0 4px 13px rgba(0,0,0,.08);
+}
+.exercise:hover{border-color:rgba(255,255,255,.11)}
+.exname{color:var(--text)}
+.meta{color:var(--muted)}
+
+/* ---------- Forms ---------- */
+input,textarea,select{
+  background:#12181c;
+  border:1px solid rgba(255,255,255,.09);
+  color:var(--text);
+  border-radius:10px;
+  box-shadow:0 1px 0 rgba(255,255,255,.02) inset;
+}
+input:hover,textarea:hover,select:hover{border-color:rgba(255,255,255,.13)}
+input:focus,textarea:focus,select:focus{
+  border-color:rgba(131,230,160,.58);
+  box-shadow:0 0 0 3px rgba(131,230,160,.08);
+  background:#151c20;
+}
+label{
+  color:#7f8b94;
+  letter-spacing:.055em;
+}
+
+/* ---------- Set controls ---------- */
+.tick{
+  border:1px solid rgba(255,255,255,.10);
+  background:#11171b;
+}
+.tick:hover{border-color:var(--accent-line);color:var(--accent)}
+.tick.done{
+  color:#07100a;
+  background:var(--accent);
+  border-color:var(--accent);
+  box-shadow:0 4px 13px rgba(131,230,160,.10);
+}
+
+/* ---------- Badges / status ---------- */
+.badge{
+  color:var(--accent);
+  background:var(--accent-soft);
+  border:1px solid var(--accent-line);
+  border-radius:999px;
+}
+
+/* ---------- Modals ---------- */
+.modal{
+  background:rgba(0,0,0,.76);
+  backdrop-filter:blur(8px);
+}
+.sheet{
+  background:linear-gradient(150deg,#151b20,#0e1317);
+  border:1px solid rgba(255,255,255,.10);
+  box-shadow:0 -20px 65px rgba(0,0,0,.38);
+}
+.modal.center .sheet{box-shadow:0 24px 70px rgba(0,0,0,.38)}
+.toast{
+  background:var(--accent);
+  color:#07100a;
+  border-radius:11px;
+  box-shadow:0 12px 32px rgba(0,0,0,.30);
+}
+
+/* ---------- Progress ---------- */
+.progress-stat-card,.compact-progress-stat,.progress-chart-stat{
+  background:linear-gradient(145deg,#171e23,#12181c)!important;
+  border-color:var(--line)!important;
+  box-shadow:0 5px 17px rgba(0,0,0,.10);
+}
+
+.progress-chart-controls{
+  background:#11171b!important;
+  border-color:var(--line)!important;
+}
+.progress-point-detail,.progress-chart-summary{
+  background:#11171b!important;
+  border-color:var(--line)!important;
+}
+.progress-chart-empty{
+  background:#0f1418!important;
+  border-color:rgba(255,255,255,.10)!important;
+}
+
+/* ---------- Notes ---------- */
+.routine-note-card{
+  background:linear-gradient(145deg,rgba(131,230,160,.045),#11171b)!important;
+  border-color:var(--accent-line)!important;
+}
+
+.routine-note-text{color:var(--text-2)!important}
+
+/* ---------- Editor ---------- */
+.routine-editor-day{
+  background:linear-gradient(145deg,#151b20,#11171b)!important;
+  border-color:var(--line)!important;
+}
+.routine-editor-exercise{
+  background:#161c21!important;
+  border-color:var(--line)!important;
+}
+.routine-editor-day:hover,.routine-editor-exercise:hover{border-color:rgba(255,255,255,.11)!important}
+.workout-reorder-list{gap:6px}
+.workout-reorder-bar{
+  background:#161c21!important;
+  border:1px solid var(--line)!important;
+  border-radius:12px!important;
+}
+.workout-reorder-handle{color:var(--muted-2)!important}
+
+.workout-reorder-zone.active,.workout-reorder-zone.drag-over{
+  border-color:var(--accent-line)!important;
+  background:var(--accent-soft)!important;
+}
+.session-back-row .btn{
+  color:var(--accent);
+  background:var(--accent-soft);
+  border-color:var(--accent-line);
+}
+
+/* ---------- Trash ---------- */
+.icon-trash-btn{
+  border-radius:12px;
+}
+.icon-trash-btn.trash-full{
+  background:rgba(131,230,160,.045);
+  border-color:var(--accent-line);
+}
+.icon-trash-btn.trash-full .trash-reference-img{
+  width:34px!important;
+  height:34px!important;
+  filter:drop-shadow(0 4px 6px rgba(0,0,0,.24));
+}
+
+/* ---------- Login ---------- */
+.auth{
+  background:
+    radial-gradient(520px 330px at 50% 9%,rgba(131,230,160,.07),transparent 70%),
+    var(--bg);
+}
+.authbox{
+  background:linear-gradient(145deg,#151b20,#0f1418);
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:23px;
+  box-shadow:0 26px 75px rgba(0,0,0,.38);
+}
+.authbox h1{letter-spacing:-.055em}
+.authbox h1::after{
+  background:var(--accent);
+  border-radius:999px;
+}
+.role-picker{gap:9px}
+.role-option{
+  background:#11171b;
+  border-color:var(--line);
+  border-radius:13px;
+  color:var(--muted);
+  transition:all .17s var(--ease);
+}
+.role-option:hover{
+  border-color:rgba(255,255,255,.13);
+  background:#161d22;
+}
+.role-option:has(input:checked){
+  color:#07100a;
+  background:var(--accent);
+  border-color:var(--accent);
+  box-shadow:0 8px 24px rgba(131,230,160,.09);
+}
+
+/* ---------- Small screens ---------- */
+@media(max-width:760px){
+  .wrap{padding:19px 12px 72px}
+  header{margin-bottom:17px}
+  
+  .tabs{
+    position:sticky;
+    top:8px;
+    z-index:30;
+  }
+  .card{border-radius:16px}
+  .routine>.buttons{
+    gap:7px;
+  }
+  .routine>.buttons .btn{
+    min-height:42px;
+  }
+}
+@media(max-width:430px){
+  .wrap{padding-left:9px;padding-right:9px}
+  .tabs button{font-size:11px}
+  .card{padding:14px}
+  .sheet{border-radius:19px 19px 0 0}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{
+    animation-duration:.01ms!important;
+    animation-iteration-count:1!important;
+    transition-duration:.01ms!important;
+    scroll-behavior:auto!important;
+  }
+}
+</style>
+<style id="simple-ux-v25">
+/* ---------- V25: app-like micro polish ---------- */
+::selection{background:rgba(131,230,160,.24);color:#fff}
+:focus-visible{outline:2px solid rgba(131,230,160,.55);outline-offset:2px}
+
+.card,.routine,.exercise,.routine-editor-day,.routine-editor-exercise{
+  will-change:transform;
+}
+.card:hover{
+  transform:translateY(-1px);
+  box-shadow:0 10px 28px rgba(0,0,0,.14);
+}
+.routine:hover{
+  transform:translateY(-1px);
+}
+.exercise:hover{
+  transform:translateY(-1px);
+}
+
+/* Give section headings a subtle visual anchor. */
+.card>h2:first-child,.card>h3:first-child{
+  position:relative;
+}
+.card>h2:first-child::after,.card>h3:first-child::after{
+  content:"";
+  display:block;
+  width:24px;
+  height:2px;
+  margin-top:8px;
+  border-radius:99px;
+  background:var(--accent);
+  opacity:.72;
+}
+
+/* Cleaner action grouping. */
+.buttons{gap:7px}
+.buttons .btn{flex:0 0 auto}
+
+/* Destructive actions stay visually quiet until needed. */
+.btn.danger{opacity:.9}
+.btn.danger:hover{opacity:1}
+
+/* Better disabled state without making disabled controls look broken. */
+.btn:disabled,input:disabled,select:disabled,textarea:disabled{
+  filter:saturate(.55);
+}
+
+/* Reorder mode gets a clear but restrained visual state. */
+.workout-reorder-bar[draggable="true"]{
+  cursor:grab;
+}
+.workout-reorder-bar[draggable="true"]:active{
+  cursor:grabbing;
+}
+.workout-reorder-zone.active,.workout-reorder-zone.drag-over{
+  box-shadow:inset 0 0 0 1px rgba(131,230,160,.08);
+}
+
+/* Sticky tabs on mobile should not feel like a floating slab. */
+@media(max-width:760px){
+  .tabs{
+    box-shadow:0 7px 20px rgba(0,0,0,.20);
+  }
+  .tabs button.active{
+    box-shadow:none;
+  }
+  .routine:hover,.exercise:hover,.card:hover{
+    transform:none;
+  }
+}
+
+/* Compact, elegant scrollbars on supported browsers. */
+*{
+  scrollbar-width:thin;
+  scrollbar-color:#303a42 transparent;
+}
+*::-webkit-scrollbar{width:8px;height:8px}
+*::-webkit-scrollbar-track{background:transparent}
+*::-webkit-scrollbar-thumb{
+  background:#303a42;
+  border-radius:99px;
+}
+*::-webkit-scrollbar-thumb:hover{background:#46525b}
+</style>
+<style id="simple-login-role-mobile-v26">
+/* Cliente + Entrenador stay side-by-side on mobile, like desktop. */
+@media(max-width:760px){
+  .role-picker{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    align-items:stretch;
+    gap:9px;
+  }
+  .role-option{
+    min-width:0;
+    min-height:52px;
+    width:100%;
+  }
+}
+@media(max-width:360px){
+  .role-picker{gap:7px}
+  .role-option{font-size:12px;padding:9px 6px}
+}
+</style>
+<style id="simple-final-polish-v27">
+/* =========================================================
+   SIMPLE V27 — final UX polish
+   No onboarding. Visual/interaction refinements only.
+   ========================================================= */
+
+/* Empty states: make them feel intentional, not like errors. */
+.empty{
+  position:relative;
+  overflow:hidden;
+  text-align:center;
+}
+.empty::before{
+  content:"";
+  position:absolute;
+  width:130px;height:130px;
+  left:50%;top:50%;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(131,230,160,.055),transparent 68%);
+  pointer-events:none;
+}
+.empty>*{position:relative}
+
+/* Better hierarchy for the first line of empty states. */
+.empty b{
+  display:block;
+  color:var(--text);
+  font-size:14px;
+  margin-bottom:5px;
+}
+
+/* Automatic-save feedback should feel like system status. */
+.save-status,.autosave-status,.saved-status{
+  color:var(--accent)!important;
+  font-size:11px;
+  font-weight:700;
+}
+
+/* Destructive confirmation dialogs. */
+.confirm-danger .btn.primary,
+.modal .btn.danger{
+  font-weight:760;
+}
+
+/* Profile/client cards get a slightly more premium rhythm. */
+.client-card,.profile-card{
+  background:linear-gradient(145deg,#151c21,#10161a);
+}
+
+/* Progress metrics: emphasize the value, not the label. */
+.progress-stat-card strong,
+.compact-progress-stat strong,
+.progress-chart-stat strong{
+  font-variant-numeric:tabular-nums;
+  letter-spacing:-.025em;
+}
+
+/* Cleaner history rows. */
+.history-row{
+  transition:background .14s ease;
+}
+.history-row:hover{
+  background:rgba(255,255,255,.018);
+}
+
+/* Notes remain visually distinct but restrained. */
+.routine-note-card{
+  box-shadow:0 7px 20px rgba(0,0,0,.08);
+}
+
+/* More app-like controls on touch devices. */
+@media(pointer:coarse){
+  .btn{
+    min-height:42px;
+  }
+  .tick{
+    min-width:42px;
+    min-height:42px;
+  }
+}
+
+/* Keep dense exercise/reorder UIs comfortable on narrow screens. */
+@media(max-width:600px){
+  .workout-reorder-list{
+    gap:5px;
+  }
+  .workout-reorder-bar{
+    padding:11px!important;
+  }
+  .session-back-row{
+    margin-bottom:8px!important;
+  }
+}
+
+/* Respect reduced-motion preference. */
+@media(prefers-reduced-motion:reduce){
+  .card:hover,.routine:hover,.exercise:hover{transform:none!important}
+}
+</style>
+<style id="simple-icons-v27">
+/* Consistent tiny action affordance for common icon buttons. */
+.icon-trash-btn .trash-empty-icon{
+  font-size:0!important;
+  width:18px;height:18px;
+  display:block;
+  position:relative;
+}
+.icon-trash-btn .trash-empty-icon::before{
+  content:"";
+  position:absolute;
+  inset:2px 3px 1px;
+  border:1.7px solid currentColor;
+  border-top:0;
+  border-radius:2px 2px 4px 4px;
+}
+.icon-trash-btn .trash-empty-icon::after{
+  content:"";
+  position:absolute;
+  left:5px;right:5px;top:1px;
+  height:2px;
+  border-radius:2px;
+  background:currentColor;
+  box-shadow:3px 3px 0 -0.5px currentColor;
+}
+</style>
+<style id="simple-navigation-v28">
+#tabs.nested-hidden{display:none!important}
+</style>
+<style id="simple-trash-unification-v30">
+/* Trainer and client use exactly the same trash component. */
+#tTrash,#tTrashClient{
+  width:48px;
+  min-width:48px;
+  height:44px;
+  padding:0;
+}
+#tTrash .trash-visual,#tTrashClient .trash-visual{
+  width:30px!important;
+  height:34px!important;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+#tTrash .trash-reference-img,#tTrashClient .trash-reference-img{
+  width:34px!important;
+  height:34px!important;
+}
+</style>
+<style id="client-trash-two-state-css-v32">
+#tTrashClient .client-trash-visual{
+  width:34px!important;height:34px!important;
+  display:inline-flex!important;
+  align-items:center;justify-content:center;
+}
+#tTrashClient .client-trash-full-img,
+#tTrashClient .client-trash-empty-img{
+  width:34px!important;height:34px!important;
+  object-fit:contain;
+}
+</style>
+<style id="client-trash-transparent-bg-v34">
+#tTrashClient .client-trash-empty-img{
+  background:transparent!important;
+  mix-blend-mode:normal!important;
+}
+</style>
+<style id="client-trash-final-assets-v35">
+/* Final trash assets: image 1 = empty, image 2 = full. */
+#tTrashClient .client-trash-visual{
+  position:relative!important;
+  width:34px!important;
+  height:34px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  overflow:visible!important;
+  background:transparent!important;
+}
+#tTrashClient .client-trash-full-img,
+#tTrashClient .client-trash-empty-img{
+  position:absolute!important;
+  inset:50% auto auto 50%!important;
+  width:34px!important;
+  height:34px!important;
+  margin:0!important;
+  object-fit:contain!important;
+  background:transparent!important;
+  opacity:1!important;
+  filter:none!important;
+  transform:translate(-50%,-50%)!important;
+}
+#tTrashClient .client-trash-full-img{display:none!important;}
+#tTrashClient .client-trash-empty-img{display:block!important;}
+#tTrashClient.trash-full .client-trash-full-img{
+  display:block!important;
+}
+#tTrashClient.trash-full .client-trash-empty-img{
+  display:none!important;
+}
+</style>
+<style id="simple-login-s-green-v37">
+.simple-login-logo span{
+  color:var(--accent,#83e6a0)!important;
+  text-decoration:none!important;
+  border:0!important;
+}
+</style>
+<style id="simple-v37-final-fixes">
+/* Trash action text never escapes its card. */
+.trash-routine-card{align-items:flex-start}
+.trash-routine-main{min-width:0;flex:1 1 240px}
+.trash-actions{
+  flex:0 1 auto;
+  min-width:0;
+  max-width:100%;
+  justify-content:flex-end;
+}
+.trash-actions .btn{
+  max-width:100%;
+  min-width:0;
+  white-space:normal!important;
+  overflow-wrap:anywhere;
+  word-break:normal;
+  line-height:1.25;
+}
+@media(max-width:650px){
+  .trash-routine-card{
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:stretch!important;
+  }
+  .trash-actions{
+    width:100%;
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .trash-actions .btn{
+    width:100%;
+  }
+}
+@media(max-width:430px){
+  .trash-actions{grid-template-columns:1fr}
+}
+
+/* The selected client/trainer trash section is visibly active. */
+#tabs #tTrashClient.active,
+#tabs #tTrash.active{
+  background:var(--accent,#83e6a0)!important;
+  color:#111!important;
+  font-weight:800!important;
+  box-shadow:none!important;
+}
+
+/* While reordering routines on touch, show only the handle + routine name. */
+#mine .routine-pointer-dragging .routine-dragging .routine-description,
+#mine .routine-pointer-dragging .routine-dragging .routine-actions{
+  display:none!important;
+}
+#mine .routine-dragging{
+  align-items:center!important;
+}
+#mine .routine-dragging .routine-drag-name{
+  display:block!important;
+}
+</style>
+<style id="simple-mobile-typography-v38">
+/* SIMPLE V38 — mobile density & typography polish
+   Goal: less visual bulk, tighter hierarchy, easier scanning.
+   Desktop remains unchanged. */
+
+@media(max-width:650px){
+  /* General cards: reduce the feeling of giant blocks. */
+  .card{
+    padding:13px 12px;
+    margin:9px 0;
+    border-radius:14px;
+  }
+  .card h2{
+    font-size:18px;
+    line-height:1.2;
+  }
+  .card h3{
+    font-size:15px;
+    line-height:1.25;
+  }
+  .muted{
+    font-size:11px;
+    line-height:1.35;
+  }
+
+  /* History: compact session headers and content. */
+  .history-session{
+    margin-bottom:8px;
+    border-radius:13px;
+  }
+  .history-summary{
+    padding:12px 13px;
+    gap:9px;
+    min-height:0;
+  }
+  .history-title{
+    font-size:15px;
+    line-height:1.25;
+    display:block;
+  }
+  .history-summary .muted{
+    margin-top:2px;
+    font-size:10.5px;
+  }
+  .history-chevron{
+    font-size:18px;
+    flex:0 0 auto;
+  }
+  .history-content{
+    padding:0 12px 13px;
+  }
+  .history-exercise{
+    margin-top:10px;
+    padding-top:10px;
+  }
+  .history-exercise-head{
+    gap:7px;
+  }
+  .history-exercise-head b{
+    font-size:13px;
+  }
+  .history-objective{
+    font-size:10.5px;
+    line-height:1.35;
+  }
+  .history-table{
+    margin-top:7px;
+    font-size:11px;
+  }
+  .history-row{
+    grid-template-columns:50px 1fr 1fr 1fr;
+    padding:7px 8px;
+    gap:3px;
+  }
+  .history-label{
+    font-size:9.5px;
+  }
+  .history-notes{
+    margin-top:7px;
+    font-size:11px;
+  }
+
+  /* Trash: compact cards, no huge empty vertical areas. */
+  .trash-routine-card{
+    padding:12px!important;
+    margin:8px 0!important;
+    border-radius:13px!important;
+    gap:9px!important;
+  }
+  .trash-routine-card h3{
+    margin:0;
+    font-size:14px;
+    line-height:1.25;
+  }
+  .trash-routine-main .muted{
+    font-size:10.5px;
+    line-height:1.35;
+  }
+  .trash-actions{
+    gap:6px!important;
+  }
+  .trash-actions .btn{
+    min-height:38px!important;
+    padding:8px 9px!important;
+    font-size:11.5px!important;
+    line-height:1.2!important;
+    border-radius:9px!important;
+  }
+
+  /* Generic buttons: slightly less bulky while retaining touch targets. */
+  .btn{
+    padding:9px 11px;
+    font-size:12.5px;
+    border-radius:10px;
+  }
+
+  /* Routine cards in Mis rutinas: more information density. */
+  #mine .routine{
+    padding:12px;
+    margin:8px 0;
+    gap:9px;
+  }
+  #mine .routine h3{
+    font-size:15px;
+  }
+  #mine .routine .buttons{
+    gap:5px;
+    width:100%;
+  }
+  #mine .routine .buttons .btn{
+    flex:1 1 auto;
+    min-width:0;
+    padding:8px 7px;
+    font-size:11px;
+  }
+
+  /* Client cards and assigned-routine rows. */
+  .client-card,
+  .profile-card{
+    padding:12px!important;
+  }
+
+  /* Progress: reduce oversized metric/chart framing. */
+  .progress-stat-card{
+    min-width:0;
+    padding:10px 11px;
+    border-radius:10px;
+  }
+  .progress-stat-card b{
+    font-size:17px;
+  }
+  .progress-stat-card small{
+    font-size:10.5px;
+  }
+  .progress-chart-wrap{
+    padding:5px;
+    border-radius:11px;
+  }
+
+  /* Empty states shouldn't dominate a phone screen. */
+  .empty{
+    padding:25px 14px;
+  }
+
+  /* Section headers should breathe, but not create another giant block. */
+  #history>.card:first-child,
+  #trash>.card:first-child,
+  #mine>.card:first-child{
+    padding:12px;
+    margin-bottom:8px;
+  }
+}
+
+/* Very narrow phones: stack only where it genuinely improves readability. */
+@media(max-width:380px){
+  .history-summary{
+    padding:11px;
+  }
+  .history-content{
+    padding-left:10px;
+    padding-right:10px;
+  }
+  .trash-actions{
+    grid-template-columns:1fr!important;
+  }
+  .history-row{
+    grid-template-columns:44px 1fr 1fr 1fr;
+    padding-left:6px;
+    padding-right:6px;
+  }
+}
+</style>
+<style id="simple-trash-density-v39">
+@media(max-width:650px){
+  #trash .trash-routine-card{
+    padding:9px 10px!important;
+    margin:6px 0!important;
+    gap:7px!important;
+    border-radius:11px!important;
+  }
+  #trash .trash-routine-main h3{
+    font-size:13px!important;
+    line-height:1.2!important;
+  }
+  #trash .trash-routine-main .muted{
+    font-size:9.5px!important;
+    line-height:1.25!important;
+    margin-top:3px!important;
+  }
+  #trash .trash-actions{
+    gap:5px!important;
+  }
+  #trash .trash-actions .btn{
+    min-height:34px!important;
+    padding:6px 7px!important;
+    font-size:10.5px!important;
+    line-height:1.15!important;
+    border-radius:8px!important;
+  }
+}
+@media(max-width:380px){
+  #trash .trash-routine-card{padding:8px 9px!important}
+  #trash .trash-actions .btn{font-size:10px!important}
+}
+</style>
+<style id="simple-progress-selector-v39">
+@media(max-width:650px){
+  #clientProgressModal select,
+  #clientProgressModal .progress-exercise-select{
+    width:100%!important;
+    min-height:42px!important;
+    font-size:13px!important;
+    padding:9px 11px!important;
+    border-radius:10px!important;
+    display:block!important;
+    opacity:1!important;
+    pointer-events:auto!important;
+  }
+}
+</style>
+<style id="simple-progress-final-v40">
+@media(max-width:650px){
+  #clientProgressExercise,
+  #clientProgressDay,
+  #clientProgressPeriod,
+  #clientProgressMetric{
+    appearance:auto!important;
+    -webkit-appearance:auto!important;
+    pointer-events:auto!important;
+    touch-action:manipulation!important;
+  }
+}
+</style>
+<style id="simple-nav-fixed-trash-v41">
+@media(max-width:650px){
+  #tabs{
+    position:sticky!important;
+    top:0!important;
+    z-index:1000!important;
+    background:rgba(10,13,15,.96)!important;
+    backdrop-filter:blur(12px);
+    -webkit-backdrop-filter:blur(12px);
+  }
+  #trash .trash-routine-card{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) auto!important;
+    align-items:center!important;
+    column-gap:10px!important;
+    padding:9px 10px!important;
+    margin:6px 0!important;
+    min-height:0!important;
+  }
+  #trash .trash-routine-main{min-width:0!important}
+  #trash .trash-routine-main h3{
+    margin:0!important;font-size:13px!important;line-height:1.2!important;
+  }
+  #trash .trash-routine-main .muted{
+    font-size:9.5px!important;line-height:1.25!important;
+  }
+  #trash .trash-actions{
+    width:auto!important;display:flex!important;flex-direction:column!important;
+    align-items:stretch!important;justify-content:center!important;
+    gap:5px!important;flex:0 0 auto!important;
+  }
+  #trash .trash-actions .btn{
+    width:auto!important;min-width:94px!important;min-height:32px!important;
+    padding:6px 8px!important;font-size:10.5px!important;line-height:1.1!important;
+    white-space:nowrap!important;
+  }
+}
+@media(max-width:380px){
+  #trash .trash-routine-card{column-gap:7px!important;padding:8px 9px!important}
+  #trash .trash-actions .btn{min-width:84px!important;font-size:10px!important}
+}
+</style>
+<style id="simple-nav-smart-hide-v43">
+@media(max-width:650px){
+  #tabs{
+    position:sticky!important;
+    top:0!important;
+    z-index:1000!important;
+    transition:transform .20s ease,opacity .16s ease!important;
+    will-change:transform;
+  }
+  #tabs.nav-hidden-on-scroll{
+    transform:translate3d(0,-120%,0)!important;
+    opacity:0!important;
+    pointer-events:none!important;
+  }
+}
+</style>
+<style id="simple-weekly-progress-v44">
+.weekly-routine-progress{margin-top:10px;max-width:420px}
+.weekly-routine-progress-head{display:flex;justify-content:space-between;gap:8px;margin-bottom:5px;font-size:11px}
+.weekly-routine-progress-head span{opacity:.72}
+.weekly-routine-progress-head b{font-size:11px}
+.weekly-progress-bar{width:100%;height:10px;padding:2px;display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:2px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden}
+.weekly-progress-segment{display:block;min-width:0;border-radius:999px;background:rgba(255,255,255,.07)}
+.weekly-progress-segment.is-done{background:var(--accent,#83e6a0);box-shadow:0 0 8px rgba(131,230,160,.18)}
+@media(max-width:650px){
+ .weekly-routine-progress{max-width:none;margin-top:8px}
+ .weekly-routine-progress-head,.weekly-routine-progress-head b{font-size:10px}
+ .weekly-progress-bar{height:9px}
+}
+</style>
+<style id="simple-weekly-progress-trainer-v45">
+.weekly-routine-progress{margin-top:9px;max-width:360px}
+.weekly-routine-progress-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:5px;font-size:10.5px}
+
+.weekly-routine-progress-head b{font-size:10.5px}
+.weekly-progress-bar{width:100%;height:9px;padding:2px;display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:2px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden}
+
+
+@media(max-width:650px){
+  .weekly-routine-progress{max-width:none;margin-top:7px}
+  .weekly-routine-progress-head,.weekly-routine-progress-head b{font-size:9.5px}
+  .weekly-progress-bar{height:8px}
+}
+</style>
+<style id="simple-weekly-progress-own-routines-v46">
+@media(max-width:650px){
+  #mine .weekly-routine-progress{margin-top:7px!important;width:100%!important;max-width:none!important}
+  #mine .weekly-routine-progress-head{font-size:9.5px!important;margin-bottom:5px!important}
+  #mine .weekly-progress-bar{height:8px!important}
+}
+</style>
+<style id="simple-edit-rest-notes-chart-v51">
+/* Editing: make rest and notes fields comfortable on desktop and mobile. */
+.history-edit-note{font-family:inherit}
+@media(max-width:650px){
+  .history-edit-note{min-height:64px!important}
+}
+</style>
+<meta name="simple-build" content="daily-progress-notes-restored-2026-09-04-v2">
 </head>
 <body>
 <div id="auth" class="auth"><div class="authbox"><h1 class="simple-login-logo"><span>S</span>IMPLE</h1><p id="authText">Accede a tus rutinas y entrenamiento.</p>
@@ -969,34 +2586,14 @@
         <div class="muted" id="trainSubtitle"></div>
       </div>
       <div class="train-modal-actions" id="trainModalActions">
-        <button class="btn" onclick="loadHistory(workoutRoutine?.id).then(showHistory)">Historial</button>
+        <button class="btn" onclick="openWorkoutHistory()">Historial</button>
         <button class="btn" onclick="closeM('trainModal')">Cerrar</button>
       </div>
     </div>
     <div id="trainBody" style="margin-top:12px"></div>
   </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
-function simpleSafeAction(fn){
-  if(typeof fn!=='function')return;
-  try{
-    const result=fn();
-    if(result&&typeof result.catch==='function'){
-      result.catch(e=>{console.error(e);toast(e?.message||'Ha ocurrido un error.');});
-    }
-  }catch(e){console.error(e);toast(e?.message||'Ha ocurrido un error.');}
-}
-function simpleSetBusy(el,busy,label){
-  if(!el)return;
-  if(busy){
-    if(!el.dataset.originalText)el.dataset.originalText=el.textContent;
-    el.disabled=true; el.setAttribute('aria-busy','true');
-    if(label)el.textContent=label;
-  }else{
-    el.disabled=false;el.removeAttribute('aria-busy');
-    if(el.dataset.originalText)el.textContent=el.dataset.originalText;
-  }
-}
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0">
 </script><script>
 const SUPABASE_URL="https://yvguatdqncadkwewlepe.supabase.co";
 const SUPABASE_KEY="sb_publishable_VYoUECN0MaGIOC2LtGi0iw_C0wqUY-W";
@@ -1013,13 +2610,30 @@ let user=null,profile=null,routines=[],assignments=[],editDays=[];let mode='logi
 const $=id=>document.getElementById(id),esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
 function toast(x){$('toast').textContent=x;$('toast').style.display='block';clearTimeout(window._t);window._t=setTimeout(()=>$('toast').style.display='none',1800)}function closeM(id){
   $(id).classList.remove('show');
-  if(!document.querySelector('.modal.show') && !window.activeWorkout)setNestedView(false);
+  // `activeWorkout` is a top-level `let`, so it is not exposed on `window`.
+  // Closing the workout modal ends the in-memory active-session view.
+  // Keep a pending draft so closing the modal never loses entered data.
+  if(id==='trainModal' && typeof activeWorkout!=='undefined' && activeWorkout){
+    if(!activeWorkout.locked){
+      try{saveWorkoutDraft();}catch(e){console.warn('Draft al cerrar entrenamiento:',e);}
+    }
+    activeWorkout=null;
+  }
+  if(!document.querySelector('.modal.show'))setNestedView(false);
 }function openM(id){
   $(id).classList.add('show');
   if(id!=='resetModal')setNestedView(true);
 }
-function msg(x,ok=false){$('authMsg').textContent=x;$('authMsg').className='msg '+(ok?'ok':'error')}function authToggle(){mode=mode==='login'?'signup':'login';$('authBtn').textContent=mode==='login'?'Iniciar sesión':'Crear cuenta';$('authSwitch').textContent=mode==='login'?'Crear cuenta':'Ya tengo una cuenta';$('authText').textContent=mode==='login'?'Accede a tus rutinas y entrenamiento.':'Crea tu cuenta y empieza desde cero.';msg('')}
-
+async function openWorkoutHistory(){
+  try{
+    await loadHistory(workoutRoutine?.id);
+    showHistory();
+  }catch(e){
+    console.error('openWorkoutHistory:',e);
+    toast('No se pudo cargar el historial.');
+  }
+}
+function msg(x,ok=false){$('authMsg').textContent=x;$('authMsg').className='msg '+(ok?'ok':'error')}
 function setResetMsg(text,ok=false){
   const el=$('resetMsg');
   if(el){el.textContent=text;el.className='msg '+(ok?'ok':'error');}
@@ -1306,6 +2920,11 @@ async function getProfileStable(){
 
 async function start(chosenRole=null){
   if(!user) return false;
+  // Auth can emit INITIAL_SESSION/SIGNED_IN while the explicit login/bootstrap
+  // path is already starting the app. Serialize that critical section so we
+  // never run reload()/view() twice at the same time.
+  if(window.__simpleStartBusy)return false;
+  window.__simpleStartBusy=true;
   try{
     profile=await getProfileStable();
 
@@ -1330,6 +2949,7 @@ async function start(chosenRole=null){
     renderTabs();
     await reload();
     view(profile.role==='trainer'?'mine':'shared');
+    window.__simpleStarted=true;
     return true;
   }catch(e){
     console.error('Start:',e);
@@ -1337,11 +2957,16 @@ async function start(chosenRole=null){
     $('auth').style.display='flex';
     msg(e?.message || 'No se pudo cargar el perfil.');
     return false;
+  }finally{
+    window.__simpleStartBusy=false;
   }
 }
 
 
 async function bootstrapAuthSession(){
+  // Avoid booting the application twice when Supabase emits INITIAL_SESSION
+  // while the explicit bootstrap path is already starting it.
+  if(window.__simpleStarted || window.__simpleStartBusy)return false;
   try{
     const {data,error}=await db.auth.getSession();
     if(error) throw error;
@@ -1397,7 +3022,9 @@ db.auth.onAuthStateChange(async (event, session)=>{
       user=session.user;
       profile=await finishConfirmedSignup();
       if($('auth') && $('auth').style.display!=='none' && !window.__simpleStarted){
-        window.__simpleStarted=true;
+        // Do not mark the app as started until `start()` has actually
+        // completed successfully. If bootstrap fails transiently, a later
+        // auth event must still be allowed to retry.
         await start(null);
       }
     }catch(e){
@@ -1481,11 +3108,39 @@ async function logout(){await db.auth.signOut();location.reload()}
 async function reload(){
   if(!user) throw new Error('No hay una sesión activa.');
 
+  if(profile?.role==='client'){
+    // These two reads are independent for a client, so perform them together.
+    const [r,a]=await Promise.all([
+      db.from('routines')
+        .select('id,name,description,share_code,source_routine_id,created_at,deleted_at,routine_order')
+        .eq('owner_id',user.id)
+        .is('deleted_at',null)
+        .order('routine_order',{ascending:true,nullsFirst:false}),
+      db.from('routine_assignments')
+        .select('*')
+        .eq('client_id',user.id)
+        .is('client_deleted_at',null)
+        .order('created_at',{ascending:false})
+    ]);
+
+    if(r.error){
+      console.error('Carga de rutinas:',r.error);
+      throw r.error;
+    }
+    if(a.error){
+      console.error('Carga de asignaciones:',a.error);
+      throw a.error;
+    }
+    routines=r.data||[];
+    assignments=a.data||[];
+    return;
+  }
+
   const r=await db.from('routines')
     .select('id,name,description,share_code,source_routine_id,created_at,deleted_at,routine_order')
-     .eq('owner_id',user.id)
-     .is('deleted_at',null)
-     .order('routine_order',{ascending:true,nullsFirst:false});
+    .eq('owner_id',user.id)
+    .is('deleted_at',null)
+    .order('routine_order',{ascending:true,nullsFirst:false});
 
   if(r.error){
     console.error('Carga de rutinas:',r.error);
@@ -1493,46 +3148,30 @@ async function reload(){
   }
 
   routines=r.data||[];
+  assignments=[];
 
-  if(profile?.role==='client'){
+  // Trainer: load exactly the assignments belonging to this trainer.
+  const mineIds=routines.map(r=>r.id);
+  if(mineIds.length){
     const a=await db.from('routine_assignments')
-      .select('*')
-      .eq('client_id',user.id)
-      .is('client_deleted_at',null)
+      .select('id,client_id,trainer_id,trainer_routine_id,client_routine_id,created_at')
+      .eq('trainer_id',user.id)
+      .in('trainer_routine_id',mineIds)
       .order('created_at',{ascending:false});
-
     if(a.error){
-      console.error('Carga de asignaciones:',a.error);
+      console.error('Carga de clientes:',a.error);
       throw a.error;
     }
-
     assignments=a.data||[];
-  }else{
-    assignments=[];
-    // Trainer: load exactly the assignments belonging to this trainer.
-    // Keep the same query shape used by the known-working SIMPLE build.
-    const mineIds=routines.map(r=>r.id);
-    if(mineIds.length){
-      const a=await db.from('routine_assignments')
-        .select('id,client_id,trainer_id,trainer_routine_id,client_routine_id,created_at')
-        .eq('trainer_id',user.id)
-        .in('trainer_routine_id',mineIds)
-        .order('created_at',{ascending:false});
-      if(a.error){
-        console.error('Carga de clientes:',a.error);
-        throw a.error;
-      }
-      assignments=a.data||[];
-    }else{
-      assignments=[];
-    }
-  }}
+  }
+}
 
+let __trashRenderToken=0;
 async function renderTrash(){
   const box=$('trash'); if(!box)return;
+  const renderToken=++__trashRenderToken;
   box.innerHTML='<div class="card"><h2 style="margin:0 0 4px">🗑️ Papelera</h2><div class="muted">Puedes restaurar las rutinas que hayas quitado por error o eliminarlas definitivamente.</div></div><div class="card"><div class="muted">Cargando...</div></div>';
-  (async()=>{
-    try{
+  try{
       const r=await db.from('routines').select('id,name,description,created_at,deleted_at')
         .eq('owner_id',user.id).not('deleted_at','is',null).order('deleted_at',{ascending:false});
       if(r.error)throw r.error;
@@ -1553,21 +3192,26 @@ async function renderTrash(){
           </div>
         </div>`).join('');
       }
+      if(renderToken!==__trashRenderToken)return;
       box.innerHTML=html;
       updateTrashIconState();
     }catch(e){
       console.error('renderTrash:',e);
-      box.innerHTML='<div class="card"><div class="empty">No se pudo cargar la papelera.</div></div>';
+      if(renderToken===__trashRenderToken){
+        box.innerHTML='<div class="card"><div class="empty">No se pudo cargar la papelera.</div></div>';
+      }
     }
-  })();
 }
 
 async function restoreRoutine(id){
   if(window.__routineTrashBusy)return;
   window.__routineTrashBusy=true;
   try{
-    const r=await db.from('routines').update({deleted_at:null}).eq('id',id).eq('owner_id',user.id).not('deleted_at','is',null);
+    const r=await db.from('routines').update({deleted_at:null})
+      .eq('id',id).eq('owner_id',user.id).not('deleted_at','is',null)
+      .select('id,deleted_at').maybeSingle();
     if(r.error)throw r.error;
+    if(!r.data||r.data.deleted_at!==null)throw new Error('La rutina no pudo restaurarse correctamente.');
     await reload();renderMine();await renderTrash();updateTrashIconState();toast('Rutina restaurada');
   }catch(e){console.error(e);toast('No se pudo restaurar la rutina: '+(e.message||'revisa los permisos'))}
   finally{window.__routineTrashBusy=false}
@@ -1577,8 +3221,11 @@ async function permanentlyDeleteRoutine(id){
   if(!confirm('⚠️ Eliminar definitivamente esta rutina y todo su contenido?\\n\\nEsta acción no se puede deshacer.'))return;
   window.__routineTrashBusy=true;
   try{
-    const r=await db.from('routines').delete().eq('id',id).eq('owner_id',user.id).not('deleted_at','is',null);
+    const r=await db.from('routines').delete()
+      .eq('id',id).eq('owner_id',user.id).not('deleted_at','is',null)
+      .select('id').maybeSingle();
     if(r.error)throw r.error;
+    if(!r.data?.id)throw new Error('La rutina no pudo eliminarse definitivamente.');
     await renderTrash();toast('Rutina eliminada definitivamente');
   }catch(e){console.error(e);toast('No se pudo eliminar definitivamente: '+(e.message||'revisa los permisos'))}
   finally{window.__routineTrashBusy=false}
@@ -1607,26 +3254,35 @@ async function renderClientTrash(){
     let html='<div class="card"><h2 style="margin:0 0 4px">🗑️ Papelera</h2><div class="muted">Puedes restaurar las rutinas que hayas quitado por error.</div></div>';
     let shown=[];
 
+    // Load all source-routine metadata in one query instead of one request
+    // per deleted assignment. Missing rows fall back to cached metadata.
+    const sourceIds=[...new Set(assignments.map(a=>String(a.trainer_routine_id)).filter(Boolean))];
+    const sourceMap=new Map();
+    if(sourceIds.length){
+      const rr=await db.from('routines')
+        .select('id,name,description,deleted_at')
+        .in('id',sourceIds);
+      if(!rr.error){
+        for(const routine of (rr.data||[]))sourceMap.set(String(routine.id),routine);
+      }
+    }
+
+    let metaCache={};
+    try{metaCache=JSON.parse(localStorage.getItem('simple_shared_routine_meta_'+user.id)||'{}')||{};}catch(_){metaCache={};}
+
     for(const a of assignments){
       let name=a.routine_name||'Rutina';
       let description=a.routine_description||'';
       let deletedByTrainer=false;
-      try{
-        const mk='simple_shared_routine_meta_'+user.id;
-        const meta=JSON.parse(localStorage.getItem(mk)||'{}')?.[String(a.trainer_routine_id)]||{};
-        if((!name||name==='Rutina')&&meta.name)name=meta.name;
-        if(!description&&meta.description)description=meta.description;
-      }catch(_){}
+      const meta=metaCache[String(a.trainer_routine_id)]||{};
+      if((!name||name==='Rutina')&&meta.name)name=meta.name;
+      if(!description&&meta.description)description=meta.description;
 
-      // If visible, refresh the cached metadata from the source routine.
-      const rr=await db.from('routines')
-        .select('id,name,description,deleted_at')
-        .eq('id',a.trainer_routine_id).maybeSingle();
-
-      if(!rr.error && rr.data){
-        name=rr.data.name||name;
-        description=rr.data.description||description;
-        deletedByTrainer=rr.data.deleted_at!=null;
+      const rr=sourceMap.get(String(a.trainer_routine_id));
+      if(rr){
+        name=rr.name||name;
+        description=rr.description||description;
+        deletedByTrainer=rr.deleted_at!=null;
       }
 
       const safe={...a,routine_name:name,routine_description:description};
@@ -1763,7 +3419,7 @@ function getProgressExercises(sessions){
 }
 
 function getExercisePoints(sessions,exerciseName,metric){
-  const ordered=[...sessions].sort((a,b)=>new Date(a.workout_date)-new Date(b.workout_date));
+  const ordered=[...sessions].sort((a,b)=>String(a.workout_date||'').localeCompare(String(b.workout_date||'')));
   return ordered.map((s,idx)=>{
     const exs=Array.isArray(s?.data?.exercises)?s.data.exercises:
       Array.isArray(s?.exercises)?s.exercises:[];
@@ -1772,6 +3428,8 @@ function getExercisePoints(sessions,exerciseName,metric){
     const e=exs.find(x=>normalizeExerciseName(x?.name||x?.exercise_name)===targetExerciseName)
       || exs.find(x=>normalizeExerciseName(x?.name||x?.exercise_name).replace(/[^a-z0-9]+/g,'')===targetExerciseName.replace(/[^a-z0-9]+/g,''));
     if(!e)return null;
+    const date=simpleDateFromKey(s?.workout_date);
+    if(!date)return null;
     const sets=Array.isArray(e?.sets)?e.sets:
       Array.isArray(e?.series)?e.series:[];
     const nums=sets.map((set,setIndex)=>{
@@ -1827,7 +3485,7 @@ function getExercisePoints(sessions,exerciseName,metric){
     }
 
     return {
-      date:new Date(s.workout_date),
+      date,
       value,
       session:idx+1,
       rir:pointRir,
@@ -2127,9 +3785,28 @@ function filterProgressSessions(sessions,period){
   const start=progressPeriodStart(period);
   if(!start)return sessions||[];
   return (sessions||[]).filter(s=>{
-    const raw=s?.workout_date??s?.date??s?.created_at??s?.data?.workout_date??s?.data?.date??s?.data?.created_at;
-    const d=new Date(raw);
-    return !Number.isNaN(d.getTime())&&d>=start;
+    const data=s?.data||{};
+    // Prefer the real completion timestamp. `workout_date` is a SQL DATE,
+    // and parsing YYYY-MM-DD as a JavaScript Date introduces a UTC/local
+    // timezone boundary that can move a session to the previous day.
+    // `completed_at` is an instant; SQL `workout_date` is a calendar date.
+    // Never feed a bare YYYY-MM-DD into `new Date()`, because JavaScript
+    // interprets it as UTC and it can shift to the previous day in Spain.
+    let d=null;
+    if(data.completed_at){
+      const parsed=new Date(data.completed_at);
+      if(!Number.isNaN(parsed.getTime()))d=parsed;
+    }
+    if(!d){
+      const dateKey=s?.workout_date||data.workout_date||s?.date||data.date;
+      d=simpleDateFromKey(dateKey);
+    }
+    if(!d){
+      const fallback=data.created_at||s?.created_at;
+      const parsed=fallback?new Date(fallback):null;
+      if(parsed&&!Number.isNaN(parsed.getTime()))d=parsed;
+    }
+    return !!d&&d>=start;
   });
 }
 function setupClientProgressChart(sessions){
@@ -2194,11 +3871,16 @@ async function openRoutineProgress(routineId){
   setNestedView(true);
   setTimeout(()=>{window.fixProgressExerciseSelector?.(); document.getElementById('clientProgressExercise')?.dispatchEvent(new Event('change',{bubbles:true}));},0);
   try{
-    const r=await db.from('workouts').select('id,user_id,variant,day,workout_date,data')
+    const requestedRoutineId=String(routineId);
+    // The workout history and routine-day structure are independent reads.
+    // Start both immediately so the progress view does not wait on a serial
+    // network round-trip before loading the day ordering.
+    const workoutsPromise=db.from('workouts').select('id,user_id,variant,day,workout_date,data')
       .eq('user_id',user.id)
       .order('workout_date',{ascending:false});
+    const daysPromise=days(routineId);
+    const [r,orderedRoutineDaysResult]=await Promise.all([workoutsPromise,daysPromise.catch(e=>({error:e,data:[]}))]);
     if(r.error)throw r.error;
-    const requestedRoutineId=String(routineId);
     const sessions=(r.data||[]).filter(session=>{
       const d=session?.data||{};
       const rid=d.routine_id ?? d.routineId ?? null;
@@ -2210,13 +3892,13 @@ async function openRoutineProgress(routineId){
       return;
     }
     subtitle.textContent=`${sessions.length} sesión${sessions.length===1?'':'es'} registrada${sessions.length===1?'':'s'}`;
-    let orderedRoutineDays=[];
-    try{orderedRoutineDays=await days(routineId);}catch(e){console.warn('Orden de días:',e);}
+    const orderedRoutineDays=orderedRoutineDaysResult.error?[]:(orderedRoutineDaysResult.data||orderedRoutineDaysResult);
+    if(orderedRoutineDaysResult.error)console.warn('Orden de días:',orderedRoutineDaysResult.error);
     body.innerHTML=`
       <div class="card" style="margin:0 0 12px">
         <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">
           <div><div class="muted">Sesiones</div><b style="font-size:20px">${sessions.length}</b></div>
-          <div><div class="muted">Última sesión</div><b>${new Date(sessions[0].workout_date).toLocaleDateString('es-ES')}</b></div>
+          <div><div class="muted">Última sesión</div><b>${simpleFormatDateKey(sessions[0].workout_date)}</b></div>
         </div>
       </div>
       <div class="card client-progress-chart">
@@ -2249,7 +3931,7 @@ async function openRoutineProgress(routineId){
         const d=s.data||{}, exercises=Array.isArray(d.exercises)?d.exercises:[];
         return `<details class="history-session card" ${idx===0?'open':''}>
           <summary class="history-summary"><div><b class="history-title">${esc(d.day_name||s.day||'Entrenamiento')}</b>
-          <div class="muted">${new Date(s.workout_date).toLocaleDateString('es-ES')}</div></div><span class="history-chevron">⌄</span></summary>
+          <div class="muted">${simpleFormatDateKey(s.workout_date)}</div></div><span class="history-chevron">⌄</span></summary>
           <div class="history-content">${exercises.length?exercises.map(e=>{
             const sets=Array.isArray(e.sets)?e.sets:[];
             return `<div class="history-exercise"><div class="history-exercise-head"><div><b>${esc(e.name||'Ejercicio')}</b>
@@ -2284,11 +3966,17 @@ async function editClientAssignedRoutine(clientId,routineId,routineName){
     if(a.error)throw a.error;
     if(!a.data)return toast('Esta rutina ya no está asignada a este cliente.');
 
-    const r=routines.find(x=>String(x.id)===String(routineId)) ||
-      (await db.from('routines').select('id,name,description').eq('id',routineId).maybeSingle()).data;
+    const [routineResult,daysResult]=await Promise.all([
+      routines.find(x=>String(x.id)===String(routineId))
+        ? Promise.resolve({data:routines.find(x=>String(x.id)===String(routineId)),error:null})
+        : db.from('routines').select('id,name,description').eq('id',routineId).maybeSingle(),
+      days(routineId)
+    ]);
+    if(routineResult?.error)throw routineResult.error;
+    const r=routineResult?.data;
     if(!r)return toast('No se encontró la rutina.');
 
-    editDays=await days(routineId);
+    editDays=daysResult;
     window.__clientRoutineEdit={clientId,routineId,assignmentId:a.data.id,reorder:false,dayIndex:null};
 
     $('editor').innerHTML=`
@@ -2520,7 +4208,7 @@ function renderClientSingleDayExercises(di){
             <div class="grid3">
               <div><label>Ejercicio</label><input value="${esc(e.name)}" onchange="editDays[${di}].exercises[${ei}].name=this.value"></div>
               <div><label>Series</label><input type="number" min="1" value="${e.sets||1}" onchange="editDays[${di}].exercises[${ei}].sets=Math.max(1,+this.value||1)"></div>
-              <div><label>Descanso (min)</label><input type="number" min="0" step="0.5" value="${Number(e.rest_seconds||0)/60}" inputmode="decimal" onchange="editDays[${di}].exercises[${ei}].rest_seconds=Math.max(0,(parseFloat(this.value)||0)*60)"></div>
+              <div><label>Descanso previsto (min)</label><input type="number" min="0" step="0.5" value="${Number(e.rest_seconds||0)/60}" inputmode="decimal" onchange="editDays[${di}].exercises[${ei}].rest_seconds=Math.max(0,(parseFloat(this.value)||0)*60)"></div>
             </div>
             <div class="grid" style="margin-top:8px">
               <div><label>Objetivo de reps</label><input value="${esc(e.target||'')}" placeholder="2x10-15" onchange="editDays[${di}].exercises[${ei}].target=this.value"></div>
@@ -2614,6 +4302,23 @@ async function openClientRoutineProgress(clientId,routineId,routineName){
       return sessionRoutineId!=null && String(sessionRoutineId)===requestedRoutineId;
     });
 
+    // Exercise notes are stored separately from workout sessions so they persist
+    // across devices. Trainers must read them through the authorized RPC.
+    let clientRoutineNotes=[];
+    try{
+      const nq=await db.rpc('get_client_routine_notes',{
+        p_client_id:String(clientId),
+        p_routine_id:requestedRoutineId
+      });
+      if(!nq.error)clientRoutineNotes=nq.data||[];
+    }catch(e){console.warn('No se pudieron cargar las notas del cliente:',e)}
+    const notesByExercise=new Map();
+    for(const n of clientRoutineNotes){
+      const k=simpleNormalizeNoteKey(n.exercise_key);
+      const v=String(n.note??'').trim();
+      if(k&&v&&!notesByExercise.has(k))notesByExercise.set(k,v);
+    }
+
     subtitle.textContent=`${sessions.length} sesión${sessions.length===1?'':'es'} registrada${sessions.length===1?'':'s'}`;
     let orderedRoutineDays=[];
     try{ orderedRoutineDays=await days(routineId); }
@@ -2628,7 +4333,7 @@ async function openClientRoutineProgress(clientId,routineId,routineName){
       <div class="card" style="margin:0 0 12px">
         <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">
           <div><div class="muted">Sesiones</div><b style="font-size:20px">${sessions.length}</b></div>
-          <div><div class="muted">Última sesión</div><b>${new Date(sessions[0].workout_date).toLocaleDateString('es-ES')}</b></div>
+          <div><div class="muted">Última sesión</div><b>${simpleFormatDateKey(sessions[0].workout_date)}</b></div>
         </div>
       </div>
 
@@ -2671,13 +4376,14 @@ async function openClientRoutineProgress(clientId,routineId,routineName){
 
       ${sessions.map((s,idx)=>{
         const d=s.data||{};
-        const date=new Date(s.workout_date);
+        const date=simpleDateFromKey(s.workout_date);
+        const dateLabel=date?date.toLocaleDateString('es-ES'):'Fecha no disponible';
         const exercises=Array.isArray(d.exercises)?d.exercises:[];
         return `<details class="history-session card" ${idx===0?'open':''}>
           <summary class="history-summary">
             <div>
               <b class="history-title">${esc(d.day_name||s.day||'Entrenamiento')}</b>
-              <div class="muted">${date.toLocaleDateString('es-ES')}</div>
+              <div class="muted">${esc(dateLabel)}</div>
             </div>
             <span class="history-chevron">⌄</span>
           </summary>
@@ -2705,7 +4411,7 @@ async function openClientRoutineProgress(clientId,routineId,routineName){
                       <span>${esc(String(set.rir!==''&&set.rir!=null?set.rir:'—'))}</span>
                     </div>`).join('')}
                 </div>
-                ${e.notes?`<div class="history-notes"><span>Notas:</span> ${esc(e.notes)}</div>`:''}
+                ${(String(e.notes??'').trim() || notesByExercise.get(simpleNormalizeNoteKey(e.name)) || '')?`<div class="history-notes"><span>Notas:</span> ${esc(String(e.notes??'').trim() || notesByExercise.get(simpleNormalizeNoteKey(e.name)) || '')}</div>`:''}
               </div>`;
             }).join(''):'<div class="muted">Sin ejercicios registrados.</div>'}
           </div>
@@ -2751,39 +4457,44 @@ async function openClientProfile(clientId){
   setNestedView(true);
 
   try{
-    // Profile name is useful, but a profile RLS failure must never hide routines.
-    let name='Cliente';
-    try{
-      const rpc=await db.rpc('get_public_profile_names',{p_user_ids:[cid]});
-      const row=(rpc.data||[]).find(x=>String(x.id)===cid);
-      if(row?.name)name=String(row.name).trim()||name;
-    }catch(_){}
+    // The profile name and assigned routines are independent reads. Fetch them
+    // together so opening a client profile does not wait on avoidable serial
+    // network round-trips. A failure in either auxiliary read remains non-fatal.
+    const routineIds=[...new Set(clientAssignments.map(a=>a.trainer_routine_id).filter(Boolean).map(String))];
+    const [nameResult,routineResult]=await Promise.all([
+      (async()=>{
+        let name='Cliente';
+        try{
+          const rpc=await db.rpc('get_public_profile_names',{p_user_ids:[cid]});
+          const row=(rpc.data||[]).find(x=>String(x.id)===cid);
+          if(row?.name)name=String(row.name).trim()||name;
+        }catch(_){}
+        if(name==='Cliente'){
+          try{
+            const pr=await db.from('profiles').select('id,name').eq('id',cid).maybeSingle();
+            if(!pr.error && pr.data?.name)name=String(pr.data.name).trim()||name;
+          }catch(_){}
+        }
+        return name;
+      })(),
+      routineIds.length
+        ? db.from('routines')
+            .select('id,name,description,share_code,source_routine_id,created_at,deleted_at')
+            .in('id',routineIds)
+        : Promise.resolve({data:[],error:null})
+    ]);
 
-    if(name==='Cliente'){
-      try{
-        const pr=await db.from('profiles').select('id,name').eq('id',cid).maybeSingle();
-        if(!pr.error && pr.data?.name)name=String(pr.data.name).trim()||name;
-      }catch(_){}
-    }
-
+    const name=nameResult||'Cliente';
     title.textContent=name;
     subtitle.textContent=`${clientAssignments.length} rutina${clientAssignments.length===1?'':'s'} asignada${clientAssignments.length===1?'':'s'}`;
 
     // Fetch the exact assigned trainer routines. Do not rely on the global
     // routine list, which may be filtered/ordered independently.
-    const routineIds=[...new Set(clientAssignments.map(a=>a.trainer_routine_id).filter(Boolean).map(String))];
     const routineMap=new Map();
-
-    if(routineIds.length){
-      const rq=await db.from('routines')
-        .select('id,name,description,share_code,source_routine_id,created_at,deleted_at')
-        .in('id',routineIds);
-
-      if(!rq.error){
-        for(const r of (rq.data||[]))routineMap.set(String(r.id),r);
-      }else{
-        console.warn('openClientProfile routines:',rq.error);
-      }
+    if(!routineResult.error){
+      for(const r of (routineResult.data||[]))routineMap.set(String(r.id),r);
+    }else{
+      console.warn('openClientProfile routines:',routineResult.error);
     }
 
     // Never discard an assignment merely because the routine-name query was
@@ -2822,8 +4533,8 @@ async function openClientProfile(clientId){
               ${renderWeeklyRoutineProgress(profileWeekly.get(String(x.routine.id))?.total||0,profileWeekly.get(String(x.routine.id))?.done||0)}
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
-              <button class="btn" onclick="openClientRoutineProgress('${cid}','${x.routine.id}','${esc(x.routine.name||'Rutina')}')">Ver progreso</button>
-              <button class="btn primary" onclick="editClientAssignedRoutine('${cid}','${x.routine.id}','${esc(x.routine.name||'Rutina')}')">Editar rutina</button>
+              <button class="btn" onclick="openClientRoutineProgress(${esc(JSON.stringify(cid))},${esc(JSON.stringify(x.routine.id))},${esc(JSON.stringify(x.routine.name||'Rutina'))})">Ver progreso</button>
+              <button class="btn primary" onclick="editClientAssignedRoutine(${esc(JSON.stringify(cid))},${esc(JSON.stringify(x.routine.id))},${esc(JSON.stringify(x.routine.name||'Rutina'))})">Editar rutina</button>
               <button class="btn danger" onclick="revokeFromClientProfile('${x.assignment.id}')">Revocar</button>
             </div>
           </div>
@@ -2880,31 +4591,30 @@ async function renderClients(){
       activeAssignments.map(a=>a.trainer_routine_id).filter(Boolean).map(String)
     )];
 
-    const routineMap=new Map();
-    if(routineIds.length){
-      const rq=await db.from('routines')
-        .select('id,name,description,deleted_at')
-        .in('id',routineIds);
+    const names=new Map();
+    const [routineQuery,nameRpc]=await Promise.all([
+      routineIds.length
+        ? db.from('routines').select('id,name,description,deleted_at').in('id',routineIds)
+        : Promise.resolve({data:[],error:null}),
+      ids.length
+        ? db.rpc('get_public_profile_names',{p_user_ids:ids})
+        : Promise.resolve({data:[],error:null})
+    ]);
 
-      if(!rq.error){
-        for(const r of (rq.data||[]))routineMap.set(String(r.id),r);
-      }else{
-        console.warn('No se pudieron leer nombres de rutinas:',rq.error);
-      }
+    const routineMap=new Map();
+    if(!routineQuery.error){
+      for(const r of (routineQuery.data||[]))routineMap.set(String(r.id),r);
+    }else{
+      console.warn('No se pudieron leer nombres de rutinas:',routineQuery.error);
     }
 
     // Names: try public RPC first, then profiles. Neither failure hides clients.
-    const names=new Map();
-
-    try{
-      const rpc=await db.rpc('get_public_profile_names',{p_user_ids:ids});
-      if(!rpc.error){
-        for(const row of (rpc.data||[])){
-          if(row?.id)names.set(String(row.id),row.name||'');
-        }
+    if(!nameRpc.error){
+      for(const row of (nameRpc.data||[])){
+        if(row?.id)names.set(String(row.id),row.name||'');
       }
-    }catch(err){
-      console.warn('RPC nombres:',err);
+    }else{
+      console.warn('RPC nombres:',nameRpc.error);
     }
 
     const missing=ids.filter(id=>!String(names.get(id)||'').trim());
@@ -2921,23 +4631,31 @@ async function renderClients(){
       }
     }
 
-    const clientRoutineIds=[...new Set(activeAssignments.map(a=>a.trainer_routine_id).filter(Boolean).map(String))];
     const clientWeeklyByUser=new Map();
-    for(const cid of ids){
+    const assignmentsByClient=new Map();
+    for(const a of activeAssignments){
+      const key=String(a.client_id||'');
+      if(!assignmentsByClient.has(key))assignmentsByClient.set(key,[]);
+      assignmentsByClient.get(key).push(a);
+    }
+    await Promise.all(ids.map(async cid=>{
+      const clientAssignmentsForUser=assignmentsByClient.get(String(cid))||[];
+      const clientRoutineIds=[...new Set(clientAssignmentsForUser.map(a=>a.trainer_routine_id).filter(Boolean).map(String))];
       const aliases={};
-      for(const a of activeAssignments){
-        if(String(a.client_id)!==String(cid)||!a.trainer_routine_id)continue;
-        if(a.client_routine_id)aliases[String(a.trainer_routine_id)]=String(a.client_routine_id);
+      for(const a of clientAssignmentsForUser){
+        if(a.trainer_routine_id&&a.client_routine_id)
+          aliases[String(a.trainer_routine_id)]=String(a.client_routine_id);
       }
       const namesForClient={};
-      for(const a of activeAssignments){
-        if(a.trainer_routine_id && String(a.client_id)===String(cid)){
+      for(const a of clientAssignmentsForUser){
+        if(a.trainer_routine_id){
           const rr=routineMap.get(String(a.trainer_routine_id));
           if(rr?.name)namesForClient[String(a.trainer_routine_id)]=rr.name;
         }
       }
-      clientWeeklyByUser.set(cid,await getWeeklyRoutineProgressForUser(cid,clientRoutineIds,aliases,namesForClient));
-    }
+      const weekly=await getWeeklyRoutineProgressForUser(cid,clientRoutineIds,aliases,namesForClient);
+      clientWeeklyByUser.set(cid,weekly);
+    }));
 
     const grouped=new Map();
     for(const a of activeAssignments){
@@ -3006,6 +4724,9 @@ async function renderMine(){
   const routineIds=routines.map(r=>String(r.id));
   const weekly=await getWeeklyRoutineProgressForUser(user.id,routineIds);
 
+  // `weekly` conserva el nombre histórico de la variable; el contador representa
+  // el progreso actual del ciclo de la rutina.
+
   const cards=routines.map((r,i)=>{
     const p=weekly.get(String(r.id))||{total:0,done:0};
     return `
@@ -3063,7 +4784,8 @@ function routineDragCleanup(){
 
 function startRoutinePointerDrag(e,index){
   if(profile?.role!=='trainer'||__routinePointerDrag)return;
-  if(e.pointerType!=='touch' && e.pointerType!=='pen')return;
+  // Use Pointer Events for mouse, touch and pen. This keeps desktop dragging
+  // consistent with touch/pen dragging and avoids browser-specific HTML5 drag behaviour.
   e.preventDefault();e.stopPropagation();
 
   const handle=e.currentTarget;
@@ -3159,15 +4881,14 @@ async function routinePointerUp(e){
   renderMine();
 
   try{
-    const results=await Promise.all(
-      routines.map((r,i)=>db.from('routines')
-        .update({routine_order:i})
-        .eq('id',r.id)
-        .eq('owner_id',user.id)
-        .is('deleted_at',null))
-    );
-    const failed=results.find(x=>x.error);
-    if(failed)throw failed.error;
+    const ids=routines.map(r=>String(r.id));
+    const saved=await db.rpc('reorder_my_routines_atomic',{p_routine_ids:ids});
+    if(saved.error)throw saved.error;
+    const verify=await db.from('routines').select('id,routine_order')
+      .eq('owner_id',user.id).is('deleted_at',null).order('routine_order',{ascending:true});
+    if(verify.error)throw verify.error;
+    const actual=(verify.data||[]).map(r=>String(r.id));
+    if(actual.join('|')!==ids.join('|'))throw new Error('El orden guardado no coincide con el orden mostrado.');
     toast('Orden guardado');
   }catch(err){
     console.error('reorderRoutine mobile:',err);
@@ -3206,7 +4927,7 @@ function renderNewDays(){
       <div class="grid3">
         <div><label>Ejercicio</label><input value="${esc(e.name)}" placeholder="Ej. Press banca" onchange="newDays[${di}].exercises[${ei}].name=this.value"></div>
         <div><label>Nº de series</label><input type="number" min="1" value="${e.sets}" onchange="newDays[${di}].exercises[${ei}].sets=+this.value"></div>
-        <div><label>Descanso (min)</label><input type="number" min="0" step="0.5" value="${e.rest_seconds/60}" onchange="newDays[${di}].exercises[${ei}].rest_seconds=(+this.value||0)*60"></div>
+        <div><label>Descanso previsto (min)</label><input type="number" min="0" step="0.5" value="${e.rest_seconds/60}" onchange="newDays[${di}].exercises[${ei}].rest_seconds=(+this.value||0)*60"></div>
       </div>
       <div class="grid" style="margin-top:8px">
         <div><label>Objetivo / rango de repeticiones</label><input value="${esc(e.target)}" placeholder="Ej. 2x10-15" onchange="newDays[${di}].exercises[${ei}].target=this.value"></div>
@@ -3225,39 +4946,52 @@ function removeNewEx(di,ei){newDays[di].exercises.splice(ei,1);renderNewDays()}
 async function createRoutine(){
   if(window.__routineSaving)return;
   const name=$('rn').value.trim();
-  if(!name)return toast('Pon un nombre');
+  if(!name)return toast('Pon un nombre a la rutina');
   if(!newDays.length)return toast('Añade al menos un día');
   if(newDays.some(d=>!d.name.trim()))return toast('Pon nombre a todos los días');
   if(newDays.some(d=>d.exercises.some(e=>!e.name.trim())))return toast('Pon nombre a todos los ejercicios');
   window.__routineSaving=true;
   try{
-    const nextOrder=(routines||[]).reduce((m,r)=>Math.max(m,Number.isFinite(Number(r.routine_order))?Number(r.routine_order):-1),-1)+1;
-    const r=await db.from('routines').insert({owner_id:user.id,name,description:$('rd').value.trim(),routine_order:nextOrder}).select().single();
+    const daysPayload=newDays.map(d=>({
+      name:d.name.trim(),
+      exercises:(d.exercises||[]).map(e=>({
+        name:e.name.trim(),
+        sets:Math.max(1,Number(e.sets)||1),
+        target:e.target||'',
+        rir:e.rir===''||e.rir==null?null:Number(e.rir),
+        rest_seconds:Math.max(0,Number(e.rest_seconds)||0),
+        notes:e.notes||null
+      }))
+    }));
+    const r=await db.rpc('create_routine_atomic',{
+      p_name:name,
+      p_description:$('rd').value.trim(),
+      p_days:daysPayload
+    });
     if(r.error)throw r.error;
-    try{
-      for(let di=0;di<newDays.length;di++){
-        const d=newDays[di];
-        const q=await db.from('routine_days').insert({routine_id:r.data.id,name:d.name.trim(),day_order:di}).select().single();
-        if(q.error)throw q.error;
-        for(let ei=0;ei<d.exercises.length;ei++){
-          const e=d.exercises[ei];
-          const x=await db.from('routine_exercises').insert({
-            day_id:q.data.id,name:e.name.trim(),sets:Math.max(1,Number(e.sets)||1),
-            target:e.target||'',rir:e.rir===''||e.rir==null?null:Number(e.rir),
-            rest_seconds:Math.max(0,Number(e.rest_seconds)||0),exercise_order:ei,notes:e.notes||null
-          });
-          if(x.error)throw x.error;
-        }
-      }
-    }catch(e){
-      await db.from('routines').delete().eq('id',r.data.id).eq('owner_id',user.id);
-      throw e;
-    }
     newDays=[];await reload();view('mine');toast('Rutina creada');
   }catch(e){console.error('createRoutine:',e);toast('No se pudo guardar la rutina')}
   finally{window.__routineSaving=false}
 }
-async function days(id){let d=await db.from('routine_days').select('id,name,day_order').eq('routine_id',id).order('day_order');if(d.error)throw d.error;for(let x of d.data||[]){let e=await db.from('routine_exercises').select('id,name,sets,target,rir,rest_seconds,exercise_order,notes').eq('day_id',x.id).order('exercise_order');if(e.error)throw e.error;x.exercises=e.data||[]}return d.data||[]}
+async function days(id){
+  const d=await db.from('routine_days').select('id,name,day_order').eq('routine_id',id).order('day_order');
+  if(d.error)throw d.error;
+  const rows=d.data||[];
+  if(!rows.length)return rows;
+  const dayIds=rows.map(x=>x.id);
+  const e=await db.from('routine_exercises')
+    .select('id,day_id,name,sets,target,rir,rest_seconds,exercise_order,notes')
+    .in('day_id',dayIds)
+    .order('exercise_order');
+  if(e.error)throw e.error;
+  const byDay=new Map(dayIds.map(dayId=>[String(dayId),[]]));
+  for(const exercise of (e.data||[])){
+    const bucket=byDay.get(String(exercise.day_id));
+    if(bucket)bucket.push(exercise);
+  }
+  for(const day of rows)day.exercises=byDay.get(String(day.id))||[];
+  return rows;
+}
 async function editRoutine(id){if(profile?.role!=='trainer')return toast('Solo el entrenador puede editar rutinas.');let r=routines.find(x=>x.id===id);editDays=await days(id);$('editor').innerHTML=`<div class="grid"><div><label>Nombre</label><input id="en" value="${esc(r.name)}"></div><div><label>Descripción</label><input id="ed" value="${esc(r.description||'')}"></div></div><div class="buttons" style="margin:12px 0"><button class="btn primary" onclick="saveEditor('${id}')">Guardar rutina</button><button class="btn" onclick="addDay()">Añadir día</button></div><div id="daysEditor"></div>`;renderEditor();openM('editModal')}
 function renderEditor(){
   let h='';
@@ -3301,7 +5035,7 @@ function renderEditor(){
                 <div class="grid3">
                   <div><label>Ejercicio</label><input value="${esc(e.name)}" onchange="editDays[${di}].exercises[${ei}].name=this.value"></div>
                   <div><label>Series</label><input type="number" min="1" value="${e.sets||1}" onchange="editDays[${di}].exercises[${ei}].sets=Math.max(1,+this.value||1)"></div>
-                  <div><label>Descanso (min)</label><input type="number" min="0" step="0.5" value="${(e.rest_seconds||120)/60}" onchange="editDays[${di}].exercises[${ei}].rest_seconds=(+this.value||0)*60"></div>
+                  <div><label>Descanso previsto (min)</label><input type="number" min="0" step="0.5" value="${(e.rest_seconds||120)/60}" onchange="editDays[${di}].exercises[${ei}].rest_seconds=(+this.value||0)*60"></div>
                 </div>
                 <div class="grid" style="margin-top:8px">
                   <div><label>Objetivo</label><input value="${esc(e.target||'')}" placeholder="2x10-15" onchange="editDays[${di}].exercises[${ei}].target=this.value"></div>
@@ -3345,21 +5079,6 @@ function dragDayStart(e,i){
   e.currentTarget.closest('.routine-editor-day')?.classList.add('dragging');
   document.querySelectorAll('#clientSessionList .day-order-gap')
     .forEach(g=>g.classList.remove('active'));
-}
-function showExerciseDropGaps(){
-  const box=document.querySelector('#daysEditor');if(!box)return;
-  box.querySelectorAll('.exercise-drop-gap').forEach(x=>x.remove());
-  const rows=[...box.querySelectorAll('.routine-editor-exercise')];
-  for(let i=rows.length;i>=0;i--){
-    const gap=document.createElement('div');gap.className='exercise-drop-gap';
-    gap.ondragover=ev=>{ev.preventDefault();ev.stopPropagation();ev.dataTransfer.dropEffect='move';gap.classList.add('active')};
-    gap.ondragleave=()=>gap.classList.remove('active');
-    gap.ondrop=ev=>{
-      ev.preventDefault();ev.stopPropagation();
-      if(i<rows.length)dropExerciseSlot(ev,Number(rows[i].dataset.dayIndex),Number(rows[i].dataset.exerciseIndex));
-    };
-    if(i<rows.length)rows[i].parentNode.insertBefore(gap,rows[i]);else box.appendChild(gap);
-  }
 }
 function dragExerciseStart(e,di,ei){
   e.stopPropagation();
@@ -3454,26 +5173,14 @@ async function persistClientSessionOrder(){
   const state=window.__clientRoutineEdit;
   if(!state?.routineId||profile?.role!=='trainer')return false;
   try{
-    const results=await Promise.all(
-      editDays.map((d,i)=>d.id
-        ? db.from('routine_days').update({day_order:i}).eq('id',d.id).eq('routine_id',state.routineId).select('id,day_order')
-        : Promise.resolve({data:[],error:null}))
-    );
-    const failed=results.find(x=>x?.error);
-    if(failed)throw failed.error;
-    const updated=results.flatMap(x=>x?.data||[]);
-    const persistedIds=new Set(updated.map(x=>String(x.id)));
-    const existingIds=editDays.filter(d=>d.id).map(d=>String(d.id));
-    if(existingIds.some(id=>!persistedIds.has(id))){
-      throw new Error('No se pudo verificar el guardado de una o más sesiones (posible RLS).');
-    }
-    const verify=await db.from('routine_days').select('id,day_order').eq('routine_id',state.routineId);
+    const ids=editDays.filter(d=>d.id).map(d=>String(d.id));
+    if(!ids.length)throw new Error('No hay sesiones guardables.');
+    const saved=await db.rpc('reorder_my_routine_days_atomic',{p_routine_id:String(state.routineId),p_day_ids:ids});
+    if(saved.error)throw saved.error;
+    const verify=await db.from('routine_days').select('id,day_order').eq('routine_id',state.routineId).order('day_order',{ascending:true});
     if(verify.error)throw verify.error;
-    const byId=new Map((verify.data||[]).map(x=>[String(x.id),Number(x.day_order)]));
-    for(let i=0;i<editDays.length;i++){
-      if(editDays[i].id && byId.get(String(editDays[i].id))!==i)
-        throw new Error('El orden de sesiones no coincide con la base de datos.');
-    }
+    const actual=(verify.data||[]).map(x=>String(x.id));
+    if(actual.join('|')!==ids.join('|'))throw new Error('El orden de sesiones no coincide con la base de datos.');
     editDays=editDays.map((d,i)=>({...d,day_order:i}));
     toast('Orden de sesiones guardado automáticamente');
     return true;
@@ -3560,16 +5267,14 @@ async function reorderRoutine(from,targetIndex){
   renderMine();
 
   try{
-    // Persist all rows together. This keeps positions contiguous (0..n-1).
-    const results=await Promise.all(
-      routines.map((r,i)=>db.from('routines')
-        .update({routine_order:i})
-        .eq('id',r.id)
-        .eq('owner_id',user.id)
-        .is('deleted_at',null))
-    );
-    const failed=results.find(x=>x.error);
-    if(failed)throw failed.error;
+    const ids=routines.map(r=>String(r.id));
+    const saved=await db.rpc('reorder_my_routines_atomic',{p_routine_ids:ids});
+    if(saved.error)throw saved.error;
+    const verify=await db.from('routines').select('id,routine_order')
+      .eq('owner_id',user.id).is('deleted_at',null).order('routine_order',{ascending:true});
+    if(verify.error)throw verify.error;
+    const actual=(verify.data||[]).map(r=>String(r.id));
+    if(actual.join('|')!==ids.join('|'))throw new Error('El orden de rutinas no coincide con la base de datos.');
     toast('Orden guardado');
   }catch(err){
     console.error('reorderRoutine:',err);
@@ -3600,20 +5305,6 @@ function dropDaySlot(e,targetIndex){
   editDays.splice(Math.max(0,Math.min(to,editDays.length)),0,item);
   editDays.forEach((d,i)=>d.day_order=i);
   dragEndItem();renderEditor();
-}
-function showExerciseDropGaps(){
-  const box=document.querySelector('#daysEditor');
-  if(!box)return;
-  box.querySelectorAll('.exercise-drop-gap').forEach(x=>x.remove());
-  const rows=[...box.querySelectorAll('.routine-editor-exercise')];
-  rows.forEach(row=>{
-    const gap=document.createElement('div');
-    gap.className='exercise-drop-gap';
-    gap.ondragover=ev=>{ev.preventDefault();ev.dataTransfer.dropEffect='move';gap.classList.add('active')};
-    gap.ondragleave=()=>gap.classList.remove('active');
-    gap.ondrop=ev=>{ev.preventDefault();const d=Number(row.dataset.dayIndex),i=Number(row.dataset.exerciseIndex);dropExerciseSlot(ev,d,i)};
-    row.parentNode.insertBefore(gap,row);
-  });
 }
 function dropExerciseSlot(e,targetDay,targetIndex){
   e.preventDefault();e.stopPropagation();
@@ -3647,50 +5338,24 @@ async function saveEditor(id){
   if(editDays.some(d=>d.exercises.some(e=>!e.name.trim())))return toast('Pon nombre a todos los ejercicios');
   window.__routineSaving=true;
   try{
-    const u=await db.from('routines').update({name,description:$('ed').value.trim(),updated_at:new Date().toISOString()}).eq('id',id).eq('owner_id',user.id);
-    if(u.error)throw u.error;
-    for(let di=0;di<editDays.length;di++){
-      const d=editDays[di];let did=d.id;
-      if(did){
-        const q=await db.from('routine_days').update({name:d.name.trim(),day_order:di}).eq('id',did).eq('routine_id',id);
-        if(q.error)throw q.error;
-      }else{
-        const q=await db.from('routine_days').insert({routine_id:id,name:d.name.trim(),day_order:di}).select().single();
-        if(q.error)throw q.error;did=q.data.id;d.id=did;
-      }
-      const old=await db.from('routine_exercises').select('id').eq('day_id',did);
-      if(old.error)throw old.error;
-      const keep=[];
-      for(let ei=0;ei<d.exercises.length;ei++){
-        const e=d.exercises[ei],payload={day_id:did,name:e.name.trim(),sets:Math.max(1,Number(e.sets)||1),target:e.target||'',rir:e.rir===''||e.rir==null?null:Number(e.rir),rest_seconds:Math.max(0,Number(e.rest_seconds)||0),exercise_order:ei,notes:e.notes||null};
-        if(e.id){
-          const q=await db.from('routine_exercises').update(payload).eq('id',e.id).eq('day_id',did);
-          if(q.error)throw q.error;keep.push(e.id);
-        }else{
-          const q=await db.from('routine_exercises').insert(payload).select().single();
-          if(q.error)throw q.error;e.id=q.data.id;keep.push(e.id);
-        }
-      }
-      const stale=(old.data||[]).map(x=>x.id).filter(x=>!keep.includes(x));
-      if(stale.length){
-        const q=await db.from('routine_exercises').delete().in('id',stale).eq('day_id',did);
-        if(q.error)throw q.error;
-      }
-    }
-    const all=await db.from('routine_days').select('id').eq('routine_id',id);
-    if(all.error)throw all.error;
-    const keepD=editDays.map(d=>d.id).filter(Boolean);
-    const staleD=(all.data||[]).map(x=>x.id).filter(x=>!keepD.includes(x));
-    if(staleD.length){
-      const ex=await db.from('routine_exercises').select('id').in('day_id',staleD);
-      if(ex.error)throw ex.error;
-      if(ex.data?.length){
-        const q=await db.from('routine_exercises').delete().in('id',ex.data.map(x=>x.id));
-        if(q.error)throw q.error;
-      }
-      const q=await db.from('routine_days').delete().in('id',staleD).eq('routine_id',id);
-      if(q.error)throw q.error;
-    }
+    const daysPayload=editDays.map(d=>({
+      name:d.name.trim(),
+      exercises:(d.exercises||[]).map(e=>({
+        name:e.name.trim(),
+        sets:Math.max(1,Number(e.sets)||1),
+        target:e.target||'',
+        rir:e.rir===''||e.rir==null?null:Number(e.rir),
+        rest_seconds:Math.max(0,Number(e.rest_seconds)||0),
+        notes:e.notes||null
+      }))
+    }));
+    const q=await db.rpc('save_routine_atomic',{
+      p_routine_id:id,
+      p_name:name,
+      p_description:$('ed').value.trim(),
+      p_days:daysPayload
+    });
+    if(q.error)throw q.error;
     await reload();closeM('editModal');renderMine();toast('Rutina guardada');
   }catch(e){console.error('saveEditor:',e);toast('No se pudo guardar la rutina')}
   finally{window.__routineSaving=false}
@@ -3710,19 +5375,11 @@ async function delRoutine(id){
         throw new Error('No se encontró la asignación de esta rutina. No se ha borrado nada.');
       }
 
-      const a=await db.from('routine_assignments')
-        .update({client_deleted_at:stamp})
-        .eq('id',a0.id)
-        .eq('client_id',user.id)
-        .is('client_deleted_at',null);
-      if(a.error)throw a.error;
-
+      // Resolve metadata before changing the assignment. If this read fails,
+      // nothing is hidden, avoiding a half-completed client-side delete.
       const key='simple_client_trash_'+user.id;
       let cached=[];try{cached=JSON.parse(localStorage.getItem(key)||'[]')}catch(_){}
       if(!Array.isArray(cached))cached=[];
-      // Clients don't load trainer-owned routines into `routines`, so obtain
-      // the real metadata before hiding the assignment. This prevents the
-      // paper bin from showing the generic name "Rutina".
       let meta={};
       try{
         const mk='simple_shared_routine_meta_'+user.id;
@@ -3733,6 +5390,16 @@ async function delRoutine(id){
         .eq('id',a0.trainer_routine_id)
         .maybeSingle();
       if(sourceRoutine.error)throw sourceRoutine.error;
+
+      const a=await db.from('routine_assignments')
+        .update({client_deleted_at:stamp})
+        .eq('id',a0.id)
+        .eq('client_id',user.id)
+        .is('client_deleted_at',null)
+        .select('id,client_deleted_at')
+        .maybeSingle();
+      if(a.error)throw a.error;
+      if(!a.data?.client_deleted_at)throw new Error('La rutina no quedó marcada como eliminada.');
 
       const trashRow={
         id:a0.id,
@@ -4081,16 +5748,8 @@ async function reorderOpenDay(routineId,from,targetIndex){
     if(from<at)at--;
     if(at===from)return;
     copy.splice(at,0,item);
-    for(let i=0;i<copy.length;i++){
-      const q=await db.from('routine_days').update({day_order:10000+i})
-        .eq('id',copy[i].id).eq('routine_id',routineId);
-      if(q.error)throw q.error;
-    }
-    for(let i=0;i<copy.length;i++){
-      const q=await db.from('routine_days').update({day_order:i})
-        .eq('id',copy[i].id).eq('routine_id',routineId);
-      if(q.error)throw q.error;
-    }
+    const saved=await db.rpc('reorder_my_routine_days_atomic',{p_routine_id:String(routineId),p_day_ids:copy.map(d=>String(d.id))});
+    if(saved.error)throw saved.error;
     const verify=await days(routineId);
     if((verify||[]).map(x=>String(x.id)).join('|')!==copy.map(x=>String(x.id)).join('|'))
       throw new Error('Orden de sesiones no verificado');
@@ -4129,7 +5788,8 @@ function editorMakePlaceholder(type,height){
 
 function startEditorPointerDrag(e,type,di,ei){
   if(profile?.role!=='trainer'||__editorPointerDrag)return;
-  if(e.pointerType!=='touch' && e.pointerType!=='pen')return;
+  // Use Pointer Events for mouse, touch and pen. This keeps desktop dragging
+  // consistent with touch/pen dragging and avoids browser-specific HTML5 drag behaviour.
   e.preventDefault();e.stopPropagation();
 
   const h=e.currentTarget;
@@ -4297,49 +5957,27 @@ function moveEditorExercise(fd,fi,td,ti){
 async function persistClientExerciseOrder(fd,td){
   const state=window.__clientRoutineEdit;
   if(!state?.routineId||profile?.role!=='trainer')return false;
-
   const dayIndexes=[...new Set([Number(fd),Number(td)])];
-  for(const di of dayIndexes){
-    const d=editDays[di];
-    if(!d?.id)continue;
-
-    // Two-pass update avoids collisions if the DB has a uniqueness constraint
-    // over (day_id, exercise_order).
-    const existing=d.exercises.filter(e=>e.id);
-    for(let i=0;i<existing.length;i++){
-      const q=await db.from('routine_exercises')
-        .update({exercise_order:10000+i})
-        .eq('id',existing[i].id)
-        .eq('day_id',d.id);
-      if(q.error)throw q.error;
+  try{
+    for(const di of dayIndexes){
+      const d=editDays[di];
+      if(!d?.id)continue;
+      const ids=d.exercises.filter(e=>e.id).map(e=>String(e.id));
+      if(!ids.length)continue;
+      const saved=await db.rpc('reorder_my_routine_exercises_atomic',{p_day_id:String(d.id),p_exercise_ids:ids});
+      if(saved.error)throw saved.error;
+      const verify=await db.from('routine_exercises').select('id').eq('day_id',d.id).order('exercise_order',{ascending:true});
+      if(verify.error)throw verify.error;
+      const actual=(verify.data||[]).map(e=>String(e.id));
+      if(actual.join('|')!==ids.join('|'))throw new Error('Orden de ejercicios no verificado');
     }
-    for(let i=0;i<d.exercises.length;i++){
-      const e=d.exercises[i];
-      if(!e.id)continue;
-      const q=await db.from('routine_exercises')
-        .update({exercise_order:i})
-        .eq('id',e.id)
-        .eq('day_id',d.id);
-      if(q.error)throw q.error;
-    }
+    toast('Orden de ejercicios guardado automáticamente');
+    return true;
+  }catch(err){
+    console.error('persistClientExerciseOrder:',err);
+    toast('No se pudo guardar el orden de los ejercicios');
+    return false;
   }
-
-  // Verify the exact order for the affected days.
-  for(const di of dayIndexes){
-    const d=editDays[di];
-    if(!d?.id)continue;
-    const q=await db.from('routine_exercises')
-      .select('id,exercise_order')
-      .eq('day_id',d.id)
-      .order('exercise_order',{ascending:true});
-    if(q.error)throw q.error;
-    const expected=d.exercises.filter(e=>e.id).map(e=>String(e.id));
-    const actual=(q.data||[]).map(e=>String(e.id));
-    if(expected.join('|')!==actual.join('|'))throw new Error('Orden de ejercicios no verificado');
-  }
-
-  toast('Orden de ejercicios guardado automáticamente');
-  return true;
 }
 
 let activeWorkout={day:null,exercises:[],sets:{}};
@@ -4358,9 +5996,11 @@ async function loadHistory(routineId=null){
 
   const r=await query;
   if(r.error){
+    // No ocultamos errores de red/RLS como si el historial estuviera vacío.
+    // Los llamadores que necesiten tolerancia ya gestionan el fallo y pueden
+    // continuar con la rutina sin historial.
     console.error('history:',r.error);
-    window.workoutHistory=[];
-    return;
+    throw r.error;
   }
   window.workoutHistory=r.data||[];
 }
@@ -4411,14 +6051,23 @@ async function deleteSelectedHistory(){
   if(del){ del.disabled=true; del.textContent='Borrando...'; }
 
   try{
-    let failed=0;
-    for(const id of ids){
-      const r=await db.rpc('delete_my_workout',{p_workout_id:id});
-      if(r.error){
-        failed++;
-        console.error('delete_my_workout:',id,r.error);
+    // Las eliminaciones son independientes y el RPC ya limita cada fila a
+    // su propietario. Ejecutarlas en paralelo reduce mucho el tiempo cuando
+    // se seleccionan muchas sesiones, sin perder la protección del backend.
+    const results=await Promise.all(ids.map(async id=>{
+      try{
+        const r=await db.rpc('delete_my_workout',{p_workout_id:id});
+        if(r.error){
+          console.error('delete_my_workout:',id,r.error);
+          return {id,ok:false};
+        }
+        return {id,ok:true};
+      }catch(e){
+        console.error('delete_my_workout:',id,e);
+        return {id,ok:false};
       }
-    }
+    }));
+    const failed=results.filter(x=>!x.ok).length;
 
     await loadHistory();
 
@@ -4454,7 +6103,7 @@ async function editWorkout(id){
   window.__editingWorkout=id;
 
   $('trainTitle').textContent='Editar sesión';
-  $('trainSubtitle').textContent=`${data.routine_name||'Entrenamiento'} · ${data.day_name||session.day||''} · ${new Date(session.workout_date).toLocaleDateString('es-ES')}`;
+  $('trainSubtitle').textContent=`${data.routine_name||'Entrenamiento'} · ${data.day_name||session.day||''} · ${simpleFormatDateKey(session.workout_date)}`;
 
   $('trainBody').innerHTML=`
     <div class="card">
@@ -4575,7 +6224,8 @@ function showHistory(){
       <div id="historySelectedCount" class="history-select-count">Ninguna seleccionada</div>
     </div>
     ${h.length?h.map((x,idx)=>{
-      const d=new Date(x.workout_date);
+      const d=simpleDateFromKey(x.workout_date);
+      const dateLabel=d?d.toLocaleDateString('es-ES'):'Fecha no disponible';
       const data=x.data||{};
       const exercises=Array.isArray(data.exercises)?data.exercises:[];
       return `<details class="history-session card" data-workout-id="${esc(x.id)}">
@@ -4585,7 +6235,7 @@ function showHistory(){
               onclick="event.stopPropagation()" onchange="toggleWorkoutSelection('${x.id}',this.checked)">
             <div>
               <b class="history-title">${esc(data.routine_name||'Entrenamiento')}</b>
-              <div class="muted">${esc(data.day_name||x.day||'')} · ${d.toLocaleDateString('es-ES')}</div>
+              <div class="muted">${esc(data.day_name||x.day||'')} · ${esc(dateLabel)}</div>
             </div>
           </div>
           <div class="history-summary-actions">
@@ -4633,10 +6283,10 @@ function showHistory(){
                       ? String(sd.routine_id||'')===String(rid)
                       : (sd.routine_name||'')===(data.routine_name||'');
                     return sameRoutine &&
-                      new Date(s.workout_date||0)<new Date(x.workout_date||0) &&
+                      String(s.workout_date||'')<String(x.workout_date||'') &&
                       (sd.exercises||[]).some(pe=>String(pe.exercise_id||'')===String(e.exercise_id||''));
                   })
-                  .sort((a,b)=>new Date(b.workout_date||0)-new Date(a.workout_date||0))[0];
+                  .sort((a,b)=>String(b.workout_date||'').localeCompare(String(a.workout_date||'')))[0];
                 if(!prev)return '';
                 const pe=(prev.data?.exercises||[]).find(pe=>String(pe.exercise_id||'')===String(e.exercise_id||''));
                 if(!pe)return '';
@@ -4660,7 +6310,7 @@ async function deleteWorkout(id){
   const data=session.data||{};
   const name=data.routine_name||'esta sesión';
   const day=data.day_name||session.day||'';
-  const date=session.workout_date?new Date(session.workout_date).toLocaleDateString('es-ES'):'';
+  const date=session.workout_date?simpleFormatDateKey(session.workout_date):'';
   if(!confirm(`¿Eliminar ${name}${day?' · '+day:''}${date?' · '+date:''} del historial?`))return;
 
   window.__deletingWorkout=true;
@@ -4698,24 +6348,21 @@ function getPreviousExerciseSession(exerciseId){
     if(!sameRoutine)return false;
     return Array.isArray(d.exercises) &&
       d.exercises.some(e=>String(e.exercise_id||'')===String(exerciseId));
-  }).sort((a,b)=>{
-    const da=Date.parse(a.workout_date||a.data?.workout_date||0);
-    const db=Date.parse(b.workout_date||b.data?.workout_date||0);
-    return db-da;
-  });
+  }).sort((a,b)=>String(b.workout_date||b.data?.workout_date||'').localeCompare(String(a.workout_date||a.data?.workout_date||'')));
 
-  const currentDate=Date.now();
+  const todayKey=simpleLocalDateKey();
   for(const session of candidates){
     const d=session.data||{};
-    const sessionDate=Date.parse(session.workout_date||d.workout_date||0);
-    // If this is the exact current workout record, skip it.
+    const sessionKey=String(session.workout_date||d.workout_date||'');
+    // If this is today's current workout record for the same routine/day,
+    // skip it. Comparing calendar keys avoids UTC/local-time boundary bugs.
     if(workoutRoutine?.id && String(d.routine_id||'')===String(workoutRoutine.id) &&
        activeWorkout?.day?.id && String(d.routine_day_id||'')===String(activeWorkout.day.id) &&
-       sessionDate>=currentDate-24*60*60*1000){
+       sessionKey===todayKey){
       continue;
     }
     const exercise=(d.exercises||[]).find(e=>String(e.exercise_id||'')===String(exerciseId));
-    if(exercise)return {exercise,date:new Date(session.workout_date||d.workout_date||0)};
+    if(exercise)return {exercise,date:simpleDateFromKey(sessionKey)};
   }
   return null;
 }
@@ -4728,7 +6375,7 @@ function renderPreviousSession(exerciseId){
   </div>`;
 
   const sets=Array.isArray(prev.exercise.sets)?prev.exercise.sets:[];
-  const date=!isNaN(prev.date)?prev.date.toLocaleDateString('es-ES'):'';
+  const date=prev.date instanceof Date&&!isNaN(prev.date)?prev.date.toLocaleDateString('es-ES'):'';
   return `<div class="previous-session">
     <div class="previous-session-head">
       <span class="previous-session-title">Última sesión</span>
@@ -4746,6 +6393,7 @@ function renderPreviousSession(exerciseId){
 }
 
 
+function simpleNormalizeNoteKey(value){return String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase().replace(/\s+/g,' ');}
 function workoutNotesKey(){
   return user?.id && workoutRoutine?.id && activeWorkout?.day?.id
     ? `simple_routine_notes_v3:${user.id}:${workoutRoutine.id}:${activeWorkout.day.id}`
@@ -4754,17 +6402,20 @@ function workoutNotesKey(){
 
 async function startWorkoutDay(dayId){
   try{
-    // Cargar el día y ejercicios es el flujo principal.
-    const d=await db.from('routine_days')
-      .select('id,name,day_order')
-      .eq('id',dayId)
-      .single();
+    // El día y sus ejercicios son lecturas independientes: cargarlos en
+    // paralelo reduce el tiempo de apertura del entrenamiento sin cambiar
+    // permisos ni la fuente de verdad.
+    const [d,x]=await Promise.all([
+      db.from('routine_days')
+        .select('id,name,day_order')
+        .eq('id',dayId)
+        .single(),
+      db.from('routine_exercises')
+        .select('id,name,sets,target,rir,rest_seconds,exercise_order,notes')
+        .eq('day_id',dayId)
+        .order('exercise_order')
+    ]);
     if(d.error)throw d.error;
-
-    const x=await db.from('routine_exercises')
-      .select('id,name,sets,target,rir,rest_seconds,exercise_order,notes')
-      .eq('day_id',dayId)
-      .order('exercise_order');
     if(x.error)throw x.error;
 
     activeWorkout={
@@ -4782,14 +6433,71 @@ async function startWorkoutDay(dayId){
     const notesKey=workoutNotesKey();
     let localNotes={};
     try{localNotes=JSON.parse(localStorage.getItem(notesKey)||'{}')||{};}catch(_){}
+    let persistentNotes=[];
+    try{
+      let assignedRows=Array.isArray(assignments)?assignments:[];
+      if(user?.id && profile?.role==='client'){
+        try{
+          const aq=await db.from('routine_assignments')
+            .select('trainer_routine_id,client_routine_id')
+            .eq('client_id',user.id)
+            .is('client_deleted_at',null);
+          if(!aq.error && Array.isArray(aq.data))assignedRows=aq.data;
+        }catch(_){}
+      }
+      const assignedRoutineIds=assignedRows
+        .filter(a=>String(a.client_id||user?.id)===String(user?.id) || !a.client_id)
+        .flatMap(a=>[a.trainer_routine_id,a.client_routine_id])
+        .filter(Boolean)
+        .map(String);
+      const noteRoutineIds=[...new Set([
+        String(workoutRoutine?.id||''),
+        String(workoutRoutine?.source_routine_id||''),
+        String(workoutRoutine?.trainer_routine_id||''),
+        ...assignedRoutineIds
+      ].filter(Boolean))];
+      // First load the exact routine(s). Then load the user's remaining notes
+      // as a fallback. This makes the notes portable between the desktop and
+      // mobile even if one client opens the shared routine through a different
+      // routine id.
+      const [exactQ,allQ]=await Promise.all([
+        noteRoutineIds.length
+          ? db.from('routine_user_notes').select('routine_id,exercise_key,note,updated_at').eq('user_id',user.id).in('routine_id',noteRoutineIds)
+          : Promise.resolve({data:[],error:null}),
+        db.from('routine_user_notes').select('routine_id,exercise_key,note,updated_at').eq('user_id',user.id)
+      ]);
+      if(!exactQ.error)persistentNotes=exactQ.data||[];
+      if(!allQ.error)persistentNotes=[...persistentNotes,...(allQ.data||[])];
+    }catch(e){console.warn('Notas persistentes no disponibles:',e)}
+    // Prefer the newest row for each exercise key, and prefer rows belonging
+    // to the currently opened routine when there is more than one.
+    const noteKeyForExercise=e=>simpleNormalizeNoteKey(e.name);
+    const noteRoutinePriority=new Set([String(workoutRoutine?.id||''),String(workoutRoutine?.source_routine_id||''),String(workoutRoutine?.trainer_routine_id||'')].filter(Boolean));
+    persistentNotes.sort((a,b)=>{
+      const pa=noteRoutinePriority.has(String(a.routine_id))?1:0;
+      const pb=noteRoutinePriority.has(String(b.routine_id))?1:0;
+      if(pa!==pb)return pb-pa;
+      return String(b.updated_at||'').localeCompare(String(a.updated_at||''));
+    });
+    const persistentByKey=new Map();
+    for(const row of persistentNotes){
+      const k=simpleNormalizeNoteKey(row.exercise_key);
+      if(k && !persistentByKey.has(k))persistentByKey.set(k,String(row.note??''));
+    }
 
     for(const e of activeWorkout.exercises){
       const base=Array.from({length:e.sets||1},()=>({
         kg:'',reps:'',rir:'',done:false
       }));
-      base.note=localNotes[e.id]!==undefined
-        ? String(localNotes[e.id]??'')
-        : String(e.notes??'');
+      const nk=noteKeyForExercise(e);
+      const persistentNote=persistentByKey.has(nk)?String(persistentByKey.get(nk)??''):'';
+      const localNote=localNotes[e.id]!==undefined?String(localNotes[e.id]??''):'';
+      const localByName=Object.keys(localNotes).find(k=>simpleNormalizeNoteKey(k)===nk);
+      const localNameNote=localByName!==undefined?String(localNotes[localByName]??''):'';
+      const legacyNote=String(e.notes??'');
+      base.note=persistentNote.trim()
+        ? persistentNote
+        : (legacyNote.trim() ? legacyNote : (localNote.trim() ? localNote : localNameNote));
       activeWorkout.sets[e.id]=base;
     }
 
@@ -4801,39 +6509,53 @@ async function startWorkoutDay(dayId){
       window.workoutHistory=[];
     }
 
-    // Recuperación de respaldo: si una nota ya existía en una sesión anterior
-    // pero por alguna razón no está en la rutina/localStorage, la recuperamos
-    // del historial y la volvemos a dejar en el ejercicio.
+    // Recuperación de respaldo de TODAS las notas antiguas del usuario:
+    // rutina actual, copia del cliente, rutina del entrenador y sesiones históricas.
     try{
       const history=Array.isArray(window.workoutHistory)?window.workoutHistory:[];
-      const previous=history
-        .filter(s=>String(s.data?.routine_id||'')===String(workoutRoutine?.id||''))
-        .filter(s=>String(s.data?.routine_day_id||'')===String(dayId))
-        .sort((a,b)=>new Date(b.workout_date||0)-new Date(a.workout_date||0));
-      if(previous.length){
-        const latest=previous[0];
-        for(const e of activeWorkout.exercises){
-          const current=String(activeWorkout.sets[e.id]?.note??'');
-          if(current.trim())continue;
-          const old=Array.isArray(latest.data?.exercises)
-            ? latest.data.exercises.find(se=>String(se.exercise_id||'')===String(e.id) || String(se.name||'').trim().toLowerCase()===String(e.name||'').trim().toLowerCase())
-            : null;
-          if(old && String(old.notes??'').trim()){
-            activeWorkout.sets[e.id].note=String(old.notes);
-            e.notes=String(old.notes);
-          }
+      const currentRoutineIds=new Set([
+        String(workoutRoutine?.id||''),
+        String(workoutRoutine?.trainer_routine_id||''),
+        String(workoutRoutine?.source_routine_id||'')
+      ].filter(Boolean));
+
+      const historicalNotes=new Map();
+      const orderedHistory=history
+        .filter(s=>{
+          const d=s?.data||{};
+          const rid=String(d.routine_id||d.routineId||'');
+          const srid=String(d.source_routine_id||'');
+          return currentRoutineIds.has(rid)||currentRoutineIds.has(srid);
+        })
+        .sort((a,b)=>String(b.workout_date||'').localeCompare(String(a.workout_date||'')));
+
+      for(const session of orderedHistory){
+        for(const old of (Array.isArray(session.data?.exercises)?session.data.exercises:[])){
+          const k=simpleNormalizeNoteKey(old?.name);
+          const n=String(old?.notes??'').trim();
+          if(k&&n&&!historicalNotes.has(k))historicalNotes.set(k,n);
+        }
+      }
+
+      for(const e of activeWorkout.exercises){
+        const current=String(activeWorkout.sets[e.id]?.note??'');
+        if(current.trim())continue;
+        const oldNote=historicalNotes.get(simpleNormalizeNoteKey(e.name));
+        if(oldNote){
+          activeWorkout.sets[e.id].note=oldNote;
+          e.notes=oldNote;
         }
       }
     }catch(noteRecoveryErr){
       console.warn('No se pudieron recuperar notas antiguas:',noteRecoveryErr);
     }
 
-    const today=new Date().toISOString().slice(0,10);
+    const today=simpleLocalDateKey();
     const todaySession=(window.workoutHistory||[]).find(session=>{
       const data=session.data||{};
       return String(data.routine_id||'')===String(workoutRoutine.id) &&
         String(data.routine_day_id||'')===String(dayId) &&
-        String(session.workout_date||'').slice(0,10)===today;
+        String(session.workout_date||'')===today;
     });
 
     // Si existe sesión hoy, cargarla y bloquearla.
@@ -5022,7 +6744,6 @@ function formatStipulatedRest(e){
   const min=Math.floor(sec/60), rem=sec%60;
   return rem?`${min}:${String(rem).padStart(2,'0')}`:`${min}'`;
 }
-function applyPresetLoads(){ return false; }
 
 async function backFromTrainerSession(){
   if(profile?.role!=='trainer'||!workoutRoutine?.id)return;
@@ -5042,7 +6763,7 @@ function renderWorkoutDay(){
   const actionBar=$('trainModalActions');
   if(actionBar){
     actionBar.innerHTML=`
-      <button class="btn" type="button" onclick="loadHistory(workoutRoutine?.id).then(showHistory)">Historial</button>
+      <button class="btn" type="button" onclick="openWorkoutHistory()">Historial</button>
       <button class="btn" type="button" onclick="closeM('trainModal')">Cerrar</button>`;
   }
   if(!exs.length){$('trainBody').innerHTML='<div class="empty">Este día no tiene ejercicios.</div>';return;}
@@ -5119,28 +6840,6 @@ function renderWorkoutDay(){
   }
 
 }
-function summarizePreviousExercise(previous){
-  if(!previous?.exercise)return null;
-  const sets=Array.isArray(previous.exercise.sets)?previous.exercise.sets:[];
-  const valid=sets.map(s=>({
-    kg:Number.parseFloat(s.kg),
-    reps:Number.parseFloat(s.reps),
-    rir:s.rir===''||s.rir==null?null:Number.parseFloat(s.rir),
-    done:!!s.done
-  })).filter(s=>Number.isFinite(s.kg)&&Number.isFinite(s.reps));
-
-  if(!valid.length)return null;
-  const completed=valid.filter(s=>s.done);
-  const pool=completed.length?completed:valid;
-  const best=pool.slice().sort((a,b)=>{
-    if(b.kg!==a.kg)return b.kg-a.kg;
-    return b.reps-a.reps;
-  })[0];
-  const totalVolume=pool.reduce((sum,s)=>sum+(s.kg*s.reps),0);
-  const rirVals=pool.map(s=>s.rir).filter(Number.isFinite);
-  const avgRir=rirVals.length?rirVals.reduce((a,b)=>a+b,0)/rirVals.length:null;
-  return {best,totalVolume,avgRir,sets:pool.length};
-}
 
 function toggleWorkoutEditMode(){
   if(profile?.role!=='trainer'||!activeWorkout)return;
@@ -5189,32 +6888,44 @@ async function saveWorkoutRoutineEdits(){
   if(profile?.role!=='trainer'||!activeWorkout?.day?.id||window.__savingRoutineEdits)return;
   window.__savingRoutineEdits=true;
   try{
-    for(let i=0;i<activeWorkout.exercises.length;i++){
-      const e=activeWorkout.exercises[i];
-      const payload={
-        day_id:activeWorkout.day.id,
-        name:String(e.name||'').trim(),
-        sets:Math.max(1,Number(e.sets)||1),
-        target:e.target||'',
-        rir:e.rir===''||e.rir==null?null:Number(e.rir),
-        rest_seconds:Math.max(0,Number(e.rest_seconds)||0),
-        exercise_order:i,
-        notes:e.notes||null
-      };
-      let q;
-      if(String(e.id).startsWith('new-')){
-        q=await db.from('routine_exercises').insert(payload).select().single();
-        if(q.error)throw q.error;
-        e.id=q.data.id;
-        const oldSets=activeWorkout.sets['new-'+i]||activeWorkout.sets[e.id];
-        if(!activeWorkout.sets[e.id])
-          activeWorkout.sets[e.id]=Array.from({length:e.sets},()=>({kg:'',reps:'',rir:'',done:false}));
-      }else{
-        q=await db.from('routine_exercises').update(payload)
-          .eq('id',e.id).eq('day_id',activeWorkout.day.id);
-        if(q.error)throw q.error;
-      }
+    // Save the whole exercise list atomically. This prevents a connection
+    // failure halfway through the edit from leaving the routine partially
+    // updated. Existing IDs are preserved; new temporary IDs are mapped to
+    // the UUIDs returned by the database so their in-progress sets survive.
+    const exercisesPayload=(activeWorkout.exercises||[]).map((e,i)=>({
+      id:String(e.id).startsWith('new-')?null:e.id,
+      client_id:String(e.id).startsWith('new-')?String(e.id):null,
+      name:String(e.name||'').trim(),
+      sets:Math.max(1,Number(e.sets)||1),
+      target:e.target||'',
+      rir:e.rir===''||e.rir==null?null:Number(e.rir),
+      rest_seconds:Math.max(0,Number(e.rest_seconds)||0),
+      notes:e.notes||null,
+      exercise_order:i
+    }));
+    if(exercisesPayload.some(e=>!e.name))throw new Error('exercise_name_required');
+
+    const q=await db.rpc('save_workout_day_exercises_atomic',{
+      p_day_id:activeWorkout.day.id,
+      p_exercises:exercisesPayload
+    });
+    if(q.error)throw q.error;
+
+    const saved=Array.isArray(q.data)?q.data:[];
+    const idMap=new Map();
+    for(const row of saved){
+      if(row?.old_id)idMap.set(String(row.old_id),String(row.id));
     }
+    for(const e of activeWorkout.exercises||[]){
+      const oldId=String(e.id);
+      const newId=idMap.get(oldId);
+      if(!newId||newId===oldId)continue;
+      const pendingSets=activeWorkout.sets[oldId]||[];
+      e.id=newId;
+      delete activeWorkout.sets[oldId];
+      activeWorkout.sets[newId]=pendingSets;
+    }
+
     activeWorkout.editing=false;
     toast('Cambios guardados');
     await startWorkoutDay(activeWorkout.day.id);
@@ -5306,14 +7017,8 @@ async function workoutReorderCommit(from,to){
     const [item]=next.splice(from,1);
     const at=Math.max(0,Math.min(from<to?to-1:to,next.length));
     next.splice(at,0,item);
-    for(let i=0;i<next.length;i++){
-      const q=await db.from('routine_exercises').update({exercise_order:10000+i}).eq('id',next[i].id).eq('day_id',activeWorkout.day.id);
-      if(q.error)throw q.error;
-    }
-    for(let i=0;i<next.length;i++){
-      const q=await db.from('routine_exercises').update({exercise_order:i}).eq('id',next[i].id).eq('day_id',activeWorkout.day.id);
-      if(q.error)throw q.error;
-    }
+    const saved=await db.rpc('reorder_my_routine_exercises_atomic',{p_day_id:String(activeWorkout.day.id),p_exercise_ids:next.map(x=>String(x.id))});
+    if(saved.error)throw saved.error;
     const verify=await db.from('routine_exercises').select('id').eq('day_id',activeWorkout.day.id).order('exercise_order',{ascending:true});
     if(verify.error)throw verify.error;
     const ids=(verify.data||[]).map(x=>String(x.id));
@@ -5346,16 +7051,8 @@ async function workoutReorderDrop(e,target){
     const [item]=next.splice(from,1);
     const at=Math.max(0,Math.min(from<to?to-1:to,next.length));
     next.splice(at,0,item);
-    for(let i=0;i<next.length;i++){
-      const q=await db.from('routine_exercises').update({exercise_order:10000+i})
-        .eq('id',next[i].id).eq('day_id',activeWorkout.day.id);
-      if(q.error)throw q.error;
-    }
-    for(let i=0;i<next.length;i++){
-      const q=await db.from('routine_exercises').update({exercise_order:i})
-        .eq('id',next[i].id).eq('day_id',activeWorkout.day.id);
-      if(q.error)throw q.error;
-    }
+    const saved=await db.rpc('reorder_my_routine_exercises_atomic',{p_day_id:String(activeWorkout.day.id),p_exercise_ids:next.map(x=>String(x.id))});
+    if(saved.error)throw saved.error;
     const verify=await db.from('routine_exercises').select('id')
       .eq('day_id',activeWorkout.day.id).order('exercise_order',{ascending:true});
     if(verify.error)throw verify.error;
@@ -5377,10 +7074,13 @@ function updateSet(id,i,field,value){
     saveWorkoutDraft();
   }
 }
+let __noteSaveTimers=new Map();
 function updateExerciseNote(id,value){
   const arr=activeWorkout.sets[id]||(activeWorkout.sets[id]=[]);
   if(activeWorkout.locked)return;
   arr.note=String(value??'');
+  const exercise=activeWorkout.exercises.find(e=>String(e.id)===String(id));
+  if(!exercise)return;
   saveWorkoutDraft();
 
   const key=workoutNotesKey();
@@ -5389,10 +7089,37 @@ function updateExerciseNote(id,value){
       const notes=JSON.parse(localStorage.getItem(key)||'{}')||{};
       notes[id]=arr.note;
       localStorage.setItem(key,JSON.stringify(notes));
-    }catch(e){
-      console.warn('No se pudo guardar la nota local:',e);
-    }
+    }catch(e){console.warn('No se pudo guardar la nota local:',e)}
   }
+
+  // Notes are user-owned routine data, not weekly workout data. Debounce the
+  // database write so typing does not create a request per character.
+  const timer=__noteSaveTimers.get(String(id));
+  if(timer)clearTimeout(timer);
+  const t=setTimeout(async()=>{
+    __noteSaveTimers.delete(String(id));
+    try{
+      const exerciseKey=simpleNormalizeNoteKey(exercise.name);
+      if(!exerciseKey)return;
+      const assignedRoutineIds=(assignments||[])
+        .filter(a=>String(a.client_id||user?.id)===String(user?.id))
+        .flatMap(a=>[a.trainer_routine_id,a.client_routine_id])
+        .filter(Boolean)
+        .map(String);
+      const noteRoutineIds=[...new Set([
+        String(workoutRoutine?.id||''),
+        String(workoutRoutine?.trainer_routine_id||''),
+        String(workoutRoutine?.source_routine_id||''),
+        ...assignedRoutineIds
+      ].filter(Boolean))];
+      const q=await Promise.all(noteRoutineIds.map(rid=>db.from('routine_user_notes').upsert({
+        user_id:user.id,routine_id:rid,exercise_key:exerciseKey,note:arr.note,updated_at:new Date().toISOString()
+      },{onConflict:'user_id,routine_id,exercise_key'})));
+      const bad=q.find(x=>x.error);
+      if(bad?.error)throw bad.error;
+    }catch(e){console.warn('No se pudo guardar la nota persistente:',e)}
+  },350);
+  __noteSaveTimers.set(String(id),t);
 }
 function toggleSet(id,i){
   if(activeWorkout.locked)return;
@@ -5456,13 +7183,39 @@ function stopRestTimer(){
   const b=$('restBox');if(b)b.style.display='none';
 }
 
+function simpleLocalDateKey(date=new Date()){
+  const d=date instanceof Date?date:new Date(date);
+  if(Number.isNaN(d.getTime()))return '';
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+// SQL DATE values (YYYY-MM-DD) are calendar dates, not UTC instants.
+// Parsing them with new Date('YYYY-MM-DD') shifts them to the previous
+// calendar day in timezones west of UTC (including mainland Spain).
+function simpleDateFromKey(value){
+  const m=String(value??'').trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(!m)return null;
+  const year=Number(m[1]),month=Number(m[2]),day=Number(m[3]);
+  if(month<1||month>12||day<1||day>31)return null;
+  const d=new Date(year,month-1,day);
+  // JS normalizes invalid calendar dates (e.g. 2026-02-31) instead of failing.
+  // Reject those values so a malformed DB/local value can never appear as a
+  // different valid date in the UI.
+  if(d.getFullYear()!==year||d.getMonth()!==month-1||d.getDate()!==day)return null;
+  return Number.isNaN(d.getTime())?null:d;
+}
+function simpleFormatDateKey(value,options){
+  const d=simpleDateFromKey(value);
+  return d?d.toLocaleDateString('es-ES',options):'';
+}
+
 async function saveWorkoutSession(){
   if(window.__savingWorkout)return;
   if(!user?.id)return toast('Debes iniciar sesión.');
   if(!workoutRoutine?.id||!activeWorkout?.day?.id)return toast('No hay un entrenamiento activo.');
   if(activeWorkout.locked)return toast('Este entrenamiento ya está guardado hoy.');
 
-  const today=new Date().toISOString().slice(0,10);
+  const today=simpleLocalDateKey();
   const currentKey=`${user.id}|${workoutRoutine.id}|${activeWorkout.day.id}|${today}`;
   if(window.__lastSavedWorkoutKey===currentKey){
     activeWorkout.locked=true;
@@ -5495,7 +7248,9 @@ async function saveWorkoutSession(){
       routine_day_id:activeWorkout.day.id,
       routine_name:workoutRoutine.name||'Entrenamiento',
       day_name:activeWorkout.day.name||'',
-      workout_date:new Date().toISOString(),
+      // `workout_date` is a calendar date in the DB; keep the JSON copy
+      // consistent with it. `completed_at` remains the precise instant.
+      workout_date:today,
       completed_at:new Date().toISOString(),
       exercises:(activeWorkout.exercises||[]).map(e=>{
         const st=activeWorkout.sets[e.id]||[];
@@ -5529,37 +7284,42 @@ async function saveWorkoutSession(){
     const r=await db.from('workouts').insert(payload).select().single();
     if(r.error)throw r.error;
 
-    // Las notas de la sesión son también las notas persistentes del ejercicio.
-    // Regla: al completar una sesión, JAMÁS se pierden.
-    // Las guardamos en localStorage y, cuando la rutina pertenece al usuario,
-    // también las dejamos en routine_exercises para que sigan apareciendo
-    // al volver a abrir la rutina. Si es una rutina del entrenador, no
-    // intentamos modificar la plantilla ajena.
-    const notes={};
-    for(const e of (activeWorkout.exercises||[])){
-      notes[e.id]=String(activeWorkout.sets[e.id]?.note??'');
-    }
-    const notesKey=workoutNotesKey();
-    if(notesKey){
-      try{localStorage.setItem(notesKey,JSON.stringify(notes));}catch(e){}
-    }
+    // Notes belong to the user's routine and persist across weeks/devices.
+    // Never use the weekly workout row as the only source of truth.
+    const noteWrites=(activeWorkout.exercises||[]).map(async e=>{
+      const note=String(activeWorkout.sets[e.id]?.note??'');
+      const exerciseKey=simpleNormalizeNoteKey(e.name);
+      if(!exerciseKey)return;
+      const assignedRoutineIds=(assignments||[])
+        .filter(a=>String(a.client_id||user?.id)===String(user?.id))
+        .flatMap(a=>[a.trainer_routine_id,a.client_routine_id])
+        .filter(Boolean)
+        .map(String);
+      const noteRoutineIds=[...new Set([
+        String(workoutRoutine?.id||''),
+        String(workoutRoutine?.trainer_routine_id||''),
+        String(workoutRoutine?.source_routine_id||''),
+        ...assignedRoutineIds
+      ].filter(Boolean))];
+      const nq=await Promise.all(noteRoutineIds.map(rid=>db.from('routine_user_notes').upsert({
+        user_id:user.id,routine_id:rid,exercise_key:exerciseKey,note,updated_at:new Date().toISOString()
+      },{onConflict:'user_id,routine_id,exercise_key'})));
+      const bad=nq.find(x=>x.error);
+      if(bad?.error)console.warn('No se pudo persistir la nota del ejercicio:',e.name,bad.error);
+    });
+    await Promise.all(noteWrites);
 
-    // Persistencia definitiva de las notas en la rutina propia.
-    // Esto evita que desaparezcan al terminar la sesión o limpiar el draft.
-    try{
-      const rq=await db.from('routines').select('owner_id').eq('id',workoutRoutine.id).single();
-      if(!rq.error && String(rq.data?.owner_id||'')===String(user.id)){
-        for(const e of (activeWorkout.exercises||[])){
-          const note=String(activeWorkout.sets[e.id]?.note??'');
-          const nq=await db.from('routine_exercises')
-            .update({notes:note||null})
-            .eq('id',e.id)
-            .eq('day_id',activeWorkout.day.id);
-          if(nq.error)console.warn('No se pudo persistir la nota del ejercicio:',e.name,nq.error);
-        }
-      }
-    }catch(noteErr){
-      console.warn('Persistencia de notas de rutina no disponible:',noteErr);
+    // Trainer notes remain part of the shared routine template. A client note
+    // is never written into routine_exercises and can therefore not overwrite
+    // the trainer's note.
+    if(profile?.role==='trainer'){
+      const globalWrites=(activeWorkout.exercises||[]).map(async e=>{
+        const note=String(activeWorkout.sets[e.id]?.note??'');
+        const nq=await db.from('routine_exercises').update({notes:note||null})
+          .eq('id',e.id).eq('day_id',activeWorkout.day.id);
+        if(nq.error)console.warn('No se pudo actualizar la nota compartida:',e.name,nq.error);
+      });
+      await Promise.all(globalWrites);
     }
 
     window.__lastSavedWorkoutKey=currentKey;
@@ -5583,8 +7343,15 @@ async function saveWorkoutSession(){
         if(sharedBox && getComputedStyle(sharedBox).display!=='none') await renderShared();
       }
     }catch(e){console.warn('weekly progress refresh:',e)}
-    await loadHistory(workoutRoutine?.id);
-    showHistory();
+    // El guardado ya se ha confirmado en Supabase. Un fallo posterior al
+    // refrescar el historial/interfaz no debe convertir una sesión guardada
+    // correctamente en un falso mensaje de error.
+    try{
+      await loadHistory(workoutRoutine?.id);
+      showHistory();
+    }catch(refreshErr){
+      console.warn('Sesión guardada, pero no se pudo refrescar el historial:',refreshErr);
+    }
   }catch(e){
     console.error('saveWorkoutSession:',e);
 
@@ -5705,12 +7472,15 @@ async function removeSharedRoutine(assignmentId, routineName){
     }
 
     const stamp=new Date().toISOString();
-    const r=await db.from('routine_assignments')
-      .update({client_deleted_at:stamp})
-      .eq('id',a0.id)
-      .eq('client_id',user.id)
-      .is('client_deleted_at',null);
-    if(r.error)throw r.error;
+    let sourceRoutine=null;
+    try{
+      const sr=await db.from('routines')
+        .select('id,name,description').eq('id',a0.trainer_routine_id).maybeSingle();
+      if(sr.error)throw sr.error;
+      sourceRoutine=sr.data||null;
+    }catch(err){
+      console.warn('No se pudo leer la rutina compartida antes de ocultarla:',err);
+    }
 
     const key='simple_client_trash_'+user.id;
     let cached=[];try{cached=JSON.parse(localStorage.getItem(key)||'[]')}catch(_){}
@@ -5722,10 +7492,18 @@ async function removeSharedRoutine(assignmentId, routineName){
     }catch(_){}
     // routineName comes directly from the visible routine card, so it is the
     // authoritative fallback when trainer-owned routine SELECT is hidden by RLS.
-    const sourceRoutine=await db.from('routines')
-      .select('id,name,description').eq('id',a0.trainer_routine_id).maybeSingle();
-    const realName=sourceRoutine?.data?.name||routineName||meta.name||'Rutina';
-    const realDescription=sourceRoutine?.data?.description||meta.description||'';
+    const r=await db.from('routine_assignments')
+      .update({client_deleted_at:stamp})
+      .eq('id',a0.id)
+      .eq('client_id',user.id)
+      .is('client_deleted_at',null)
+      .select('id,client_deleted_at')
+      .maybeSingle();
+    if(r.error)throw r.error;
+    if(!r.data?.client_deleted_at)throw new Error('No se pudo mover la rutina a la papelera.');
+
+    const realName=sourceRoutine?.name||routineName||meta.name||'Rutina';
+    const realDescription=sourceRoutine?.description||meta.description||'';
     const trashRow={
       id:a0.id,
       trainer_routine_id:a0.trainer_routine_id,
@@ -5757,66 +7535,84 @@ function simpleWeekStartDate(){
   d.setHours(0,0,0,0);
   const day=d.getDay();
   d.setDate(d.getDate()+(day===0?-6:1-day));
-  return d.toISOString().slice(0,10);
+  return simpleLocalDateKey(d);
 }
 function simpleSessionTimestamp(row){
   const data=row?.data||{};
-  const raw=data.completed_at||data.workout_date||row?.workout_date||row?.created_at||data.date||data.created_at;
-  const t=Date.parse(raw||'');
-  return Number.isFinite(t)?t:0;
-}
-function simpleWeeklyProgressFromSessions(sessions,total,weekStart){
-  const now=Date.now();
-  const weekStartMs=Date.parse(`${weekStart}T00:00:00`);
-  const normalized=[];
-  for(const row of (sessions||[])){
-    const ts=simpleSessionTimestamp(row);
-    if(!ts)continue;
-    normalized.push({row,ts});
+  const instant=data.completed_at||row?.created_at||data.created_at||data.date;
+  if(instant){
+    const t=Date.parse(instant);
+    if(Number.isFinite(t))return t;
   }
-  normalized.sort((a,b)=>a.ts-b.ts);
-  const sessionsInWeek=normalized.filter(x=>x.ts>=weekStartMs);
-  if(!sessionsInWeek.length||!total)return 0;
+  // `workout_date` is a PostgreSQL DATE, not a UTC timestamp. Parse it as a
+  // local calendar date so progress/history cannot shift one day by timezone.
+  const dateKey=data.workout_date||row?.workout_date;
+  const dateObj=simpleDateFromKey(dateKey);
+  if(dateObj)return dateObj.getTime();
+  return 0;
+}
+function simpleDailyProgressFromSessions(sessions,total,aliases={},routineIds=[]){
+  const maxDays=Math.max(0,Number(total)||0);
+  if(!maxDays)return 0;
 
-  const getDayKey=({row})=>{
+  const primaryIds=new Set((routineIds||[]).filter(Boolean).map(String));
+  const aliasToPrimary=new Map();
+  for(const rid of primaryIds)aliasToPrimary.set(rid,rid);
+  for(const [primary,alias] of Object.entries(aliases||{})){
+    if(alias)aliasToPrimary.set(String(alias),String(primary));
+  }
+
+  const resolveRoutineDayKey=row=>{
     const d=row?.data||{};
-    const day=String(d.day_name??row.variant??row.day??'').trim().toLowerCase();
-    return day||String(d.routine_day_id||row.id||'');
+    const rid=String(d.routine_id||d.routineId||'');
+    const sourceRid=String(d.source_routine_id||'');
+    if(primaryIds.size){
+      const mappedRid=aliasToPrimary.get(rid)||aliasToPrimary.get(sourceRid);
+      if(!mappedRid && rid && !primaryIds.has(rid))return '';
+    }
+    const dayId=String(d.routine_day_id||'');
+    const dayName=String(d.day_name??row?.variant??row?.day??'').trim().toLowerCase();
+    return dayId||dayName;
   };
 
-  // Find the exact session that completed the latest full cycle.
-  // This prevents an old 5/5 cycle plus today's first session from
-  // incorrectly becoming 100% again.
-  let cycleStartIndex=0;
+  const normalized=(sessions||[])
+    .map(row=>{
+      const raw=row?.workout_date ?? row?.data?.workout_date ?? '';
+      const dateKey=/^\d{4}-\d{2}-\d{2}$/.test(String(raw).trim())
+        ? String(raw).trim()
+        : simpleLocalDateKey(simpleDateFromKey(raw)||new Date(simpleSessionTimestamp(row)));
+      const ts=simpleSessionTimestamp(row);
+      return {row,dateKey,ts};
+    })
+    .filter(x=>x.dateKey && Number.isFinite(x.ts))
+    .sort((a,b)=>a.ts-b.ts);
+
+  if(!normalized.length)return 0;
+
+  // The progress is a rolling routine cycle, NOT a calendar week.
+  // Once all routine days have been completed, the next workout starts a new cycle.
   let seen=new Set();
-  let latestFullCycleAt=0;
-  for(let i=0;i<sessionsInWeek.length;i++){
-    const key=getDayKey(sessionsInWeek[i]);
+  let cycleStartIndex=0;
+
+  for(let i=0;i<normalized.length;i++){
+    const key=resolveRoutineDayKey(normalized[i].row);
     if(key)seen.add(key);
-    if(seen.size>=total){
-      latestFullCycleAt=sessionsInWeek[i].ts;
+    if(seen.size>=maxDays){
       cycleStartIndex=i+1;
       seen=new Set();
     }
   }
 
-  if(latestFullCycleAt){
-    const completedDate=new Date(latestFullCycleAt);
-    const todayDate=new Date(now);
-    const sameCalendarDay=completedDate.getFullYear()===todayDate.getFullYear()
-      && completedDate.getMonth()===todayDate.getMonth()
-      && completedDate.getDate()===todayDate.getDate();
-    if(sameCalendarDay)return total;
+  for(let i=cycleStartIndex;i<normalized.length;i++){
+    const key=resolveRoutineDayKey(normalized[i].row);
+    if(key)seen.add(key);
   }
+  return Math.min(maxDays,seen.size);
+}
 
-  // New cycle: count only sessions completed after the latest full cycle.
-  const currentCycle=sessionsInWeek.slice(cycleStartIndex);
-  const currentSeen=new Set();
-  for(const item of currentCycle){
-    const key=getDayKey(item);
-    if(key)currentSeen.add(key);
-  }
-  return Math.min(total,currentSeen.size);
+// Backwards-compatible name used by older callers.
+function simpleWeeklyProgressFromSessions(sessions,total,weekStart,aliases,routineIds){
+  return simpleDailyProgressFromSessions(sessions,total,aliases,routineIds);
 }
 
 async function getWeeklyRoutineProgressForUser(userId,routineIds,workoutRoutineAliases={},routineNames={}){
@@ -5824,102 +7620,99 @@ async function getWeeklyRoutineProgressForUser(userId,routineIds,workoutRoutineA
   const result=new Map(primaryIds.map(id=>[id,{total:0,done:0}]));
   if(!primaryIds.length||!userId)return result;
 
-  // For another user's workouts (trainer viewing a client), Supabase RLS
-  // intentionally blocks direct reads from `workouts`. The secure RPC already
-  // used by the client's progress screen is the source of truth here too.
-  if(String(userId)!==String(user?.id)){
-    const weekStart=simpleWeekStartDate();
-    for(const rid of primaryIds){
-      const x=result.get(rid);
-      try{
-        const dayRows=await db.from('routine_days')
-          .select('id,name')
-          .eq('routine_id',rid)
-          .order('day_order',{ascending:true});
-        if(!dayRows.error)x.total=(dayRows.data||[]).length;
-
-        const rpc=await db.rpc('get_client_routine_history',{
-          p_client_id:String(userId),
-          p_routine_id:String(rid)
-        });
-        if(rpc.error)throw rpc.error;
-
-        const sessions=(rpc.data||[]).filter(row=>{
-          const d=row?.data||{};
-          const savedRid=d.routine_id ?? d.routineId ?? null;
-          // The secure RPC is requested for the trainer routine. Some versions
-          // return the client-copy ID, so accept that through the assignment
-          // alias as well.
-          return savedRid==null
-            || String(savedRid)===String(rid)
-            || Object.entries(workoutRoutineAliases||{}).some(([primary,alias])=>
-                 String(primary)===String(rid)&&String(savedRid)===String(alias));
-        });
-
-        x.done=simpleWeeklyProgressFromSessions(sessions,x.total,weekStart);
-      }catch(e){
-        console.warn('getWeeklyRoutineProgressForUser secure RPC:',e);
-      }
-    }
-    return result;
-  }
-
-  // Own user's routines can be read directly.
-  const weekStart=simpleWeekStartDate();
-  const allIds=[...new Set([
-    ...primaryIds,
-    ...Object.values(workoutRoutineAliases||{}).filter(Boolean).map(String)
-  ])];
   const aliasToPrimary=new Map(primaryIds.map(id=>[id,id]));
   for(const [primary,alias] of Object.entries(workoutRoutineAliases||{})){
     if(alias)aliasToPrimary.set(String(alias),String(primary));
   }
-  const nameToPrimary=new Map();
-  for(const [id,name] of Object.entries(routineNames||{})){
-    const n=String(name||'').trim().toLowerCase();
-    if(n)nameToPrimary.set(n,String(id));
+
+  // Client viewed by trainer: use one authorized server-side calculation.
+  // This is the source of truth for the current routine cycle.
+  if(String(userId)!==String(user?.id)){
+    await Promise.all(primaryIds.map(async rid=>{
+      const x=result.get(rid);
+      try{
+        const rpc=await db.rpc('get_client_routine_cycle_progress',{
+          p_client_id:String(userId),
+          p_routine_id:String(rid)
+        });
+        if(rpc.error)throw rpc.error;
+        const row=(rpc.data||[])[0]||{};
+        x.total=Number(row.total_days)||0;
+        x.done=Math.min(x.total,Math.max(0,Number(row.completed_days)||0));
+      }catch(e){
+        console.error('getWeeklyRoutineProgressForUser client:',e);
+        x.total=0;
+        x.done=0;
+      }
+    }));
+    return result;
   }
 
+  // Own user: read all workout history and resolve each session to its routine.
   try{
+    const allIds=[...new Set([
+      ...primaryIds,
+      ...Object.values(workoutRoutineAliases||{}).filter(Boolean).map(String)
+    ])];
+
     const dayRows=await db.from('routine_days')
       .select('id,routine_id,name')
-      .in('routine_id',primaryIds);
-    const dayToRoutine=new Map();
-    if(!dayRows.error){
-      for(const d of (dayRows.data||[])){
-        const rid=String(d.routine_id);
-        const x=result.get(rid);
-        if(x){dayToRoutine.set(String(d.id),rid);x.total++;}
-      }
+      .in('routine_id',allIds);
+    if(dayRows.error)throw dayRows.error;
+
+    const dayToPrimary=new Map();
+    for(const d of (dayRows.data||[])){
+      const rid=String(d.routine_id);
+      const primary=aliasToPrimary.get(rid)||rid;
+      if(!result.has(primary))continue;
+      result.get(primary).total++;
+      dayToPrimary.set(String(d.id),primary);
     }
 
     const w=await db.from('workouts')
       .select('id,workout_date,data,variant,day')
       .eq('user_id',userId)
-      .order('workout_date',{ascending:false});
+      .order('workout_date',{ascending:true});
     if(w.error)throw w.error;
 
-    const sessionsByRoutine=new Map();
+    const sessionsByRoutine=new Map(primaryIds.map(id=>[id,[]]));
+
     for(const row of (w.data||[])){
-      const data=row.data||{};
-      const rid=String(data.routine_id||'');
-      const sourceRid=String(data.source_routine_id||'');
-      const dayId=String(data.routine_day_id||'');
-      const savedName=String(data.routine_name||'').trim().toLowerCase();
-      const resolvedRid=dayToRoutine.get(dayId)
+      const d=row.data||{};
+      const rid=String(d.routine_id||d.routineId||'');
+      const sourceRid=String(d.source_routine_id||'');
+      const dayId=String(d.routine_day_id||'');
+      const savedName=String(d.routine_name||'').trim().toLowerCase();
+
+      let primary=dayToPrimary.get(dayId)
         ||aliasToPrimary.get(rid)
-        ||aliasToPrimary.get(sourceRid)
-        ||nameToPrimary.get(savedName)
-        ||(primaryIds.includes(rid)?rid:null);
-      if(!resolvedRid||!result.has(resolvedRid))continue;
-      if(!sessionsByRoutine.has(resolvedRid))sessionsByRoutine.set(resolvedRid,[]);
-      sessionsByRoutine.get(resolvedRid).push(row);
+        ||aliasToPrimary.get(sourceRid);
+
+      if(!primary && savedName){
+        for(const [id,name] of Object.entries(routineNames||{})){
+          if(String(name||'').trim().toLowerCase()===savedName){
+            primary=String(id);
+            break;
+          }
+        }
+      }
+
+      if(!primary || !result.has(primary))continue;
+      sessionsByRoutine.get(primary).push(row);
     }
+
     for(const rid of primaryIds){
       const x=result.get(rid);
-      x.done=simpleWeeklyProgressFromSessions(sessionsByRoutine.get(rid)||[],x.total,weekStart);
+      x.done=simpleDailyProgressFromSessions(
+        sessionsByRoutine.get(rid)||[],
+        x.total,
+        workoutRoutineAliases,
+        primaryIds
+      );
     }
-  }catch(e){console.warn('getWeeklyRoutineProgressForUser:',e)}
+  }catch(e){
+    console.error('getWeeklyRoutineProgressForUser:',e);
+  }
   return result;
 }
 
@@ -5930,14 +7723,14 @@ function renderWeeklyRoutineProgress(totalDays,completedDays){
   if(!total)return '';
   const isComplete=done>=total;
   const celebration=isComplete?`
-    <div class="weekly-progress-celebration" aria-label="Rutina completada">
+    <div class="weekly-progress-celebration" aria-label="Rutina completada hoy">
       <img class="weekly-progress-gif" src="https://media.tenor.com/uYAHiDSVAn4AAAA1/baldi-dance.webp" alt="Baile de celebración" loading="lazy" referrerpolicy="no-referrer">
       <div class="weekly-progress-celebration-copy">
-        <b>¡Rutina completada! 🔥</b>
+        <b>¡Rutina completada hoy! 🔥</b>
       </div>
     </div>`:'';
   return `<div class="weekly-routine-progress">
-    <div class="weekly-routine-progress-head"><span>Progreso semanal</span><b>${done}/${total} · ${pct}%</b></div>
+    <div class="weekly-routine-progress-head"><span>Progreso de hoy</span><b>${done}/${total} · ${pct}%</b></div>
     <div class="weekly-progress-complete-row">
       <div class="weekly-progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${total}" aria-valuenow="${done}">
         ${Array.from({length:total},(_,i)=>`<span class="weekly-progress-segment ${i<done?'is-done':''}"></span>`).join('')}
@@ -5953,41 +7746,55 @@ async function renderShared(){
   </div>`;
   const mk='simple_shared_routine_meta_'+user.id;
   let mm={};try{mm=JSON.parse(localStorage.getItem(mk)||'{}')}catch(_){}
-  const weekStart=simpleWeekStartDate();
 
-  for(const a of assignments){
-    let routine=null;
-    const r=await db.from('routines').select('id,name,description').eq('id',a.trainer_routine_id).maybeSingle();
-    if(!r.error&&r.data){
-      routine=r.data;
-      mm[String(r.data.id)]={name:r.data.name||'Rutina',description:r.data.description||''};
+  const rows=assignments||[];
+  const trainerRoutineIds=[...new Set(rows.map(a=>String(a.trainer_routine_id)).filter(Boolean))];
+  const routineById=new Map();
+  const routineIds=[...new Set(rows.map(a=>String(a.client_routine_id||a.trainer_routine_id)).filter(Boolean))];
+  // Metadata and weekly progress are independent, so don't make the UI wait
+  // for one network round-trip before starting the other.
+  const weeklyRoutineIds=[...new Set([...routineIds,...trainerRoutineIds])];
+  const weeklyAliases={};
+  for(const a of rows){
+    if(a.trainer_routine_id&&a.client_routine_id) weeklyAliases[String(a.trainer_routine_id)]=String(a.client_routine_id);
+  }
+  const [routineResult,weeklyAll]=await Promise.all([
+    trainerRoutineIds.length
+      ? db.from('routines').select('id,name,description').in('id',trainerRoutineIds)
+      : Promise.resolve({data:[],error:null}),
+    getWeeklyRoutineProgressForUser(user.id,weeklyRoutineIds,weeklyAliases)
+  ]);
+  if(!routineResult.error){
+    for(const routine of (routineResult.data||[])){
+      routineById.set(String(routine.id),routine);
+      mm[String(routine.id)]={name:routine.name||'Rutina',description:routine.description||''};
     }
-    const cached=mm[String(a.trainer_routine_id)]||{};
+  }
+
+  for(const a of rows){
+    const trainerRoutineId=String(a.trainer_routine_id||'');
+    const routine=routineById.get(trainerRoutineId)||null;
+    const cached=mm[trainerRoutineId]||{};
     const name=routine?.name||cached.name||'Rutina asignada';
     const description=routine?.description||cached.description||'';
-
     const routineId=String(a.client_routine_id||a.trainer_routine_id);
-    const weeklyMap=await getWeeklyRoutineProgressForUser(user.id,[routineId]);
-    const weekly=weeklyMap.get(routineId)||{total:0,done:0};
-    const totalDays=weekly.total;
-    const completedDays=weekly.done;
+    const weekly=weeklyAll.get(routineId)||weeklyAll.get(trainerRoutineId)||{total:0,done:0};
 
     h+=`<div class="card routine">
       <div>
         <h3>${esc(name)}</h3>
         <div class="muted">${esc(description)}</div>
-        ${renderWeeklyRoutineProgress(totalDays,completedDays)}
+        ${renderWeeklyRoutineProgress(weekly.total,weekly.done)}
       </div>
       <div class="buttons">
-        <button class="btn primary" onclick="openSharedRoutine('${a.trainer_routine_id}')">Abrir</button>
-        <button class="btn danger" onclick='removeSharedRoutine(${JSON.stringify(a.id)},${JSON.stringify(name)})'>Eliminar</button>
+        <button class="btn primary" onclick="openSharedRoutine('${trainerRoutineId}')">Abrir</button>
+        <button class="btn danger" onclick="removeSharedRoutine(${esc(JSON.stringify(a.id))},${esc(JSON.stringify(name))})">Eliminar</button>
       </div>
     </div>`;
   }
-  try{localStorage.setItem(mk,JSON.stringify(mm))}catch(_){}
+  try{localStorage.setItem(mk,JSON.stringify(mm))}catch(_){ }
   $('shared').innerHTML=h;
 }
-
 async function openSharedRoutine(id){
   let routineId=String(id);
   let assignment=null;
@@ -6012,7 +7819,13 @@ async function openSharedRoutine(id){
 
   if(r.error||!r.data)return toast('No se pudo abrir la rutina restaurada. La asignación sí se ha conservado.');
   const original=r.data;
-  workoutRoutine=original;
+  // Keep the trainer routine id available even when the client is using a
+  // private client copy. Personal notes are stored against the trainer
+  // routine so they survive weekly sessions and routine copies.
+  workoutRoutine=Object.assign({},original,{
+    trainer_routine_id: assignment?.trainer_routine_id ? String(assignment.trainer_routine_id) : String(id),
+    source_routine_id: original?.source_routine_id ? String(original.source_routine_id) : null
+  });
   try{
     const d=await days(routineId);
     $('trainTitle').textContent=original.name;
@@ -6055,6 +7868,9 @@ async function redeemShareCode(){
 }
 
 (async()=>{
+  // Legacy fallback kept for recovery/confirmation redirects, but never
+  // start a second app instance after the main bootstrap has completed.
+  if(window.__simpleStarted || window.__simpleStartBusy)return;
   try{
     const s=await db.auth.getSession();
 
@@ -6081,7 +7897,9 @@ async function redeemShareCode(){
         user=u.data.user;
         try{
           profile=await finishConfirmedSignup();
-          if(!window.__simpleStarted) window.__simpleStarted=true;
+          // `start()` marks the app as started only after a successful bootstrap.
+          // Do not set the flag before it, otherwise a transient failure can
+          // permanently suppress later startup retries.
           await start(null);
         }catch(e){
           console.error('Post-confirmation setup:',e);
@@ -6125,13 +7943,13 @@ window.addEventListener('error', e=>{ console.error('Unhandled error:',e.error||
 /* workout-draft-persist-v1 */
 window.addEventListener('pagehide',()=>{
   try{
-    if(window.activeWorkout && !window.activeWorkout.locked) saveWorkoutDraft();
+    if(typeof activeWorkout!=='undefined' && activeWorkout && !activeWorkout.locked) saveWorkoutDraft();
   }catch(e){console.warn('Draft pagehide',e);}
 });
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='hidden'){
     try{
-      if(window.activeWorkout && !window.activeWorkout.locked) saveWorkoutDraft();
+      if(typeof activeWorkout!=='undefined' && activeWorkout && !activeWorkout.locked) saveWorkoutDraft();
     }catch(e){console.warn('Draft visibility',e);}
   }
 });
@@ -6153,1109 +7971,21 @@ document.addEventListener('DOMContentLoaded',()=>{
 });
 </script>
 
-<style id="simple-visual-refresh">
-/* =========================================================
-   SIMPLE — VISUAL REFRESH
-   Inspirado en el mockup: dark premium + verde fitness.
-   Solo estilos: no altera la lógica de la aplicación.
-   ========================================================= */
-:root{
-  --bg:#080b0d;
-  --bg-soft:#0d1115;
-  --card:#12171b;
-  --card2:#171d22;
-  --card3:#1b2228;
-  --text:#f5f7f8;
-  --muted:#929da7;
-  --muted2:#6f7a84;
-  --line:#273139;
-  --line-soft:#202930;
-  --accent:#83e6a0;
-  --accent-strong:#5fd884;
-  --accent-soft:rgba(131,230,160,.11);
-  --accent-glow:rgba(131,230,160,.18);
-  --danger:#ff7f86;
-  --danger-soft:rgba(255,127,134,.09);
-  --warning:#f2cf73;
-  --shadow:0 16px 45px rgba(0,0,0,.28);
-  --shadow-soft:0 8px 24px rgba(0,0,0,.20);
-  --radius:18px;
-  --radius-sm:12px;
-}
 
-html{background:var(--bg);scroll-behavior:smooth}
-body{
-  min-height:100vh;
-  background:
-    radial-gradient(900px 500px at 85% -10%,rgba(95,216,132,.055),transparent 60%),
-    radial-gradient(700px 420px at -10% 20%,rgba(95,216,132,.025),transparent 62%),
-    var(--bg);
-  color:var(--text);
-  letter-spacing:.01em;
-}
-body,button,input,textarea,select{font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-button{transition:transform .16s ease,background .16s ease,border-color .16s ease,box-shadow .16s ease,color .16s ease}
-button:active{transform:translateY(1px)}
-button:disabled{cursor:not-allowed;opacity:.48}
 
-.wrap{max-width:1180px;padding:30px 22px 90px}
-header{
-  position:relative;
-  margin-bottom:24px;
-  padding:4px 2px 16px;
-  border-bottom:1px solid rgba(131,230,160,.08);
-}
-header h1{
-  font-size:30px;
-  font-weight:850;
-  letter-spacing:-1.3px;
-}
-header h1::first-letter{color:var(--accent)}
-.sub{color:var(--muted);font-size:12px;margin-top:5px}
 
-.actions{gap:9px}
-.btn{
-  border:1px solid var(--line);
-  background:linear-gradient(180deg,#171d22,#12171b);
-  color:var(--text);
-  padding:10px 14px;
-  border-radius:12px;
-  font-weight:650;
-  box-shadow:0 2px 0 rgba(255,255,255,.02) inset;
-}
-.btn:hover{
-  border-color:#3a464f;
-  background:#1a2127;
-  box-shadow:0 8px 22px rgba(0,0,0,.16);
-}
-.btn.primary{
-  background:var(--accent);
-  color:#08110c;
-  border-color:var(--accent);
-  box-shadow:0 7px 22px rgba(131,230,160,.12);
-}
-.btn.primary:hover{background:#9af0b3;border-color:#9af0b3}
-.btn.danger{color:var(--danger);border-color:rgba(255,127,134,.22);background:var(--danger-soft)}
-.btn.danger:hover{border-color:rgba(255,127,134,.45);background:rgba(255,127,134,.13)}
 
-.tabs{
-  background:rgba(18,23,27,.82);
-  border:1px solid var(--line);
-  padding:5px;
-  border-radius:15px;
-  margin-bottom:20px;
-  box-shadow:var(--shadow-soft);
-  backdrop-filter:blur(10px);
-}
-.tabs button{
-  color:var(--muted);
-  padding:11px 12px;
-  border-radius:10px;
-  font-weight:700;
-}
-.tabs button:hover{color:var(--text);background:rgba(255,255,255,.035)}
-.tabs button.active{
-  color:#08110c;
-  background:var(--accent);
-  box-shadow:0 5px 18px rgba(131,230,160,.10);
-}
 
-.card{
-  position:relative;
-  background:linear-gradient(145deg,rgba(21,27,32,.98),rgba(16,21,25,.98));
-  border:1px solid var(--line-soft);
-  border-radius:var(--radius);
-  padding:18px;
-  margin:13px 0;
-  box-shadow:0 5px 20px rgba(0,0,0,.10);
-}
-.card:hover{border-color:#303b44}
-.card h2{letter-spacing:-.45px}
-.card h3{letter-spacing:-.25px}
-.empty{
-  color:var(--muted);
-  padding:46px 20px;
-  border-style:dashed;
-  background:rgba(18,23,27,.58);
-}
-.empty b{color:var(--text)!important}
 
-.routine{
-  min-height:88px;
-  align-items:center;
-  gap:18px;
-}
-.routine h3{font-size:18px;margin:0 0 4px}
-.routine .buttons{justify-content:flex-end}
-.muted{color:var(--muted);font-size:12px}
-.badge{
-  border:1px solid rgba(131,230,160,.20);
-  background:var(--accent-soft);
-  padding:5px 9px;
-  color:var(--accent);
-}
 
-.routine-drag-handle,.drag-handle,.editor-drag-handle{
-  color:var(--muted2)!important;
-  border-radius:9px;
-  transition:color .15s,background .15s;
-}
-.routine-drag-handle:hover,.drag-handle:hover,.editor-drag-handle:hover{
-  color:var(--accent)!important;
-  background:var(--accent-soft);
-}
-.routine-order-zone,.day-order-zone,.open-day-order-zone,.exercise-drop-zone,.workout-reorder-zone{
-  border-radius:10px;
-  transition:min-height .12s ease,background .12s ease,border-color .12s ease;
-}
-.routine-order-zone:not(:empty),.day-order-zone:not(:empty){background:var(--accent-soft)}
 
-.day{
-  border-top:1px solid var(--line);
-  margin-top:16px;
-  padding-top:16px;
-}
-.dayhead{gap:12px}
-.dayhead h3,.dayhead h2{letter-spacing:-.45px}
 
-.exercise{
-  background:linear-gradient(145deg,#171d22,#141a1f);
-  border:1px solid #273139;
-  border-radius:14px;
-  padding:14px;
-  margin:9px 0;
-}
-.exercise:hover{border-color:#35424b}
-.exercisehead{align-items:center}
-.exname{font-weight:750}
-.meta{color:var(--muted);font-size:11px}
 
-input,textarea,select{
-  width:100%;
-  background:#151b20;
-  border:1px solid #2a353d;
-  border-radius:11px;
-  color:var(--text);
-  padding:11px 12px;
-  outline:none;
-  box-shadow:0 1px 0 rgba(255,255,255,.025) inset;
-  transition:border-color .16s,box-shadow .16s,background .16s;
-}
-input::placeholder,textarea::placeholder{color:#5e6972}
-input:focus,textarea:focus,select:focus{
-  border-color:rgba(131,230,160,.65);
-  box-shadow:0 0 0 3px rgba(131,230,160,.09);
-  background:#171e23;
-}
-label{
-  color:#89949d;
-  font-size:11px;
-  font-weight:700;
-  letter-spacing:.2px;
-  text-transform:uppercase;
-}
-textarea{min-height:72px}
 
-.grid,.grid3{gap:12px}
-.setrow{gap:8px;margin:8px 0}
-.tick{
-  border:1px solid #2e3941;
-  background:#12181c;
-  color:#7f8a93;
-  border-radius:10px;
-}
-.tick:hover{border-color:rgba(131,230,160,.45);color:var(--accent)}
-.tick.done{
-  background:var(--accent);
-  color:#07100a;
-  border-color:var(--accent);
-  box-shadow:0 4px 14px rgba(131,230,160,.12);
-}
-.rest-buttons{gap:8px}
-.rest-buttons .btn{min-width:48px}
 
-.previous-session{
-  background:#11171b;
-  border:1px solid #252f36;
-  border-radius:12px;
-}
-.previous-set{border-color:#2a343c;background:#151b20}
 
-.history-session{background:linear-gradient(145deg,#141a1f,#11161a)}
-.history-summary{padding:17px 19px}
-.history-summary:hover{background:#181f24}
-.history-title{font-weight:750}
-.history-chevron{color:#68747e}
-.history-table{border-color:#29343c}
-.history-row{border-top-color:#29343c}
-.history-label{background:#151b20}
 
-.modal{
-  background:rgba(0,0,0,.74);
-  backdrop-filter:blur(7px);
-}
-.sheet{
-  background:linear-gradient(150deg,#151b20,#101519);
-  border:1px solid #303a42;
-  border-radius:22px 22px 0 0;
-  padding:21px;
-  box-shadow:0 -18px 60px rgba(0,0,0,.35);
-}
-.modal.center .sheet{border-radius:22px}
-.sheet h2{font-size:22px;letter-spacing:-.6px}
-.modal .buttons{gap:8px}
 
-.auth{
-  background:
-    radial-gradient(500px 300px at 50% 15%,rgba(131,230,160,.09),transparent 70%),
-    var(--bg);
-}
-.authbox{
-  width:min(440px,100%);
-  background:linear-gradient(145deg,#151b20,#101519);
-  border:1px solid #2c373f;
-  border-radius:24px;
-  padding:30px;
-  box-shadow:0 24px 70px rgba(0,0,0,.38);
-}
-.authbox h1{
-  font-size:38px;
-  letter-spacing:-1.7px;
-}
-.authbox h1::after{
-  content:"";
-  display:block;
-  width:38px;
-  height:3px;
-  margin-top:9px;
-  border-radius:10px;
-  background:var(--accent);
-}
-.authbox p{color:var(--muted);line-height:1.5}
-.role-picker{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:8px;
-  margin:17px 0 8px;
-}
-.role-option{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  min-height:44px;
-  padding:10px;
-  border:1px solid #29343b;
-  border-radius:12px;
-  background:#11171b;
-  cursor:pointer;
-  color:var(--muted);
-  text-transform:none;
-  font-size:13px;
-}
-.role-option:has(input:checked){
-  color:#07100a;
-  background:var(--accent);
-  border-color:var(--accent);
-}
-.role-option input{display:none}
-.authbox input,.authbox button{margin-top:9px}
-.password-eye{background:transparent!important;border:0!important;box-shadow:none!important}
-
-.toast{
-  top:22px;
-  background:var(--accent);
-  color:#07100a;
-  font-weight:750;
-  border-radius:12px;
-  box-shadow:0 10px 30px rgba(0,0,0,.3);
-}
-
-.progress-stat-card,.compact-progress-stat,.progress-chart-stat{
-  background:linear-gradient(145deg,#171e23,#12181c)!important;
-  border:1px solid #29343b!important;
-  border-radius:14px!important;
-}
-.progress-stat-card strong,.compact-progress-stat strong{color:var(--accent)}
-.progress-chart-controls{
-  background:#11171b!important;
-  border:1px solid #27323a!important;
-  border-radius:14px!important;
-  padding:10px!important;
-}
-.progress-point-detail,.progress-chart-summary{
-  background:#11171b!important;
-  border:1px solid #27323a!important;
-  border-radius:14px!important;
-}
-.progress-chart-empty{
-  border:1px dashed #303b43!important;
-  border-radius:14px!important;
-  background:#101519!important;
-}
-
-.routine-note-card{
-  background:linear-gradient(145deg,rgba(131,230,160,.055),#12181c)!important;
-  border-color:rgba(131,230,160,.18)!important;
-}
-.routine-note-title{color:var(--accent)!important}
-.routine-note-text{color:#c3cbd0!important}
-
-.workout-session-actions,.history-toolbar{
-  gap:8px;
-}
-.workout-edit-field{gap:6px}
-.workout-reorder-list{
-  display:flex;
-  flex-direction:column;
-  gap:5px;
-}
-.workout-reorder-bar{
-  margin:0!important;
-  min-height:58px;
-  display:flex;
-  align-items:center;
-  gap:12px;
-  border-radius:13px;
-  background:#171e23!important;
-}
-.workout-reorder-handle{
-  color:var(--muted2)!important;
-  cursor:grab;
-  font-size:20px;
-}
-.workout-reorder-bar:hover .workout-reorder-handle{color:var(--accent)!important}
-.workout-reorder-zone{
-  min-height:8px!important;
-  margin:0 4px!important;
-}
-.workout-reorder-zone.active,.workout-reorder-zone.drag-over{
-  min-height:42px!important;
-  border:1px dashed rgba(131,230,160,.45);
-  background:var(--accent-soft);
-}
-.session-back-row{
-  margin:0 0 10px!important;
-}
-.session-back-row .btn{
-  color:var(--accent);
-  border-color:rgba(131,230,160,.20);
-  background:var(--accent-soft);
-}
-
-.routine-editor-day{
-  background:linear-gradient(145deg,#151b20,#12171b)!important;
-  border:1px solid #29343b!important;
-  border-radius:16px!important;
-}
-.routine-editor-exercise{
-  background:#171d22!important;
-  border:1px solid #29343b!important;
-  border-radius:13px!important;
-}
-.routine-editor-day:hover,.routine-editor-exercise:hover{border-color:#36434c!important}
-.routine-order-zone,.day-order-zone{
-  min-height:8px;
-}
-.routine-order-zone.drag-over,.day-order-zone.drag-over{
-  min-height:42px;
-  background:var(--accent-soft);
-  border:1px dashed rgba(131,230,160,.42);
-}
-
-.icon-trash-btn{
-  min-width:48px;
-  min-height:44px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  overflow:visible;
-}
-.trash-visual{width:30px;height:34px}
-.icon-trash-btn.trash-full{
-  border-color:rgba(131,230,160,.28);
-  background:rgba(131,230,160,.06);
-}
-.icon-trash-btn.trash-full .trash-reference-img{width:34px;height:34px;filter:drop-shadow(0 4px 6px rgba(0,0,0,.24));}
-
-@media(max-width:760px){
-  .wrap{padding:20px 13px 75px}
-  header{padding-bottom:14px}
-  header h1{font-size:26px}
-  .actions .btn{padding:9px 11px}
-  .routine{
-    align-items:flex-start;
-    flex-direction:column;
-    gap:14px;
-  }
-  .routine>.buttons{
-    width:100%;
-    display:grid;
-    grid-template-columns:repeat(2,minmax(0,1fr));
-  }
-  .routine>.buttons .btn{width:100%}
-  .card{padding:15px;border-radius:16px}
-  .tabs button{padding:10px 7px;font-size:12px}
-  .sheet{padding:17px 14px}
-  .role-picker{grid-template-columns:1fr}
-  .workout-reorder-bar{
-    min-height:54px;
-    padding:12px!important;
-  }
-  .workout-reorder-zone.active,.workout-reorder-zone.drag-over{min-height:36px!important}
-}
-@media(max-width:430px){
-  .wrap{padding-left:10px;padding-right:10px}
-  .tabs{margin-left:-2px;margin-right:-2px}
-  .tabs button{font-size:11px;padding:9px 5px}
-  .setrow{grid-template-columns:32px repeat(3,minmax(0,1fr)) 40px;gap:4px}
-  .setrow input{padding:9px 5px;font-size:13px}
-  .tick{width:40px}
-}
-</style>
-
-<style id="simple-polish-v24">
-/* ---------- Design tokens ---------- */
-:root{
-  --bg:#070a0c;
-  --surface:#101519;
-  --surface-2:#141a1f;
-  --surface-3:#181f24;
-  --surface-hover:#1b2329;
-  --line:rgba(255,255,255,.075);
-  --line-strong:rgba(255,255,255,.12);
-  --text:#f5f7f8;
-  --text-2:#c0c8ce;
-  --muted:#818d96;
-  --muted-2:#626e77;
-  --accent:#83e6a0;
-  --accent-strong:#69dc8b;
-  --accent-soft:rgba(131,230,160,.095);
-  --accent-line:rgba(131,230,160,.23);
-  --danger:#ff8087;
-  --danger-soft:rgba(255,128,135,.075);
-  --danger-line:rgba(255,128,135,.20);
-  --warning:#efd078;
-  --radius-lg:18px;
-  --radius:14px;
-  --radius-sm:11px;
-  --shadow:0 14px 40px rgba(0,0,0,.20);
-  --shadow-hover:0 18px 46px rgba(0,0,0,.26);
-  --ease:cubic-bezier(.22,.61,.36,1);
-}
-
-/* ---------- Base ---------- */
-html{background:var(--bg)}
-body{
-  background:
-    radial-gradient(720px 420px at 90% -12%,rgba(131,230,160,.045),transparent 68%),
-    radial-gradient(620px 380px at -12% 28%,rgba(131,230,160,.018),transparent 68%),
-    var(--bg);
-  color:var(--text);
-  -webkit-font-smoothing:antialiased;
-  text-rendering:optimizeLegibility;
-}
-.wrap{max-width:1160px;padding:28px 22px 88px}
-
-/* ---------- Typography ---------- */
-h1,h2,h3,h4{color:var(--text);letter-spacing:-.035em}
-h1{font-weight:820}
-h2{font-weight:790}
-h3{font-weight:760}
-.sub,.muted{color:var(--muted)}
-.sub{letter-spacing:.015em}
-
-/* ---------- Header ---------- */
-header{
-  padding:3px 1px 17px;
-  margin-bottom:22px;
-  border-bottom:1px solid rgba(131,230,160,.07);
-}
-header h1{font-size:29px;line-height:1.05}
-header .sub{margin-top:7px}
-
-/* ---------- Buttons ---------- */
-.btn{
-  min-height:40px;
-  border:1px solid var(--line-strong);
-  border-radius:11px;
-  background:#151b20;
-  color:var(--text-2);
-  padding:9px 14px;
-  font-weight:690;
-  box-shadow:0 1px 0 rgba(255,255,255,.025) inset;
-}
-.btn:hover{
-  color:var(--text);
-  border-color:rgba(255,255,255,.16);
-  background:var(--surface-hover);
-  transform:translateY(-1px);
-}
-.btn:focus-visible{
-  outline:0;
-  box-shadow:0 0 0 3px rgba(131,230,160,.12);
-}
-.btn.primary{
-  color:#07100a;
-  background:var(--accent);
-  border-color:var(--accent);
-  box-shadow:0 8px 24px rgba(131,230,160,.09);
-}
-.btn.primary:hover{
-  color:#07100a;
-  background:#95ecad;
-  border-color:#95ecad;
-}
-.btn.danger{
-  color:var(--danger);
-  background:var(--danger-soft);
-  border-color:var(--danger-line);
-}
-.btn.danger:hover{
-  background:rgba(255,128,135,.11);
-  border-color:rgba(255,128,135,.32);
-}
-.actions{gap:8px}
-
-/* ---------- Navigation ---------- */
-.tabs{
-  display:flex;
-  gap:3px;
-  padding:4px;
-  background:rgba(16,21,25,.82);
-  border:1px solid var(--line);
-  border-radius:14px;
-  box-shadow:0 8px 24px rgba(0,0,0,.13);
-  backdrop-filter:blur(12px);
-}
-.tabs button{
-  border-radius:10px;
-  color:var(--muted);
-  font-weight:700;
-  transition:all .16s var(--ease);
-}
-.tabs button:hover{background:rgba(255,255,255,.035);color:var(--text-2)}
-.tabs button.active{
-  color:#07100a;
-  background:var(--accent);
-  box-shadow:0 5px 17px rgba(131,230,160,.10);
-}
-
-/* ---------- Cards ---------- */
-.card{
-  background:linear-gradient(145deg,rgba(17,23,27,.98),rgba(13,18,22,.98));
-  border:1px solid var(--line);
-  border-radius:var(--radius-lg);
-  box-shadow:0 6px 22px rgba(0,0,0,.10);
-  transition:border-color .18s var(--ease),box-shadow .18s var(--ease),transform .18s var(--ease);
-}
-.card:hover{
-  border-color:rgba(255,255,255,.095);
-}
-.card h2,.card h3{margin-top:0}
-.empty{
-  border-style:dashed;
-  color:var(--muted);
-  background:rgba(16,21,25,.55);
-}
-
-/* ---------- Routine cards ---------- */
-.routine{
-  padding-top:17px;
-  padding-bottom:17px;
-}
-.routine h3{font-size:18px}
-.routine .muted{line-height:1.45}
-.routine .buttons .btn{white-space:nowrap}
-
-/* ---------- Drag / reorder ---------- */
-.routine-drag-handle,.drag-handle,.editor-drag-handle{
-  opacity:.72;
-  color:var(--muted-2)!important;
-}
-.routine-drag-handle:hover,.drag-handle:hover,.editor-drag-handle:hover{
-  opacity:1;
-  color:var(--accent)!important;
-  background:var(--accent-soft);
-}
-.routine-order-zone,.day-order-zone,.workout-reorder-zone,.exercise-drop-zone{
-  border-radius:11px;
-  transition:min-height .12s var(--ease),background .12s var(--ease),border-color .12s var(--ease);
-}
-.routine-order-zone.drag-over,.day-order-zone.drag-over,.workout-reorder-zone.drag-over,.exercise-drop-zone.drag-over{
-  background:var(--accent-soft);
-  border-color:var(--accent-line);
-}
-
-/* ---------- Sessions / exercises ---------- */
-.day{
-  border-top-color:var(--line);
-}
-.exercise{
-  background:linear-gradient(145deg,#161c21,#13191d);
-  border:1px solid var(--line);
-  border-radius:13px;
-  box-shadow:0 4px 13px rgba(0,0,0,.08);
-}
-.exercise:hover{border-color:rgba(255,255,255,.11)}
-.exname{color:var(--text)}
-.meta{color:var(--muted)}
-
-/* ---------- Forms ---------- */
-input,textarea,select{
-  background:#12181c;
-  border:1px solid rgba(255,255,255,.09);
-  color:var(--text);
-  border-radius:10px;
-  box-shadow:0 1px 0 rgba(255,255,255,.02) inset;
-}
-input:hover,textarea:hover,select:hover{border-color:rgba(255,255,255,.13)}
-input:focus,textarea:focus,select:focus{
-  border-color:rgba(131,230,160,.58);
-  box-shadow:0 0 0 3px rgba(131,230,160,.08);
-  background:#151c20;
-}
-label{
-  color:#7f8b94;
-  letter-spacing:.055em;
-}
-
-/* ---------- Set controls ---------- */
-.tick{
-  border:1px solid rgba(255,255,255,.10);
-  background:#11171b;
-}
-.tick:hover{border-color:var(--accent-line);color:var(--accent)}
-.tick.done{
-  color:#07100a;
-  background:var(--accent);
-  border-color:var(--accent);
-  box-shadow:0 4px 13px rgba(131,230,160,.10);
-}
-
-/* ---------- Badges / status ---------- */
-.badge{
-  color:var(--accent);
-  background:var(--accent-soft);
-  border:1px solid var(--accent-line);
-  border-radius:999px;
-}
-
-/* ---------- Modals ---------- */
-.modal{
-  background:rgba(0,0,0,.76);
-  backdrop-filter:blur(8px);
-}
-.sheet{
-  background:linear-gradient(150deg,#151b20,#0e1317);
-  border:1px solid rgba(255,255,255,.10);
-  box-shadow:0 -20px 65px rgba(0,0,0,.38);
-}
-.modal.center .sheet{box-shadow:0 24px 70px rgba(0,0,0,.38)}
-.toast{
-  background:var(--accent);
-  color:#07100a;
-  border-radius:11px;
-  box-shadow:0 12px 32px rgba(0,0,0,.30);
-}
-
-/* ---------- Progress ---------- */
-.progress-stat-card,.compact-progress-stat,.progress-chart-stat{
-  background:linear-gradient(145deg,#171e23,#12181c)!important;
-  border-color:var(--line)!important;
-  box-shadow:0 5px 17px rgba(0,0,0,.10);
-}
-.progress-stat-card strong,.compact-progress-stat strong{color:var(--accent)}
-.progress-chart-controls{
-  background:#11171b!important;
-  border-color:var(--line)!important;
-}
-.progress-point-detail,.progress-chart-summary{
-  background:#11171b!important;
-  border-color:var(--line)!important;
-}
-.progress-chart-empty{
-  background:#0f1418!important;
-  border-color:rgba(255,255,255,.10)!important;
-}
-
-/* ---------- Notes ---------- */
-.routine-note-card{
-  background:linear-gradient(145deg,rgba(131,230,160,.045),#11171b)!important;
-  border-color:var(--accent-line)!important;
-}
-.routine-note-title{color:var(--accent)!important}
-.routine-note-text{color:var(--text-2)!important}
-
-/* ---------- Editor ---------- */
-.routine-editor-day{
-  background:linear-gradient(145deg,#151b20,#11171b)!important;
-  border-color:var(--line)!important;
-}
-.routine-editor-exercise{
-  background:#161c21!important;
-  border-color:var(--line)!important;
-}
-.routine-editor-day:hover,.routine-editor-exercise:hover{border-color:rgba(255,255,255,.11)!important}
-.workout-reorder-list{gap:6px}
-.workout-reorder-bar{
-  background:#161c21!important;
-  border:1px solid var(--line)!important;
-  border-radius:12px!important;
-}
-.workout-reorder-handle{color:var(--muted-2)!important}
-.workout-reorder-bar:hover .workout-reorder-handle{color:var(--accent)!important}
-.workout-reorder-zone.active,.workout-reorder-zone.drag-over{
-  border-color:var(--accent-line)!important;
-  background:var(--accent-soft)!important;
-}
-.session-back-row .btn{
-  color:var(--accent);
-  background:var(--accent-soft);
-  border-color:var(--accent-line);
-}
-
-/* ---------- Trash ---------- */
-.icon-trash-btn{
-  border-radius:12px;
-}
-.icon-trash-btn.trash-full{
-  background:rgba(131,230,160,.045);
-  border-color:var(--accent-line);
-}
-.icon-trash-btn.trash-full .trash-reference-img{
-  width:34px!important;
-  height:34px!important;
-  filter:drop-shadow(0 4px 6px rgba(0,0,0,.24));
-}
-
-/* ---------- Login ---------- */
-.auth{
-  background:
-    radial-gradient(520px 330px at 50% 9%,rgba(131,230,160,.07),transparent 70%),
-    var(--bg);
-}
-.authbox{
-  background:linear-gradient(145deg,#151b20,#0f1418);
-  border:1px solid rgba(255,255,255,.10);
-  border-radius:23px;
-  box-shadow:0 26px 75px rgba(0,0,0,.38);
-}
-.authbox h1{letter-spacing:-.055em}
-.authbox h1::after{
-  background:var(--accent);
-  border-radius:999px;
-}
-.role-picker{gap:9px}
-.role-option{
-  background:#11171b;
-  border-color:var(--line);
-  border-radius:13px;
-  color:var(--muted);
-  transition:all .17s var(--ease);
-}
-.role-option:hover{
-  border-color:rgba(255,255,255,.13);
-  background:#161d22;
-}
-.role-option:has(input:checked){
-  color:#07100a;
-  background:var(--accent);
-  border-color:var(--accent);
-  box-shadow:0 8px 24px rgba(131,230,160,.09);
-}
-
-/* ---------- Small screens ---------- */
-@media(max-width:760px){
-  .wrap{padding:19px 12px 72px}
-  header{margin-bottom:17px}
-  header h1{font-size:26px}
-  .tabs{
-    position:sticky;
-    top:8px;
-    z-index:30;
-  }
-  .card{border-radius:16px}
-  .routine>.buttons{
-    gap:7px;
-  }
-  .routine>.buttons .btn{
-    min-height:42px;
-  }
-}
-@media(max-width:430px){
-  .wrap{padding-left:9px;padding-right:9px}
-  .tabs button{font-size:11px}
-  .card{padding:14px}
-  .sheet{border-radius:19px 19px 0 0}
-}
-@media(prefers-reduced-motion:reduce){
-  *,*:before,*:after{
-    animation-duration:.01ms!important;
-    animation-iteration-count:1!important;
-    transition-duration:.01ms!important;
-    scroll-behavior:auto!important;
-  }
-}
-</style>
-
-<style id="simple-ux-v25">
-/* ---------- V25: app-like micro polish ---------- */
-::selection{background:rgba(131,230,160,.24);color:#fff}
-:focus-visible{outline:2px solid rgba(131,230,160,.55);outline-offset:2px}
-
-.card,.routine,.exercise,.routine-editor-day,.routine-editor-exercise{
-  will-change:transform;
-}
-.card:hover{
-  transform:translateY(-1px);
-  box-shadow:0 10px 28px rgba(0,0,0,.14);
-}
-.routine:hover{
-  transform:translateY(-1px);
-}
-.exercise:hover{
-  transform:translateY(-1px);
-}
-
-/* Give section headings a subtle visual anchor. */
-.card>h2:first-child,.card>h3:first-child{
-  position:relative;
-}
-.card>h2:first-child::after,.card>h3:first-child::after{
-  content:"";
-  display:block;
-  width:24px;
-  height:2px;
-  margin-top:8px;
-  border-radius:99px;
-  background:var(--accent);
-  opacity:.72;
-}
-
-/* Cleaner action grouping. */
-.buttons{gap:7px}
-.buttons .btn{flex:0 0 auto}
-
-/* Destructive actions stay visually quiet until needed. */
-.btn.danger{opacity:.9}
-.btn.danger:hover{opacity:1}
-
-/* Better disabled state without making disabled controls look broken. */
-.btn:disabled,input:disabled,select:disabled,textarea:disabled{
-  filter:saturate(.55);
-}
-
-/* Reorder mode gets a clear but restrained visual state. */
-.workout-reorder-bar[draggable="true"]{
-  cursor:grab;
-}
-.workout-reorder-bar[draggable="true"]:active{
-  cursor:grabbing;
-}
-.workout-reorder-zone.active,.workout-reorder-zone.drag-over{
-  box-shadow:inset 0 0 0 1px rgba(131,230,160,.08);
-}
-
-/* Sticky tabs on mobile should not feel like a floating slab. */
-@media(max-width:760px){
-  .tabs{
-    box-shadow:0 7px 20px rgba(0,0,0,.20);
-  }
-  .tabs button.active{
-    box-shadow:none;
-  }
-  .routine:hover,.exercise:hover,.card:hover{
-    transform:none;
-  }
-}
-
-/* Compact, elegant scrollbars on supported browsers. */
-*{
-  scrollbar-width:thin;
-  scrollbar-color:#303a42 transparent;
-}
-*::-webkit-scrollbar{width:8px;height:8px}
-*::-webkit-scrollbar-track{background:transparent}
-*::-webkit-scrollbar-thumb{
-  background:#303a42;
-  border-radius:99px;
-}
-*::-webkit-scrollbar-thumb:hover{background:#46525b}
-</style>
-
-<style id="simple-login-role-mobile-v26">
-/* Cliente + Entrenador stay side-by-side on mobile, like desktop. */
-@media(max-width:760px){
-  .role-picker{
-    display:grid!important;
-    grid-template-columns:repeat(2,minmax(0,1fr))!important;
-    align-items:stretch;
-    gap:9px;
-  }
-  .role-option{
-    min-width:0;
-    min-height:52px;
-    width:100%;
-  }
-}
-@media(max-width:360px){
-  .role-picker{gap:7px}
-  .role-option{font-size:12px;padding:9px 6px}
-}
-</style>
-
-<style id="simple-final-polish-v27">
-/* =========================================================
-   SIMPLE V27 — final UX polish
-   No onboarding. Visual/interaction refinements only.
-   ========================================================= */
-
-/* Empty states: make them feel intentional, not like errors. */
-.empty{
-  position:relative;
-  overflow:hidden;
-  text-align:center;
-}
-.empty::before{
-  content:"";
-  position:absolute;
-  width:130px;height:130px;
-  left:50%;top:50%;
-  transform:translate(-50%,-50%);
-  border-radius:50%;
-  background:radial-gradient(circle,rgba(131,230,160,.055),transparent 68%);
-  pointer-events:none;
-}
-.empty>*{position:relative}
-
-/* Better hierarchy for the first line of empty states. */
-.empty b{
-  display:block;
-  color:var(--text);
-  font-size:14px;
-  margin-bottom:5px;
-}
-
-/* Automatic-save feedback should feel like system status. */
-.save-status,.autosave-status,.saved-status{
-  color:var(--accent)!important;
-  font-size:11px;
-  font-weight:700;
-}
-
-/* Destructive confirmation dialogs. */
-.confirm-danger .btn.primary,
-.modal .btn.danger{
-  font-weight:760;
-}
-
-/* Profile/client cards get a slightly more premium rhythm. */
-.client-card,.profile-card{
-  background:linear-gradient(145deg,#151c21,#10161a);
-}
-
-/* Progress metrics: emphasize the value, not the label. */
-.progress-stat-card strong,
-.compact-progress-stat strong,
-.progress-chart-stat strong{
-  font-variant-numeric:tabular-nums;
-  letter-spacing:-.025em;
-}
-
-/* Cleaner history rows. */
-.history-row{
-  transition:background .14s ease;
-}
-.history-row:hover{
-  background:rgba(255,255,255,.018);
-}
-
-/* Notes remain visually distinct but restrained. */
-.routine-note-card{
-  box-shadow:0 7px 20px rgba(0,0,0,.08);
-}
-
-/* More app-like controls on touch devices. */
-@media(pointer:coarse){
-  .btn{
-    min-height:42px;
-  }
-  .tick{
-    min-width:42px;
-    min-height:42px;
-  }
-}
-
-/* Keep dense exercise/reorder UIs comfortable on narrow screens. */
-@media(max-width:600px){
-  .workout-reorder-list{
-    gap:5px;
-  }
-  .workout-reorder-bar{
-    padding:11px!important;
-  }
-  .session-back-row{
-    margin-bottom:8px!important;
-  }
-}
-
-/* Respect reduced-motion preference. */
-@media(prefers-reduced-motion:reduce){
-  .card:hover,.routine:hover,.exercise:hover{transform:none!important}
-}
-</style>
-
-<style id="simple-icons-v27">
-/* Consistent tiny action affordance for common icon buttons. */
-.icon-trash-btn .trash-empty-icon{
-  font-size:0!important;
-  width:18px;height:18px;
-  display:block;
-  position:relative;
-}
-.icon-trash-btn .trash-empty-icon::before{
-  content:"";
-  position:absolute;
-  inset:2px 3px 1px;
-  border:1.7px solid currentColor;
-  border-top:0;
-  border-radius:2px 2px 4px 4px;
-}
-.icon-trash-btn .trash-empty-icon::after{
-  content:"";
-  position:absolute;
-  left:5px;right:5px;top:1px;
-  height:2px;
-  border-radius:2px;
-  background:currentColor;
-  box-shadow:3px 3px 0 -0.5px currentColor;
-}
-</style>
-
-<style id="simple-navigation-v28">
-#tabs.nested-hidden{display:none!important}
-</style>
-
-<style id="simple-trash-unification-v30">
-/* Trainer and client use exactly the same trash component. */
-#tTrash,#tTrashClient{
-  width:48px;
-  min-width:48px;
-  height:44px;
-  padding:0;
-}
-#tTrash .trash-visual,#tTrashClient .trash-visual{
-  width:30px!important;
-  height:34px!important;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-}
-#tTrash .trash-reference-img,#tTrashClient .trash-reference-img{
-  width:34px!important;
-  height:34px!important;
-}
-</style>
 
 <script id="client-trash-two-state-v32">
 window.updateClientTrashVisual=function(full){
@@ -7277,368 +8007,19 @@ window.updateClientTrashVisual=function(full){
   btn.setAttribute('aria-label',full?'Abrir papelera: hay rutinas eliminadas':'Abrir papelera: vacía');
 };
 </script>
-<style id="client-trash-two-state-css-v32">
-#tTrashClient .client-trash-visual{
-  width:34px!important;height:34px!important;
-  display:inline-flex!important;
-  align-items:center;justify-content:center;
-}
-#tTrashClient .client-trash-full-img,
-#tTrashClient .client-trash-empty-img{
-  width:34px!important;height:34px!important;
-  object-fit:contain;
-}
-</style>
 
-<style id="client-trash-transparent-bg-v34">
-#tTrashClient .client-trash-empty-img{
-  background:transparent!important;
-  mix-blend-mode:normal!important;
-}
-</style>
 
-<style id="client-trash-final-assets-v35">
-/* Final trash assets: image 1 = empty, image 2 = full. */
-#tTrashClient .client-trash-visual{
-  position:relative!important;
-  width:34px!important;
-  height:34px!important;
-  display:inline-flex!important;
-  align-items:center!important;
-  justify-content:center!important;
-  overflow:visible!important;
-  background:transparent!important;
-}
-#tTrashClient .client-trash-full-img,
-#tTrashClient .client-trash-empty-img{
-  position:absolute!important;
-  inset:50% auto auto 50%!important;
-  width:34px!important;
-  height:34px!important;
-  margin:0!important;
-  object-fit:contain!important;
-  background:transparent!important;
-  opacity:1!important;
-  filter:none!important;
-  transform:translate(-50%,-50%)!important;
-}
-#tTrashClient .client-trash-full-img{display:none!important;}
-#tTrashClient .client-trash-empty-img{display:block!important;}
-#tTrashClient.trash-full .client-trash-full-img{
-  display:block!important;
-}
-#tTrashClient.trash-full .client-trash-empty-img{
-  display:none!important;
-}
-</style>
-<style id="simple-login-s-green-v37">
-.simple-login-logo span{
-  color:var(--accent,#83e6a0)!important;
-  text-decoration:none!important;
-  border:0!important;
-}
-</style>
-<style id="simple-v37-final-fixes">
-/* Trash action text never escapes its card. */
-.trash-routine-card{align-items:flex-start}
-.trash-routine-main{min-width:0;flex:1 1 240px}
-.trash-actions{
-  flex:0 1 auto;
-  min-width:0;
-  max-width:100%;
-  justify-content:flex-end;
-}
-.trash-actions .btn{
-  max-width:100%;
-  min-width:0;
-  white-space:normal!important;
-  overflow-wrap:anywhere;
-  word-break:normal;
-  line-height:1.25;
-}
-@media(max-width:650px){
-  .trash-routine-card{
-    display:flex!important;
-    flex-direction:column!important;
-    align-items:stretch!important;
-  }
-  .trash-actions{
-    width:100%;
-    display:grid!important;
-    grid-template-columns:repeat(2,minmax(0,1fr));
-  }
-  .trash-actions .btn{
-    width:100%;
-  }
-}
-@media(max-width:430px){
-  .trash-actions{grid-template-columns:1fr}
-}
 
-/* The selected client/trainer trash section is visibly active. */
-#tabs #tTrashClient.active,
-#tabs #tTrash.active{
-  background:var(--accent,#83e6a0)!important;
-  color:#111!important;
-  font-weight:800!important;
-  box-shadow:none!important;
-}
 
-/* While reordering routines on touch, show only the handle + routine name. */
-#mine .routine-pointer-dragging .routine-dragging .routine-description,
-#mine .routine-pointer-dragging .routine-dragging .routine-actions{
-  display:none!important;
-}
-#mine .routine-dragging{
-  align-items:center!important;
-}
-#mine .routine-dragging .routine-drag-name{
-  display:block!important;
-}
-</style>
 
-<style id="simple-mobile-typography-v38">
-/* SIMPLE V38 — mobile density & typography polish
-   Goal: less visual bulk, tighter hierarchy, easier scanning.
-   Desktop remains unchanged. */
 
-@media(max-width:650px){
-  /* General cards: reduce the feeling of giant blocks. */
-  .card{
-    padding:13px 12px;
-    margin:9px 0;
-    border-radius:14px;
-  }
-  .card h2{
-    font-size:18px;
-    line-height:1.2;
-  }
-  .card h3{
-    font-size:15px;
-    line-height:1.25;
-  }
-  .muted{
-    font-size:11px;
-    line-height:1.35;
-  }
 
-  /* History: compact session headers and content. */
-  .history-session{
-    margin-bottom:8px;
-    border-radius:13px;
-  }
-  .history-summary{
-    padding:12px 13px;
-    gap:9px;
-    min-height:0;
-  }
-  .history-title{
-    font-size:15px;
-    line-height:1.25;
-    display:block;
-  }
-  .history-summary .muted{
-    margin-top:2px;
-    font-size:10.5px;
-  }
-  .history-chevron{
-    font-size:18px;
-    flex:0 0 auto;
-  }
-  .history-content{
-    padding:0 12px 13px;
-  }
-  .history-exercise{
-    margin-top:10px;
-    padding-top:10px;
-  }
-  .history-exercise-head{
-    gap:7px;
-  }
-  .history-exercise-head b{
-    font-size:13px;
-  }
-  .history-objective{
-    font-size:10.5px;
-    line-height:1.35;
-  }
-  .history-table{
-    margin-top:7px;
-    font-size:11px;
-  }
-  .history-row{
-    grid-template-columns:50px 1fr 1fr 1fr;
-    padding:7px 8px;
-    gap:3px;
-  }
-  .history-label{
-    font-size:9.5px;
-  }
-  .history-notes{
-    margin-top:7px;
-    font-size:11px;
-  }
 
-  /* Trash: compact cards, no huge empty vertical areas. */
-  .trash-routine-card{
-    padding:12px!important;
-    margin:8px 0!important;
-    border-radius:13px!important;
-    gap:9px!important;
-  }
-  .trash-routine-card h3{
-    margin:0;
-    font-size:14px;
-    line-height:1.25;
-  }
-  .trash-routine-main .muted{
-    font-size:10.5px;
-    line-height:1.35;
-  }
-  .trash-actions{
-    gap:6px!important;
-  }
-  .trash-actions .btn{
-    min-height:38px!important;
-    padding:8px 9px!important;
-    font-size:11.5px!important;
-    line-height:1.2!important;
-    border-radius:9px!important;
-  }
 
-  /* Generic buttons: slightly less bulky while retaining touch targets. */
-  .btn{
-    padding:9px 11px;
-    font-size:12.5px;
-    border-radius:10px;
-  }
 
-  /* Routine cards in Mis rutinas: more information density. */
-  #mine .routine{
-    padding:12px;
-    margin:8px 0;
-    gap:9px;
-  }
-  #mine .routine h3{
-    font-size:15px;
-  }
-  #mine .routine .buttons{
-    gap:5px;
-    width:100%;
-  }
-  #mine .routine .buttons .btn{
-    flex:1 1 auto;
-    min-width:0;
-    padding:8px 7px;
-    font-size:11px;
-  }
 
-  /* Client cards and assigned-routine rows. */
-  .client-card,
-  .profile-card{
-    padding:12px!important;
-  }
 
-  /* Progress: reduce oversized metric/chart framing. */
-  .progress-stat-card{
-    min-width:0;
-    padding:10px 11px;
-    border-radius:10px;
-  }
-  .progress-stat-card b{
-    font-size:17px;
-  }
-  .progress-stat-card small{
-    font-size:10.5px;
-  }
-  .progress-chart-wrap{
-    padding:5px;
-    border-radius:11px;
-  }
 
-  /* Empty states shouldn't dominate a phone screen. */
-  .empty{
-    padding:25px 14px;
-  }
-
-  /* Section headers should breathe, but not create another giant block. */
-  #history>.card:first-child,
-  #trash>.card:first-child,
-  #mine>.card:first-child{
-    padding:12px;
-    margin-bottom:8px;
-  }
-}
-
-/* Very narrow phones: stack only where it genuinely improves readability. */
-@media(max-width:380px){
-  .history-summary{
-    padding:11px;
-  }
-  .history-content{
-    padding-left:10px;
-    padding-right:10px;
-  }
-  .trash-actions{
-    grid-template-columns:1fr!important;
-  }
-  .history-row{
-    grid-template-columns:44px 1fr 1fr 1fr;
-    padding-left:6px;
-    padding-right:6px;
-  }
-}
-</style>
-
-<style id="simple-trash-density-v39">
-@media(max-width:650px){
-  #trash .trash-routine-card{
-    padding:9px 10px!important;
-    margin:6px 0!important;
-    gap:7px!important;
-    border-radius:11px!important;
-  }
-  #trash .trash-routine-main h3{
-    font-size:13px!important;
-    line-height:1.2!important;
-  }
-  #trash .trash-routine-main .muted{
-    font-size:9.5px!important;
-    line-height:1.25!important;
-    margin-top:3px!important;
-  }
-  #trash .trash-actions{
-    gap:5px!important;
-  }
-  #trash .trash-actions .btn{
-    min-height:34px!important;
-    padding:6px 7px!important;
-    font-size:10.5px!important;
-    line-height:1.15!important;
-    border-radius:8px!important;
-  }
-}
-@media(max-width:380px){
-  #trash .trash-routine-card{padding:8px 9px!important}
-  #trash .trash-actions .btn{font-size:10px!important}
-}
-</style>
-
-<style id="simple-progress-selector-v39">
-@media(max-width:650px){
-  #clientProgressModal select,
-  #clientProgressModal .progress-exercise-select{
-    width:100%!important;
-    min-height:42px!important;
-    font-size:13px!important;
-    padding:9px 11px!important;
-    border-radius:10px!important;
-    display:block!important;
-    opacity:1!important;
-    pointer-events:auto!important;
-  }
-}
-</style>
 
 <script id="simple-progress-selector-runtime-v39">
 (function(){
@@ -7660,79 +8041,11 @@ window.updateClientTrashVisual=function(full){
 })();
 </script>
 
-<style id="simple-progress-final-v40">
-@media(max-width:650px){
-  #clientProgressExercise,
-  #clientProgressDay,
-  #clientProgressPeriod,
-  #clientProgressMetric{
-    appearance:auto!important;
-    -webkit-appearance:auto!important;
-    pointer-events:auto!important;
-    touch-action:manipulation!important;
-  }
-}
-</style>
 
-<style id="simple-nav-fixed-trash-v41">
-@media(max-width:650px){
-  #tabs{
-    position:sticky!important;
-    top:0!important;
-    z-index:1000!important;
-    background:rgba(10,13,15,.96)!important;
-    backdrop-filter:blur(12px);
-    -webkit-backdrop-filter:blur(12px);
-  }
-  #trash .trash-routine-card{
-    display:grid!important;
-    grid-template-columns:minmax(0,1fr) auto!important;
-    align-items:center!important;
-    column-gap:10px!important;
-    padding:9px 10px!important;
-    margin:6px 0!important;
-    min-height:0!important;
-  }
-  #trash .trash-routine-main{min-width:0!important}
-  #trash .trash-routine-main h3{
-    margin:0!important;font-size:13px!important;line-height:1.2!important;
-  }
-  #trash .trash-routine-main .muted{
-    font-size:9.5px!important;line-height:1.25!important;
-  }
-  #trash .trash-actions{
-    width:auto!important;display:flex!important;flex-direction:column!important;
-    align-items:stretch!important;justify-content:center!important;
-    gap:5px!important;flex:0 0 auto!important;
-  }
-  #trash .trash-actions .btn{
-    width:auto!important;min-width:94px!important;min-height:32px!important;
-    padding:6px 8px!important;font-size:10.5px!important;line-height:1.1!important;
-    white-space:nowrap!important;
-  }
-}
-@media(max-width:380px){
-  #trash .trash-routine-card{column-gap:7px!important;padding:8px 9px!important}
-  #trash .trash-actions .btn{min-width:84px!important;font-size:10px!important}
-}
-</style>
 
-<style id="simple-nav-smart-hide-v43">
-@media(max-width:650px){
-  #tabs{
-    position:sticky!important;
-    top:0!important;
-    z-index:1000!important;
-    transition:transform .20s ease,opacity .16s ease!important;
-    will-change:transform;
-  }
-  #tabs.nav-hidden-on-scroll{
-    transform:translate3d(0,-120%,0)!important;
-    opacity:0!important;
-    pointer-events:none!important;
-  }
-}
-</style>
+
+
+
 
 <script id="simple-nav-smart-hide-runtime-v43">
 (function(){
@@ -7820,43 +8133,11 @@ window.updateClientTrashVisual=function(full){
 })();
 </script>
 
-<style id="simple-weekly-progress-v44">
-.weekly-routine-progress{margin-top:10px;max-width:420px}
-.weekly-routine-progress-head{display:flex;justify-content:space-between;gap:8px;margin-bottom:5px;font-size:11px}
-.weekly-routine-progress-head span{opacity:.72}
-.weekly-routine-progress-head b{font-size:11px}
-.weekly-progress-bar{width:100%;height:10px;padding:2px;display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:2px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden}
-.weekly-progress-segment{display:block;min-width:0;border-radius:999px;background:rgba(255,255,255,.07)}
-.weekly-progress-segment.is-done{background:var(--accent,#83e6a0);box-shadow:0 0 8px rgba(131,230,160,.18)}
-@media(max-width:650px){
- .weekly-routine-progress{max-width:none;margin-top:8px}
- .weekly-routine-progress-head,.weekly-routine-progress-head b{font-size:10px}
- .weekly-progress-bar{height:9px}
-}
-</style>
 
-<style id="simple-weekly-progress-trainer-v45">
-.weekly-routine-progress{margin-top:9px;max-width:360px}
-.weekly-routine-progress-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:5px;font-size:10.5px}
-.weekly-routine-progress-head span{opacity:.72}
-.weekly-routine-progress-head b{font-size:10.5px}
-.weekly-progress-bar{width:100%;height:9px;padding:2px;display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:2px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden}
-.weekly-progress-segment{display:block;min-width:0;border-radius:999px;background:rgba(255,255,255,.07)}
-.weekly-progress-segment.is-done{background:var(--accent,#83e6a0);box-shadow:0 0 8px rgba(131,230,160,.18)}
-@media(max-width:650px){
-  .weekly-routine-progress{max-width:none;margin-top:7px}
-  .weekly-routine-progress-head,.weekly-routine-progress-head b{font-size:9.5px}
-  .weekly-progress-bar{height:8px}
-}
-</style>
 
-<style id="simple-weekly-progress-own-routines-v46">
-@media(max-width:650px){
-  #mine .weekly-routine-progress{margin-top:7px!important;width:100%!important;max-width:none!important}
-  #mine .weekly-routine-progress-head{font-size:9.5px!important;margin-bottom:5px!important}
-  #mine .weekly-progress-bar{height:8px!important}
-}
-</style>
+
+
+
 
 <script id="simple-weekly-progress-refresh-v48">
 (function(){
@@ -7885,71 +8166,5 @@ window.updateClientTrashVisual=function(full){
 })();
 </script>
 
-<style id="simple-edit-rest-notes-chart-v51">
-/* Editing: make rest and notes fields comfortable on desktop and mobile. */
-.history-edit-note{font-family:inherit}
-@media(max-width:650px){
-  .history-edit-note{min-height:64px!important}
-}
-</style>
+
 </body></html>
-
-<style>
-.trash-reference-img{
-  width:34px;
-  height:34px;
-  object-fit:contain;
-  display:block;
-}
-.icon-trash-btn.trash-full .trash-reference-img{
-  transform:scale(1.12);
-  transform-origin:center;
-}
-</style>
-
-<style>
-.trash-reference-img{opacity:0;position:absolute;inset:50% auto auto 50%;transform:translate(-50%,-50%) scale(.95)}
-.trash-empty-icon{display:block;font-size:19px;line-height:1}
-.icon-trash-btn.trash-full .trash-empty-icon{display:none}
-.icon-trash-btn.trash-full .trash-reference-img{opacity:1;transform:translate(-50%,-50%) scale(1.12)}
-</style>
-
-<style id="client-trash-final-visibility-v33">
-/* FINAL CLIENT TRASH: two real images, no emoji/canvas/filtering. */
-#tTrashClient .client-trash-visual{
-  position:relative!important;
-  width:34px!important;
-  height:34px!important;
-  display:inline-flex!important;
-  align-items:center!important;
-  justify-content:center!important;
-  overflow:visible!important;
-}
-#tTrashClient .client-trash-visual .client-trash-full-img,
-#tTrashClient .client-trash-visual .client-trash-empty-img{
-  position:absolute!important;
-  left:50%!important;
-  top:50%!important;
-  width:34px!important;
-  height:34px!important;
-  margin:0!important;
-  object-fit:contain!important;
-  opacity:1!important;
-  transform:translate(-50%,-50%) scale(.95)!important;
-  filter:none!important;
-}
-#tTrashClient .client-trash-visual .client-trash-full-img{
-  display:none!important;
-}
-#tTrashClient .client-trash-visual .client-trash-empty-img{
-  display:block!important;
-}
-#tTrashClient.trash-full .client-trash-visual .client-trash-full-img{
-  display:block!important;
-  opacity:1!important;
-  transform:translate(-50%,-50%) scale(1.02)!important;
-}
-#tTrashClient.trash-full .client-trash-visual .client-trash-empty-img{
-  display:none!important;
-}
-</style>
