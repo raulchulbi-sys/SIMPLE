@@ -4,7 +4,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>SIMPLE</title>
 <style>
-:root{--bg:#0b0d10;--card:#15191e;--card2:#1b2026;--text:#f4f6f8;--muted:#9ba4ae;--line:#2a3139;--ok:#b9f6ca;--danger:#ff9a9a}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button,input,textarea{font:inherit}button{cursor:pointer}.wrap{max-width:1050px;margin:auto;padding:20px 15px 80px}header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:20px}h1{margin:0;font-size:26px;letter-spacing:-.5px}.sub{color:var(--muted);font-size:12px;margin-top:4px}.actions,.tabs,.buttons{display:flex;gap:7px;flex-wrap:wrap}.btn{border:1px solid var(--line);background:var(--card);color:var(--text);padding:10px 13px;border-radius:11px}.btn.primary{background:#fff;color:#111;border-color:#fff}.btn.danger{color:var(--danger)}.tabs{background:#111419;border:1px solid var(--line);padding:5px;border-radius:13px;margin-bottom:18px}.tabs button{flex:1;border:0;background:transparent;color:var(--muted);padding:10px;border-radius:9px}.tabs button.active{background:#fff;color:#111}.card{background:var(--card);border:1px solid var(--line);border-radius:17px;padding:16px;margin:12px 0}.empty{text-align:center;color:var(--muted);padding:38px 18px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.grid3{display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px}label{display:block;color:var(--muted);font-size:11px;margin:0 0 5px}input,textarea{width:100%;background:var(--card2);border:1px solid var(--line);border-radius:10px;color:var(--text);padding:10px;outline:none}textarea{min-height:65px;resize:vertical}.routine{display:flex;justify-content:space-between;align-items:center;gap:12px}.routine h3{margin:0}.muted{color:var(--muted);font-size:12px}.badge{border:1px solid var(--line);padding:4px 8px;border-radius:99px;font-size:11px;color:var(--muted)}.day{border-top:1px solid var(--line);margin-top:14px;padding-top:14px}.dayhead{display:flex;justify-content:space-between;gap:10px;align-items:center}.exercise{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px;margin:8px 0}.exercisehead{display:flex;justify-content:space-between;gap:8px}.exname{font-weight:700}.meta{color:var(--muted);font-size:11px;margin-top:3px}.modal{position:fixed;inset:0;background:#000b;display:none;align-items:flex-end;justify-content:center;z-index:20}.modal.show{display:flex}.sheet{width:min(760px,100%);max-height:90vh;overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:20px 20px 0 0;padding:18px}.modal.center{align-items:center}.modal.center .sheet{border-radius:20px}.auth{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:18px}.authbox{width:min(420px,100%);background:var(--card);border:1px solid var(--line);border-radius:22px;padding:25px}.authbox h1{margin-bottom:5px}.authbox p{color:var(--muted);font-size:13px}.authbox input,.authbox button{margin-top:8px}.authbox button{width:100%}.msg{font-size:12px;min-height:18px;margin-top:8px}.error{color:var(--danger)}.ok{color:var(--ok)}.toast{position:fixed;top:18px;left:50%;transform:translateX(-50%);background:#fff;color:#111;padding:10px 14px;border-radius:11px;display:none;z-index:50;font-size:13px}@media(max-width:650px){.grid,.grid3{grid-template-columns:1fr}.routine{align-items:flex-start;flex-direction:column}header{align-items:flex-start}}
+:root{--bg:#0b0d10;--card:#15191e;--card2:#1b2026;--text:#f4f6f8;--muted:#9ba4ae;--line:#2a3139;--ok:#b9f6ca;--danger:#ff9a9a}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button,input,textarea{font:inherit}button{cursor:pointer}.wrap{max-width:1050px;margin:auto;padding:20px 15px 80px}header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:20px}h1{margin:0;font-size:26px;letter-spacing:-.5px}.sub{color:var(--muted);font-size:12px;margin-top:4px}.actions,.tabs,.buttons{display:flex;gap:7px;flex-wrap:wrap}.btn{border:1px solid var(--line);background:var(--card);color:var(--text);padding:10px 13px;border-radius:11px}.btn.primary{background:#fff;color:#111;border-color:#fff}.btn.danger{color:var(--danger)}.tabs{background:#111419;border:1px solid var(--line);padding:5px;border-radius:13px;margin-bottom:18px}.tabs button{flex:1;border:0;background:transparent;color:var(--muted);padding:10px;border-radius:9px}.tabs button.active{background:#fff;color:#111}.card{background:var(--card);border:1px solid var(--line);border-radius:17px;padding:16px;margin:12px 0}.empty{text-align:center;color:var(--muted);padding:38px 18px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.grid3{display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px} .routine-editor-exercise .grid3{grid-template-columns:minmax(0,2fr) minmax(90px,1fr) minmax(150px,1fr)}label{display:block;color:var(--muted);font-size:11px;margin:0 0 5px}input,textarea{width:100%;background:var(--card2);border:1px solid var(--line);border-radius:10px;color:var(--text);padding:10px;outline:none}textarea{min-height:65px;resize:vertical}.routine{display:flex;justify-content:space-between;align-items:center;gap:12px}.routine h3{margin:0}.muted{color:var(--muted);font-size:12px}.badge{border:1px solid var(--line);padding:4px 8px;border-radius:99px;font-size:11px;color:var(--muted)}.day{border-top:1px solid var(--line);margin-top:14px;padding-top:14px}.dayhead{display:flex;justify-content:space-between;gap:10px;align-items:center}.exercise{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px;margin:8px 0}.exercisehead{display:flex;justify-content:space-between;gap:8px}.exname{font-weight:700}.meta{color:var(--muted);font-size:11px;margin-top:3px}.modal{position:fixed;inset:0;background:#000b;display:none;align-items:flex-end;justify-content:center;z-index:20}.modal.show{display:flex}.sheet{width:min(760px,100%);max-height:90vh;overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:20px 20px 0 0;padding:18px}.modal.center{align-items:center}.modal.center .sheet{border-radius:20px}.auth{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:18px}.authbox{width:min(420px,100%);background:var(--card);border:1px solid var(--line);border-radius:22px;padding:25px}.authbox h1{margin-bottom:5px}.authbox p{color:var(--muted);font-size:13px}.authbox input,.authbox button{margin-top:8px}.authbox button{width:100%}.msg{font-size:12px;min-height:18px;margin-top:8px}.error{color:var(--danger)}.ok{color:var(--ok)}.toast{position:fixed;top:18px;left:50%;transform:translateX(-50%);background:#fff;color:#111;padding:10px 14px;border-radius:11px;display:none;z-index:50;font-size:13px}@media(max-width:650px){.grid,.grid3,.routine-editor-exercise .grid3{grid-template-columns:1fr}.routine{align-items:flex-start;flex-direction:column}header{align-items:flex-start}}
 
 .setrow{display:grid;grid-template-columns:42px minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) 48px;gap:7px;align-items:center;margin:7px 0}
 .setrow input{min-width:0;width:100%}
@@ -764,7 +764,7 @@
 .workout-edit-field{display:flex;flex-direction:column;gap:5px;min-width:150px}
 .workout-edit-field input{min-width:0}
 @media(max-width:700px){
-  .workout-edit-fields{display:grid;grid-template-columns:1fr 110px;align-items:end}
+  .workout-edit-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:end}
   .workout-edit-fields .btn{grid-column:1/-1;width:100%}
   .workout-edit-field{min-width:0}
 }
@@ -4208,7 +4208,7 @@ function renderClientSingleDayExercises(di){
             <div class="grid3">
               <div><label>Ejercicio</label><input value="${esc(e.name)}" onchange="editDays[${di}].exercises[${ei}].name=this.value"></div>
               <div><label>Series</label><input type="number" min="1" value="${e.sets||1}" onchange="editDays[${di}].exercises[${ei}].sets=Math.max(1,+this.value||1)"></div>
-              <div><label>Descanso previsto (min)</label><input type="number" min="0" step="0.5" value="${Number(e.rest_seconds||0)/60}" inputmode="decimal" onchange="editDays[${di}].exercises[${ei}].rest_seconds=Math.max(0,(parseFloat(this.value)||0)*60)"></div>
+              <div><label>Descanso previsto (min)</label><input type="number" min="0" step="0.5" value="${Number(e.rest_seconds??120)/60}" inputmode="decimal" onchange="editDays[${di}].exercises[${ei}].rest_seconds=Math.max(0,(parseFloat(this.value)||0)*60)"></div>
             </div>
             <div class="grid" style="margin-top:8px">
               <div><label>Objetivo de reps</label><input value="${esc(e.target||'')}" placeholder="2x10-15" onchange="editDays[${di}].exercises[${ei}].target=this.value"></div>
@@ -5035,7 +5035,7 @@ function renderEditor(){
                 <div class="grid3">
                   <div><label>Ejercicio</label><input value="${esc(e.name)}" onchange="editDays[${di}].exercises[${ei}].name=this.value"></div>
                   <div><label>Series</label><input type="number" min="1" value="${e.sets||1}" onchange="editDays[${di}].exercises[${ei}].sets=Math.max(1,+this.value||1)"></div>
-                  <div><label>Descanso previsto (min)</label><input type="number" min="0" step="0.5" value="${(e.rest_seconds||120)/60}" onchange="editDays[${di}].exercises[${ei}].rest_seconds=(+this.value||0)*60"></div>
+                  <div><label>Descanso previsto (min)</label><input type="number" min="0" step="0.5" value="${Number(e.rest_seconds??120)/60}" onchange="editDays[${di}].exercises[${ei}].rest_seconds=Math.max(0,(parseFloat(this.value)||0)*60)"></div>
                 </div>
                 <div class="grid" style="margin-top:8px">
                   <div><label>Objetivo</label><input value="${esc(e.target||'')}" placeholder="2x10-15" onchange="editDays[${di}].exercises[${ei}].target=this.value"></div>
@@ -6428,76 +6428,42 @@ async function startWorkoutDay(dayId){
       reordering:false
     };
 
-    // Observaciones persistentes DEL USUARIO, nunca escribiendo sobre
-    // routine_exercises. La rutina del entrenador no se modifica.
+    // Notas personales persistentes. Nunca dejamos que una fila vacía pise una nota real.
     const notesKey=workoutNotesKey();
     let localNotes={};
     try{localNotes=JSON.parse(localStorage.getItem(notesKey)||'{}')||{};}catch(_){}
     let persistentNotes=[];
     try{
-      let assignedRows=Array.isArray(assignments)?assignments:[];
-      if(user?.id && profile?.role==='client'){
-        try{
-          const aq=await db.from('routine_assignments')
-            .select('trainer_routine_id,client_routine_id')
-            .eq('client_id',user.id)
-            .is('client_deleted_at',null);
-          if(!aq.error && Array.isArray(aq.data))assignedRows=aq.data;
-        }catch(_){}
-      }
-      const assignedRoutineIds=assignedRows
-        .filter(a=>String(a.client_id||user?.id)===String(user?.id) || !a.client_id)
-        .flatMap(a=>[a.trainer_routine_id,a.client_routine_id])
-        .filter(Boolean)
-        .map(String);
-      const noteRoutineIds=[...new Set([
-        String(workoutRoutine?.id||''),
-        String(workoutRoutine?.source_routine_id||''),
-        String(workoutRoutine?.trainer_routine_id||''),
-        ...assignedRoutineIds
-      ].filter(Boolean))];
-      // First load the exact routine(s). Then load the user's remaining notes
-      // as a fallback. This makes the notes portable between the desktop and
-      // mobile even if one client opens the shared routine through a different
-      // routine id.
-      const [exactQ,allQ]=await Promise.all([
-        noteRoutineIds.length
-          ? db.from('routine_user_notes').select('routine_id,exercise_key,note,updated_at').eq('user_id',user.id).in('routine_id',noteRoutineIds)
-          : Promise.resolve({data:[],error:null}),
-        db.from('routine_user_notes').select('routine_id,exercise_key,note,updated_at').eq('user_id',user.id)
-      ]);
-      if(!exactQ.error)persistentNotes=exactQ.data||[];
-      if(!allQ.error)persistentNotes=[...persistentNotes,...(allQ.data||[])];
-    }catch(e){console.warn('Notas persistentes no disponibles:',e)}
-    // Prefer the newest row for each exercise key, and prefer rows belonging
-    // to the currently opened routine when there is more than one.
-    const noteKeyForExercise=e=>simpleNormalizeNoteKey(e.name);
-    const noteRoutinePriority=new Set([String(workoutRoutine?.id||''),String(workoutRoutine?.source_routine_id||''),String(workoutRoutine?.trainer_routine_id||'')].filter(Boolean));
+      const routineIds=[...new Set([workoutRoutine?.id,workoutRoutine?.source_routine_id,workoutRoutine?.trainer_routine_id].filter(Boolean).map(String))];
+      const q=await db.from('routine_user_notes')
+        .select('routine_id,exercise_key,note,updated_at')
+        .eq('user_id',String(user.id));
+      if(q.error)throw q.error;
+      // No filtramos la consulta por workoutRoutine.id: al abrir una rutina
+      // compartida ese objeto puede terminar de hidratarse después de abrir
+      // el día. Traemos todas las notas del usuario y luego priorizamos la
+      // familia de la rutina actual. Así PC y móvil leen la misma fuente.
+      persistentNotes=(q.data||[]).filter(r=>String(r.note??'').trim());
+    }catch(e){console.warn('No se pudieron cargar las notas persistentes:',e)}
+    const familyIds=new Set([String(workoutRoutine?.id||''),String(workoutRoutine?.source_routine_id||''),String(workoutRoutine?.trainer_routine_id||'')].filter(Boolean));
     persistentNotes.sort((a,b)=>{
-      const pa=noteRoutinePriority.has(String(a.routine_id))?1:0;
-      const pb=noteRoutinePriority.has(String(b.routine_id))?1:0;
-      if(pa!==pb)return pb-pa;
-      return String(b.updated_at||'').localeCompare(String(a.updated_at||''));
+      const pa=familyIds.has(String(a.routine_id))?1:0,pb=familyIds.has(String(b.routine_id))?1:0;
+      return pa!==pb?pb-pa:String(b.updated_at||'').localeCompare(String(a.updated_at||''));
     });
     const persistentByKey=new Map();
     for(const row of persistentNotes){
       const k=simpleNormalizeNoteKey(row.exercise_key);
-      if(k && !persistentByKey.has(k))persistentByKey.set(k,String(row.note??''));
+      if(k&&!persistentByKey.has(k))persistentByKey.set(k,String(row.note));
     }
-
     for(const e of activeWorkout.exercises){
-      const base=Array.from({length:e.sets||1},()=>({
-        kg:'',reps:'',rir:'',done:false
-      }));
-      const nk=noteKeyForExercise(e);
-      const persistentNote=persistentByKey.has(nk)?String(persistentByKey.get(nk)??''):'';
+      const base=Array.from({length:e.sets||1},()=>({kg:'',reps:'',rir:'',done:false}));
+      const nk=simpleNormalizeNoteKey(e.name);
+      const persistentNote=persistentByKey.get(nk)||'';
       const localNote=localNotes[e.id]!==undefined?String(localNotes[e.id]??''):'';
       const localByName=Object.keys(localNotes).find(k=>simpleNormalizeNoteKey(k)===nk);
       const localNameNote=localByName!==undefined?String(localNotes[localByName]??''):'';
       const legacyNote=String(e.notes??'');
-      base.note=persistentNote.trim()
-        ? persistentNote
-        : (legacyNote.trim() ? legacyNote : (localNote.trim() ? localNote : localNameNote));
+      base.note=persistentNote.trim()?persistentNote:(legacyNote.trim()?legacyNote:(localNote.trim()?localNote:localNameNote));
       activeWorkout.sets[e.id]=base;
     }
 
@@ -6810,6 +6776,10 @@ function renderWorkoutDay(){
           <label>RIR previsto</label>
           <input inputmode="numeric" min="0" max="10" value="${esc(e.rir??'')}" onchange="editWorkoutExerciseField('${key}','rir',this.value)">
         </div>
+        <div class="workout-edit-field workout-rest-field">
+          <label>Descanso previsto (min)</label>
+          <input type="number" min="0" step="0.5" inputmode="decimal" value="${Number(e.rest_seconds||0)/60}" onchange="editWorkoutExerciseField('${key}','rest_seconds',this.value)">
+        </div>
         <button class="btn" type="button" onclick="addWorkoutSet('${key}')">+ Añadir serie</button>
       </div>`:''}
       <div style="margin-top:12px"><label>Notas del ejercicio</label>
@@ -6832,6 +6802,13 @@ function renderWorkoutDay(){
 
   $('trainBody').innerHTML=`${sessionBack}${controls}${reorder}<div id="restBox" class="rest-floating" style="display:none"></div>
     ${locked||activeWorkout.reordering?'':`<div class="buttons" style="justify-content:flex-end"><button class="btn primary" onclick="saveWorkoutSession()">Guardar sesión</button></div>`}`;
+  // Guard: cada ejercicio debe mostrar un único campo de descanso en el editor.
+  if(editing){
+    document.querySelectorAll('#trainBody .card').forEach(card=>{
+      const restFields=card.querySelectorAll('.workout-edit-field.workout-rest-field');
+      restFields.forEach((field,index)=>{if(index>0)field.remove();});
+    });
+  }
   if(reordering){
     workoutReorderRows=[...document.querySelectorAll('#trainModal .workout-reorder-bar')];
     workoutReorderZones=[...document.querySelectorAll('#trainModal .workout-reorder-zone')];
@@ -6859,6 +6836,8 @@ function editWorkoutExerciseField(id,field,value){
   if(field==='name')e.name=String(value||'').trim()||e.name;
   if(field==='target')e.target=String(value??'').trim();
   if(field==='rir')e.rir=String(value??'');
+  if(field==='rest_seconds')e.rest_seconds=Math.max(0,(parseFloat(value)||0)*60);
+  renderWorkoutDay();
 }
 function addWorkoutExercise(){
   if(profile?.role!=='trainer'||!activeWorkout?.editing)return;
@@ -7346,9 +7325,11 @@ async function saveWorkoutSession(){
     // El guardado ya se ha confirmado en Supabase. Un fallo posterior al
     // refrescar el historial/interfaz no debe convertir una sesión guardada
     // correctamente en un falso mensaje de error.
+    // No abrir el historial automáticamente: el usuario permanece en la sesión
+    // recién guardada y puede cerrarla cuando quiera. El historial sigue
+    // disponible desde su botón correspondiente.
     try{
       await loadHistory(workoutRoutine?.id);
-      showHistory();
     }catch(refreshErr){
       console.warn('Sesión guardada, pero no se pudo refrescar el historial:',refreshErr);
     }
