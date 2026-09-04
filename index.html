@@ -3401,100 +3401,69 @@ async function revokeClientRoutine(assignmentId){
   }
 }
 
-let clientProgressChartState={sessions:[],exerciseNames:[],metric:'weight'};
-
-function getProgressExercises(sessions){
-  const names=[];
-  const seen=new Set();
-  sessions.forEach(s=>{
-    const ex=Array.isArray(s?.data?.exercises)?s.data.exercises:
-      Array.isArray(s?.exercises)?s.exercises:[];
+let clientProgressChartState={sessions:[],exerciseNames:[],metric:'weight',currentExerciseNamesById:{}};
+function normalizeProgressExerciseName(v){return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\u00a0/g,' ').replace(/\s+/g,' ').trim().toLowerCase();}
+function getProgressExercises(sessions,currentExerciseNamesById={},currentDayExerciseIds=null){
+  const allowedIds=currentDayExerciseIds instanceof Set?currentDayExerciseIds:null;
+  const names=[],seen=new Set();
+  const add=(name)=>{
+    const clean=String(name||'').trim();
+    const key=normalizeProgressExerciseName(clean);
+    if(clean&&key&&!seen.has(key)){seen.add(key);names.push(clean);}
+  };
+  // The selector is always scoped to the currently selected routine day.
+  if(allowedIds){
+    allowedIds.forEach(id=>add(currentExerciseNamesById?.[String(id)]));
+  }else{
+    Object.values(currentExerciseNamesById||{}).forEach(add);
+  }
+  // Only add historical exercises when their exercise_id is still present in
+  // the selected day. This makes deleted exercises disappear automatically.
+  (sessions||[]).forEach(s=>{
+    const ex=Array.isArray(s?.data?.exercises)?s.data.exercises:Array.isArray(s?.exercises)?s.exercises:[];
     ex.forEach(e=>{
-      const name=String(e?.name||e?.exercise_name||'').trim();
-      const key=name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\u00a0/g,' ').replace(/\s+/g,' ').trim().toLowerCase();
-      if(name&&!seen.has(key)){seen.add(key);names.push(name);}
+      const id=String(e?.exercise_id||'');
+      if(allowedIds&&!allowedIds.has(id))return;
+      add(currentExerciseNamesById?.[id]||e?.name||e?.exercise_name);
     });
   });
   return names.sort((a,b)=>a.localeCompare(b,'es',{sensitivity:'base'}));
 }
 
-function getExercisePoints(sessions,exerciseName,metric){
-  const ordered=[...sessions].sort((a,b)=>String(a.workout_date||'').localeCompare(String(b.workout_date||'')));
+function getExercisePoints(sessions,exerciseName,metric,currentExerciseNamesById={},currentDayExerciseIds=null){
+  const ordered=[...(sessions||[])].sort((a,b)=>String(a.workout_date||'').localeCompare(String(b.workout_date||'')));
+  const target=normalizeProgressExerciseName(exerciseName);
+  const allowed=currentDayExerciseIds instanceof Set?currentDayExerciseIds:null;
   return ordered.map((s,idx)=>{
-    const exs=Array.isArray(s?.data?.exercises)?s.data.exercises:
-      Array.isArray(s?.exercises)?s.exercises:[];
-    const normalizeExerciseName=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\u00a0/g,' ').replace(/\s+/g,' ').trim().toLowerCase();
-    const targetExerciseName=normalizeExerciseName(exerciseName);
-    const e=exs.find(x=>normalizeExerciseName(x?.name||x?.exercise_name)===targetExerciseName)
-      || exs.find(x=>normalizeExerciseName(x?.name||x?.exercise_name).replace(/[^a-z0-9]+/g,'')===targetExerciseName.replace(/[^a-z0-9]+/g,''));
-    if(!e)return null;
-    const date=simpleDateFromKey(s?.workout_date);
-    if(!date)return null;
-    const sets=Array.isArray(e?.sets)?e.sets:
-      Array.isArray(e?.series)?e.series:[];
+    const exs=Array.isArray(s?.data?.exercises)?s.data.exercises:Array.isArray(s?.exercises)?s.exercises:[];
+    const matching=exs.filter(x=>{
+      const id=String(x?.exercise_id||'');
+      if(allowed&&!allowed.has(id))return false;
+      const name=normalizeProgressExerciseName(currentExerciseNamesById?.[id]||x?.name||x?.exercise_name);
+      return name===target;
+    });
+    if(!matching.length)return null;
+    const date=simpleDateFromKey(s?.workout_date);if(!date)return null;
+    const sets=matching.flatMap(e=>Array.isArray(e?.sets)?e.sets:Array.isArray(e?.series)?e.series:[]);
     const nums=sets.map((set,setIndex)=>{
-      const rawKg=set?.kg ?? set?.weight;
-      const rawReps=set?.reps ?? set?.repetitions;
-      const rawRir=set?.rir;
-      // Los datos antiguos pueden venir con decimal español (157,5).
-      // Number('157,5') devuelve NaN, lo que hacía que la gráfica dijera
-      // que no había datos aunque el registro sí existiera.
-      const toProgressNumber=v=>{
-        if(v===''||v==null)return NaN;
-        if(typeof v==='number')return Number.isFinite(v)?v:NaN;
-        const normalized=String(v).trim().replace(/\u00a0/g,' ').replace(/,/g,'.');
-        const n=Number(normalized);
-        return Number.isFinite(n)?n:NaN;
-      };
-      const kg=toProgressNumber(rawKg);
-      const reps=toProgressNumber(rawReps);
-      const rir=toProgressNumber(rawRir);
-      const estimated1rm=(Number.isFinite(kg)&&Number.isFinite(reps)&&kg>0&&reps>0)
-        ? 0.0333*kg*reps+kg : null;
+      const rawKg=set?.kg??set?.weight,rawReps=set?.reps??set?.repetitions,rawRir=set?.rir;
+      const toProgressNumber=v=>{if(v===''||v==null)return NaN;if(typeof v==='number')return Number.isFinite(v)?v:NaN;const n=Number(String(v).trim().replace(/\u00a0/g,' ').replace(/,/g,'.'));return Number.isFinite(n)?n:NaN;};
+      const kg=toProgressNumber(rawKg),reps=toProgressNumber(rawReps),rir=toProgressNumber(rawRir);
+      const estimated1rm=Number.isFinite(kg)&&Number.isFinite(reps)&&kg>0&&reps>0?0.0333*kg*reps+kg:null;
       return {kg,reps,rir,estimated1rm,setIndex};
     });
-
     let value=null;
-    if(metric==='weight'){
-      const vals=nums.map(x=>x.kg).filter(Number.isFinite);
-      value=vals.length?Math.max(...vals):null;
-    }else if(metric==='reps'){
-      const vals=nums.map(x=>x.reps).filter(Number.isFinite);
-      value=vals.length?Math.max(...vals):null;
-    }else if(metric==='1rm'){
-      const valid=nums.filter(x=>Number.isFinite(x.estimated1rm));
-      if(valid.length){
-        const best=valid.reduce((a,b)=>b.estimated1rm>a.estimated1rm?b:a);
-        value=best.estimated1rm;
-      }
-    }
-
+    if(metric==='weight'){const vals=nums.map(x=>x.kg).filter(Number.isFinite);value=vals.length?Math.max(...vals):null;}
+    else if(metric==='reps'){const vals=nums.map(x=>x.reps).filter(Number.isFinite);value=vals.length?Math.max(...vals):null;}
+    else if(metric==='1rm'){const valid=nums.filter(x=>Number.isFinite(x.estimated1rm));if(valid.length)value=valid.reduce((a,b)=>b.estimated1rm>a.estimated1rm?b:a).estimated1rm;}
     if(value===null)return null;
-
-    // RIR shown in the tooltip: prefer the RIR of the set that generated the
-    // plotted 1RM; otherwise show the average RIR recorded for the exercise.
     let pointRir=null;
-    if(metric==='1rm'){
-      const valid=nums.filter(x=>Number.isFinite(x.estimated1rm));
-      const best=valid.length?valid.reduce((a,b)=>b.estimated1rm>a.estimated1rm?b:a):null;
-      if(best && Number.isFinite(best.rir)) pointRir=best.rir;
-    }
-    if(pointRir===null){
-      const rirs=nums.map(x=>x.rir).filter(Number.isFinite);
-      pointRir=rirs.length?rirs.reduce((a,b)=>a+b,0)/rirs.length:null;
-    }
-
-    return {
-      date,
-      value,
-      session:idx+1,
-      rir:pointRir,
-      bestKg:metric==='1rm' ? nums.filter(x=>Number.isFinite(x.estimated1rm)).reduce((a,b)=>!a||b.estimated1rm>a.estimated1rm?b:a,null)?.kg : null,
-      bestReps:metric==='1rm' ? nums.filter(x=>Number.isFinite(x.estimated1rm)).reduce((a,b)=>!a||b.estimated1rm>a.estimated1rm?b:a,null)?.reps : null
-    };
+    if(metric==='1rm'){const valid=nums.filter(x=>Number.isFinite(x.estimated1rm));const best=valid.length?valid.reduce((a,b)=>b.estimated1rm>a.estimated1rm?b:a):null;if(best&&Number.isFinite(best.rir))pointRir=best.rir;}
+    if(pointRir===null){const rirs=nums.map(x=>x.rir).filter(Number.isFinite);pointRir=rirs.length?rirs.reduce((a,b)=>a+b,0)/rirs.length:null;}
+    const best1rm=nums.filter(x=>Number.isFinite(x.estimated1rm)).reduce((a,b)=>!a||b.estimated1rm>a.estimated1rm?b:a,null);
+    return {date,value,session:idx+1,rir:pointRir,bestKg:best1rm?.kg??null,bestReps:best1rm?.reps??null};
   }).filter(Boolean);
 }
-
 
 function progressMetricLabel(metric){
   return metric==='weight'?'Peso (kg)':metric==='reps'?'Repeticiones':metric==='1rm'?'1RM estimado (kg)':'RIR medio';
@@ -3520,7 +3489,7 @@ function renderClientProgressChart(){
   clientProgressChartState.metric=metric;
 
   let sourceSessions=clientProgressChartState.filteredSessions||clientProgressChartState.sessions||[];
-  let points=getExercisePoints(sourceSessions,exerciseName,metric);
+  let points=getExercisePoints(sourceSessions,exerciseName,metric,clientProgressChartState.currentExerciseNamesById,clientProgressChartState.currentDayExerciseIds);
   const pointDetail=$('clientProgressPointDetail');
   if(pointDetail){pointDetail.style.display='none';pointDetail.innerHTML='';}
   const oldTooltip=$('progressPointTooltip');
@@ -3750,7 +3719,7 @@ function getProgressDays(sessions,orderedRoutineDays=[]){
       ? String(rawId)
       : (byName?.id || `name:${normalizeDayName(rawName)}`);
     const displayName=byName?.name || rawName || 'Sesión';
-    if(!map.has(key))map.set(key,{key,name:displayName,sessions:[]});
+    if(!map.has(key))map.set(key,{key,id:(byName?.id || (rawId!=null && validIds.has(String(rawId)) ? String(rawId) : null)),name:displayName,sessions:[]});
     map.get(key).sessions.push(s);
   });
 
@@ -3828,10 +3797,17 @@ function setupClientProgressChart(sessions){
     clientProgressChartState.period=period;
     const key=daySelect?.value??allDays[0]?.key;
     const day=allDays.find(d=>String(d.key)===String(key));
-    const periodSessions=filterProgressSessions(day?.sessions||clientProgressChartState.sessions,period);
+    const daySessions=day?.sessions||[];
+    const periodSessions=filterProgressSessions(daySessions,period);
     clientProgressChartState.selectedDayKey=key;
     clientProgressChartState.filteredSessions=periodSessions;
-    const names=getProgressExercises(periodSessions.length?periodSessions:(day?.sessions||clientProgressChartState.sessions));
+    const dayExerciseIds=new Set((day?.id?((clientProgressChartState.orderedRoutineDays||[]).find(d=>String(d.id)===String(day.id))?.exercises||[]):[]).map(e=>String(e.id)));
+    clientProgressChartState.currentDayExerciseIds=dayExerciseIds;
+    const names=getProgressExercises(
+      periodSessions.length?periodSessions:daySessions,
+      clientProgressChartState.currentExerciseNamesById,
+      dayExerciseIds
+    );
     exerciseSelect.innerHTML=names.slice(0,200).map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
     exerciseSelect.disabled=!names.length;
     metric.disabled=!names.length;
@@ -3945,6 +3921,7 @@ async function openRoutineProgress(routineId){
           }).join(''):'<div class="muted">Sin ejercicios registrados.</div>'}</div></details>`;
       }).join('')}`;
     clientProgressChartState.orderedRoutineDays=orderedRoutineDays;
+    clientProgressChartState.currentExerciseNamesById=Object.fromEntries((orderedRoutineDays||[]).flatMap(d=>(d.exercises||[]).map(e=>[String(e.id),String(e.name||'').trim()]).filter(([id,name])=>id&&name)));
     setupClientProgressChart(sessions);
   }catch(e){
     console.error('openRoutineProgress:',e);
@@ -4418,6 +4395,7 @@ async function openClientRoutineProgress(clientId,routineId,routineName){
         </details>`;
       }).join('')}`;
     clientProgressChartState.orderedRoutineDays=orderedRoutineDays;
+    clientProgressChartState.currentExerciseNamesById=Object.fromEntries((orderedRoutineDays||[]).flatMap(d=>(d.exercises||[]).map(e=>[String(e.id),String(e.name||'').trim()]).filter(([id,name])=>id&&name)));
     setupClientProgressChart(sessions);
   }catch(e){
     console.error('openClientRoutineProgress:',e);
@@ -6184,18 +6162,37 @@ async function saveEditedWorkout(id){
 
     data.exercises=exercises;
 
-    // Update only the current user's own workout row.
-    const r=await db.from('workouts')
-      .update({data})
-      .eq('id',id)
-      .eq('user_id',user.id)
-      .select('id,user_id,variant,day,workout_date,data')
-      .single();
+    // Trainer editing a client's session must go through the secured RPC.
+    // Direct UPDATE only works for the owner of the workout and was the reason
+    // the trainer saw "No se pudieron guardar los cambios".
+    let r;
+    if(profile?.role==='trainer'){
+      r=await db.rpc('update_client_workout_data',{
+        p_workout_id:String(id),
+        p_data:data
+      });
+      if(r.error)throw r.error;
 
-    if(r.error)throw r.error;
+      // Keep the currently displayed client history in sync without calling
+      // loadHistory(), which reads the trainer's own workouts.
+      const updated=r.data?.data||data;
+      const pos=(window.workoutHistory||[]).findIndex(x=>String(x.id)===String(id));
+      if(pos>=0){
+        window.workoutHistory[pos]={...window.workoutHistory[pos],data:updated};
+      }
+    }else{
+      r=await db.from('workouts')
+        .update({data})
+        .eq('id',id)
+        .eq('user_id',user.id)
+        .select('id,user_id,variant,day,workout_date,data')
+        .single();
+      if(r.error)throw r.error;
+      const pos=(window.workoutHistory||[]).findIndex(x=>String(x.id)===String(id));
+      if(pos>=0)window.workoutHistory[pos]=r.data;
+    }
 
     window.__editingWorkout=null;
-    await loadHistory(workoutRoutine?.id);
     showHistory();
     const el=document.querySelector(`[data-workout-id="${CSS.escape(String(id))}"]`);
     if(el)el.open=true;
@@ -6867,36 +6864,75 @@ async function saveWorkoutRoutineEdits(){
   if(profile?.role!=='trainer'||!activeWorkout?.day?.id||window.__savingRoutineEdits)return;
   window.__savingRoutineEdits=true;
   try{
-    // If this is an already completed session, Edit must modify the executed
-    // KG/REPS/RIR values of that session, not the routine template.
+    // En una sesión ya completada, el botón Editar puede cambiar DOS cosas:
+    // 1) la plantilla de la rutina (nombre, objetivo, RIR previsto, descanso...)
+    // 2) los valores ejecutados de esa sesión (KG/REPS/RIR).
+    // Antes se saltaba el guardado de la plantilla cuando la sesión estaba bloqueada.
     if(activeWorkout.locked && activeWorkout.lockedSession){
+      const templatePayload=(activeWorkout.exercises||[]).map((e,i)=>({
+        id:String(e.id).startsWith('new-')?null:e.id,
+        client_id:String(e.id).startsWith('new-')?String(e.id):null,
+        name:String(e.name||'').trim(),
+        sets:Math.max(1,Number(e.sets)||1),
+        target:e.target||'',
+        rir:e.rir===''||e.rir==null?null:Number(e.rir),
+        rest_seconds:Math.max(0,Number(e.rest_seconds)||0),
+        notes:e.notes||null,
+        exercise_order:i
+      }));
+      if(templatePayload.some(e=>!e.name))throw new Error('exercise_name_required');
+
+      // Guardar SIEMPRE los cambios de la rutina, aunque la sesión de hoy ya esté hecha.
+      const templateSave=await db.rpc('save_workout_day_exercises_atomic',{
+        p_day_id:activeWorkout.day.id,
+        p_exercises:templatePayload
+      });
+      if(templateSave.error)throw templateSave.error;
+
       const data=JSON.parse(JSON.stringify(activeWorkout.lockedSession.data||{}));
       const exercises=Array.isArray(data.exercises)?data.exercises:[];
       for(const e of activeWorkout.exercises||[]){
         const saved=exercises.find(x=>String(x.exercise_id||'')===String(e.id))
           || exercises.find(x=>String(x.name||'').trim().toLowerCase()===String(e.name||'').trim().toLowerCase());
-        if(!saved||!Array.isArray(saved.sets))continue;
-        const current=activeWorkout.sets[e.id]||[];
-        saved.sets=current.map((st,i)=>({
-          ...(saved.sets[i]||{}),
-          set:saved.sets[i]?.set??i+1,
-          kg:st.kg??'',
-          reps:st.reps??'',
-          rir:st.rir??'',
-          done:st.done??saved.sets[i]?.done??false
-        }));
-        saved.notes=String(current.note??saved.notes??'');
+        if(!saved)continue;
+        // El nombre mostrado en el histórico debe acompañar al cambio de la plantilla.
+        saved.name=e.name;
+        if(Array.isArray(saved.sets)){
+          const current=activeWorkout.sets[e.id]||[];
+          saved.sets=current.map((st,i)=>({
+            ...(saved.sets[i]||{}),
+            set:saved.sets[i]?.set??i+1,
+            kg:st.kg??'',
+            reps:st.reps??'',
+            rir:st.rir??'',
+            done:st.done??saved.sets[i]?.done??false
+          }));
+          saved.notes=String(current.note??saved.notes??'');
+        }
       }
       data.exercises=exercises;
-      const q=await db.rpc('update_client_workout_data',{
-        p_workout_id:activeWorkout.lockedSession.id,
-        p_data:data
-      });
+
+      let q;
+      const workoutOwnerId=String(activeWorkout.lockedSession.user_id||'');
+      const currentUserId=String(user?.id||'');
+      if(workoutOwnerId && currentUserId && workoutOwnerId===currentUserId){
+        q=await db.from('workouts')
+          .update({data})
+          .eq('id',activeWorkout.lockedSession.id)
+          .eq('user_id',currentUserId)
+          .select('id,user_id,variant,day,workout_date,data')
+          .single();
+      }else{
+        q=await db.rpc('update_client_workout_data',{
+          p_workout_id:activeWorkout.lockedSession.id,
+          p_data:data
+        });
+      }
       if(q.error)throw q.error;
-      activeWorkout.lockedSession={...activeWorkout.lockedSession,data};
+
+      activeWorkout.lockedSession={...activeWorkout.lockedSession,data:q.data?.data||data};
       activeWorkout.editing=false;
       toast('Cambios guardados');
-      await loadHistory(workoutRoutine?.id);
       await startWorkoutDay(activeWorkout.day.id);
       return;
     }
@@ -7201,6 +7237,46 @@ function simpleLocalDateKey(date=new Date()){
   if(Number.isNaN(d.getTime()))return '';
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
+
+/* daily-progress-boundary-v1 */
+let __dailyProgressDateKey=simpleLocalDateKey(new Date());
+let __dailyProgressBoundaryTimer=null;
+
+async function refreshDailyProgressAfterDateChange(){
+  const nowKey=simpleLocalDateKey(new Date());
+  if(!nowKey || nowKey===__dailyProgressDateKey)return;
+  __dailyProgressDateKey=nowKey;
+  // The progress is calculated from the current local calendar day.
+  // Re-render the visible dashboard so yesterday's 100% cannot remain on screen.
+  try{
+    const visible=['mine','shared','clients'].find(id=>{
+      const el=$(id);
+      return el&&getComputedStyle(el).display!=='none';
+    });
+    if(visible==='mine')await renderMine();
+    else if(visible==='shared')await renderShared();
+    else if(visible==='clients')await renderClients();
+  }catch(e){
+    console.warn('No se pudo refrescar el progreso al cambiar de día:',e);
+  }
+}
+
+function scheduleDailyProgressBoundary(){
+  if(__dailyProgressBoundaryTimer)clearTimeout(__dailyProgressBoundaryTimer);
+  const now=new Date();
+  const next=new Date(now);
+  next.setHours(24,0,1,0);
+  __dailyProgressBoundaryTimer=setTimeout(async()=>{
+    await refreshDailyProgressAfterDateChange();
+    scheduleDailyProgressBoundary();
+  },Math.max(1000,next.getTime()-now.getTime()));
+}
+
+scheduleDailyProgressBoundary();
+window.addEventListener('focus',refreshDailyProgressAfterDateChange);
+document.addEventListener('visibilitychange',()=>{
+  if(!document.hidden)refreshDailyProgressAfterDateChange();
+});
 
 // SQL DATE values (YYYY-MM-DD) are calendar dates, not UTC instants.
 // Parsing them with new Date('YYYY-MM-DD') shifts them to the previous
@@ -7597,40 +7673,28 @@ function simpleDailyProgressFromSessions(sessions,total,aliases={},routineIds=[]
     return dayId||dayName;
   };
 
-  const normalized=(sessions||[])
-    .map(row=>{
-      const raw=row?.workout_date ?? row?.data?.workout_date ?? '';
-      const dateKey=/^\d{4}-\d{2}-\d{2}$/.test(String(raw).trim())
-        ? String(raw).trim()
-        : simpleLocalDateKey(simpleDateFromKey(raw)||new Date(simpleSessionTimestamp(row)));
-      const ts=simpleSessionTimestamp(row);
-      return {row,dateKey,ts};
-    })
-    .filter(x=>x.dateKey && Number.isFinite(x.ts))
-    .sort((a,b)=>a.ts-b.ts);
-
-  if(!normalized.length)return 0;
-
-  // The progress is a rolling routine cycle, NOT a calendar week.
-  // Important: when the cycle is completed today, keep it at 100% (X/X)
-  // for the rest of today. It starts at 0/X on the following calendar day.
-  let seen=new Set();
-  let cycleCompletedToday=false;
   const todayKey=simpleLocalDateKey(new Date());
+  if(!todayKey)return 0;
 
-  for(let i=0;i<normalized.length;i++){
-    const key=resolveRoutineDayKey(normalized[i].row);
+  // "Progreso de hoy" is deliberately anchored to the current local
+  // calendar day. Historical completed cycles must never keep yesterday's
+  // 100% alive on a later day.
+  const todaySessions=(sessions||[]).filter(row=>{
+    const raw=row?.workout_date ?? row?.data?.workout_date ?? '';
+    const dateKey=/^\d{4}-\d{2}-\d{2}$/.test(String(raw).trim())
+      ? String(raw).trim()
+      : simpleLocalDateKey(simpleDateFromKey(raw)||new Date(simpleSessionTimestamp(row)));
+    return dateKey===todayKey;
+  });
+
+  if(!todaySessions.length)return 0;
+
+  const seen=new Set();
+  for(const row of todaySessions){
+    const key=resolveRoutineDayKey(row);
     if(key)seen.add(key);
-    if(seen.size>=maxDays){
-      if(normalized[i].dateKey===todayKey){
-        cycleCompletedToday=true;
-        break;
-      }
-      seen=new Set();
-    }
+    if(seen.size>=maxDays)return maxDays;
   }
-
-  if(cycleCompletedToday)return maxDays;
   return Math.min(maxDays,seen.size);
 }
 
@@ -7649,30 +7713,29 @@ async function getWeeklyRoutineProgressForUser(userId,routineIds,workoutRoutineA
     if(alias)aliasToPrimary.set(String(alias),String(primary));
   }
 
-  // Client viewed by trainer: use one authorized server-side calculation.
-  // This is the source of truth for the current routine cycle.
-  if(String(userId)!==String(user?.id)){
-    await Promise.all(primaryIds.map(async rid=>{
-      const x=result.get(rid);
-      try{
-        const rpc=await db.rpc('get_client_routine_cycle_progress',{
-          p_client_id:String(userId),
-          p_routine_id:String(rid)
-        });
-        if(rpc.error)throw rpc.error;
-        const row=(rpc.data||[])[0]||{};
-        x.total=Number(row.total_days)||0;
-        x.done=Math.min(x.total,Math.max(0,Number(row.completed_days)||0));
-      }catch(e){
-        console.error('getWeeklyRoutineProgressForUser client:',e);
-        x.total=0;
-        x.done=0;
-      }
-    }));
-    return result;
-  }
+  // The server-side RPC is the single source of truth for BOTH views.
+  // This is important because clients may not have RLS visibility over
+  // routine_days/routines owned by the trainer, which previously produced 0/0.
+  await Promise.all(primaryIds.map(async rid=>{
+    const x=result.get(rid);
+    try{
+      const rpc=await db.rpc('get_client_routine_cycle_progress',{
+        p_client_id:String(userId),
+        p_routine_id:String(rid)
+      });
+      if(rpc.error)throw rpc.error;
+      const row=(rpc.data||[])[0]||{};
+      x.total=Number(row.total_days)||0;
+      x.done=Math.min(x.total,Math.max(0,Number(row.completed_days)||0));
+    }catch(e){
+      console.error('getWeeklyRoutineProgressForUser rpc:',e);
+      x.total=0;
+      x.done=0;
+    }
+  }));
+  return result;
 
-  // Own user: read all workout history and resolve each session to its routine.
+  // Own user fallback kept below for backwards compatibility.
   try{
     const allIds=[...new Set([
       ...primaryIds,
