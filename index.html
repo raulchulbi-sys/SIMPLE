@@ -6749,7 +6749,7 @@ function renderWorkoutDay(){
     const key=e.id,state=activeWorkout.sets[key]||Array.from({length:e.sets||1},()=>({kg:'',reps:'',rir:'',done:false}));
     activeWorkout.sets[key]=state;
     const planned=(e.rir!==null&&e.rir!==undefined&&e.rir!=='')?e.rir:'0';
-    const dis=locked?' disabled readonly':'';
+    const dis=(locked&&!editing)?' disabled readonly':'';
     return `<div class="card">
       <div class="dayhead"><div style="min-width:0;width:100%">
         ${editing?`<input class="workout-edit-name" value="${esc(e.name)}" onchange="editWorkoutExerciseField('${key}','name',this.value)">`:`<b>${esc(e.name)}</b>`}
@@ -6763,11 +6763,11 @@ function renderWorkoutDay(){
           <input inputmode="decimal" placeholder="0" value="${esc(st.kg)}"${dis} oninput="updateSet('${key}',${si},'kg',this.value)">
           <input inputmode="numeric" placeholder="0" value="${esc(st.reps)}"${dis} oninput="updateSet('${key}',${si},'reps',this.value)">
           <input inputmode="numeric" placeholder="0" min="0" max="10" value="${esc(st.rir)}"${dis} oninput="updateSet('${key}',${si},'rir',this.value)">
-          <button class="tick ${st.done?'done':''}"${locked?' disabled':''} onclick="toggleSet('${key}',${si})">${st.done?'✓':'○'}</button>
-          ${editing?`<button class="set-remove" type="button" onclick="removeWorkoutSet('${key}',${si})">×</button>`:''}
+          <button class="tick ${st.done?'done':''}"${locked&&!editing?' disabled':''} onclick="toggleSet('${key}',${si})">${st.done?'✓':'○'}</button>
+          ${editing&&!locked?`<button class="set-remove" type="button" onclick="removeWorkoutSet('${key}',${si})">×</button>`:''}
         </div>`).join('')}
       </div>
-      ${editing?`<div class="workout-edit-row workout-edit-fields">
+      ${editing&&!locked?`<div class="workout-edit-row workout-edit-fields">
         <div class="workout-edit-field">
           <label>Objetivo de reps</label>
           <input type="text" value="${esc(e.target||'')}" placeholder="2x10-15" onchange="editWorkoutExerciseField('${key}','target',this.value)">
@@ -6867,6 +6867,40 @@ async function saveWorkoutRoutineEdits(){
   if(profile?.role!=='trainer'||!activeWorkout?.day?.id||window.__savingRoutineEdits)return;
   window.__savingRoutineEdits=true;
   try{
+    // If this is an already completed session, Edit must modify the executed
+    // KG/REPS/RIR values of that session, not the routine template.
+    if(activeWorkout.locked && activeWorkout.lockedSession){
+      const data=JSON.parse(JSON.stringify(activeWorkout.lockedSession.data||{}));
+      const exercises=Array.isArray(data.exercises)?data.exercises:[];
+      for(const e of activeWorkout.exercises||[]){
+        const saved=exercises.find(x=>String(x.exercise_id||'')===String(e.id))
+          || exercises.find(x=>String(x.name||'').trim().toLowerCase()===String(e.name||'').trim().toLowerCase());
+        if(!saved||!Array.isArray(saved.sets))continue;
+        const current=activeWorkout.sets[e.id]||[];
+        saved.sets=current.map((st,i)=>({
+          ...(saved.sets[i]||{}),
+          set:saved.sets[i]?.set??i+1,
+          kg:st.kg??'',
+          reps:st.reps??'',
+          rir:st.rir??'',
+          done:st.done??saved.sets[i]?.done??false
+        }));
+        saved.notes=String(current.note??saved.notes??'');
+      }
+      data.exercises=exercises;
+      const q=await db.rpc('update_client_workout_data',{
+        p_workout_id:activeWorkout.lockedSession.id,
+        p_data:data
+      });
+      if(q.error)throw q.error;
+      activeWorkout.lockedSession={...activeWorkout.lockedSession,data};
+      activeWorkout.editing=false;
+      toast('Cambios guardados');
+      await loadHistory(workoutRoutine?.id);
+      await startWorkoutDay(activeWorkout.day.id);
+      return;
+    }
+
     // Save the whole exercise list atomically. This prevents a connection
     // failure halfway through the edit from leaving the routine partially
     // updated. Existing IDs are preserved; new temporary IDs are mapped to
@@ -7046,7 +7080,7 @@ async function workoutReorderDrop(e,target){
   finally{window.__workoutExerciseReordering=false;}
 }
 function updateSet(id,i,field,value){
-  if(activeWorkout.locked)return;
+  if(activeWorkout.locked&&!activeWorkout.editing)return;
   const arr=activeWorkout.sets[id];
   if(arr&&arr[i]){
     arr[i][field]=value;
