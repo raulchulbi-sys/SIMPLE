@@ -7325,13 +7325,19 @@ async function saveWorkoutSession(){
     // El guardado ya se ha confirmado en Supabase. Un fallo posterior al
     // refrescar el historial/interfaz no debe convertir una sesión guardada
     // correctamente en un falso mensaje de error.
-    // No abrir el historial automáticamente: el usuario permanece en la sesión
-    // recién guardada y puede cerrarla cuando quiera. El historial sigue
-    // disponible desde su botón correspondiente.
+    // Tras guardar correctamente, salir de la sesión y volver al menú principal
+    // de rutinas. El historial sigue disponible desde su botón correspondiente.
     try{
       await loadHistory(workoutRoutine?.id);
     }catch(refreshErr){
       console.warn('Sesión guardada, pero no se pudo refrescar el historial:',refreshErr);
+    }
+    closeM('trainModal');
+    try{
+      if(profile?.role==='trainer') await renderMine();
+      else await renderShared();
+    }catch(backErr){
+      console.warn('Sesión guardada, pero no se pudo refrescar Mis rutinas:',backErr);
     }
   }catch(e){
     console.error('saveWorkoutSession:',e);
@@ -7571,23 +7577,25 @@ function simpleDailyProgressFromSessions(sessions,total,aliases={},routineIds=[]
   if(!normalized.length)return 0;
 
   // The progress is a rolling routine cycle, NOT a calendar week.
-  // Once all routine days have been completed, the next workout starts a new cycle.
+  // Important: when the cycle is completed today, keep it at 100% (X/X)
+  // for the rest of today. It starts at 0/X on the following calendar day.
   let seen=new Set();
-  let cycleStartIndex=0;
+  let cycleCompletedToday=false;
+  const todayKey=simpleLocalDateKey(new Date());
 
   for(let i=0;i<normalized.length;i++){
     const key=resolveRoutineDayKey(normalized[i].row);
     if(key)seen.add(key);
     if(seen.size>=maxDays){
-      cycleStartIndex=i+1;
+      if(normalized[i].dateKey===todayKey){
+        cycleCompletedToday=true;
+        break;
+      }
       seen=new Set();
     }
   }
 
-  for(let i=cycleStartIndex;i<normalized.length;i++){
-    const key=resolveRoutineDayKey(normalized[i].row);
-    if(key)seen.add(key);
-  }
+  if(cycleCompletedToday)return maxDays;
   return Math.min(maxDays,seen.size);
 }
 
