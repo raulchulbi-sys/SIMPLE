@@ -3438,9 +3438,14 @@ function getExercisePoints(sessions,exerciseName,metric,currentExerciseNamesById
     const exs=Array.isArray(s?.data?.exercises)?s.data.exercises:Array.isArray(s?.exercises)?s.exercises:[];
     const matching=exs.filter(x=>{
       const id=String(x?.exercise_id||'');
-      if(allowed&&!allowed.has(id))return false;
-      const name=normalizeProgressExerciseName(currentExerciseNamesById?.[id]||x?.name||x?.exercise_name);
-      return name===target;
+      const rawName=normalizeProgressExerciseName(x?.name||x?.exercise_name);
+      const mappedName=normalizeProgressExerciseName(currentExerciseNamesById?.[id]);
+      // Client workout copies can contain exercise IDs from an older copy of
+      // the trainer routine. When the IDs differ, match by the saved exercise
+      // name so the historical data still appears in the trainer chart.
+      if(allowed && allowed.has(id)) return mappedName===target || rawName===target;
+      if(allowed) return rawName===target;
+      return mappedName===target || rawName===target;
     });
     if(!matching.length)return null;
     const date=simpleDateFromKey(s?.workout_date);if(!date)return null;
@@ -7673,28 +7678,40 @@ function simpleDailyProgressFromSessions(sessions,total,aliases={},routineIds=[]
     return dayId||dayName;
   };
 
+  const normalized=(sessions||[])
+    .map(row=>{
+      const raw=row?.workout_date ?? row?.data?.workout_date ?? '';
+      const dateKey=/^\d{4}-\d{2}-\d{2}$/.test(String(raw).trim())
+        ? String(raw).trim()
+        : simpleLocalDateKey(simpleDateFromKey(raw)||new Date(simpleSessionTimestamp(row)));
+      const ts=simpleSessionTimestamp(row);
+      return {row,dateKey,ts};
+    })
+    .filter(x=>x.dateKey && Number.isFinite(x.ts))
+    .sort((a,b)=>a.ts-b.ts);
+
+  if(!normalized.length)return 0;
+
+  // The progress is a rolling routine cycle, NOT a calendar week.
+  // Important: when the cycle is completed today, keep it at 100% (X/X)
+  // for the rest of today. It starts at 0/X on the following calendar day.
+  let seen=new Set();
+  let cycleCompletedToday=false;
   const todayKey=simpleLocalDateKey(new Date());
-  if(!todayKey)return 0;
 
-  // "Progreso de hoy" is deliberately anchored to the current local
-  // calendar day. Historical completed cycles must never keep yesterday's
-  // 100% alive on a later day.
-  const todaySessions=(sessions||[]).filter(row=>{
-    const raw=row?.workout_date ?? row?.data?.workout_date ?? '';
-    const dateKey=/^\d{4}-\d{2}-\d{2}$/.test(String(raw).trim())
-      ? String(raw).trim()
-      : simpleLocalDateKey(simpleDateFromKey(raw)||new Date(simpleSessionTimestamp(row)));
-    return dateKey===todayKey;
-  });
-
-  if(!todaySessions.length)return 0;
-
-  const seen=new Set();
-  for(const row of todaySessions){
-    const key=resolveRoutineDayKey(row);
+  for(let i=0;i<normalized.length;i++){
+    const key=resolveRoutineDayKey(normalized[i].row);
     if(key)seen.add(key);
-    if(seen.size>=maxDays)return maxDays;
+    if(seen.size>=maxDays){
+      if(normalized[i].dateKey===todayKey){
+        cycleCompletedToday=true;
+        break;
+      }
+      seen=new Set();
+    }
   }
+
+  if(cycleCompletedToday)return maxDays;
   return Math.min(maxDays,seen.size);
 }
 
@@ -7713,29 +7730,30 @@ async function getWeeklyRoutineProgressForUser(userId,routineIds,workoutRoutineA
     if(alias)aliasToPrimary.set(String(alias),String(primary));
   }
 
-  // The server-side RPC is the single source of truth for BOTH views.
-  // This is important because clients may not have RLS visibility over
-  // routine_days/routines owned by the trainer, which previously produced 0/0.
-  await Promise.all(primaryIds.map(async rid=>{
-    const x=result.get(rid);
-    try{
-      const rpc=await db.rpc('get_client_routine_cycle_progress',{
-        p_client_id:String(userId),
-        p_routine_id:String(rid)
-      });
-      if(rpc.error)throw rpc.error;
-      const row=(rpc.data||[])[0]||{};
-      x.total=Number(row.total_days)||0;
-      x.done=Math.min(x.total,Math.max(0,Number(row.completed_days)||0));
-    }catch(e){
-      console.error('getWeeklyRoutineProgressForUser rpc:',e);
-      x.total=0;
-      x.done=0;
-    }
-  }));
-  return result;
+  // Client viewed by trainer: use one authorized server-side calculation.
+  // This is the source of truth for the current routine cycle.
+  if(String(userId)!==String(user?.id)){
+    await Promise.all(primaryIds.map(async rid=>{
+      const x=result.get(rid);
+      try{
+        const rpc=await db.rpc('get_client_routine_cycle_progress',{
+          p_client_id:String(userId),
+          p_routine_id:String(rid)
+        });
+        if(rpc.error)throw rpc.error;
+        const row=(rpc.data||[])[0]||{};
+        x.total=Number(row.total_days)||0;
+        x.done=Math.min(x.total,Math.max(0,Number(row.completed_days)||0));
+      }catch(e){
+        console.error('getWeeklyRoutineProgressForUser client:',e);
+        x.total=0;
+        x.done=0;
+      }
+    }));
+    return result;
+  }
 
-  // Own user fallback kept below for backwards compatibility.
+  // Own user: read all workout history and resolve each session to its routine.
   try{
     const allIds=[...new Set([
       ...primaryIds,
