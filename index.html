@@ -773,6 +773,12 @@
 .session-back-row .btn{min-height:40px}
 
 .trash-visual{position:relative;width:25px;height:27px;display:inline-flex;align-items:center;justify-content:center}
+
+/* SIMPLE UX polish v1 — visual/feedback only */
+.btn:disabled{opacity:.6;cursor:not-allowed}
+.simple-save-loading{display:inline-flex;align-items:center;gap:8px}
+.simple-spinner{width:14px;height:14px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;display:inline-block;animation:simpleSpin .7s linear infinite}
+@keyframes simpleSpin{to{transform:rotate(360deg)}}
 </style>
 
 <style id="simple-v36-fixes">
@@ -2608,7 +2614,7 @@ const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{
 });
 let user=null,profile=null,routines=[],assignments=[],editDays=[];let mode='login';
 const $=id=>document.getElementById(id),esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
-function toast(x){$('toast').textContent=x;$('toast').style.display='block';clearTimeout(window._t);window._t=setTimeout(()=>$('toast').style.display='none',1800)}function closeM(id){
+function toast(x){const el=$('toast');el.textContent=x;el.style.display='block';el.setAttribute('role','status');clearTimeout(window._t);window._t=setTimeout(()=>{el.style.display='none'},2200)}function closeM(id){
   $(id).classList.remove('show');
   // `activeWorkout` is a top-level `let`, so it is not exposed on `window`.
   // Closing the workout modal ends the in-memory active-session view.
@@ -6803,7 +6809,7 @@ function renderWorkoutDay(){
     </div>`:normal;
 
   $('trainBody').innerHTML=`${sessionBack}${controls}${reorder}<div id="restBox" class="rest-floating" style="display:none"></div>
-    ${locked||activeWorkout.reordering?'':`<div class="buttons" style="justify-content:flex-end"><button class="btn primary" onclick="saveWorkoutSession()">Guardar sesión</button></div>`}`;
+    ${locked||activeWorkout.reordering?'':`<div class="buttons" style="justify-content:flex-end"><button id="saveWorkoutBtn" class="btn primary" onclick="saveWorkoutSession()">Guardar sesión</button></div>`}`;
   // Guard: cada ejercicio debe mostrar un único campo de descanso en el editor.
   if(editing){
     document.querySelectorAll('#trainBody .card').forEach(card=>{
@@ -7303,6 +7309,17 @@ function simpleFormatDateKey(value,options){
   return d?d.toLocaleDateString('es-ES',options):'';
 }
 
+async function setSaveWorkoutButtonState(saving){
+  const btn=document.getElementById('saveWorkoutBtn');
+  if(!btn)return;
+  btn.disabled=!!saving;
+  if(saving){
+    btn.innerHTML='<span class="simple-save-loading"><span class="simple-spinner"></span>Guardando...</span>';
+  }else{
+    btn.textContent='Guardar sesión';
+  }
+}
+
 async function saveWorkoutSession(){
   if(window.__savingWorkout)return;
   if(!user?.id)return toast('Debes iniciar sesión.');
@@ -7318,6 +7335,7 @@ async function saveWorkoutSession(){
   }
 
   window.__savingWorkout=true;
+  setSaveWorkoutButtonState(true);
   try{
     // Fuente de verdad: Supabase. Sobrevive a recarga/cierre/otra pestaña.
     const existing=await db.from('workouts')
@@ -7473,6 +7491,7 @@ async function saveWorkoutSession(){
     toast('No se pudo guardar la sesión: '+(e.message||'revisa la tabla workouts'));
   }finally{
     window.__savingWorkout=false;
+    setSaveWorkoutButtonState(false);
   }
 }
 
