@@ -7720,7 +7720,16 @@ function simpleDailyProgressFromSessions(sessions,total,aliases={},routineIds=[]
 
   for(let i=0;i<normalized.length;i++){
     const key=resolveRoutineDayKey(normalized[i].row);
-    if(key)seen.add(key);
+    if(key){
+      // If a day that is already inside an unfinished cycle is played again,
+      // treat that workout as an intentional restart of the routine. This lets
+      // a client go from e.g. 4/5 back to day 1 and correctly show 1/5.
+      if(seen.has(key) && seen.size<maxDays){
+        seen=new Set([key]);
+      }else{
+        seen.add(key);
+      }
+    }
     if(seen.size>=maxDays){
       if(normalized[i].dateKey===todayKey){
         cycleCompletedToday=true;
@@ -7749,9 +7758,9 @@ async function getWeeklyRoutineProgressForUser(userId,routineIds,workoutRoutineA
     if(alias)aliasToPrimary.set(String(alias),String(primary));
   }
 
-  // Client viewed by trainer: use one authorized server-side calculation.
-  // This is the source of truth for the current routine cycle.
-  if(String(userId)!==String(user?.id)){
+  // Use the same server-side calculation for BOTH trainer and client views.
+  // This guarantees that the two accounts can never show different cycle progress.
+  if(primaryIds.length){
     await Promise.all(primaryIds.map(async rid=>{
       const x=result.get(rid);
       try{
