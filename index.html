@@ -6367,6 +6367,11 @@ function getPreviousExerciseSession(exerciseId){
     const d=session.data||{}, date=String(session.workout_date||d.workout_date||'');
     if(!/^\d{4}-\d{2}-\d{2}$/.test(date) || date>=today)continue;
     const exercises=Array.isArray(d.exercises)?d.exercises:[];
+    // A stable exercise UUID survives renames and moves to another day.
+    const exact=exercises.filter(e=>String(e.exercise_id||'')===String(exerciseId));
+    if(exact.length===1 && Array.isArray(exact[0].sets) && exact[0].sets.length){
+      return {exercise:exact[0],date:simpleDateFromKey(date)};
+    }
     const sameDay=String(d.routine_day_id||'')===String(day.id);
     // Older save_routine_atomic versions recreated day/exercise UUIDs.
     // Only bridge a removed day with a unique, unchanged name in this routine.
@@ -6920,8 +6925,7 @@ async function saveWorkoutRoutineEdits(){
       const data=JSON.parse(JSON.stringify(activeWorkout.lockedSession.data||{}));
       const exercises=Array.isArray(data.exercises)?data.exercises:[];
       for(const e of activeWorkout.exercises||[]){
-        const saved=exercises.find(x=>String(x.exercise_id||'')===String(e.id))
-          || exercises.find(x=>String(x.name||'').trim().toLowerCase()===String(e.name||'').trim().toLowerCase());
+        const saved=exercises.find(x=>String(x.exercise_id||'')===String(e.id));
         if(!saved)continue;
         // El nombre mostrado en el histórico debe acompañar al cambio de la plantilla.
         saved.name=e.name;
