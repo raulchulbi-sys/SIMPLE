@@ -4,7 +4,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>SIMPLE</title>
 <style>
-:root{--bg:#0b0d10;--card:#15191e;--card2:#1b2026;--text:#f4f6f8;--muted:#9ba4ae;--line:#2a3139;--ok:#b9f6ca;--danger:#ff9a9a}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button,input,textarea{font:inherit}button{cursor:pointer}.wrap{max-width:1050px;margin:auto;padding:20px 15px 80px}header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:20px}h1{margin:0;font-size:26px;letter-spacing:-.5px}.sub{color:var(--muted);font-size:12px;margin-top:4px}.actions,.tabs,.buttons{display:flex;gap:7px;flex-wrap:wrap}.btn{border:1px solid var(--line);background:var(--card);color:var(--text);padding:10px 13px;border-radius:11px}.btn.primary{background:#fff;color:#111;border-color:#fff}.btn.danger{color:var(--danger)}.tabs{background:#111419;border:1px solid var(--line);padding:5px;border-radius:13px;margin-bottom:18px}.tabs button{flex:1;border:0;background:transparent;color:var(--muted);padding:10px;border-radius:9px}.tabs button.active{background:#fff;color:#111}.card{background:var(--card);border:1px solid var(--line);border-radius:17px;padding:16px;margin:12px 0}.empty{text-align:center;color:var(--muted);padding:38px 18px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.grid3{display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px} .routine-editor-exercise .grid3{grid-template-columns:minmax(0,2fr) minmax(90px,1fr) minmax(150px,1fr)}label{display:block;color:var(--muted);font-size:11px;margin:0 0 5px}input,textarea{width:100%;background:var(--card2);border:1px solid var(--line);border-radius:10px;color:var(--text);padding:10px;outline:none}textarea{min-height:65px;resize:vertical}.routine{display:flex;justify-content:space-between;align-items:center;gap:12px}.routine h3{margin:0}.muted{color:var(--muted);font-size:12px}.badge{border:1px solid var(--line);padding:4px 8px;border-radius:99px;font-size:11px;color:var(--muted)}.day{border-top:1px solid var(--line);margin-top:14px;padding-top:14px}.dayhead{display:flex;justify-content:space-between;gap:10px;align-items:center}.exercise{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px;margin:8px 0}.exercisehead{display:flex;justify-content:space-between;gap:8px}.exname{font-weight:700}.meta{color:var(--muted);font-size:11px;margin-top:3px}.modal{position:fixed;inset:0;background:#000b;display:none;align-items:flex-end;justify-content:center;z-index:20}.modal.show{display:flex}.sheet{width:min(760px,100%);max-height:90vh;overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:20px 20px 0 0;padding:18px}.modal.center{align-items:center}.modal.center .sheet{border-radius:20px}.auth{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:18px}.authbox{width:min(420px,100%);background:var(--card);border:1px solid var(--line);border-radius:22px;padding:25px}.authbox h1{margin-bottom:5px}.authbox p{color:var(--muted);font-size:13px}.authbox input,.authbox button{margin-top:8px}.authbox button{width:100%}.msg{font-size:12px;min-height:18px;margin-top:8px}.error{color:var(--danger)}.ok{color:var(--ok)}.toast{position:fixed;top:18px;left:50%;transform:translateX(-50%);background:#fff;color:#111;padding:10px 14px;border-radius:11px;display:none;z-index:50;font-size:13px}@media(max-width:650px){.grid,.grid3,.routine-editor-exercise .grid3{grid-template-columns:1fr}.routine{align-items:flex-start;flex-direction:column}header{align-items:flex-start}}
+:root{--bg:#0b0d10;--card:#15191e;--card2:#1b2026;--text:#f4f6f8;--muted:#9ba4ae;--line:#2a3139;--ok:#b9f6ca;--danger:#ff9a9a}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button,input,textarea{font:inherit}button{cursor:pointer}.wrap{max-width:1050px;margin:auto;padding:20px 15px 80px}header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:20px}h1{margin:0;font-size:26px;letter-spacing:-.5px}.sub{color:var(--muted);font-size:12px;margin-top:4px}.actions,.tabs,.buttons{display:flex;gap:7px;flex-wrap:wrap}.btn{border:1px solid var(--line);background:var(--card);color:var(--text);padding:10px 13px;border-radius:11px}.btn.primary{background:#fff;color:#111;border-color:#fff}.btn.danger{color:var(--danger)}.tabs{background:#111419;border:1px solid var(--line);padding:5px;border-radius:13px;margin-bottom:18px}.tabs button{flex:1;border:0;background:transparent;color:var(--muted);padding:10px;border-radius:9px}.tabs button.active{background:#fff;color:#111}.card{background:var(--card);border:1px solid var(--line);border-radius:17px;padding:16px;margin:12px 0}.empty{text-align:center;color:var(--muted);padding:38px 18px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.grid3{display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px} .routine-editor-exercise .grid3{grid-template-columns:minmax(0,2fr) minmax(90px,1fr) minmax(150px,1fr)}label{display:block;color:var(--muted);font-size:11px;margin:0 0 5px}input,textarea{width:100%;background:var(--card2);border:1px solid var(--line);border-radius:10px;color:var(--text);padding:10px;outline:none}textarea{min-height:65px;resize:vertical}.routine{display:flex;justify-content:space-between;align-items:center;gap:12px}.routine h3{margin:0}.muted{color:var(--muted);font-size:12px}.badge{border:1px solid var(--line);padding:4px 8px;border-radius:99px;font-size:11px;color:var(--muted)}.day{border-top:1px solid var(--line);margin-top:14px;padding-top:14px}.dayhead{display:flex;justify-content:space-between;gap:10px;align-items:center}.exercise{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px;margin:8px 0}.exercisehead{display:flex;justify-content:space-between;gap:8px}.exname{font-weight:700}.meta{color:var(--muted);font-size:11px;margin-top:3px}.modal{position:fixed;inset:0;background:#000b;display:none;align-items:flex-end;justify-content:center;z-index:20}.modal.show{display:flex}.sheet{width:min(760px,100%);max-height:90vh;overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:20px 20px 0 0;padding:18px}.modal.center{align-items:center}.modal.center .sheet{border-radius:20px}.auth{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:18px}.authbox{width:min(420px,100%);background:var(--card);border:1px solid var(--line);border-radius:22px;padding:25px}.authbox h1{margin-bottom:5px}.authbox p{color:var(--muted);font-size:13px}.authbox input,.authbox button{margin-top:8px}.authbox button{width:100%}.msg{font-size:12px;min-height:18px;margin-top:8px}.error{color:var(--danger)}.ok{color:var(--ok)}.toast{position:fixed;z-index:2147483647!important;top:18px;left:50%;transform:translateX(-50%);background:#fff;color:#111;padding:10px 14px;border-radius:11px;display:none;z-index:50;font-size:13px}@media(max-width:650px){.grid,.grid3,.routine-editor-exercise .grid3{grid-template-columns:1fr}.routine{align-items:flex-start;flex-direction:column}header{align-items:flex-start}}
 
 .setrow{display:grid;grid-template-columns:42px minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) 48px;gap:7px;align-items:center;margin:7px 0}
 .setrow input{min-width:0;width:100%}
@@ -547,8 +547,8 @@
 }
 #daysEditor .routine-editor-day.dragging{opacity:.4}
 
-#daysEditor .day-order-zone{display:none!important}
-#daysEditor .day-order-zone-active{display:none!important}
+#daysEditor .day-order-zone{display:block}
+#daysEditor .day-order-zone-active{display:block}
 #daysEditor .day-order-zone-active{
   height:38px;min-height:38px;border:2px dashed var(--ok);
   background:rgba(255,255,255,.05);margin:4px 0;
@@ -2613,9 +2613,13 @@ const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{
   }
 });
 let user=null,profile=null,routines=[],assignments=[],editDays=[];let mode='login';
+let workoutRoutine=null,__dragItem=null;
+let __mineRenderToken=0,__editorOrderSaving=false;
 const $=id=>document.getElementById(id),esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
 function toast(x){const el=$('toast');el.textContent=x;el.style.display='block';el.setAttribute('role','status');clearTimeout(window._t);window._t=setTimeout(()=>{el.style.display='none'},2200)}function closeM(id){
   $(id).classList.remove('show');
+  if(id==='editModal'){editorDragCleanup();dragEndItem();}
+  if(id==='trainModal'){finishOpenDayPointerDrag();workoutReorderEnd();}
   // `activeWorkout` is a top-level `let`, so it is not exposed on `window`.
   // Closing the workout modal ends the in-memory active-session view.
   // Keep a pending draft so closing the modal never loses entered data.
@@ -2627,6 +2631,9 @@ function toast(x){const el=$('toast');el.textContent=x;el.style.display='block';
   }
   if(!document.querySelector('.modal.show'))setNestedView(false);
 }function openM(id){
+  const others=[...document.querySelectorAll('.modal.show')].filter(el=>el!==$(id));
+  const z=Math.max(1000,...others.map(el=>Number(getComputedStyle(el).zIndex)||20))+1;
+  $(id).style.setProperty('z-index',String(z),'important');
   $(id).classList.add('show');
   if(id!=='resetModal')setNestedView(true);
 }
@@ -3009,7 +3016,11 @@ async function bootstrapAuthSession(){
 
 (async()=>{ await bootstrapAuthSession(); })();
 
-db.auth.onAuthStateChange(async (event, session)=>{
+db.auth.onAuthStateChange((event, session)=>{
+  if(event==='SIGNED_OUT'){if(user?.id)location.reload();return;}
+  setTimeout(()=>handleAuthStateChange(event,session),0);
+});
+async function handleAuthStateChange(event,session){
   if(event==='PASSWORD_RECOVERY'){
     if(session?.user) user=session.user;
     openPasswordReset();
@@ -3037,7 +3048,7 @@ db.auth.onAuthStateChange(async (event, session)=>{
       console.error('Auth state/profile setup:',e);
     }
   }
-});
+}
 
 function setNestedView(active){
   window.__simpleNestedView=!!active;
@@ -3922,7 +3933,7 @@ async function openRoutineProgress(routineId){
           <div class="history-content">${exercises.length?exercises.map(e=>{
             const sets=Array.isArray(e.sets)?e.sets:[];
             return `<div class="history-exercise"><div class="history-exercise-head"><div><b>${esc(e.name||'Ejercicio')}</b>
-              <div class="history-objective">Objetivo: ${esc(e.target||'—')} · ${e.planned_sets||sets.length||1} series · RIR ${esc(String(e.planned_rir??0))}</div></div></div>
+              <div class="history-objective">Objetivo: ${esc(e.target||'—')} · ${esc(String(e.planned_sets||sets.length||1))} series · RIR ${esc(String(e.planned_rir??0))}</div></div></div>
               <div class="history-table"><div class="history-row history-label"><span>Serie</span><span>KG</span><span>REPS</span><span>RIR</span></div>
               ${sets.map(set=>`<div class="history-row"><span>${esc(String(set.set??''))}</span>
                 <span>${esc(String(set.kg!==''&&set.kg!=null?set.kg:'—'))}</span>
@@ -4033,9 +4044,8 @@ function renderClientRoutineSessions(){
           <div style="display:flex;align-items:center;gap:10px;min-width:0;flex:1">
             ${state.reorder?`<span class="drag-handle editor-drag-handle" draggable="true"
               ondragstart="dragDayStart(event,${i})"
-              ondragend="dragEndItem()"
+              ondragend="dragEndItem();clientSessionDragFinished()"
               onpointerdown="startEditorPointerDrag(event,'day',${i})"
-              ondragend="clientSessionDragFinished()"
               title="Arrastrar sesión">☷</span>`:''}
             <div style="min-width:0">
               <b style="font-size:17px">${esc(d.name||'Sin nombre')}</b>
@@ -4383,7 +4393,7 @@ async function openClientRoutineProgress(clientId,routineId,routineName){
                   <div>
                     <b>${esc(e.name||'Ejercicio')}</b>
                     <div class="history-objective">
-                      Objetivo: ${esc(e.target||'—')} · ${e.planned_sets||sets.length||1} series
+                      Objetivo: ${esc(e.target||'—')} · ${esc(String(e.planned_sets||sets.length||1))} series
                     </div>
                   </div>
                 </div>
@@ -4703,6 +4713,7 @@ async function renderClients(){
 
 let __routineDrag=null;
 async function renderMine(){
+  const token=++__mineRenderToken;
   const box=$('mine'); if(!box)return;
   const header='<div class="card"><h2 style="margin:0 0 4px">Mis rutinas</h2></div>';
   if(!routines.length){
@@ -4712,6 +4723,7 @@ async function renderMine(){
 
   const routineIds=routines.map(r=>String(r.id));
   const weekly=await getWeeklyRoutineProgressForUser(user.id,routineIds);
+  if(token!==__mineRenderToken)return;
 
   // `weekly` conserva el nombre histórico de la variable; el contador representa
   // el progreso actual del ciclo de la rutina.
@@ -4756,9 +4768,41 @@ document.addEventListener('click',function(e){
   if(id)openRoutine(id);
 },true);
 
+
+let __dragScrollFrame=0,__dragScrollY=0,__dragScrollElement=null;
+function stopDragAutoScroll(){
+  if(__dragScrollFrame)cancelAnimationFrame(__dragScrollFrame);
+  __dragScrollFrame=0;__dragScrollElement=null;
+}
+function updateDragAutoScroll(element,y){
+  __dragScrollElement=element;__dragScrollY=y;
+  if(__dragScrollFrame)return;
+  const tick=()=>{
+    __dragScrollFrame=0;
+    if(!__routinePointerDrag&&!__editorPointerDrag&&!__openDayDrag&&!__workoutReorderDrag)return;
+    const el=__dragScrollElement;
+    if(!el?.isConnected)return;
+    const sheet=el.closest('.sheet');
+    const scroller=sheet||document.scrollingElement;
+    const rect=sheet?sheet.getBoundingClientRect():{top:0,bottom:innerHeight};
+    const top=Math.max(0,rect.top),bottom=Math.min(innerHeight,rect.bottom),edge=44;
+    const speed=__dragScrollY<top+edge?-12:__dragScrollY>bottom-edge?12:0;
+    if(speed){
+      scroller.scrollTop+=speed;
+      const e={pointerId:null,clientY:__dragScrollY,preventDefault(){}};
+      if(__editorPointerDrag?.active)updateEditorPointerTarget(__editorPointerDrag,__dragScrollY);
+      if(__routinePointerDrag?.active){e.pointerId=__routinePointerDrag.pointerId;routinePointerMove(e);}
+      if(__openDayDrag?.active){e.pointerId=__openDayDrag.pointerId;openDayPointerMove(e);}
+    }
+    if(!__dragScrollFrame)__dragScrollFrame=requestAnimationFrame(tick);
+  };
+  __dragScrollFrame=requestAnimationFrame(tick);
+}
+
 let __routinePointerDrag=null;
 
 function routineDragCleanup(){
+  stopDragAutoScroll();
   const d=__routinePointerDrag;
   if(!d)return;
   d.placeholder?.remove();
@@ -4772,7 +4816,7 @@ function routineDragCleanup(){
 }
 
 function startRoutinePointerDrag(e,index){
-  if(profile?.role!=='trainer'||__routinePointerDrag)return;
+  if(profile?.role!=='trainer'||__routinePointerDrag||window.__routineReordering||e.button>0||e.isPrimary===false)return;
   // Use Pointer Events for mouse, touch and pen. This keeps desktop dragging
   // consistent with touch/pen dragging and avoids browser-specific HTML5 drag behaviour.
   e.preventDefault();e.stopPropagation();
@@ -4802,6 +4846,7 @@ function routinePointerMove(e){
   const d=__routinePointerDrag;
   if(!d||e.pointerId!==d.pointerId)return;
   e.preventDefault();
+  updateDragAutoScroll(d.card,e.clientY);
 
   if(!d.active){
     if(Math.hypot(e.clientX-d.startX,e.clientY-d.startY)<7)return;
@@ -4864,27 +4909,8 @@ async function routinePointerUp(e){
   const reordered=desired.map(id=>byId.get(id)).filter(Boolean);
   if(reordered.length!==routines.length)return;
 
-  const from=current.indexOf(draggedId);
-  const to=desired.indexOf(draggedId);
-  routines=reordered.map((r,i)=>({...r,routine_order:i}));
-  renderMine();
-
-  try{
-    const ids=routines.map(r=>String(r.id));
-    const saved=await db.rpc('reorder_my_routines_atomic',{p_routine_ids:ids});
-    if(saved.error)throw saved.error;
-    const verify=await db.from('routines').select('id,routine_order')
-      .eq('owner_id',user.id).is('deleted_at',null).order('routine_order',{ascending:true});
-    if(verify.error)throw verify.error;
-    const actual=(verify.data||[]).map(r=>String(r.id));
-    if(actual.join('|')!==ids.join('|'))throw new Error('El orden guardado no coincide con el orden mostrado.');
-    toast('Orden guardado');
-  }catch(err){
-    console.error('reorderRoutine mobile:',err);
-    routines=byId.size ? current.map(id=>byId.get(id)).filter(Boolean).map((r,i)=>({...r,routine_order:i})) : routines;
-    renderMine();
-    toast('No se pudo guardar el orden');
-  }
+  const from=current.indexOf(draggedId),to=desired.indexOf(draggedId);
+  await reorderRoutine(from,from<to?to+1:to);
 }
 
 function routinePointerCancel(){routineDragCleanup()}
@@ -4981,7 +5007,7 @@ async function days(id){
   for(const day of rows)day.exercises=byDay.get(String(day.id))||[];
   return rows;
 }
-async function editRoutine(id){if(profile?.role!=='trainer')return toast('Solo el entrenador puede editar rutinas.');let r=routines.find(x=>x.id===id);editDays=await days(id);$('editor').innerHTML=`<div class="grid"><div><label>Nombre</label><input id="en" value="${esc(r.name)}"></div><div><label>Descripción</label><input id="ed" value="${esc(r.description||'')}"></div></div><div class="buttons" style="margin:12px 0"><button class="btn primary" onclick="saveEditor('${id}')">Guardar rutina</button><button class="btn" onclick="addDay()">Añadir día</button></div><div id="daysEditor"></div>`;renderEditor();openM('editModal')}
+async function editRoutine(id){if(profile?.role!=='trainer')return toast('Solo el entrenador puede editar rutinas.');let r=routines.find(x=>x.id===id);editDays=await days(id);window.__clientRoutineEdit=null;$('editor').innerHTML=`<div class="grid"><div><label>Nombre</label><input id="en" value="${esc(r.name)}"></div><div><label>Descripción</label><input id="ed" value="${esc(r.description||'')}"></div></div><div class="buttons" style="margin:12px 0"><button class="btn primary" onclick="saveEditor('${id}')">Guardar rutina</button><button class="btn" onclick="addDay()">Añadir día</button></div><div id="daysEditor"></div>`;renderEditor();openM('editModal')}
 function renderEditor(){
   let h='';
   editDays.forEach((d,di)=>{
@@ -5099,65 +5125,22 @@ function dragOverDayZone(e){
   e.currentTarget.classList.add('day-order-zone-active');
 }
 function dropExerciseAt(e,targetDay,targetIndex){
-  e.preventDefault(); e.stopPropagation();
-  if(!__dragItem || __dragItem.type!=='exercise')return;
-
-  const fromDay=__dragItem.di, fromIndex=__dragItem.ei;
-  const source=editDays[fromDay]?.exercises;
-  const target=editDays[targetDay]?.exercises;
-  if(!source || !target)return;
-
-  const [item]=source.splice(fromIndex,1);
-  let at=targetIndex;
-  if(fromDay===targetDay && fromIndex<at)at--;
-  at=Math.max(0,Math.min(at,target.length));
-  target.splice(at,0,item);
-
-  editDays.forEach(d=>d.exercises.forEach((ex,i)=>ex.exercise_order=i));
-  __dragItem=null;
-  clearDropIndicators();
-  if(window.__clientRoutineEdit?.dayIndex!=null){
-    const affectedFrom=fromDay, affectedTo=targetDay;
-    persistClientExerciseOrder(affectedFrom,affectedTo).catch(err=>{
-      console.error('persistClientExerciseOrder:',err);
-      toast('No se pudo guardar el orden de los ejercicios');
-    });
-    renderClientRoutineDayEditor(window.__clientRoutineEdit.dayIndex);
-  }else if(window.__clientRoutineEdit) renderClientRoutineSessions();
-  else renderEditor();
+  e.preventDefault();e.stopPropagation();
+  if(!__dragItem||__dragItem.type!=='exercise')return;
+  const {di,ei}=__dragItem;dragEndItem();
+  moveEditorExercise(di,ei,targetDay,targetIndex);
 }
+
 function dropExercise(e,targetDay,targetIndex){
   dropExerciseAt(e,targetDay,targetIndex);
 }
 function dropDayAt(e,targetIndex){
   if(!__dayDrag)return;
   e.preventDefault();e.stopPropagation();
-  const from=Number(__dayDrag.index),to=Number(targetIndex);
-  if(from===to||from+1===to){
-    __dayDrag=null;
-    if(window.__clientRoutineEdit?.reorder)renderClientRoutineSessions();
-    else dragEndItem();
-    return;
-  }
-  const next=editDays.slice();
-  const [item]=next.splice(from,1);
-  const at=from<to?to-1:to;
-  next.splice(Math.max(0,Math.min(at,next.length)),0,item);
-  editDays=next.map((d,i)=>({...d,day_order:i}));
-  // Clear only the client-session drag state; preserve reorder mode.
-  __dayDrag=null;
-  document.querySelectorAll('#clientSessionList .routine-editor-day')
-    .forEach(x=>x.classList.remove('dragging'));
-  document.querySelectorAll('#clientSessionList .day-order-gap')
-    .forEach(x=>x.classList.remove('active'));
-  if(window.__clientRoutineEdit){
-    renderClientRoutineSessions();
-    persistClientSessionOrder();
-  }else{
-    dragEndItem();
-    renderEditor();
-  }
+  const from=Number(__dayDrag.index);dragEndItem();
+  moveEditorDay(from,Number(targetIndex));
 }
+
 async function persistClientSessionOrder(){
   const state=window.__clientRoutineEdit;
   if(!state?.routineId||profile?.role!=='trainer')return false;
@@ -5191,7 +5174,8 @@ function dragEndItem(){
     document.querySelectorAll('#clientSessionList .day-order-gap').forEach(x=>x.remove());
   }
   __dragItem=null;
-  if(!window.__clientRoutineEdit?.reorder)__dayDrag=null;
+  __dayDrag=null;
+  clearDropIndicators();
 }
 
 function dragRoutineStart(e,index){
@@ -5240,7 +5224,7 @@ async function dropRoutineAt(e,targetIndex){
   await reorderRoutine(from,targetIndex);
 }
 async function reorderRoutine(from,targetIndex){
-  if(from<0 || from>=routines.length)return;
+  if(window.__routineReordering||from<0 || from>=routines.length)return;
 
   const previous=routines.slice();
   const copy=routines.slice();
@@ -5252,6 +5236,7 @@ async function reorderRoutine(from,targetIndex){
   if(at===from){renderMine();return;}
 
   copy.splice(at,0,item);
+  window.__routineReordering=true;
   routines=copy.map((r,i)=>({...r,routine_order:i}));
   renderMine();
 
@@ -5270,7 +5255,7 @@ async function reorderRoutine(from,targetIndex){
     routines=previous;
     renderMine();
     toast('No se pudo guardar el orden');
-  }
+  }finally{window.__routineReordering=false;}
 }
 
 function moveEx(dayIndex, exerciseIndex, direction){
@@ -5307,20 +5292,15 @@ function dropExerciseSlot(e,targetDay,targetIndex){
   editDays.forEach(d=>d.exercises.forEach((x,i)=>x.exercise_order=i));
   dragEndItem();renderEditor();
 }
-function moveDay(dayIndex, direction){
+function moveDay(dayIndex,direction){
   const target=dayIndex+direction;
-  if(target<0 || target>=editDays.length)return;
-  [editDays[dayIndex],editDays[target]]=
-    [editDays[target],editDays[dayIndex]];
-  editDays=editDays.map((d,i)=>({...d,day_order:i}));
-  if(window.__clientRoutineEdit){
-    renderClientRoutineSessions();
-    persistClientSessionOrder();
-  }else renderEditor();
+  if(target<0||target>=editDays.length)return;
+  moveEditorDay(dayIndex,direction>0?target+1:target);
 }
+
 function addDay(){editDays.push({id:null,name:'Nuevo día',day_order:editDays.length,exercises:[]});renderEditor()}function removeDay(i){if(confirm('¿Eliminar este día?')){editDays.splice(i,1);renderEditor()}}function addEx(di){editDays[di].exercises.push({id:null,name:'Nuevo ejercicio',sets:2,target:'2x10-15',rir:'2',rest_seconds:120,notes:''});renderEditor()}function removeEx(di,ei){editDays[di].exercises.splice(ei,1);renderEditor()}
 async function saveEditor(id){
-  if(window.__routineSaving)return;
+  if(window.__routineSaving||__editorOrderSaving)return;
   const name=$('en').value.trim();
   if(!name)return toast('Pon un nombre a la rutina');
   if(editDays.some(d=>!d.name.trim()))return toast('Pon nombre a todos los días');
@@ -5328,8 +5308,10 @@ async function saveEditor(id){
   window.__routineSaving=true;
   try{
     const daysPayload=editDays.map(d=>({
+      id:d.id||null,
       name:d.name.trim(),
       exercises:(d.exercises||[]).map(e=>({
+        id:e.id||null,
         name:e.name.trim(),
         sets:Math.max(1,Number(e.sets)||1),
         target:e.target||'',
@@ -5619,7 +5601,7 @@ async function dropOpenDayAt(e,targetIndex){
 }
 
 function startOpenDayPointerDrag(e,index){
-  if(profile?.role!=='trainer'||__openDayDragLock)return;
+  if(profile?.role!=='trainer'||__openDayDragLock||window.__openDayReordering||e.button>0||e.isPrimary===false)return;
   e.preventDefault();
   e.stopPropagation();
   const h=e.currentTarget,row=h.closest('.open-day-row');
@@ -5640,6 +5622,7 @@ function openDayPointerMove(e){
   const d=__openDayDrag;
   if(!d||e.pointerId!==d.pointerId)return;
   e.preventDefault();
+  updateDragAutoScroll(d.row,e.clientY);
 
   if(!d.active){
     if(Math.hypot(e.clientX-d.startX,e.clientY-d.startY)<5)return;
@@ -5692,6 +5675,7 @@ function openDayPointerUp(e){
 }
 function openDayPointerCancel(){finishOpenDayPointerDrag()}
 function finishOpenDayPointerDrag(){
+  stopDragAutoScroll();
   document.querySelectorAll('#trainModal .open-day-row')
     .forEach(r=>r.classList.remove('dragging','open-day-drag-over'));
   document.querySelectorAll('#trainModal .open-day-order-zone')
@@ -5733,8 +5717,9 @@ async function reorderOpenDay(routineId,from,targetIndex){
     const current=await days(routineId);
     if(!Array.isArray(current)||from<0||from>=current.length)throw new Error('Índice inválido');
     const copy=current.slice(),[item]=copy.splice(from,1);
-    let at=Math.max(0,Math.min(Number(targetIndex)||0,copy.length));
+    let at=Number(targetIndex);
     if(from<at)at--;
+    at=Math.max(0,Math.min(at,copy.length));
     if(at===from)return;
     copy.splice(at,0,item);
     const saved=await db.rpc('reorder_my_routine_days_atomic',{p_routine_id:String(routineId),p_day_ids:copy.map(d=>String(d.id))});
@@ -5749,11 +5734,13 @@ async function reorderOpenDay(routineId,from,targetIndex){
 }
 
 
+document.addEventListener('lostpointercapture',()=>{routineDragCleanup();editorDragCleanup();finishOpenDayPointerDrag();workoutReorderEnd();});
 let __editorPointerDrag=null;
 let __editorDragRaf=0;
 let __editorLastY=0;
 
 function editorDragCleanup(){
+  stopDragAutoScroll();
   if(__editorDragRaf){cancelAnimationFrame(__editorDragRaf);__editorDragRaf=0;}
   const d=__editorPointerDrag;
   if(!d)return;
@@ -5776,7 +5763,7 @@ function editorMakePlaceholder(type,height){
 }
 
 function startEditorPointerDrag(e,type,di,ei){
-  if(profile?.role!=='trainer'||__editorPointerDrag)return;
+  if(profile?.role!=='trainer'||__editorPointerDrag||__editorOrderSaving||window.__routineSaving||e.button>0||e.isPrimary===false)return;
   // Use Pointer Events for mouse, touch and pen. This keeps desktop dragging
   // consistent with touch/pen dragging and avoids browser-specific HTML5 drag behaviour.
   e.preventDefault();e.stopPropagation();
@@ -5803,41 +5790,30 @@ function startEditorPointerDrag(e,type,di,ei){
   document.addEventListener('pointercancel',editorPointerCancel,{passive:false});
 }
 
-function updateEditorPointerTarget(d, y){
-  if(!d)return;
+function updateEditorPointerTarget(d,y){
+  if(!d || !d.row.isConnected)return;
   __editorLastY=y;
-
   if(d.type==='day'){
-    const dayContainer = window.__clientRoutineEdit?.dayIndex==null
-      ? document.querySelector('#clientSessionList')
-      : document.querySelector('#daysEditor');
-    const cards=[...(dayContainer?.querySelectorAll('.routine-editor-day')||[])].filter(x=>x!==d.row);
-    let before=null,best=Infinity;
-    for(const card of cards){
-      const r=card.getBoundingClientRect();
-      const dist=Math.abs(y-(r.top+r.height/2));
-      if(dist<best){best=dist;before=card}
-    }
-    d.placeholder.className='day-order-gap active';
-    if(before)before.parentNode.insertBefore(d.placeholder,before);
-    else if(cards.length)cards[cards.length-1].parentNode.insertBefore(d.placeholder,cards[cards.length-1].nextSibling);
+    const container=d.row.parentElement;
+    const cards=[...container.querySelectorAll('.routine-editor-day')].filter(x=>x!==d.row);
+    const before=cards.find(card=>{const r=card.getBoundingClientRect();return y<r.top+r.height/2;});
+    if(before)before.before(d.placeholder);
+    else if(cards.length)cards[cards.length-1].after(d.placeholder);
     d.target=before?Number(before.dataset.dayIndex):editDays.length;
   }else{
-    const rows=[...document.querySelectorAll('#daysEditor .routine-editor-exercise')].filter(x=>x!==d.row);
-    let target=null,best=Infinity;
-    for(const row of rows){
-      const r=row.getBoundingClientRect();
-      if(y<r.top-12||y>r.bottom+12)continue;
-      const dist=Math.abs(y-(r.top+r.height/2));
-      if(dist<best){best=dist;target=row}
+    const root=$('daysEditor');
+    const days=[...root.querySelectorAll('.routine-editor-day')];
+    let container=root,day=d.di;
+    if(days.length){
+      container=days.find(row=>y<=row.getBoundingClientRect().bottom)||days[days.length-1];
+      day=Number(container.dataset.dayIndex);
     }
-    if(target){
-      const r=target.getBoundingClientRect();
-      const before=y<r.top+r.height/2;
-      if(before)target.parentNode.insertBefore(d.placeholder,target);
-      else target.parentNode.insertBefore(d.placeholder,target.nextSibling);
-      d.target={day:Number(target.dataset.dayIndex),index:Number(target.dataset.exerciseIndex),before};
-    }
+    const rows=[...container.querySelectorAll('.routine-editor-exercise')].filter(x=>x!==d.row);
+    const before=rows.find(row=>{const r=row.getBoundingClientRect();return y<r.top+r.height/2;});
+    if(before)before.before(d.placeholder);
+    else if(rows.length)rows[rows.length-1].after(d.placeholder);
+    else (container.querySelector('.exercise-drop-zone')||container).append(d.placeholder);
+    d.target={day,index:before?Number(before.dataset.exerciseIndex):editDays[day].exercises.length,before:true};
   }
 }
 
@@ -5845,6 +5821,7 @@ function editorPointerMove(e){
   const d=__editorPointerDrag;
   if(!d||e.pointerId!==d.pointerId)return;
   e.preventDefault();
+  updateDragAutoScroll(d.row,e.clientY);
   d.lastY=e.clientY;
   __editorLastY=e.clientY;
 
@@ -5906,41 +5883,70 @@ function editorPointerUp(e){
 function editorPointerCancel(){editorDragCleanup()}
 
 function moveEditorDay(from,to){
-  if(from<0||from>=editDays.length)return;
+  if(__editorOrderSaving||window.__routineSaving||from<0||from>=editDays.length)return;
   to=Math.max(0,Math.min(to,editDays.length));
   if(to===from||to===from+1)return;
-  const [item]=editDays.splice(from,1);
+  const previous=editDays.slice();
+  const next=editDays.slice(),[item]=next.splice(from,1);
   if(from<to)to--;
-  editDays.splice(to,0,item);
+  next.splice(to,0,item);editDays=next;
   editDays.forEach((d,i)=>d.day_order=i);
   if(window.__clientRoutineEdit){
     renderClientRoutineSessions();
-    persistClientSessionOrder();
+    persistEditorOrder(previous,'day');
   }else renderEditor();
 }
 
 function moveEditorExercise(fd,fi,td,ti){
-  const source=editDays[fd]?.exercises;
-  const target=editDays[td]?.exercises;
+  if(__editorOrderSaving||window.__routineSaving)return;
+  const source=editDays[fd]?.exercises,target=editDays[td]?.exercises;
   if(!source||!target||fi<0||fi>=source.length)return;
-
+  const previous=editDays.map(d=>({...d,exercises:d.exercises.slice()}));
   const [item]=source.splice(fi,1);
-  let at=ti;
-  if(fd===td&&fi<at)at--;
-  at=Math.max(0,Math.min(at,target.length));
-  target.splice(at,0,item);
-
+  let at=ti;if(fd===td&&fi<at)at--;
+  target.splice(Math.max(0,Math.min(at,target.length)),0,item);
   editDays.forEach(d=>d.exercises.forEach((x,i)=>x.exercise_order=i));
-
   if(window.__clientRoutineEdit?.routineId){
-    persistClientExerciseOrder(fd,td).catch(err=>{
-      console.error('persistClientExerciseOrder:',err);
-      toast('No se pudo guardar el orden de los ejercicios');
-    });
     renderClientRoutineDayEditor(window.__clientRoutineEdit.dayIndex);
-  }else{
-    renderEditor();
-  }
+    persistEditorOrder(previous,'exercise',fd,td);
+  }else renderEditor();
+}
+async function persistEditorOrder(previous,type,fd,td){
+  const state=window.__clientRoutineEdit,current=editDays;
+  __editorOrderSaving=true;
+  try{
+    // Unsaved additions/deletions/moves are saved by Guardar cambios, never
+    // submitted as a partial permutation to a reorder-only RPC.
+    const rows=type==='day'?current:current[td].exercises;
+    const ids=rows.map(x=>x.id&&String(x.id));
+    const table=type==='day'?'routine_days':'routine_exercises';
+    const parent=type==='day'?state.routineId:current[td].id;
+    const key=type==='day'?'routine_id':'day_id';
+    if(ids.some(x=>!x)||!parent||type==='exercise'&&fd!==td){
+      toast('Orden preparado. Pulsa Guardar cambios para guardar la estructura.');return false;
+    }
+    const before=await db.from(table).select('id').eq(key,parent);
+    if(before.error)throw before.error;
+    const actual=(before.data||[]).map(x=>String(x.id));
+    if(actual.length!==ids.length||actual.some(id=>!ids.includes(id))){
+      toast('Hay cambios de estructura pendientes. Pulsa Guardar cambios.');return false;
+    }
+    const saved=await db.rpc(type==='day'?'reorder_my_routine_days_atomic':'reorder_my_routine_exercises_atomic',
+      type==='day'?{p_routine_id:String(parent),p_day_ids:ids}:{p_day_id:String(parent),p_exercise_ids:ids});
+    if(saved.error)throw saved.error;
+    const verify=await db.from(table).select('id').eq(key,parent).order(type==='day'?'day_order':'exercise_order',{ascending:true});
+    if(verify.error)throw verify.error;
+    if((verify.data||[]).map(x=>String(x.id)).join('|')!==ids.join('|'))throw Error('Orden no verificado');
+    toast('Orden guardado automáticamente');return true;
+  }catch(err){
+    if(editDays===current&&window.__clientRoutineEdit===state){
+      editDays=previous;
+      editDays.forEach((d,i)=>{d.day_order=i;d.exercises.forEach((e,j)=>e.exercise_order=j);});
+      renderClientRoutineSessions();
+    }
+    console.error('persistEditorOrder:',err);
+    toast('No se pudo verificar el guardado. Vuelve a abrir la rutina para comprobar el orden.');return false;
+  }finally{__editorOrderSaving=false;}
 }
 
 async function persistClientExerciseOrder(fd,td){
@@ -6058,7 +6064,7 @@ async function deleteSelectedHistory(){
     }));
     const failed=results.filter(x=>!x.ok).length;
 
-    await loadHistory();
+    await loadHistory(workoutRoutine?.id);
 
     const remaining=new Set((window.workoutHistory||[]).map(x=>String(x.id)));
     selectedWorkoutIds=new Set(ids.filter(id=>remaining.has(String(id))));
@@ -6106,7 +6112,7 @@ async function editWorkout(id){
             <div>
               <b>${esc(e.name||'Ejercicio')}</b>
               <div class="history-objective">
-                Objetivo: ${esc(e.target||'—')} · ${e.planned_sets||sets.length||1} series · RIR ${esc(String(e.planned_rir??'0'))}
+                Objetivo: ${esc(e.target||'—')} · ${esc(String(e.planned_sets||sets.length||1))} series · RIR ${esc(String(e.planned_rir??'0'))}
               </div>
             </div>
           </div>
@@ -6177,7 +6183,7 @@ async function saveEditedWorkout(id){
     // Direct UPDATE only works for the owner of the workout and was the reason
     // the trainer saw "No se pudieron guardar los cambios".
     let r;
-    if(profile?.role==='trainer'){
+    if(profile?.role==='trainer' && String(session.user_id)!==String(user.id)){
       r=await db.rpc('update_client_workout_data',{
         p_workout_id:String(id),
         p_data:data
@@ -6220,7 +6226,7 @@ function showHistory(){
   const h=window.workoutHistory||[];
   $('trainTitle').textContent='Historial';
   $('trainSubtitle').textContent='Tus sesiones guardadas';
-  if(!h.some(x=>selectedWorkoutIds.has(String(x.id)))) selectedWorkoutIds=new Set([...selectedWorkoutIds].filter(id=>h.some(x=>String(x.id)===id)));
+  selectedWorkoutIds=new Set([...selectedWorkoutIds].filter(id=>h.some(x=>String(x.id)===id)));
 
   $('trainBody').innerHTML = `
     <div class="history-toolbar">
@@ -6262,7 +6268,7 @@ function showHistory(){
                 <div>
                   <b>${esc(e.name||'Ejercicio')}</b>
                   <div class="history-objective">
-                    Objetivo: ${esc(target||'—')} · ${e.planned_sets||sets.length||1} series · RIR ${esc(String(plannedRir))}
+                    Objetivo: ${esc(target||'—')} · ${esc(String(e.planned_sets||sets.length||1))} series · RIR ${esc(String(plannedRir))}
                   </div>
                 </div>
               </div>
@@ -6326,7 +6332,7 @@ async function deleteWorkout(id){
     const r=await db.rpc('delete_my_workout',{p_workout_id:id});
     if(r.error)throw r.error;
 
-    await loadHistory();
+    await loadHistory(workoutRoutine?.id);
     if((window.workoutHistory||[]).some(x=>String(x.id)===String(id))){
       throw new Error('La sesión sigue en el historial después de borrarla.');
     }
@@ -6344,33 +6350,39 @@ async function deleteWorkout(id){
 
 
 function getPreviousExerciseSession(exerciseId){
-  const history=window.workoutHistory||[];
-  const routineId=workoutRoutine?.id||null;
-  const routineName=workoutRoutine?.name||'';
-
-  const candidates=history.filter(s=>{
-    const d=s.data||{};
-    const sameRoutine=routineId
-      ? String(d.routine_id||'')===String(routineId)
-      : String(d.routine_name||'')===String(routineName);
-    if(!sameRoutine)return false;
-    return Array.isArray(d.exercises) &&
-      d.exercises.some(e=>String(e.exercise_id||'')===String(exerciseId));
-  }).sort((a,b)=>String(b.workout_date||b.data?.workout_date||'').localeCompare(String(a.workout_date||a.data?.workout_date||'')));
-
-  const todayKey=simpleLocalDateKey();
+  if(!user?.id || !workoutRoutine?.id || !activeWorkout?.day?.id)return null;
+  const key=value=>String(value??'').trim().replace(/\s+/g,' ').toLocaleLowerCase('es');
+  const day=activeWorkout.day;
+  const currentExercises=activeWorkout.exercises||[];
+  const current=currentExercises.find(e=>String(e.id)===String(exerciseId));
+  if(!current)return null;
+  const currentDays=activeWorkout.historyDays||[];
+  const today=simpleLocalDateKey();
+  const candidates=(window.workoutHistory||[]).filter(s=>
+    String(s.user_id||'')===String(user.id) &&
+    String(s.data?.routine_id||'')===String(workoutRoutine.id)
+  ).sort((a,b)=>String(b.workout_date||'').localeCompare(String(a.workout_date||'')) ||
+    String(b.data?.completed_at||'').localeCompare(String(a.data?.completed_at||'')));
   for(const session of candidates){
-    const d=session.data||{};
-    const sessionKey=String(session.workout_date||d.workout_date||'');
-    // If this is today's current workout record for the same routine/day,
-    // skip it. Comparing calendar keys avoids UTC/local-time boundary bugs.
-    if(workoutRoutine?.id && String(d.routine_id||'')===String(workoutRoutine.id) &&
-       activeWorkout?.day?.id && String(d.routine_day_id||'')===String(activeWorkout.day.id) &&
-       sessionKey===todayKey){
-      continue;
+    const d=session.data||{}, date=String(session.workout_date||d.workout_date||'');
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(date) || date>=today)continue;
+    const exercises=Array.isArray(d.exercises)?d.exercises:[];
+    const sameDay=String(d.routine_day_id||'')===String(day.id);
+    // Older save_routine_atomic versions recreated day/exercise UUIDs.
+    // Only bridge a removed day with a unique, unchanged name in this routine.
+    const rebuiltDay=!sameDay && !!d.routine_day_id && currentDays.length>0 &&
+      !currentDays.some(x=>String(x.id)===String(d.routine_day_id)) &&
+      key(d.day_name)===key(day.name) && key(day.name)!=='' &&
+      currentDays.filter(x=>key(x.name)===key(day.name)).length===1;
+    if(!sameDay && !rebuiltDay)continue;
+    let matches=exercises.filter(e=>String(e.exercise_id||'')===String(exerciseId));
+    if(matches.length===0 && rebuiltDay && key(current.name) &&
+       currentExercises.filter(e=>key(e.name)===key(current.name)).length===1){
+      matches=exercises.filter(e=>key(e.name)===key(current.name));
     }
-    const exercise=(d.exercises||[]).find(e=>String(e.exercise_id||'')===String(exerciseId));
-    if(exercise)return {exercise,date:simpleDateFromKey(sessionKey)};
+    if(matches.length===1 && Array.isArray(matches[0].sets) && matches[0].sets.length){
+      return {exercise:matches[0],date:simpleDateFromKey(date)};
+    }
   }
   return null;
 }
@@ -6413,7 +6425,8 @@ async function startWorkoutDay(dayId){
     // El día y sus ejercicios son lecturas independientes: cargarlos en
     // paralelo reduce el tiempo de apertura del entrenamiento sin cambiar
     // permisos ni la fuente de verdad.
-    const [d,x]=await Promise.all([
+    const openingRoutineId=workoutRoutine.id;
+    const [d,x,dayList]=await Promise.all([
       db.from('routine_days')
         .select('id,name,day_order')
         .eq('id',dayId)
@@ -6421,12 +6434,16 @@ async function startWorkoutDay(dayId){
       db.from('routine_exercises')
         .select('id,name,sets,target,rir,rest_seconds,exercise_order,notes')
         .eq('day_id',dayId)
-        .order('exercise_order')
+        .order('exercise_order'),
+      db.from('routine_days').select('id,name').eq('routine_id',openingRoutineId)
     ]);
     if(d.error)throw d.error;
     if(x.error)throw x.error;
+    if(dayList.error)throw dayList.error;
+    if(String(workoutRoutine?.id)!==String(openingRoutineId))return;
 
     activeWorkout={
+      historyDays:dayList.data||[],
       day:d.data,
       exercises:x.data||[],
       sets:{},
@@ -6999,7 +7016,7 @@ let workoutReorderRows=[];
 let workoutReorderZones=[];
 let __workoutReorderDrag=null;
 function workoutReorderStart(e,index){
-  if(!activeWorkout?.reordering)return;
+  if(!activeWorkout?.reordering||__workoutReorderDrag||window.__workoutExerciseReordering||e.button>0||e.isPrimary===false)return;
   e.preventDefault();e.stopPropagation();
   const handle=e.currentTarget;
   const row=handle.closest('.workout-reorder-bar');
@@ -7014,6 +7031,7 @@ function workoutReorderStart(e,index){
   document.addEventListener('pointercancel',workoutReorderPointerCancel,{passive:false});
 }
 function workoutReorderEnd(){
+  stopDragAutoScroll();
   const d=__workoutReorderDrag;
   if(d?.raf)cancelAnimationFrame(d.raf);
   document.querySelectorAll('.workout-reorder-bar').forEach(x=>x.classList.remove('dragging'));
@@ -7028,12 +7046,13 @@ function workoutReorderPointerMove(e){
   const d=__workoutReorderDrag;
   if(!d||e.pointerId!==d.pointerId)return;
   e.preventDefault();
+  updateDragAutoScroll(d.row,e.clientY);
   if(!d.active){
     if(Math.hypot(e.clientX-d.startX,e.clientY-d.startY)<5)return;
     d.active=true;d.row.classList.add('dragging');
   }
-  if(d.raf)return;
   d.lastY=e.clientY;
+  if(d.raf)return;
   d.raf=requestAnimationFrame(()=>{
     d.raf=0;
     const zones=workoutReorderZones||[];
@@ -7070,20 +7089,22 @@ async function workoutReorderPointerUp(e){
 }
 function workoutReorderPointerCancel(){workoutReorderEnd();}
 async function workoutReorderCommit(from,to){
-  if(window.__workoutExerciseReordering)return;
+  if(window.__workoutExerciseReordering||!activeWorkout?.day)return;
+  const workout=activeWorkout;
   window.__workoutExerciseReordering=true;
   try{
-    const next=activeWorkout.exercises.slice();
+    const next=workout.exercises.slice();
     const [item]=next.splice(from,1);
     const at=Math.max(0,Math.min(from<to?to-1:to,next.length));
     next.splice(at,0,item);
-    const saved=await db.rpc('reorder_my_routine_exercises_atomic',{p_day_id:String(activeWorkout.day.id),p_exercise_ids:next.map(x=>String(x.id))});
+    const saved=await db.rpc('reorder_my_routine_exercises_atomic',{p_day_id:String(workout.day.id),p_exercise_ids:next.map(x=>String(x.id))});
     if(saved.error)throw saved.error;
-    const verify=await db.from('routine_exercises').select('id').eq('day_id',activeWorkout.day.id).order('exercise_order',{ascending:true});
+    const verify=await db.from('routine_exercises').select('id').eq('day_id',workout.day.id).order('exercise_order',{ascending:true});
     if(verify.error)throw verify.error;
     const ids=(verify.data||[]).map(x=>String(x.id));
     if(ids.join('|')!==next.map(x=>String(x.id)).join('|'))throw new Error('Orden de ejercicios no verificado');
-    activeWorkout.exercises=next;
+    if(activeWorkout!==workout)return;
+    workout.exercises=next;
     // Stay in reorder mode so consecutive exercises can be moved without
     // pressing "Reordenar" again.
     activeWorkout.reordering=true;
@@ -7100,32 +7121,10 @@ function workoutReorderOver(e){
 async function workoutReorderDrop(e,target){
   if(!__workoutReorderDrag)return;
   e.preventDefault();e.stopPropagation();
-  const from=Number(__workoutReorderDrag.index),to=Number(target);
-  workoutReorderEnd();
-  if(!Number.isInteger(from)||!Number.isInteger(to)||from===to||from+1===to)return;
-  if(window.__workoutExerciseReordering)return;
-  window.__workoutExerciseReordering=true;
-  try{
-    const next=activeWorkout.exercises.slice();
-    if(from<0||from>=next.length)throw new Error('Índice inválido');
-    const [item]=next.splice(from,1);
-    const at=Math.max(0,Math.min(from<to?to-1:to,next.length));
-    next.splice(at,0,item);
-    const saved=await db.rpc('reorder_my_routine_exercises_atomic',{p_day_id:String(activeWorkout.day.id),p_exercise_ids:next.map(x=>String(x.id))});
-    if(saved.error)throw saved.error;
-    const verify=await db.from('routine_exercises').select('id')
-      .eq('day_id',activeWorkout.day.id).order('exercise_order',{ascending:true});
-    if(verify.error)throw verify.error;
-    const dbIds=(verify.data||[]).map(x=>String(x.id));
-    if(dbIds.join('|')!==next.map(x=>String(x.id)).join('|'))
-      throw new Error('Orden de ejercicios no verificado');
-    activeWorkout.exercises=next;
-    activeWorkout.reordering=true;
-    renderWorkoutDay();
-    toast('Orden de ejercicios guardado');
-  }catch(err){console.error('exercise reorder:',err);toast('No se pudo guardar el orden');}
-  finally{window.__workoutExerciseReordering=false;}
+  const from=Number(__workoutReorderDrag.index);workoutReorderEnd();
+  await workoutReorderCommit(from,Number(target));
 }
+
 function updateSet(id,i,field,value){
   if(activeWorkout.locked&&!activeWorkout.editing)return;
   const arr=activeWorkout.sets[id];
