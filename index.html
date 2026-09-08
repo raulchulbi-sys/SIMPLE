@@ -2480,6 +2480,12 @@ label{
 }
 </style>
 <meta name="simple-build" content="daily-progress-notes-restored-2026-09-04-v2">
+<style id="simple-ux-mobile-inputs">
+@media(max-width:650px), (pointer:coarse){
+  #trainBody .setrow input, #trainBody textarea, .history-edit-input, #auth input{font-size:16px!important}
+  .sheet{max-height:90dvh}
+}
+</style>
 </head>
 <body>
 <div id="auth" class="auth"><div class="authbox"><h1 class="simple-login-logo"><span>S</span>IMPLE</h1><p id="authText">Accede a tus rutinas y entrenamiento.</p>
@@ -2493,14 +2499,14 @@ label{
     <span>👤 Cliente</span>
   </label>
 </div>
-<input id="email" type="email" placeholder="Correo electrónico"><div class="password-wrap">
-  <input id="password" type="password" placeholder="Contraseña" autocomplete="current-password">
+<input id="email" aria-label="Correo electrónico" autocomplete="username" autocapitalize="none" type="email" placeholder="Correo electrónico"><div class="password-wrap">
+  <input id="password" aria-label="Contraseña" type="password" placeholder="Contraseña" autocomplete="current-password">
   <button type="button" id="passwordToggle" class="password-eye" aria-label="Mostrar contraseña" aria-pressed="false" onclick="toggleLoginPassword()"><svg class="password-eye-icon" viewBox="0 0 24 24" aria-hidden="true">
     <path d="M3 3l18 18"></path>
     <path d="M10.6 5.1C11.1 5 11.5 5 12 5c6.2 0 9.8 7 9.8 7a17 17 0 0 1-3.2 3.7"></path>
     <path d="M6.4 6.5C3.8 8.3 2.2 12 2.2 12s3.6 7 9.8 7c1.4 0 2.7-.3 3.8-.8"></path>
   </svg></button>
-</div><button type="button" id="forgotBtn" class="btn" style="margin-top:8px">¿Has olvidado tu contraseña?</button><button type="button" id="authBtn" class="btn primary">Iniciar sesión</button><button type="button" id="authSwitch" class="btn">Crear cuenta</button><div id="authMsg" class="msg"></div></div></div>
+</div><button type="button" id="forgotBtn" class="btn" style="margin-top:8px">¿Has olvidado tu contraseña?</button><button type="button" id="authBtn" class="btn primary">Iniciar sesión</button><button type="button" id="authSwitch" class="btn">Crear cuenta</button><div id="authMsg" class="msg" role="status"></div></div></div>
 <div id="app" style="display:none"><div class="wrap"><header><div><h1>SIMPLE</h1><div class="sub"><span id="role"></span> · <span id="mail"></span></div></div><div class="actions"><button class="btn" onclick="shareHeaderOpen()">Compartir</button><button class="btn" onclick="logout()">Salir</button></div></header>
 <div id="tabs" class="tabs"></div>
 <div id="mine"></div>
@@ -2619,6 +2625,7 @@ const $=id=>document.getElementById(id),esc=x=>String(x??'').replace(/[&<>"']/g,
 function toast(x){const el=$('toast');el.textContent=x;el.style.display='block';el.setAttribute('role','status');clearTimeout(window._t);window._t=setTimeout(()=>{el.style.display='none'},2200)}function closeM(id){
   if(id==='trainModal')window.__workoutContextVersion=(window.__workoutContextVersion||0)+1;
   $(id).classList.remove('show');
+  if($(id).dataset)delete $(id).dataset.requestToken;
   if(id==='editModal'){editorDragCleanup();dragEndItem();}
   if(id==='trainModal'){finishOpenDayPointerDrag();workoutReorderEnd();}
   // `activeWorkout` is a top-level `let`, so it is not exposed on `window`.
@@ -2639,10 +2646,14 @@ function toast(x){const el=$('toast');el.textContent=x;el.style.display='block';
   if(id!=='resetModal')setNestedView(true);
 }
 async function openWorkoutHistory(){
+  const isCurrent=beginModalRequest('trainModal');
+  const routine=workoutRoutine;
   try{
-    await loadHistory(workoutRoutine?.id);
+    await loadHistory(routine?.id,isCurrent);
+    if(!isCurrent()||workoutRoutine!==routine)return;
     showHistory();
   }catch(e){
+    if(!isCurrent())return;
     console.error('openWorkoutHistory:',e);
     toast('No se pudo cargar el historial.');
   }
@@ -3857,6 +3868,12 @@ function setupClientProgressChart(sessions){
   rebuildExercises();
 }
 
+function beginModalRequest(id){
+  const modal=$(id), owner=user, ownerId=user?.id, version=window.__workoutContextVersion;
+  const token=String(window.__modalRequestSequence=(window.__modalRequestSequence||0)+1);
+  modal.dataset.requestToken=token;
+  return ()=>user===owner&&user?.id===ownerId&&window.__workoutContextVersion===version&&modal.classList.contains('show')&&modal.dataset.requestToken===token;
+}
 async function openRoutineProgress(routineId){
   if(!user?.id)return toast('Debes iniciar sesión.');
   const routine=routines.find(r=>String(r.id)===String(routineId));
@@ -3868,6 +3885,7 @@ async function openRoutineProgress(routineId){
   subtitle.textContent='Cargando tu historial...';
   body.innerHTML='<div class="muted">Cargando sesiones...</div>';
   openM('clientProgressModal');
+  const isCurrent=beginModalRequest('clientProgressModal');
   setNestedView(true);
   setTimeout(()=>{window.fixProgressExerciseSelector?.(); document.getElementById('clientProgressExercise')?.dispatchEvent(new Event('change',{bubbles:true}));},0);
   try{
@@ -3880,12 +3898,14 @@ async function openRoutineProgress(routineId){
       .order('workout_date',{ascending:false});
     const daysPromise=days(routineId);
     const [r,orderedRoutineDaysResult]=await Promise.all([workoutsPromise,daysPromise.catch(e=>({error:e,data:[]}))]);
+    if(!isCurrent())return;
     if(r.error)throw r.error;
     const sessions=(r.data||[]).filter(session=>{
       const d=session?.data||{};
       const rid=d.routine_id ?? d.routineId ?? null;
       return rid!=null && String(rid)===requestedRoutineId;
     });
+    if(!isCurrent())return;
     if(!sessions.length){
       body.innerHTML='<div class="empty">Todavía no tienes sesiones registradas de esta rutina.</div>';
       subtitle.textContent='0 sesiones registradas';
@@ -3948,6 +3968,7 @@ async function openRoutineProgress(routineId){
     clientProgressChartState.currentExerciseNamesById=Object.fromEntries((orderedRoutineDays||[]).flatMap(d=>(d.exercises||[]).map(e=>[String(e.id),String(e.name||'').trim()]).filter(([id,name])=>id&&name)));
     setupClientProgressChart(sessions);
   }catch(e){
+    if(!isCurrent())return;
     console.error('openRoutineProgress:',e);
     body.innerHTML='<div class="error">No se pudo cargar tu progreso.</div>';
   }
@@ -4261,9 +4282,11 @@ function backToClientRoutineSessions(){
 
 async function saveClientRoutineEditor(){
   if(!window.__clientRoutineEdit?.routineId)return;
+  const state=window.__clientRoutineEdit;
   // saveEditor() is the single persistence path, so both trainer-owned
   // routines and client-assigned routines use identical database semantics.
-  await saveEditor(window.__clientRoutineEdit.routineId);
+  await saveEditor(state.routineId);
+  if(window.__clientRoutineEdit!==state)return;
   window.__clientRoutineEdit.dayIndex=null;
   window.__clientRoutineEdit.reorder=false;
   window.__clientRoutineEdit.exerciseReorder=false;
@@ -4280,12 +4303,14 @@ async function openClientRoutineProgress(clientId,routineId,routineName){
   body.innerHTML='<div class="muted">Cargando sesiones...</div>';
   closeM('clientModal');
   openM('clientProgressModal');
+  const isCurrent=beginModalRequest('clientProgressModal');
 
   try{
     const r=await db.rpc('get_client_routine_history',{
       p_client_id:String(clientId),
       p_routine_id:String(routineId)
     });
+    if(!isCurrent())return;
     if(r.error)throw r.error;
 
     // El RPC debe devolver solo la rutina solicitada, pero hacemos una segunda
@@ -4310,8 +4335,9 @@ async function openClientRoutineProgress(clientId,routineId,routineName){
         p_client_id:String(clientId),
         p_routine_id:requestedRoutineId
       });
+      if(!isCurrent())return;
       if(!nq.error)clientRoutineNotes=nq.data||[];
-    }catch(e){console.warn('No se pudieron cargar las notas del cliente:',e)}
+    }catch(e){if(!isCurrent())return;console.warn('No se pudieron cargar las notas del cliente:',e)}
     const notesByExercise=new Map();
     for(const n of clientRoutineNotes){
       const k=simpleNormalizeNoteKey(n.exercise_key);
@@ -4324,6 +4350,7 @@ async function openClientRoutineProgress(clientId,routineId,routineName){
     try{ orderedRoutineDays=await days(routineId); }
     catch(e){ console.warn('No se pudo cargar el orden de los días:',e); }
 
+    if(!isCurrent())return;
     if(!sessions.length){
       body.innerHTML='<div class="empty">El cliente todavía no tiene sesiones registradas de esta rutina.</div>';
       return;
@@ -4421,6 +4448,7 @@ async function openClientRoutineProgress(clientId,routineId,routineName){
     clientProgressChartState.currentExerciseNamesById=Object.fromEntries((orderedRoutineDays||[]).flatMap(d=>(d.exercises||[]).map(e=>[String(e.id),String(e.name||'').trim()]).filter(([id,name])=>id&&name)));
     setupClientProgressChart(sessions);
   }catch(e){
+    if(!isCurrent())return;
     console.error('openClientRoutineProgress:',e);
     const msg=String(e?.message||'');
     body.innerHTML=msg.includes('get_client_routine_history')
@@ -4432,22 +4460,6 @@ async function openClientRoutineProgress(clientId,routineId,routineName){
 async function openClientProfile(clientId){
   if(!user?.id)return toast('Debes iniciar sesión.');
   const cid=String(clientId);
-
-  // Always refresh this client's assignments directly from Supabase.
-  const aq=await db.from('routine_assignments')
-    .select('id,client_id,trainer_id,trainer_routine_id,client_routine_id,created_at,client_deleted_at')
-    .eq('trainer_id',user.id)
-    .eq('client_id',cid)
-    .order('created_at',{ascending:false});
-
-  if(aq.error){
-    console.error('openClientProfile assignments:',aq.error);
-    return toast('No se pudieron cargar las rutinas del cliente.');
-  }
-
-  const clientAssignments=aq.data||[];
-  if(!clientAssignments.length)return toast('Este cliente ya no tiene rutinas asignadas.');
-
   const title=$('clientModalTitle'), subtitle=$('clientModalSubtitle'), body=$('clientModalBody');
   if(!title||!body)return;
 
@@ -4456,6 +4468,26 @@ async function openClientProfile(clientId){
   body.innerHTML='<div class="muted">Cargando información...</div>';
   openM('clientModal');
   setNestedView(true);
+
+  const isCurrent=beginModalRequest('clientModal');
+
+  // Always refresh this client's assignments directly from Supabase.
+  const aq=await db.from('routine_assignments')
+    .select('id,client_id,trainer_id,trainer_routine_id,client_routine_id,created_at,client_deleted_at')
+    .eq('trainer_id',user.id)
+    .eq('client_id',cid)
+    .order('created_at',{ascending:false});
+
+  if(!isCurrent())return;
+  if(aq.error){
+    console.error('openClientProfile assignments:',aq.error);
+    body.innerHTML='<div class="error">No se pudieron cargar las rutinas del cliente.</div>';
+    return;
+  }
+
+  const clientAssignments=aq.data||[];
+  if(!clientAssignments.length){subtitle.textContent='';body.innerHTML='<div class="empty">Este cliente ya no tiene rutinas asignadas.</div>';return;}
+
 
   try{
     // The profile name and assigned routines are independent reads. Fetch them
@@ -4485,6 +4517,7 @@ async function openClientProfile(clientId){
         : Promise.resolve({data:[],error:null})
     ]);
 
+    if(!isCurrent())return;
     const name=nameResult||'Cliente';
     title.textContent=name;
     subtitle.textContent=`${clientAssignments.length} rutina${clientAssignments.length===1?'':'s'} asignada${clientAssignments.length===1?'':'s'}`;
@@ -4521,6 +4554,7 @@ async function openClientProfile(clientId){
     }
     const profileWeekly=await getWeeklyRoutineProgressForUser(cid,profileRoutineIds,profileAliases,profileNames);
 
+    if(!isCurrent())return;
     body.innerHTML=`
       <div class="card" style="margin:0 0 12px">
         <div class="muted">Rutinas asignadas</div>
@@ -4541,6 +4575,7 @@ async function openClientProfile(clientId){
           </div>
         </div>`).join('')}`;
   }catch(e){
+    if(!isCurrent())return;
     console.error('openClientProfile:',e);
     body.innerHTML='<div class="error">No se pudo cargar el perfil del cliente.</div>';
   }
@@ -6166,6 +6201,9 @@ async function saveEditedWorkout(id){
   if(window.__savingEditedWorkout)return;
   const session=(window.workoutHistory||[]).find(x=>String(x.id)===String(id));
   if(!session)return toast('Sesión no encontrada.');
+  const currentModal=beginModalRequest('trainModal'), history=window.workoutHistory;
+  const editing=window.__editingWorkout;
+  const isCurrent=()=>currentModal()&&window.workoutHistory===history&&window.__editingWorkout===editing;
 
   window.__savingEditedWorkout=true;
   try{
@@ -6196,6 +6234,7 @@ async function saveEditedWorkout(id){
         p_workout_id:String(id),
         p_data:data
       });
+      if(!isCurrent())return;
       if(r.error)throw r.error;
 
       // Keep the currently displayed client history in sync without calling
@@ -6212,6 +6251,7 @@ async function saveEditedWorkout(id){
         .eq('user_id',user.id)
         .select('id,user_id,variant,day,workout_date,data')
         .single();
+      if(!isCurrent())return;
       if(r.error)throw r.error;
       const pos=(window.workoutHistory||[]).findIndex(x=>String(x.id)===String(id));
       if(pos>=0)window.workoutHistory[pos]=r.data;
@@ -6223,6 +6263,7 @@ async function saveEditedWorkout(id){
     if(el)el.open=true;
     toast('Cambios guardados correctamente');
   }catch(e){
+    if(!isCurrent())return;
     console.error('saveEditedWorkout:',e);
     toast('No se pudieron guardar los cambios: '+(e.message||'error'));
   }finally{
@@ -6493,7 +6534,7 @@ async function startWorkoutDay(dayId){
       // compartida ese objeto puede terminar de hidratarse después de abrir
       // el día. Traemos todas las notas del usuario y luego priorizamos la
       // familia de la rutina actual. Así PC y móvil leen la misma fuente.
-      persistentNotes=(q.data||[]).filter(r=>String(r.note??'').trim());
+      persistentNotes=(q.data||[]).filter(r=>routineIds.includes(String(r.routine_id)));
     }catch(e){if(!isCurrent())return;console.warn('No se pudieron cargar las notas persistentes:',e)}
     const familyIds=new Set([String(workoutRoutine?.id||''),String(workoutRoutine?.source_routine_id||''),String(workoutRoutine?.trainer_routine_id||'')].filter(Boolean));
     persistentNotes.sort((a,b)=>{
@@ -6513,7 +6554,7 @@ async function startWorkoutDay(dayId){
       const localByName=Object.keys(localNotes).find(k=>simpleNormalizeNoteKey(k)===nk);
       const localNameNote=localByName!==undefined?String(localNotes[localByName]??''):'';
       const legacyNote=String(e.notes??'');
-      base.note=persistentNote.trim()?persistentNote:(legacyNote.trim()?legacyNote:(localNote.trim()?localNote:localNameNote));
+      base.note=persistentByKey.has(nk)?persistentByKey.get(nk):(legacyNote.trim()?legacyNote:(localNote.trim()?localNote:localNameNote));
       activeWorkout.sets[e.id]=base;
     }
 
@@ -6558,7 +6599,7 @@ async function startWorkoutDay(dayId){
 
       for(const e of activeWorkout.exercises){
         const current=String(activeWorkout.sets[e.id]?.note??'');
-        if(current.trim())continue;
+        if(current.trim()||persistentByKey.has(simpleNormalizeNoteKey(e.name)))continue;
         const oldNote=historicalNotes.get(simpleNormalizeNoteKey(e.name));
         if(oldNote){
           activeWorkout.sets[e.id].note=oldNote;
@@ -6815,10 +6856,10 @@ function renderWorkoutDay(){
         <div class="setrow" style="font-size:11px;color:var(--muted)"><span>Serie</span><span>KG</span><span>REPS</span><span>RIR</span><span>✓</span></div>
         ${state.map((st,si)=>`<div class="setrow">
           <span>${si+1}</span>
-          <input inputmode="decimal" placeholder="0" value="${esc(st.kg)}"${dis} oninput="updateSet('${key}',${si},'kg',this.value)">
-          <input inputmode="numeric" placeholder="0" value="${esc(st.reps)}"${dis} oninput="updateSet('${key}',${si},'reps',this.value)">
-          <input inputmode="numeric" placeholder="0" min="0" max="10" value="${esc(st.rir)}"${dis} oninput="updateSet('${key}',${si},'rir',this.value)">
-          <button class="tick ${st.done?'done':''}"${locked&&!editing?' disabled':''} onclick="toggleSet('${key}',${si})">${st.done?'✓':'○'}</button>
+          <input aria-label="KG · ${esc(e.name)} · serie ${si+1}" inputmode="decimal" placeholder="0" value="${esc(st.kg)}"${dis} oninput="updateSet('${key}',${si},'kg',this.value)">
+          <input aria-label="Repeticiones · ${esc(e.name)} · serie ${si+1}" inputmode="numeric" placeholder="0" value="${esc(st.reps)}"${dis} oninput="updateSet('${key}',${si},'reps',this.value)">
+          <input aria-label="RIR · ${esc(e.name)} · serie ${si+1}" inputmode="numeric" placeholder="0" min="0" max="10" value="${esc(st.rir)}"${dis} oninput="updateSet('${key}',${si},'rir',this.value)">
+          <button aria-label="Completar serie ${si+1} de ${esc(e.name)}" aria-pressed="${!!st.done}" class="tick ${st.done?'done':''}"${locked&&!editing?' disabled':''} onclick="toggleSet('${key}',${si})">${st.done?'✓':'○'}</button>
           ${editing&&!locked?`<button class="set-remove" type="button" onclick="removeWorkoutSet('${key}',${si})">×</button>`:''}
         </div>`).join('')}
       </div>
@@ -6838,7 +6879,7 @@ function renderWorkoutDay(){
         <button class="btn" type="button" onclick="addWorkoutSet('${key}')">+ Añadir serie</button>
       </div>`:''}
       <div style="margin-top:12px"><label>Notas del ejercicio</label>
-        <textarea placeholder="Escribe aquí..."${dis} oninput="updateExerciseNote('${key}',this.value)">${esc(state.note||'')}</textarea></div>
+        <textarea aria-label="Notas de ${esc(e.name)}" placeholder="Escribe aquí..."${dis} oninput="updateExerciseNote('${key}',this.value)">${esc(state.note||'')}</textarea></div>
       ${locked?'<div class="muted" style="margin-top:12px">Sesión guardada hoy · solo lectura</div>':`
         <div class="rest-buttons"><span class="muted">Descanso</span>${[1,2,3,4,5].map(m=>`<button class="btn" onclick="startRestTimer(${m*60})">${m}'</button>`).join('')}</div>`}
     </div>`;
@@ -7185,6 +7226,7 @@ async function workoutReorderDrop(e,target){
 }
 
 function updateSet(id,i,field,value){
+  if(!activeWorkout)return;
   if(activeWorkout.locked&&!activeWorkout.editing)return;
   const arr=activeWorkout.sets[id];
   if(arr&&arr[i]){
@@ -7194,6 +7236,7 @@ function updateSet(id,i,field,value){
 }
 let __noteSaveTimers=new Map();
 function updateExerciseNote(id,value){
+  if(!activeWorkout||!user?.id||!workoutRoutine?.id)return;
   const arr=activeWorkout.sets[id]||(activeWorkout.sets[id]=[]);
   if(activeWorkout.locked)return;
   arr.note=String(value??'');
@@ -7210,36 +7253,41 @@ function updateExerciseNote(id,value){
     }catch(e){console.warn('No se pudo guardar la nota local:',e)}
   }
 
-  // Notes are user-owned routine data, not weekly workout data. Debounce the
-  // database write so typing does not create a request per character.
-  const timer=__noteSaveTimers.get(String(id));
-  if(timer)clearTimeout(timer);
+  const owner=user, ownerId=user.id, routine=workoutRoutine, workout=activeWorkout;
+  const dayId=workout.day.id, version=window.__workoutContextVersion;
+  const routineIds=[routine.id,routine.trainer_routine_id,routine.source_routine_id];
+  const exerciseKey=simpleNormalizeNoteKey(exercise.name),note=arr.note;
+  const timerKey=JSON.stringify([ownerId,routine.id,dayId,id]);
+  const isCurrent=()=>user===owner && user?.id===ownerId && workoutRoutine===routine && activeWorkout===workout &&
+    workout.day?.id===dayId && window.__workoutContextVersion===version && workout.sets[id]===arr && arr.note===note;
+  clearTimeout(__noteSaveTimers.get(timerKey));
   const t=setTimeout(async()=>{
-    __noteSaveTimers.delete(String(id));
-    try{
-      const exerciseKey=simpleNormalizeNoteKey(exercise.name);
-      if(!exerciseKey)return;
-      const assignedRoutineIds=(assignments||[])
-        .filter(a=>String(a.client_id||user?.id)===String(user?.id))
-        .flatMap(a=>[a.trainer_routine_id,a.client_routine_id])
-        .filter(Boolean)
-        .map(String);
-      const noteRoutineIds=[...new Set([
-        String(workoutRoutine?.id||''),
-        String(workoutRoutine?.trainer_routine_id||''),
-        String(workoutRoutine?.source_routine_id||''),
-        ...assignedRoutineIds
-      ].filter(Boolean))];
-      const q=await Promise.all(noteRoutineIds.map(rid=>db.from('routine_user_notes').upsert({
-        user_id:user.id,routine_id:rid,exercise_key:exerciseKey,note:arr.note,updated_at:new Date().toISOString()
-      },{onConflict:'user_id,routine_id,exercise_key'})));
-      const bad=q.find(x=>x.error);
-      if(bad?.error)throw bad.error;
-    }catch(e){console.warn('No se pudo guardar la nota persistente:',e)}
+    __noteSaveTimers.delete(timerKey);
+    if(!isCurrent())return;
+    try{await persistExerciseNote(ownerId,routineIds,exerciseKey,note,isCurrent);}
+    catch(e){if(isCurrent())toast('Nota guardada en este dispositivo. No se pudo sincronizar.');console.warn('Nota pendiente:',e);}
   },350);
-  __noteSaveTimers.set(String(id),t);
+  __noteSaveTimers.set(timerKey,t);
 }
+// Serialize writes to the same note so a slower old request cannot win.
+const __noteWriteChains=new Map();
+async function persistExerciseNote(userId,routineIds,exerciseKey,note,isCurrent){
+  if(!exerciseKey)return;
+  await Promise.all([...new Set(routineIds.filter(Boolean).map(String))].map(routineId=>{
+    const key=JSON.stringify([userId,routineId,exerciseKey]);
+    const previous=__noteWriteChains.get(key)||Promise.resolve();
+    const pending=previous.catch(()=>{}).then(async()=>{
+      if(!isCurrent())return;
+      const q=await db.from('routine_user_notes').upsert({user_id:userId,routine_id: routineId,exercise_key:exerciseKey,note,updated_at:new Date().toISOString()},{onConflict:'user_id,routine_id,exercise_key'});
+      if(q.error)throw q.error;
+    });
+    __noteWriteChains.set(key,pending);
+    return pending.finally(()=>{if(__noteWriteChains.get(key)===pending)__noteWriteChains.delete(key);});
+  }));
+}
+
 function toggleSet(id,i){
+  if(!activeWorkout)return;
   if(activeWorkout.locked)return;
   const arr=activeWorkout.sets[id]; if(!arr||!arr[i])return;
   arr[i].done=!arr[i].done;
@@ -7252,7 +7300,7 @@ function toggleSet(id,i){
     if(card){
       const buttons=card.querySelectorAll('.tick');
       const btn=buttons[i];
-      if(btn){btn.classList.toggle('done',arr[i].done);btn.textContent=arr[i].done?'✓':'○';}
+      if(btn){btn.classList.toggle('done',arr[i].done);btn.textContent=arr[i].done?'✓':'○';btn.setAttribute('aria-pressed',String(arr[i].done));}
     }
   }
 }
@@ -7384,6 +7432,13 @@ async function saveWorkoutSession(){
   if(!workoutRoutine?.id||!activeWorkout?.day?.id)return toast('No hay un entrenamiento activo.');
   if(activeWorkout.locked)return toast('Este entrenamiento ya está guardado hoy.');
 
+  const owner=user, routine=workoutRoutine, workout=activeWorkout;
+  const ownerId=user.id, routineId=routine.id, dayId=workout.day.id;
+  const version=window.__workoutContextVersion;
+  const stateKey=()=>JSON.stringify([workout.day,workout.exercises,Object.entries(workout.sets||{}).map(([id,rows])=>[id,rows,rows?.note])]);
+  const initialState=stateKey();
+  const isCurrent=()=>user===owner && user?.id===ownerId && workoutRoutine===routine && routine.id===routineId &&
+    activeWorkout===workout && workout.day?.id===dayId && window.__workoutContextVersion===version && stateKey()===initialState;
   const today=simpleLocalDateKey();
   const currentKey=`${user.id}|${workoutRoutine.id}|${activeWorkout.day.id}|${today}`;
   if(window.__lastSavedWorkoutKey===currentKey){
@@ -7404,6 +7459,7 @@ async function saveWorkoutSession(){
       .eq('data->>routine_day_id',String(activeWorkout.day.id))
       .limit(1);
 
+    if(!isCurrent())return;
     if(existing.error)throw existing.error;
 
     if((existing.data||[]).length){
@@ -7452,32 +7508,22 @@ async function saveWorkoutSession(){
     };
 
     const r=await db.from('workouts').insert(payload).select().single();
+    if(!isCurrent())return;
     if(r.error)throw r.error;
 
     // Notes belong to the user's routine and persist across weeks/devices.
     // Never use the weekly workout row as the only source of truth.
+    let noteFailure=false;
     const noteWrites=(activeWorkout.exercises||[]).map(async e=>{
       const note=String(activeWorkout.sets[e.id]?.note??'');
       const exerciseKey=simpleNormalizeNoteKey(e.name);
       if(!exerciseKey)return;
-      const assignedRoutineIds=(assignments||[])
-        .filter(a=>String(a.client_id||user?.id)===String(user?.id))
-        .flatMap(a=>[a.trainer_routine_id,a.client_routine_id])
-        .filter(Boolean)
-        .map(String);
-      const noteRoutineIds=[...new Set([
-        String(workoutRoutine?.id||''),
-        String(workoutRoutine?.trainer_routine_id||''),
-        String(workoutRoutine?.source_routine_id||''),
-        ...assignedRoutineIds
-      ].filter(Boolean))];
-      const nq=await Promise.all(noteRoutineIds.map(rid=>db.from('routine_user_notes').upsert({
-        user_id:user.id,routine_id:rid,exercise_key:exerciseKey,note,updated_at:new Date().toISOString()
-      },{onConflict:'user_id,routine_id,exercise_key'})));
-      const bad=nq.find(x=>x.error);
-      if(bad?.error)console.warn('No se pudo persistir la nota del ejercicio:',e.name,bad.error);
+      try{
+        await persistExerciseNote(ownerId,[routine.id,routine.trainer_routine_id,routine.source_routine_id],exerciseKey,note,isCurrent);
+      }catch(error){console.warn('Nota pendiente de sincronizar:',error);noteFailure=true;}
     });
     await Promise.all(noteWrites);
+    if(!isCurrent())return;
 
     // Trainer notes remain part of the shared routine template. A client note
     // is never written into routine_exercises and can therefore not overwrite
@@ -7487,9 +7533,11 @@ async function saveWorkoutSession(){
         const note=String(activeWorkout.sets[e.id]?.note??'');
         const nq=await db.from('routine_exercises').update({notes:note||null})
           .eq('id',e.id).eq('day_id',activeWorkout.day.id);
-        if(nq.error)console.warn('No se pudo actualizar la nota compartida:',e.name,nq.error);
+        if(!isCurrent())return;
+        if(nq.error){noteFailure=true;console.warn('No se pudo actualizar la nota compartida:',e.name,nq.error);}
       });
       await Promise.all(globalWrites);
+      if(!isCurrent())return;
     }
 
     window.__lastSavedWorkoutKey=currentKey;
@@ -7500,38 +7548,27 @@ async function saveWorkoutSession(){
     activeWorkout.locked=true;
     activeWorkout.lockedSession=r.data||null;
 
-    toast('Sesión guardada correctamente');
-    // Actualiza la barra visible inmediatamente, sin recargar la página.
-    try{
-      if(profile?.role==='trainer'){
-        const mineBox=document.getElementById('mine');
-        if(mineBox && getComputedStyle(mineBox).display!=='none') await renderMine();
-        const sharedBox=document.getElementById('shared');
-        if(sharedBox && getComputedStyle(sharedBox).display!=='none') await renderShared();
-      }else{
-        const sharedBox=document.getElementById('shared');
-        if(sharedBox && getComputedStyle(sharedBox).display!=='none') await renderShared();
-      }
-    }catch(e){console.warn('weekly progress refresh:',e)}
+    toast(noteFailure?'Sesión guardada. Algunas notas no se han sincronizado.':'Sesión guardada correctamente');
     // La sesión ya está guardada: cerramos el entrenamiento y volvemos
     // automáticamente al menú principal correspondiente. Al marcarla como
     // bloqueada antes de cerrar evitamos que closeM() cree un borrador.
     try{
-      await loadHistory(workoutRoutine?.id);
+      await loadHistory(routineId,isCurrent);
+      if(!isCurrent())return;
     }catch(refreshErr){
       console.warn('Sesión guardada, pero no se pudo refrescar el historial:',refreshErr);
     }
+    if(!isCurrent())return;
     activeWorkout.locked=true;
     activeWorkout=null;
     closeM('trainModal');
     if(profile?.role==='trainer'){
-      await renderMine();
       view('mine');
     }else{
-      await renderShared();
       view('shared');
     }
   }catch(e){
+    if(!isCurrent())return;
     console.error('saveWorkoutSession:',e);
 
     if(e?.code==='23505'){
@@ -7987,7 +8024,9 @@ async function renderShared(){
   $('shared').innerHTML=h;
 }
 async function openSharedRoutine(id){
-  window.__workoutContextVersion=(window.__workoutContextVersion||0)+1;
+  const version=window.__workoutContextVersion=(window.__workoutContextVersion||0)+1;
+  const owner=user;
+  const isCurrent=()=>user===owner&&window.__workoutContextVersion===version;
   let routineId=String(id);
   let assignment=null;
 
@@ -7999,6 +8038,7 @@ async function openSharedRoutine(id){
   let r=await db.from('routines')
     .select('id,name,description,share_code,source_routine_id,owner_id,created_at')
     .eq('id',routineId).maybeSingle();
+  if(!isCurrent())return;
 
   // If the assignment has a client copy but it is unavailable, fall back to
   // the trainer routine. This is the normal path for existing assignments.
@@ -8007,6 +8047,7 @@ async function openSharedRoutine(id){
     r=await db.from('routines')
       .select('id,name,description,share_code,source_routine_id,owner_id,created_at')
       .eq('id',routineId).maybeSingle();
+    if(!isCurrent())return;
   }
 
   if(r.error||!r.data)return toast('No se pudo abrir la rutina restaurada. La asignación sí se ha conservado.');
@@ -8020,6 +8061,7 @@ async function openSharedRoutine(id){
   });
   try{
     const d=await days(routineId);
+    if(!isCurrent())return;
     $('trainTitle').textContent=original.name;
     $('trainSubtitle').textContent='Rutina compartida por tu entrenador.';
     $('trainBody').innerHTML=d.length?`
@@ -8030,7 +8072,7 @@ async function openSharedRoutine(id){
         </button>`).join('')}
       </div>`:'<div class="empty">Esta rutina todavía no tiene días.</div>';
     openM('trainModal');
-  }catch(e){console.error('openSharedRoutine:',e);toast('La rutina existe, pero no se pudieron cargar sus sesiones.');}
+  }catch(e){if(!isCurrent())return;console.error('openSharedRoutine:',e);toast('La rutina existe, pero no se pudieron cargar sus sesiones.');}
 }
 
 
