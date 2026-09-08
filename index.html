@@ -2617,6 +2617,7 @@ let workoutRoutine=null,__dragItem=null;
 let __mineRenderToken=0,__editorOrderSaving=false;
 const $=id=>document.getElementById(id),esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
 function toast(x){const el=$('toast');el.textContent=x;el.style.display='block';el.setAttribute('role','status');clearTimeout(window._t);window._t=setTimeout(()=>{el.style.display='none'},2200)}function closeM(id){
+  if(id==='trainModal')window.__workoutContextVersion=(window.__workoutContextVersion||0)+1;
   $(id).classList.remove('show');
   if(id==='editModal'){editorDragCleanup();dragEndItem();}
   if(id==='trainModal'){finishOpenDayPointerDrag();workoutReorderEnd();}
@@ -3017,7 +3018,7 @@ async function bootstrapAuthSession(){
 (async()=>{ await bootstrapAuthSession(); })();
 
 db.auth.onAuthStateChange((event, session)=>{
-  if(event==='SIGNED_OUT'){if(user?.id)location.reload();return;}
+  if(event==='SIGNED_OUT'){window.__workoutContextVersion=(window.__workoutContextVersion||0)+1;if(user?.id)location.reload();return;}
   setTimeout(()=>handleAuthStateChange(event,session),0);
 });
 async function handleAuthStateChange(event,session){
@@ -3121,7 +3122,7 @@ async function updateTrashIconState(){
   }
 }
 
-async function logout(){await db.auth.signOut();location.reload()}
+async function logout(){window.__workoutContextVersion=(window.__workoutContextVersion||0)+1;await db.auth.signOut();location.reload()}
 async function reload(){
   if(!user) throw new Error('No hay una sesión activa.');
 
@@ -3373,6 +3374,7 @@ async function restoreClientRoutine(assignmentId){
 
 
 function view(v){
+  window.__workoutContextVersion=(window.__workoutContextVersion||0)+1;
   // All dashboard sections (Mis rutinas, Crear rutina, Mis clientes, etc.)
   // are top-level, so the global navigation must always be visible here.
   setNestedView(false);
@@ -5474,6 +5476,9 @@ async function saveOpenRoutineNote(){
   }
 }
 async function openRoutine(id){
+  const navigationVersion=window.__workoutContextVersion=(window.__workoutContextVersion||0)+1;
+  const navigationUser=user;
+  const navigationCurrent=()=>window.__workoutContextVersion===navigationVersion&&user===navigationUser;
   setNestedView(true);
   window.__openRoutineId=String(id);
   let r=routines.find(x=>String(x.id)===String(id));
@@ -5481,6 +5486,7 @@ async function openRoutine(id){
     const rq=await db.from('routines')
       .select('id,name,description,share_code,source_routine_id,created_at,deleted_at,routine_order')
       .eq('id',id).eq('owner_id',user.id).is('deleted_at',null).maybeSingle();
+    if(!navigationCurrent())return;
     if(rq.error){
       console.error('openRoutine routine fetch:',rq.error);
       return toast('No se pudo cargar la rutina');
@@ -5498,6 +5504,7 @@ async function openRoutine(id){
 
   try{
     const d=await days(id);
+    if(!navigationCurrent())return;
     $('trainTitle').textContent=r.name;
     $('trainSubtitle').textContent='Selecciona el día que vas a entrenar.';
     $('trainBody').innerHTML=d.length?`
@@ -5550,7 +5557,7 @@ async function openRoutine(id){
         </div>
       </div><div class="empty">Esta rutina todavía no tiene días.</div>`;
     openM('trainModal');
-  }catch(e){console.error(e);toast('No se pudo abrir la rutina')}
+  }catch(e){if(!navigationCurrent())return;console.error(e);toast('No se pudo abrir la rutina')}
 }
 
 let __openDayDrag=null;
@@ -5977,7 +5984,7 @@ async function persistClientExerciseOrder(fd,td){
 
 let activeWorkout={day:null,exercises:[],sets:{}};
 
-async function loadHistory(routineId=null){
+async function loadHistory(routineId=null,isCurrent=()=>true){
   let query=db.from('workouts')
     .select('id,user_id,variant,day,workout_date,data')
     .eq('user_id',user.id)
@@ -5990,6 +5997,7 @@ async function loadHistory(routineId=null){
   }
 
   const r=await query;
+  if(!isCurrent())return;
   if(r.error){
     // No ocultamos errores de red/RLS como si el historial estuviera vacío.
     // Los llamadores que necesiten tolerancia ya gestionan el fallo y pueden
@@ -6426,11 +6434,20 @@ function workoutNotesKey(){
 }
 
 async function startWorkoutDay(dayId){
+  if(!user?.id||!workoutRoutine?.id)return;
+  const version=window.__workoutContextVersion=(window.__workoutContextVersion||0)+1;
+  const openingUser=user,openingUserId=user.id,openingRoutine=workoutRoutine,openingRoutineId=workoutRoutine.id;
+  let expectedWorkout=activeWorkout;
+  let expectedState=null;
+  const stateKey=()=>JSON.stringify([expectedWorkout?.day,expectedWorkout?.exercises,
+    Object.entries(expectedWorkout?.sets||{}).map(([id,rows])=>[id,rows,rows?.note]),expectedWorkout?.lockedSession]);
+  const isCurrent=()=>window.__workoutContextVersion===version && user===openingUser && user?.id===openingUserId &&
+    workoutRoutine===openingRoutine && workoutRoutine?.id===openingRoutineId && activeWorkout===expectedWorkout &&
+    (expectedState===null||stateKey()===expectedState);
   try{
     // El día y sus ejercicios son lecturas independientes: cargarlos en
     // paralelo reduce el tiempo de apertura del entrenamiento sin cambiar
     // permisos ni la fuente de verdad.
-    const openingRoutineId=workoutRoutine.id;
     const [d,x,dayList]=await Promise.all([
       db.from('routine_days')
         .select('id,name,day_order')
@@ -6442,12 +6459,13 @@ async function startWorkoutDay(dayId){
         .order('exercise_order'),
       db.from('routine_days').select('id,name').eq('routine_id',openingRoutineId)
     ]);
+    if(!isCurrent())return;
     if(d.error)throw d.error;
     if(x.error)throw x.error;
     if(dayList.error)throw dayList.error;
     if(String(workoutRoutine?.id)!==String(openingRoutineId))return;
 
-    activeWorkout={
+    activeWorkout=expectedWorkout={
       historyDays:dayList.data||[],
       day:d.data,
       exercises:x.data||[],
@@ -6457,6 +6475,7 @@ async function startWorkoutDay(dayId){
       editing:false,
       reordering:false
     };
+    expectedState=stateKey();
 
     // Notas personales persistentes. Nunca dejamos que una fila vacía pise una nota real.
     const notesKey=workoutNotesKey();
@@ -6468,13 +6487,14 @@ async function startWorkoutDay(dayId){
       const q=await db.from('routine_user_notes')
         .select('routine_id,exercise_key,note,updated_at')
         .eq('user_id',String(user.id));
+      if(!isCurrent())return;
       if(q.error)throw q.error;
       // No filtramos la consulta por workoutRoutine.id: al abrir una rutina
       // compartida ese objeto puede terminar de hidratarse después de abrir
       // el día. Traemos todas las notas del usuario y luego priorizamos la
       // familia de la rutina actual. Así PC y móvil leen la misma fuente.
       persistentNotes=(q.data||[]).filter(r=>String(r.note??'').trim());
-    }catch(e){console.warn('No se pudieron cargar las notas persistentes:',e)}
+    }catch(e){if(!isCurrent())return;console.warn('No se pudieron cargar las notas persistentes:',e)}
     const familyIds=new Set([String(workoutRoutine?.id||''),String(workoutRoutine?.source_routine_id||''),String(workoutRoutine?.trainer_routine_id||'')].filter(Boolean));
     persistentNotes.sort((a,b)=>{
       const pa=familyIds.has(String(a.routine_id))?1:0,pb=familyIds.has(String(b.routine_id))?1:0;
@@ -6498,9 +6518,12 @@ async function startWorkoutDay(dayId){
     }
 
     // El historial es auxiliar: si falla, la rutina sigue pudiendo abrirse.
+    expectedState=stateKey();
     try{
-      await loadHistory(workoutRoutine?.id);
+      await loadHistory(openingRoutineId,isCurrent);
+      if(!isCurrent())return;
     }catch(e){
+      if(!isCurrent())return;
       console.warn('Historial no disponible:',e);
       window.workoutHistory=[];
     }
@@ -6593,6 +6616,7 @@ async function startWorkoutDay(dayId){
     if(activeWorkout.locked)toast('Esta sesión ya está guardada hoy');
     else if(recovered)toast('Sesión recuperada');
   }catch(e){
+    if(!isCurrent())return;
     console.error('startWorkoutDay:',e);
     toast('No se pudo cargar el entrenamiento');
   }
@@ -6742,6 +6766,7 @@ function formatStipulatedRest(e){
 }
 
 async function backFromTrainerSession(){
+  window.__workoutContextVersion=(window.__workoutContextVersion||0)+1;
   if(profile?.role!=='trainer'||!workoutRoutine?.id)return;
   activeWorkout=null;
   try{
@@ -6894,7 +6919,25 @@ function removeWorkoutSet(id,index){
   arr.splice(index,1);e.sets=arr.length;renderWorkoutDay();
 }
 async function saveWorkoutRoutineEdits(){
-  if(profile?.role!=='trainer'||!activeWorkout?.day?.id||window.__savingRoutineEdits)return;
+  if(profile?.role!=='trainer'||!user?.id||!workoutRoutine?.id||!activeWorkout?.day?.id)return;
+  if(window.__routineEditsOperation?.isCurrent())return;
+  const context={user,userId:user.id,routine:workoutRoutine,routineId:workoutRoutine.id,
+    workout:activeWorkout,day:activeWorkout.day,dayId:activeWorkout.day.id,
+    session:activeWorkout.lockedSession,sessionId:activeWorkout.lockedSession?.id,
+    locked:activeWorkout.locked,sets:activeWorkout.sets,draftKey:workoutDraftKey(),
+    version:window.__workoutContextVersion||0};
+  const stateKey=()=>JSON.stringify([context.workout.exercises,
+    Object.entries(context.workout.sets||{}).map(([id,rows])=>[id,rows,rows?.note]),context.workout.lockedSession?.data]);
+  const initialState=stateKey();
+  const operation={isCurrent:()=>window.__routineEditsOperation===operation &&
+    (window.__workoutContextVersion||0)===context.version && user===context.user && user?.id===context.userId &&
+    workoutRoutine===context.routine && workoutRoutine?.id===context.routineId && activeWorkout===context.workout &&
+    activeWorkout?.day===context.day && activeWorkout?.day?.id===context.dayId &&
+    activeWorkout?.locked===context.locked && activeWorkout?.lockedSession===context.session &&
+    activeWorkout?.lockedSession?.id===context.sessionId && activeWorkout?.sets===context.sets &&
+    workoutDraftKey()===context.draftKey && stateKey()===initialState};
+  window.__routineEditsOperation=operation;
+  const isCurrent=operation.isCurrent;
   window.__savingRoutineEdits=true;
   try{
     // En una sesión ya completada, el botón Editar puede cambiar DOS cosas:
@@ -6920,6 +6963,7 @@ async function saveWorkoutRoutineEdits(){
         p_day_id:activeWorkout.day.id,
         p_exercises:templatePayload
       });
+      if(!isCurrent())return;
       if(templateSave.error)throw templateSave.error;
 
       const data=JSON.parse(JSON.stringify(activeWorkout.lockedSession.data||{}));
@@ -6960,12 +7004,14 @@ async function saveWorkoutRoutineEdits(){
           p_data:data
         });
       }
+      if(!isCurrent())return;
       if(q.error)throw q.error;
 
       activeWorkout.lockedSession={...activeWorkout.lockedSession,data:q.data?.data||data};
       activeWorkout.editing=false;
       toast('Cambios guardados');
-      await startWorkoutDay(activeWorkout.day.id);
+      await startWorkoutDay(context.dayId);
+      if(!isCurrent())return;
       return;
     }
 
@@ -6990,6 +7036,7 @@ async function saveWorkoutRoutineEdits(){
       p_day_id:activeWorkout.day.id,
       p_exercises:exercisesPayload
     });
+    if(!isCurrent())return;
     if(q.error)throw q.error;
 
     const saved=Array.isArray(q.data)?q.data:[];
@@ -7007,13 +7054,21 @@ async function saveWorkoutRoutineEdits(){
       activeWorkout.sets[newId]=pendingSets;
     }
 
+    saveWorkoutDraft();
     activeWorkout.editing=false;
     toast('Cambios guardados');
-    await startWorkoutDay(activeWorkout.day.id);
+    await startWorkoutDay(context.dayId);
+    if(!isCurrent())return;
   }catch(e){
+    if(!isCurrent())return;
     console.error('saveWorkoutRoutineEdits:',e);
     toast('No se pudieron guardar los cambios');
-  }finally{window.__savingRoutineEdits=false;}
+  }finally{
+    if(window.__routineEditsOperation===operation){
+      window.__routineEditsOperation=null;
+      window.__savingRoutineEdits=false;
+    }
+  }
 }
 
 let workoutReorderRows=[];
@@ -7932,6 +7987,7 @@ async function renderShared(){
   $('shared').innerHTML=h;
 }
 async function openSharedRoutine(id){
+  window.__workoutContextVersion=(window.__workoutContextVersion||0)+1;
   let routineId=String(id);
   let assignment=null;
 
