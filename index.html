@@ -2486,8 +2486,30 @@ label{
   .sheet{max-height:90dvh}
 }
 </style>
+<style>
+.session-delete-exercise{min-height:44px;margin-top:10px}
+#sessionActionModal .sheet,#redeemModal .sheet{width:min(500px,100%);max-height:90dvh;overflow:auto}
+#sessionActionModal .btn,#redeemModal .btn,#addRoutineButton{min-height:44px}
+#sessionActionTitle{overflow-wrap:anywhere}
+#redeemCode{font-size:16px;min-height:48px;width:100%;box-sizing:border-box}
+.session-empty-actions{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+</style>
 </head>
 <body>
+<div class="modal" id="sessionActionModal" role="dialog" aria-modal="true" aria-labelledby="sessionActionTitle">
+ <div class="sheet"><h2 id="sessionActionTitle"></h2><p id="sessionActionText"></p>
+ <p id="sessionActionError" role="alert"></p><div class="buttons">
+ <button class="btn" type="button" onclick="closeM('sessionActionModal')">Cancelar</button>
+ <button class="btn danger" type="button" id="sessionActionConfirm" onclick="confirmSessionExerciseDelete()">Eliminar</button>
+ </div></div></div>
+<div class="modal" id="redeemModal" role="dialog" aria-modal="true" aria-labelledby="redeemTitle">
+ <form class="sheet" onsubmit="event.preventDefault();redeemShareCode()">
+ <h2 id="redeemTitle">Añadir rutina</h2><p>Introduce el código que te ha facilitado tu entrenador.</p>
+ <label for="redeemCode">Código de rutina</label><input id="redeemCode" name="routine-code" autocomplete="off" autocapitalize="characters" spellcheck="false" required>
+ <p id="redeemError" role="alert"></p><div class="buttons">
+ <button class="btn" type="button" onclick="closeM('redeemModal')">Cancelar</button>
+ <button class="btn primary" id="redeemConfirm" type="submit">Vincular rutina</button>
+ </div></form></div>
 <div id="auth" class="auth"><div class="authbox"><h1 class="simple-login-logo"><span>S</span>IMPLE</h1><p id="authText">Accede a tus rutinas y entrenamiento.</p>
 <div class="role-picker">
   <label class="role-option">
@@ -2623,6 +2645,8 @@ let workoutRoutine=null,__dragItem=null;
 let __mineRenderToken=0,__editorOrderSaving=false;
 const $=id=>document.getElementById(id),esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
 function toast(x){const el=$('toast');el.textContent=x;el.style.display='block';el.setAttribute('role','status');clearTimeout(window._t);window._t=setTimeout(()=>{el.style.display='none'},2200)}function closeM(id){
+  if(id==='trainModal' && window.__sessionAction && $('sessionActionModal')?.classList.contains('show'))closeM('sessionActionModal');
+  if(id==='sessionActionModal')window.__sessionAction?.restoreControls?.();
   if(id==='trainModal')window.__workoutContextVersion=(window.__workoutContextVersion||0)+1;
   $(id).classList.remove('show');
   if($(id).dataset)delete $(id).dataset.requestToken;
@@ -6131,6 +6155,101 @@ async function deleteSelectedHistory(){
 }
 
 
+function sessionActionContext(id){
+  const owner=user, ownerId=user?.id, history=window.workoutHistory;
+  const session=(history||[]).find(s=>String(s.id)===String(id));
+  const routine=workoutRoutine, workout=activeWorkout, form=$('trainBody').firstElementChild;
+  const version=window.__workoutContextVersion||0;
+  return {session,isCurrent:()=>!!ownerId&&user===owner&&user?.id===ownerId&&
+    window.workoutHistory===history&&history.includes(session)&&workoutRoutine===routine&&activeWorkout===workout&&
+    (window.__workoutContextVersion||0)===version&&window.__editingWorkout===id&&
+    $('trainModal').classList.contains('show')&&$('trainBody').firstElementChild===form};
+}
+function sessionActionBusy(){
+  return !!(window.__sessionAction?.busy&&window.__sessionAction.isCurrent());
+}
+function requestSessionExerciseDelete(id,index,whole=false){
+  if(window.__savingEditedWorkout||sessionActionBusy())return;
+  const context=sessionActionContext(id), session=context.session;
+  if(!session||!context.isCurrent())return;
+  const exercise=session.data?.exercises?.[index];
+  const exerciseId=exercise?.exercise_id||exercise?.id;
+  if(whole){
+    if(session.user_id!==user.id||(session.data?.exercises||[]).length)return;
+  }else if(!exerciseId)return toast('Este registro no tiene un identificador seguro. No se ha eliminado nada.');
+  const title=whole?'¿Eliminar esta sesión vacía?':`¿Eliminar ${exercise.name||'este ejercicio'} de esta sesión?`;
+  $('sessionActionTitle').textContent=title;
+  $('sessionActionText').textContent=whole?'Esta acción eliminará únicamente la sesión vacía seleccionada.':
+    'Se eliminarán las series registradas de este ejercicio únicamente en esta sesión. El ejercicio seguirá existiendo en tu rutina.';
+  $('sessionActionError').textContent='';
+  $('sessionActionConfirm').disabled=false;
+  $('sessionActionConfirm').textContent='Eliminar';
+  openM('sessionActionModal');
+  const modalCurrent=beginModalRequest('sessionActionModal');
+  window.__sessionAction={...context,id,exerciseId,whole,busy:false,isCurrent:()=>context.isCurrent()&&modalCurrent()};
+}
+function syncSessionObservation(previous,updated){
+  const matches=s=>String(s.id)===String(previous.id)&&String(s.user_id)===String(previous.user_id);
+  window.workoutHistory=(window.workoutHistory||[]).flatMap(s=>matches(s)?(updated?[updated]:[]):[s]);
+  for(const key of ['sessions','filteredSessions']){
+    if(Array.isArray(clientProgressChartState[key]))clientProgressChartState[key]=clientProgressChartState[key].flatMap(s=>matches(s)?(updated?[updated]:[]):[s]);
+  }
+  // Day/period selectors retain these day objects in their event handlers.
+  for(const day of clientProgressChartState.days||[]){
+    day.sessions=(day.sessions||[]).flatMap(s=>matches(s)?(updated?[updated]:[]):[s]);
+  }
+  if(activeWorkout?.lockedSession&&matches(activeWorkout.lockedSession))activeWorkout.lockedSession=updated;
+  if($('clientProgressModal')?.classList.contains('show'))renderClientProgressChart();
+}
+async function confirmSessionExerciseDelete(){
+  const op=window.__sessionAction;
+  if(!op||op.busy||!op.isCurrent())return;
+  op.busy=true;
+  const button=$('sessionActionConfirm');button.disabled=true;button.textContent='Eliminando…';
+  $('sessionActionError').textContent='';
+  // Keep unsaved edits to remaining exercises, keyed by the original array entry.
+  const edits=[];
+  document.querySelectorAll('.history-edit-input,.history-edit-note').forEach(input=>{
+    const original=op.session.data.exercises[Number(input.dataset.editEx)];
+    const field=input.dataset.editField, si=Number(input.dataset.editSet);
+    const initial=field?original?.sets?.[si]?.[field]:original?.notes;
+    if(String(initial??'')!==input.value)edits.push({id:original?.exercise_id||original?.id,si,field,value:input.value});
+  });
+  const controls=[...$('trainBody').querySelectorAll('input,textarea,button')];
+  const disabled=controls.map(el=>el.disabled);controls.forEach(el=>el.disabled=true);
+  op.restoreControls=()=>controls.forEach((el,i)=>{if(el.isConnected)el.disabled=disabled[i];});
+  try{
+    const r=await db.rpc(op.whole?'delete_my_workout':'delete_workout_exercise',op.whole?
+      {p_workout_id:String(op.id)}:{p_workout_id:String(op.id),p_exercise_id:String(op.exerciseId)});
+    if(!op.isCurrent())return;
+    if(r.error)throw r.error;
+    const updated=op.whole?null:r.data;
+    if(!op.whole&&(!updated||String(updated.id)!==String(op.id)||updated.user_id!==op.session.user_id||
+      !Array.isArray(updated.data?.exercises)||updated.data.exercises.some(e=>String(e.exercise_id||e.id)===String(op.exerciseId))))throw Error('unexpected_response');
+    syncSessionObservation(op.session,updated);
+    closeM('sessionActionModal');
+    window.__editingWorkout=null;
+    if(op.whole){showHistory();toast('Sesión vacía eliminada');return;}
+    // editWorkout renders synchronously; no pending navigation is introduced here.
+    editWorkout(op.id);
+    for(const edit of edits){
+      const ei=updated.data.exercises.findIndex(e=>(e.exercise_id||e.id)===edit.id);
+      if(ei<0)continue;
+      const selector=edit.field?`.history-edit-input[data-edit-ex="${ei}"][data-edit-set="${edit.si}"][data-edit-field="${edit.field}"]`:
+        `.history-edit-note[data-edit-ex="${ei}"]`;
+      const input=$('trainBody').querySelector(selector);if(input)input.value=edit.value;
+    }
+    toast(updated.data.exercises.length?'Ejercicio eliminado de esta sesión':'La sesión está vacía. Puedes conservarla o eliminarla.');
+  }catch(e){
+    if(!op.isCurrent())return;
+    $('sessionActionError').textContent='No se ha podido confirmar la eliminación. Inténtalo de nuevo.';
+  }finally{
+    if(op.isCurrent())op.restoreControls();
+    op.busy=false;
+    if(window.__sessionAction===op){button.disabled=false;button.textContent='Eliminar';}
+  }
+}
+
 async function editWorkout(id){
   if(window.__editingWorkout)return;
   const session=(window.workoutHistory||[]).find(x=>String(x.id)===String(id));
@@ -6181,8 +6300,12 @@ async function editWorkout(id){
             <label>Notas del ejercicio</label>
             <textarea class="history-edit-note" data-edit-ex="${ei}">${esc(e.notes??'')}</textarea>
           </div>
+          <button class="btn danger session-delete-exercise" type="button" onclick="requestSessionExerciseDelete('${esc(id)}',${ei})">Eliminar ejercicio</button>
         </div>`;
       }).join('')}
+      ${!exercises.length?`<div class="empty">Esta sesión está vacía.</div><div class="session-empty-actions">
+        <button class="btn" type="button" onclick="cancelEditWorkout('${esc(id)}')">Conservar sesión vacía</button>
+        ${session.user_id===user?.id?`<button class="btn danger" type="button" onclick="requestSessionExerciseDelete('${esc(id)}',0,true)">Eliminar sesión vacía</button>`:''}</div>`:''}
       <div class="buttons" style="justify-content:flex-end;gap:8px">
         <button class="btn" type="button" onclick="cancelEditWorkout('${esc(id)}')">Cancelar</button>
         <button class="btn primary" type="button" onclick="saveEditedWorkout('${esc(id)}')">Guardar cambios</button>
@@ -6198,7 +6321,7 @@ function cancelEditWorkout(id){
 }
 
 async function saveEditedWorkout(id){
-  if(window.__savingEditedWorkout)return;
+  if(window.__savingEditedWorkout || (typeof sessionActionBusy==='function'&&sessionActionBusy()))return;
   const session=(window.workoutHistory||[]).find(x=>String(x.id)===String(id));
   if(!session)return toast('Sesión no encontrada.');
   const currentModal=beginModalRequest('trainModal'), history=window.workoutHistory;
@@ -7967,10 +8090,15 @@ function renderWeeklyRoutineProgress(totalDays,completedDays){
     </div>
   </div>`;
 }
-async function renderShared(){
+async function renderShared(parentCurrent=()=>true){
+  const owner=user,version=window.__workoutContextVersion||0;
+  const token=window.__sharedRenderToken=(window.__sharedRenderToken||0)+1;
+  const isCurrent=()=>parentCurrent()&&user===owner&&(window.__workoutContextVersion||0)===version&&window.__sharedRenderToken===token;
+  if(!owner?.id)return;
   let h=`<div class="card">
     <h2 style="margin:0 0 4px">Mis rutinas</h2>
     <div class="muted">Rutinas que un entrenador te ha asignado.</div>
+    <button id="addRoutineButton" class="btn primary" style="margin-top:12px" onclick="openRedeemRoutine()">Añadir rutina</button>
   </div>`;
   const mk='simple_shared_routine_meta_'+user.id;
   let mm={};try{mm=JSON.parse(localStorage.getItem(mk)||'{}')}catch(_){}
@@ -7992,6 +8120,7 @@ async function renderShared(){
       : Promise.resolve({data:[],error:null}),
     getWeeklyRoutineProgressForUser(user.id,weeklyRoutineIds,weeklyAliases)
   ]);
+  if(!isCurrent())return;
   if(!routineResult.error){
     for(const routine of (routineResult.data||[])){
       routineById.set(String(routine.id),routine);
@@ -8076,30 +8205,52 @@ async function openSharedRoutine(id){
 }
 
 
+function openRedeemRoutine(){
+  if(!user?.id||profile?.role!=='client')return;
+  $('redeemCode').value='';$('redeemError').textContent='';
+  $('redeemConfirm').disabled=false;$('redeemConfirm').textContent='Vincular rutina';
+  openM('redeemModal');beginModalRequest('redeemModal');$('redeemCode').focus();
+}
+function redeemCodeError(error){
+  const message=String(error?.message||'').toLowerCase();
+  if(message.includes('caduc'))return 'Este código ha caducado.';
+  if(message.includes('utilizado')||message.includes('límite de usos'))return 'Este código ya ha sido utilizado.';
+  if(message.includes('no válido')||message.includes('no valido'))return 'Este código no es válido.';
+  return 'No se ha podido comprobar el código. Inténtalo de nuevo.';
+}
 async function redeemShareCode(){
-  if(window.__redeemBusy) return;
-  const input=$('redeemCode');
-  const code=(input?.value||'').trim().toUpperCase();
-  if(!code)return toast('Introduce un código.');
-
-  const btn=input?.parentElement?.querySelector('button');
-  window.__redeemBusy = true;
-  if(btn) btn.disabled=true;
+  if(!user?.id||profile?.role!=='client')return;
+  if(window.__redeemOperation?.isCurrent()&&window.__redeemOperation.busy)return;
+  const input=$('redeemCode'),code=input.value.trim().toUpperCase();
+  if(!code){$('redeemError').textContent='Introduce un código.';input.focus();return;}
+  const currentModal=beginModalRequest('redeemModal'),owner=user,ownerId=user.id;
+  const previousIds=new Set((assignments||[]).map(a=>String(a.id)));
+  const op={busy:true,isCurrent:()=>currentModal()&&user===owner&&user?.id===ownerId&&profile?.role==='client'};
+  window.__redeemOperation=op;
+  const button=$('redeemConfirm');button.disabled=true;button.textContent='Vinculando…';$('redeemError').textContent='';
+  let linked=false;
   try{
     const r=await db.rpc('redeem_routine_share_code',{p_code:code});
-    if(r.error) throw r.error;
-    if(input) input.value='';
-    await reload();
-    view('shared');
-    toast('Rutina añadida correctamente');
+    if(!op.isCurrent())return;
+    if(r.error)throw r.error;
+    linked=true;
+    const result=await db.from('routine_assignments').select('*').eq('client_id',ownerId).is('client_deleted_at',null).order('created_at',{ascending:false});
+    if(!op.isCurrent())return;
+    if(result.error)throw result.error;
+    assignments=result.data||[];
+    await renderShared(op.isCurrent);
+    if(!op.isCurrent())return;
+    closeM('redeemModal');
+    toast(previousIds.has(String(r.data))?'Esta rutina ya está vinculada a tu cuenta.':'Rutina añadida correctamente');
   }catch(e){
-    console.error('redeem code:',e);
-    toast(e?.message||'Código no válido.');
+    if(!op.isCurrent())return;
+    $('redeemError').textContent=linked?'La rutina se ha vinculado, pero no se ha podido actualizar la lista. Vuelve a abrir Mis rutinas.':redeemCodeError(e);
   }finally{
-    window.__redeemBusy=false;
-    if(btn) btn.disabled=false;
+    op.busy=false;
+    if(window.__redeemOperation===op){button.disabled=false;button.textContent='Vincular rutina';}
   }
 }
+
 
 (async()=>{
   // Legacy fallback kept for recovery/confirmation redirects, but never
