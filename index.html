@@ -4072,13 +4072,22 @@ function returnFromRoutineEditor(){
   closeM('editModal');
   if(state?.context==='client')return openClientProfile(state.clientId);
 }
-function trainFromRoutineEditor(){
+async function trainFromRoutineEditor(dayIndex=null){
   const state=window.__clientRoutineEdit;
   if(state?.context!=='library')return;
+  const dayId=dayIndex===null?null:editDays[dayIndex]?.id;
+  if(dayIndex!==null&&!dayId)return toast('Guarda primero la nueva sesión para poder entrenarla.');
   const changed=JSON.stringify([$('en').value,$('ed').value,editDays])!==state.initialSnapshot;
   if(changed&&!confirm('Abrir entrenamiento e historial. Los cambios de edición que no hayas guardado se descartarán. ¿Continuar?'))return;
+  const owner=user;
   closeM('editModal');
-  return openRoutine(state.routineId);
+  const opening=openRoutine(state.routineId),version=window.__workoutContextVersion;
+  await opening;
+  if(dayId&&user===owner&&window.__workoutContextVersion===version&&
+    String(workoutRoutine?.id)===String(state.routineId)&&
+    window.__openRoutineDays?.some(d=>String(d.id)===String(dayId))){
+    await startWorkoutDay(dayId);
+  }
 }
 
 function renderClientRoutineSessions(){
@@ -4134,7 +4143,9 @@ function renderClientRoutineSessions(){
               onpointerdown="startEditorPointerDrag(event,'day',${i})"
               title="Arrastrar sesión">☷</span>`:''}
             <div style="min-width:0">
-              <b style="font-size:17px">${esc(d.name||'Sin nombre')}</b>
+              ${state.context==='library'&&!state.reorder
+                ? `<button class="routine-day-train" type="button" style="font:inherit;font-size:17px;font-weight:700;color:inherit;background:none;border:0;padding:0;text-align:left;cursor:pointer" onclick="trainFromRoutineEditor(${i})" title="Entrenar esta sesión">${esc(d.name||'Sin nombre')}</button>`
+                : `<b style="font-size:17px">${esc(d.name||'Sin nombre')}</b>`}
               <div class="muted">${d.exercises?.length||0} ejercicios</div>
             </div>
           </div>
@@ -6521,6 +6532,7 @@ function showHistory(){
             <div>
               <b class="history-title">${esc(data.routine_name||'Entrenamiento')}</b>
               <div class="muted">${esc(data.day_name||x.day||'')} · ${esc(dateLabel)}</div>
+              ${formatWorkoutDuration(data)?`<div class="muted">Duración de la sesión: ${formatWorkoutDuration(data)}</div>`:''}
             </div>
           </div>
           <div class="history-summary-actions">
@@ -6530,6 +6542,7 @@ function showHistory(){
           </div>
         </summary>
         <div class="history-content">
+          ${formatWorkoutDuration(data)?`<p class="muted">Duración de la sesión: ${formatWorkoutDuration(data)}</p>`:''}
           ${exercises.length?exercises.map(e=>{
             const target=e.target||'';
             const plannedRir=(e.planned_rir!==null && e.planned_rir!==undefined && e.planned_rir!=='')?e.planned_rir:'0';
@@ -6866,6 +6879,7 @@ async function startWorkoutDay(dayId){
 
     // Solo recuperar borrador si todavía no está guardada la sesión.
     const recovered=!activeWorkout.locked && loadWorkoutDraft();
+    if(!activeWorkout.locked)activeWorkout.openedAt=Date.now();
 
     $('trainTitle').textContent=d.data.name;
     $('trainSubtitle').textContent=activeWorkout.locked
@@ -6889,6 +6903,23 @@ function workoutDraftKey(){
   return user?.id && workoutRoutine?.id && activeWorkout?.day?.id
     ? `simple_workout_draft_v2:${user.id}:${workoutRoutine.id}:${activeWorkout.day.id}`
     : null;
+}
+
+// Opening a workout is provisional: only participation or explicit saving
+// establishes a persisted start. Merely consulting a day does not do so.
+function markWorkoutStarted(){
+  if(!activeWorkout||activeWorkout.locked||!user?.id||!workoutRoutine?.id)return;
+  if(!activeWorkout.startedAt){
+    const now=Date.now();
+    activeWorkout.startedAt=new Date(Math.min(activeWorkout.openedAt||now,now)).toISOString();
+  }
+}
+function formatWorkoutDuration(data){
+  const seconds=data?.duration_seconds;
+  if(typeof seconds!=='number'||!Number.isFinite(seconds)||seconds<0)return '';
+  const minutes=Math.floor(seconds/60);
+  if(minutes<1)return 'Menos de 1 min';
+  return minutes<60?`${minutes} min`:`${Math.floor(minutes/60)} h ${String(minutes%60).padStart(2,'0')} min`;
 }
 
 // Marca cuándo se completó por última vez este día de rutina.
@@ -6915,6 +6946,7 @@ function saveWorkoutDraft(){
       savedAt:Date.now(),
       routineId:workoutRoutine.id,
       dayId:activeWorkout.day.id,
+      startedAt:activeWorkout.startedAt||null,
       sets:Object.fromEntries(
         Object.entries(activeWorkout.sets||{}).map(([id,arr])=>[
           id,
@@ -6935,6 +6967,7 @@ function loadWorkoutDraft(){
     if(!raw)return false;
     const draft=JSON.parse(raw);
     if(!draft?.sets)return false;
+    if(String(draft.routineId)!==String(workoutRoutine.id)||String(draft.dayId)!==String(activeWorkout.day.id))return false;
 
     // Un borrador solo puede recuperar una sesión que siga pendiente.
     // Si ya se completó ese día después de crear el borrador, se descarta.
@@ -6945,6 +6978,8 @@ function loadWorkoutDraft(){
       localStorage.removeItem(key);
       return false;
     }
+    const started=Date.parse(draft.startedAt);
+    if(Number.isFinite(started)&&started<=Date.now())activeWorkout.startedAt=new Date(started).toISOString();
     for(const e of activeWorkout.exercises){
       const base=Array.from({length:e.sets||1},()=>({kg:'',reps:'',rir:'',done:false}));
       const rawSaved=draft.sets?.[e.id];
@@ -7454,6 +7489,7 @@ function updateSet(id,i,field,value){
   if(activeWorkout.locked&&!activeWorkout.editing)return;
   const arr=activeWorkout.sets[id];
   if(arr&&arr[i]){
+    markWorkoutStarted();
     arr[i][field]=value;
     saveWorkoutDraft();
   }
@@ -7466,6 +7502,7 @@ function updateExerciseNote(id,value){
   arr.note=String(value??'');
   const exercise=activeWorkout.exercises.find(e=>String(e.id)===String(id));
   if(!exercise)return;
+  markWorkoutStarted();
   saveWorkoutDraft();
 
   const key=workoutNotesKey();
@@ -7514,6 +7551,7 @@ function toggleSet(id,i){
   if(!activeWorkout)return;
   if(activeWorkout.locked)return;
   const arr=activeWorkout.sets[id]; if(!arr||!arr[i])return;
+  markWorkoutStarted();
   arr[i].done=!arr[i].done;
   saveWorkoutDraft();
   // Only refresh the tick itself; never touch the rest timer.
@@ -7656,6 +7694,10 @@ async function saveWorkoutSession(){
   if(!workoutRoutine?.id||!activeWorkout?.day?.id)return toast('No hay un entrenamiento activo.');
   if(activeWorkout.locked)return toast('Este entrenamiento ya está guardado hoy.');
 
+  markWorkoutStarted();
+  saveWorkoutDraft();
+  const completedAt=new Date().toISOString(),startedAt=activeWorkout.startedAt;
+
   const owner=user, routine=workoutRoutine, workout=activeWorkout;
   const ownerId=user.id, routineId=routine.id, dayId=workout.day.id;
   const version=window.__workoutContextVersion;
@@ -7701,7 +7743,9 @@ async function saveWorkoutSession(){
       // `workout_date` is a calendar date in the DB; keep the JSON copy
       // consistent with it. `completed_at` remains the precise instant.
       workout_date:today,
-      completed_at:new Date().toISOString(),
+      started_at:startedAt,
+      completed_at:completedAt,
+      duration_seconds:Math.max(0,Math.floor((Date.parse(completedAt)-Date.parse(startedAt))/1000)),
       exercises:(activeWorkout.exercises||[]).map(e=>{
         const st=activeWorkout.sets[e.id]||[];
         return {
@@ -7772,7 +7816,7 @@ async function saveWorkoutSession(){
     activeWorkout.locked=true;
     activeWorkout.lockedSession=r.data||null;
 
-    toast(noteFailure?'Sesión guardada. Algunas notas no se han sincronizado.':'Sesión guardada correctamente');
+    toast((noteFailure?'Sesión guardada. Algunas notas no se han sincronizado.':'Sesión guardada correctamente')+' · Duración de la sesión: '+formatWorkoutDuration(sessionData));
     // La sesión ya está guardada: cerramos el entrenamiento y volvemos
     // automáticamente al menú principal correspondiente. Al marcarla como
     // bloqueada antes de cerrar evitamos que closeM() cree un borrador.
