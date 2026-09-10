@@ -245,7 +245,7 @@
   min-height:48px;padding:9px 12px;
   border:1px solid rgba(127,127,127,.20);
   border-radius:10px;background:rgba(127,127,127,.045);
-  user-select:none;touch-action:none;
+  user-select:none;touch-action:pan-y;
 }
 .exercise-reorder-row .drag-handle{flex:0 0 auto}
 .exercise-reorder-name{font-weight:650;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -320,7 +320,7 @@
 }
 
 .routine-sortable.routine-drag-over{border-color:var(--ok);box-shadow:0 0 0 2px rgba(255,255,255,.12)}
-.open-day-row{display:flex;align-items:center;gap:8px;width:100%;margin:6px 0;transition:opacity .12s ease,transform .12s ease}
+.open-day-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;width:100%;margin:6px 0;transition:opacity .12s ease,transform .12s ease}
 .open-day-row.dragging{opacity:.45}
 .open-day-row.open-day-drag-over{outline:2px solid var(--ok);border-radius:12px}
 .open-day-handle{font-size:20px;flex:0 0 30px;text-align:center;cursor:grab}
@@ -4846,7 +4846,9 @@ function updateDragAutoScroll(element,y){
     const sheet=el.closest('.sheet');
     const scroller=sheet||document.scrollingElement;
     const rect=sheet?sheet.getBoundingClientRect():{top:0,bottom:innerHeight};
-    const top=Math.max(0,rect.top),bottom=Math.min(innerHeight,rect.bottom),edge=44;
+    const viewport=window.visualViewport;
+    const top=Math.max(viewport?.offsetTop||0,rect.top),bottom=Math.min(viewport?(viewport.offsetTop+viewport.height):innerHeight,rect.bottom);
+    const edge=__editorPointerDrag?Math.min(80,(bottom-top)/3):44;
     const speed=__dragScrollY<top+edge?-12:__dragScrollY>bottom-edge?12:0;
     if(speed){
       scroller.scrollTop+=speed;
@@ -5564,6 +5566,7 @@ async function openRoutine(id){
   try{
     const d=await days(id);
     if(!navigationCurrent())return;
+    window.__openRoutineDays=d;
     $('trainTitle').textContent=r.name;
     $('trainSubtitle').textContent='Selecciona el día que vas a entrenar.';
     $('trainBody').innerHTML=d.length?`
@@ -5597,6 +5600,7 @@ async function openRoutine(id){
               <button class="btn open-day-menu" type="button" draggable="false"
                 title="Opciones de sesión" aria-label="Opciones de sesión"
                 onclick="event.preventDefault();event.stopPropagation();renameOpenDay('${x.id}')">⋯</button>
+              <button class="btn danger" type="button" style="flex-basis:100%" onclick="deleteOpenRoutineElement('day','${x.id}')">Eliminar día/sesión</button>
             </div>`).join('') +
           `<div class="open-day-order-zone open-day-order-zone-last"
               ondragenter="dragOverOpenDayZone(event)"
@@ -5614,7 +5618,7 @@ async function openRoutine(id){
           </div>
           ${profile?.role==='trainer'?'<button class="btn routine-note-edit" type="button" onclick="editOpenRoutineNote()">Editar</button>':''}
         </div>
-      </div><div class="empty">Esta rutina todavía no tiene días.</div>`;
+      </div><div class="empty">Esta rutina todavía no tiene días.</div>${profile?.role==='trainer'?'<button class="btn" onclick="addSessionToOpenRoutine()">+ Añadir sesión</button>':''}`;
     openM('trainModal');
   }catch(e){if(!navigationCurrent())return;console.error(e);toast('No se pudo abrir la rutina')}
 }
@@ -5758,6 +5762,50 @@ function finishOpenDayPointerDrag(){
   __openDayDrag=null;
   __openDayDragLock=false;
 }
+// Structure deletion deliberately never updates workouts or their historical JSON.
+async function deleteOpenRoutineElement(kind,id){
+  if(profile?.role!=='trainer'||!user?.id||!workoutRoutine?.id)return;
+  if(!['day','exercise'].includes(kind)||!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id))return;
+  if(window.__structureDelete?.isCurrent()||window.__savingWorkout||window.__savingRoutineEdits||window.__workoutExerciseReordering||__openDayDragLock)return;
+  if(activeWorkout?.editing||activeWorkout?.reordering)return toast('Termina de guardar o reordenar antes de eliminar.');
+  const owner=user,routine=workoutRoutine,workout=activeWorkout,version=window.__workoutContextVersion;
+  const ownerId=owner.id,routineId=routine.id,dayId=workout?.day?.id,sets=workout?.sets,session=workout?.lockedSession;
+  const source=kind==='day'?window.__openRoutineDays:workout?.exercises;
+  const view=$('trainBody').firstElementChild;
+  const item=source?.find(x=>String(x.id)===String(id));
+  if(!item||(kind==='day'&&workout)||(kind==='exercise'&&!dayId))return;
+  const operation={isCurrent:()=>window.__structureDelete===operation&&user===owner&&user?.id===ownerId&&
+    workoutRoutine===routine&&workoutRoutine?.id===routineId&&activeWorkout===workout&&
+    activeWorkout?.day?.id===dayId&&activeWorkout?.sets===sets&&activeWorkout?.lockedSession===session&&
+    window.__workoutContextVersion===version&&$('trainModal').classList.contains('show')&&
+    $('trainBody').firstElementChild===view};
+  const label=kind==='day'?'el día/sesión':'el ejercicio';
+  if(!confirm(`¿Eliminar ${label} "${item.name}" de la estructura de esta rutina?\nLos entrenamientos históricos se conservarán.`))return;
+  window.__structureDelete=operation;
+  const buttons=[...$('trainBody').querySelectorAll('button')].map(button=>({button,disabled:button.disabled}));
+  buttons.forEach(({button})=>button.disabled=true);
+  try{
+    const q=await db.from(kind==='day'?'routine_days':'routine_exercises').delete()
+      .eq('id',id).eq(kind==='day'?'routine_id':'day_id',kind==='day'?routineId:dayId).select('id');
+    if(!operation.isCurrent())return;
+    if(q.error||!Array.isArray(q.data)||q.data.length!==1||String(q.data[0].id)!==String(id))throw new Error('structure_delete_not_confirmed');
+    if(kind==='day'){
+      toast('Día eliminado de la rutina. Historial conservado.');
+      await openRoutine(routineId);
+      return;
+    }
+    workout.exercises=workout.exercises.filter(x=>String(x.id)!==String(id));
+    delete workout.sets[id];
+    if(!workout.locked)saveWorkoutDraft();
+    renderWorkoutDay();
+    toast('Ejercicio eliminado de la rutina. Historial conservado.');
+  }catch(e){
+    if(operation.isCurrent())toast('No se pudo confirmar la eliminación. Vuelve a abrir la rutina para comprobarla antes de reintentar.');
+  }finally{
+    if(operation.isCurrent())buttons.forEach(({button,disabled})=>{if(button.isConnected)button.disabled=disabled;});
+    if(window.__structureDelete===operation)window.__structureDelete=null;
+  }
+}
 async function renameOpenDay(dayId){
   if(profile?.role!=='trainer'||!workoutRoutine?.id)return;
   try{
@@ -5887,7 +5935,6 @@ function editorPointerMove(e){
   const d=__editorPointerDrag;
   if(!d||e.pointerId!==d.pointerId)return;
   e.preventDefault();
-  updateDragAutoScroll(d.row,e.clientY);
   d.lastY=e.clientY;
   __editorLastY=e.clientY;
 
@@ -5897,6 +5944,7 @@ function editorPointerMove(e){
     d.row.classList.add('dragging');
     document.body.classList.add('editor-pointer-dragging');
   }
+  updateDragAutoScroll(d.row,e.clientY);
 
   if(__editorDragRaf)return;
   __editorDragRaf=requestAnimationFrame(()=>{
@@ -6951,7 +6999,6 @@ function renderWorkoutDay(){
       <button class="btn" type="button" onclick="openWorkoutHistory()">Historial</button>
       <button class="btn" type="button" onclick="closeM('trainModal')">Cerrar</button>`;
   }
-  if(!exs.length){$('trainBody').innerHTML='<div class="empty">Este día no tiene ejercicios.</div>';return;}
 
   const sessionBack=trainer
     ? `<div class="session-back-row"><button class="btn" type="button" onclick="backFromTrainerSession()">← Sesiones</button></div>`
@@ -6964,6 +7011,8 @@ function renderWorkoutDay(){
       ${!reordering?'<button class="btn" onclick="toggleWorkoutReorderMode()">Reordenar</button>':''}
     </div>`:'';
 
+  if(!exs.length){$('trainBody').innerHTML=`${sessionBack}${controls}<div class="empty">Este día no tiene ejercicios.</div>`;return;}
+
   const normal=exs.map((e,ei)=>{
     const key=e.id,state=activeWorkout.sets[key]||Array.from({length:e.sets||1},()=>({kg:'',reps:'',rir:'',done:false}));
     activeWorkout.sets[key]=state;
@@ -6974,6 +7023,7 @@ function renderWorkoutDay(){
         ${editing?`<input class="workout-edit-name" value="${esc(e.name)}" onchange="editWorkoutExerciseField('${key}','name',this.value)">`:`<b>${esc(e.name)}</b>`}
         <div class="history-objective" style="margin-top:5px">Objetivo: ${esc(e.target||'—')} · ${e.sets||1} series · ${esc(formatStipulatedRest(e))} · RIR ${esc(String(planned))}</div>
         ${renderPreviousSession(e.id)}
+        ${trainer&&!editing?`<button class="btn danger" type="button" style="margin-top:10px" onclick="deleteOpenRoutineElement('exercise','${key}')">Eliminar ejercicio de la rutina</button>`:''}
       </div></div>
       <div style="margin-top:10px">
         <div class="setrow" style="font-size:11px;color:var(--muted)"><span>Serie</span><span>KG</span><span>REPS</span><span>RIR</span><span>✓</span></div>
