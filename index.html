@@ -2648,9 +2648,10 @@ function toast(x){const el=$('toast');el.textContent=x;el.style.display='block';
   if(id==='trainModal' && window.__sessionAction && $('sessionActionModal')?.classList.contains('show'))closeM('sessionActionModal');
   if(id==='sessionActionModal')window.__sessionAction?.restoreControls?.();
   if(id==='trainModal')window.__workoutContextVersion=(window.__workoutContextVersion||0)+1;
+  if(id==='clientModal')window.__routineEditorRequest=(window.__routineEditorRequest||0)+1;
   $(id).classList.remove('show');
   if($(id).dataset)delete $(id).dataset.requestToken;
-  if(id==='editModal'){editorDragCleanup();dragEndItem();}
+  if(id==='editModal'){window.__routineEditorRequest=(window.__routineEditorRequest||0)+1;editorDragCleanup();dragEndItem();}
   if(id==='trainModal'){finishOpenDayPointerDrag();workoutReorderEnd();}
   // `activeWorkout` is a top-level `let`, so it is not exposed on `window`.
   // Closing the workout modal ends the in-memory active-session view.
@@ -3999,33 +4000,57 @@ async function openRoutineProgress(routineId){
 }
 
 async function editClientAssignedRoutine(clientId,routineId,routineName){
+  const title=$('clientModalTitle');
+  const clientName=title?.dataset.clientId===String(clientId)?title.textContent:'Cliente';
+  return openRoutineEditor(routineId,{clientId,routineName,clientName});
+}
+async function openLibraryRoutineEditor(routineId){
+  return openRoutineEditor(routineId);
+}
+async function openRoutineEditor(routineId,{clientId=null,routineName='',clientName='Cliente'}={}){
   if(profile?.role!=='trainer')return toast('Solo el entrenador puede editar la rutina.');
-  if(!user?.id||!clientId||!routineId)return toast('Rutina o cliente no encontrado.');
+  if(!user?.id||!routineId)return toast('Rutina o cliente no encontrado.');
+  const owner=user,ownerId=user.id,version=window.__workoutContextVersion;
+  const request=window.__routineEditorRequest=(window.__routineEditorRequest||0)+1;
+  const isCurrent=()=>user===owner&&user?.id===ownerId&&window.__routineEditorRequest===request&&window.__workoutContextVersion===version;
   try{
-    const a=await db.from('routine_assignments')
+    let assignmentId=null;
+    if(clientId){
+      const a=await db.from('routine_assignments')
       .select('id,trainer_routine_id')
       .eq('trainer_id',user.id)
       .eq('client_id',clientId)
       .eq('trainer_routine_id',routineId)
       .is('client_deleted_at',null)
       .maybeSingle();
+    if(!isCurrent())return;
     if(a.error)throw a.error;
     if(!a.data)return toast('Esta rutina ya no está asignada a este cliente.');
+    assignmentId=a.data.id;
+    }
 
     const [routineResult,daysResult]=await Promise.all([
-      routines.find(x=>String(x.id)===String(routineId))
+      clientId&&routines.find(x=>String(x.id)===String(routineId))
         ? Promise.resolve({data:routines.find(x=>String(x.id)===String(routineId)),error:null})
-        : db.from('routines').select('id,name,description').eq('id',routineId).maybeSingle(),
+        : db.from('routines').select('id,name,description').eq('id',routineId).eq('owner_id',ownerId).is('deleted_at',null).maybeSingle(),
       days(routineId)
     ]);
+    if(!isCurrent())return;
     if(routineResult?.error)throw routineResult.error;
     const r=routineResult?.data;
     if(!r)return toast('No se encontró la rutina.');
 
     editDays=daysResult;
-    window.__clientRoutineEdit={clientId,routineId,assignmentId:a.data.id,reorder:false,dayIndex:null};
+    editorDragCleanup();
+    window.__clientRoutineEdit={clientId,routineId,assignmentId,context:clientId?'client':'library',reorder:false,dayIndex:null,
+      initialSnapshot:JSON.stringify([r.name||routineName||'Rutina',r.description||'',editDays])};
 
     $('editor').innerHTML=`
+      <div class="buttons" style="justify-content:space-between;margin:12px 0" data-routine-editor-context>
+        <span class="muted">${clientId?'Cliente · '+esc(clientName):'Biblioteca · Mis rutinas'}</span>
+        <button class="btn" type="button" onclick="returnFromRoutineEditor()">${clientId?'← Volver al cliente':'← Mis rutinas'}</button>
+        ${clientId?'':'<button class="btn" type="button" onclick="trainFromRoutineEditor()">Entrenar / historial</button>'}
+      </div>
       <div class="card" style="margin:0 0 12px">
         <div class="grid">
           <div><label>Nombre de la rutina</label><input id="en" value="${esc(r.name||routineName||'Rutina')}"></div>
@@ -4037,9 +4062,23 @@ async function editClientAssignedRoutine(clientId,routineId,routineName){
     closeM('clientModal');
     openM('editModal');
   }catch(e){
+    if(!isCurrent())return;
     console.error('editClientAssignedRoutine:',e);
     toast('No se pudo abrir el editor de la rutina.');
   }
+}
+function returnFromRoutineEditor(){
+  const state=window.__clientRoutineEdit;
+  closeM('editModal');
+  if(state?.context==='client')return openClientProfile(state.clientId);
+}
+function trainFromRoutineEditor(){
+  const state=window.__clientRoutineEdit;
+  if(state?.context!=='library')return;
+  const changed=JSON.stringify([$('en').value,$('ed').value,editDays])!==state.initialSnapshot;
+  if(changed&&!confirm('Abrir entrenamiento e historial. Los cambios de edición que no hayas guardado se descartarán. ¿Continuar?'))return;
+  closeM('editModal');
+  return openRoutine(state.routineId);
 }
 
 function renderClientRoutineSessions(){
@@ -4310,10 +4349,6 @@ async function saveClientRoutineEditor(){
   // saveEditor() is the single persistence path, so both trainer-owned
   // routines and client-assigned routines use identical database semantics.
   await saveEditor(state.routineId);
-  if(window.__clientRoutineEdit!==state)return;
-  window.__clientRoutineEdit.dayIndex=null;
-  window.__clientRoutineEdit.reorder=false;
-  window.__clientRoutineEdit.exerciseReorder=false;
 }
 
 async function openClientRoutineProgress(clientId,routineId,routineName){
@@ -4488,6 +4523,7 @@ async function openClientProfile(clientId){
   if(!title||!body)return;
 
   title.textContent='Cliente';
+  title.dataset.clientId=cid;
   subtitle.textContent='Cargando...';
   body.innerHTML='<div class="muted">Cargando información...</div>';
   openM('clientModal');
@@ -4808,7 +4844,7 @@ async function renderMine(){
         </div>
       </div>
       <div class="buttons routine-actions">
-        <button type="button" class="btn primary" data-open-routine="${r.id}" onclick="event.preventDefault();event.stopPropagation();openRoutine('${r.id}')">Abrir</button>
+        <button type="button" class="btn primary" data-open-routine="${r.id}" onclick="event.preventDefault();event.stopPropagation();openLibraryRoutineEditor('${r.id}')">Abrir</button>
         <button class="btn" onclick="openRoutineProgress('${r.id}')">Progreso</button>
         <button class="btn" onclick="openShare('${r.id}')">Compartir</button>
         <button class="btn danger" onclick="delRoutine('${r.id}')">Eliminar</button>
@@ -4826,7 +4862,7 @@ document.addEventListener('click',function(e){
   e.preventDefault();
   e.stopPropagation();
   const id=btn.getAttribute('data-open-routine');
-  if(id)openRoutine(id);
+  if(id)openLibraryRoutineEditor(id);
 },true);
 
 
@@ -5364,11 +5400,17 @@ function moveDay(dayIndex,direction){
 function addDay(){editDays.push({id:null,name:'Nuevo día',day_order:editDays.length,exercises:[]});renderEditor()}function removeDay(i){if(confirm('¿Eliminar este día?')){editDays.splice(i,1);renderEditor()}}function addEx(di){editDays[di].exercises.push({id:null,name:'Nuevo ejercicio',sets:2,target:'2x10-15',rir:'2',rest_seconds:120,notes:''});renderEditor()}function removeEx(di,ei){editDays[di].exercises.splice(ei,1);renderEditor()}
 async function saveEditor(id){
   if(window.__routineSaving||__editorOrderSaving)return;
+  const context=window.__clientRoutineEdit,owner=user,ownerId=user?.id,rows=editDays,request=window.__routineEditorRequest;
+  const isCurrent=()=>!context||(window.__clientRoutineEdit===context&&user===owner&&user?.id===ownerId&&editDays===rows&&
+    window.__routineEditorRequest===request&&$('editModal').classList.contains('show'));
   const name=$('en').value.trim();
+  const description=$('ed').value.trim();
   if(!name)return toast('Pon un nombre a la rutina');
   if(editDays.some(d=>!d.name.trim()))return toast('Pon nombre a todos los días');
   if(editDays.some(d=>d.exercises.some(e=>!e.name.trim())))return toast('Pon nombre a todos los ejercicios');
   window.__routineSaving=true;
+  const controls=context?[...$('editor').querySelectorAll('input,textarea,select,button')].map(el=>({el,disabled:el.disabled})):[];
+  controls.forEach(({el})=>el.disabled=true);
   try{
     const daysPayload=editDays.map(d=>({
       id:d.id||null,
@@ -5386,13 +5428,22 @@ async function saveEditor(id){
     const q=await db.rpc('save_routine_atomic',{
       p_routine_id:id,
       p_name:name,
-      p_description:$('ed').value.trim(),
+      p_description:description,
       p_days:daysPayload
     });
+    if(!isCurrent())return;
     if(q.error)throw q.error;
+    if(context){
+      routines=routines.map(r=>String(r.id)===String(id)?{...r,name,description}:r);
+      closeM('editModal');
+      toast('Rutina guardada');
+      if(context.context==='client')await openClientProfile(context.clientId);
+      else await renderMine();
+      return;
+    }
     await reload();closeM('editModal');renderMine();toast('Rutina guardada');
-  }catch(e){console.error('saveEditor:',e);toast('No se pudo guardar la rutina')}
-  finally{window.__routineSaving=false}
+  }catch(e){if(isCurrent()){console.error('saveEditor:',e);toast('No se pudo guardar la rutina')}}
+  finally{controls.forEach(({el,disabled})=>{if(el.isConnected)el.disabled=disabled;});window.__routineSaving=false}
 }
 async function delRoutine(id){
   if(window.__routineDeleting)return;
