@@ -2571,7 +2571,7 @@ label{
     </div>
   </div>
 </div>
-<div id="editModal" class="modal center"><div class="sheet"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h2 style="margin:0">Editar rutina</h2><div class="buttons" style="margin:0"><button class="btn" type="button" onclick="closeM('editModal')">← Volver</button></div></div><div id="editor"></div></div></div>
+<div id="editModal" class="modal center"><div class="sheet"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h2 style="margin:0">Editar rutina</h2><div class="buttons" style="margin:0"><button id="legacyEditorBack" class="btn" type="button" onclick="closeM('editModal')">← Volver</button></div></div><div id="editor"></div></div></div>
 <div id="clientProgressModal" class="modal center">
   <div class="sheet">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
@@ -2648,6 +2648,7 @@ function toast(x){const el=$('toast');el.textContent=x;el.style.display='block';
   if(id==='trainModal' && window.__sessionAction && $('sessionActionModal')?.classList.contains('show'))closeM('sessionActionModal');
   if(id==='sessionActionModal')window.__sessionAction?.restoreControls?.();
   if(id==='trainModal')window.__workoutContextVersion=(window.__workoutContextVersion||0)+1;
+  if(id==='trainModal')window.__routineHistoryContext=null;
   if(id==='clientModal')window.__routineEditorRequest=(window.__routineEditorRequest||0)+1;
   $(id).classList.remove('show');
   if($(id).dataset)delete $(id).dataset.requestToken;
@@ -2664,6 +2665,7 @@ function toast(x){const el=$('toast');el.textContent=x;el.style.display='block';
   }
   if(!document.querySelector('.modal.show'))setNestedView(false);
 }function openM(id){
+  if(id==='editModal')$('legacyEditorBack').style.display=window.__clientRoutineEdit?.context==='library'&&$('editor').querySelector('[data-routine-editor-context]')?'none':'';
   const others=[...document.querySelectorAll('.modal.show')].filter(el=>el!==$(id));
   const z=Math.max(1000,...others.map(el=>Number(getComputedStyle(el).zIndex)||20))+1;
   $(id).style.setProperty('z-index',String(z),'important');
@@ -4049,7 +4051,7 @@ async function openRoutineEditor(routineId,{clientId=null,routineName='',clientN
       <div class="buttons" style="justify-content:space-between;margin:12px 0" data-routine-editor-context>
         <span class="muted">${clientId?'Cliente · '+esc(clientName):'Biblioteca · Mis rutinas'}</span>
         <button class="btn" type="button" onclick="returnFromRoutineEditor()">${clientId?'← Volver al cliente':'← Mis rutinas'}</button>
-        ${clientId?'':'<button class="btn" type="button" onclick="trainFromRoutineEditor()">Entrenar / historial</button>'}
+        ${clientId?'':'<button class="btn" type="button" onclick="openRoutineEditorHistory()">Historial</button>'}
       </div>
       <div class="card" style="margin:0 0 12px">
         <div class="grid">
@@ -4071,6 +4073,40 @@ function returnFromRoutineEditor(){
   const state=window.__clientRoutineEdit;
   closeM('editModal');
   if(state?.context==='client')return openClientProfile(state.clientId);
+}
+async function openRoutineEditorHistory(dayId=null){
+  const state=window.__clientRoutineEdit;
+  if(state?.context!=='library'||profile?.role!=='trainer'||!user?.id)return;
+  if(dayId!==null&&!editDays.some(d=>String(d.id)===String(dayId)))return;
+  closeM('trainModal');
+  closeM('editModal');
+  workoutRoutine={...(routines.find(r=>String(r.id)===String(state.routineId))||{}),id:state.routineId};
+  const context={owner:user,routine:workoutRoutine,editor:state,dayId};
+  window.__routineHistoryContext=context;
+  $('trainTitle').textContent='Historial';
+  $('trainSubtitle').textContent='';
+  $('trainModalActions').innerHTML='<button class="btn" type="button" onclick="backFromRoutineHistory()">← Sesiones</button><button class="btn" type="button" onclick="closeM(\'trainModal\')">Cerrar</button>';
+  $('trainBody').innerHTML='<div class="muted" role="status">Cargando historial…</div>';
+  openM('trainModal');
+  const modalCurrent=beginModalRequest('trainModal');
+  const isCurrent=()=>modalCurrent()&&window.__routineHistoryContext===context&&user===context.owner&&
+    workoutRoutine===context.routine&&window.__clientRoutineEdit===state;
+  try{
+    await loadHistory(state.routineId,isCurrent);
+    if(!isCurrent())return;
+    showHistory();
+  }catch(e){
+    if(!isCurrent())return;
+    console.error('openRoutineEditorHistory:',e);
+    $('trainBody').innerHTML='<div class="empty">No se pudo cargar el historial. Vuelve a sesiones para intentarlo de nuevo.</div>';
+  }
+}
+function backFromRoutineHistory(){
+  const context=window.__routineHistoryContext;
+  closeM('trainModal');
+  if(!context||user!==context.owner||window.__clientRoutineEdit!==context.editor)return;
+  backToClientRoutineSessions();
+  openM('editModal');
 }
 async function trainFromRoutineEditor(dayIndex=null){
   const state=window.__clientRoutineEdit;
@@ -4135,8 +4171,8 @@ function renderClientRoutineSessions(){
     h+=`
       <div class="card routine-editor-day" data-day-index="${i}"
         style="margin:0;cursor:default">
-        <div class="dayhead">
-          <div style="display:flex;align-items:center;gap:10px;min-width:0;flex:1">
+        <div class="dayhead" style="flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:10px;min-width:140px;flex:1">
             ${state.reorder?`<span class="drag-handle editor-drag-handle" draggable="true"
               ondragstart="dragDayStart(event,${i})"
               ondragend="dragEndItem();clientSessionDragFinished()"
@@ -4152,6 +4188,7 @@ function renderClientRoutineSessions(){
           <div class="buttons" style="justify-content:flex-end">
             <button class="btn" type="button" onclick="renameClientSession(${i})" title="Cambiar nombre">⋯</button>
             <button class="btn primary" type="button" onclick="openClientRoutineDayEditor(${i})">Editar sesión</button>
+            ${state.context==='library'&&d.id?`<button class="btn" type="button" onclick="openRoutineEditorHistory('${esc(d.id)}')">Historial</button>`:''}
             <button class="btn danger" type="button" onclick="removeClientEditorDay(${i})">Eliminar</button>
           </div>
         </div>
@@ -6209,7 +6246,7 @@ function toggleWorkoutSelection(id, checked){
 }
 
 function toggleAllHistory(){
-  const h=window.workoutHistory||[];
+  const h=visibleWorkoutHistory();
   if(!h.length) return;
   const allSelected=h.every(x=>selectedWorkoutIds.has(String(x.id)));
   if(allSelected) selectedWorkoutIds.clear();
@@ -6512,11 +6549,20 @@ async function saveEditedWorkout(id){
     window.__savingEditedWorkout=false;
   }
 }
+function visibleWorkoutHistory(){
+  const h=window.workoutHistory||[],context=window.__routineHistoryContext;
+  if(!context)return h;
+  if(user!==context.owner||workoutRoutine!==context.routine)return [];
+  return h.filter(x=>String(x.data?.routine_id||'')===String(context.routine.id)&&
+    (context.dayId===null||String(x.data?.routine_day_id||'')===String(context.dayId)));
+}
 function showHistory(){
   window.__editingWorkout=null;
-  const h=window.workoutHistory||[];
+  const h=visibleWorkoutHistory();
   $('trainTitle').textContent='Historial';
-  $('trainSubtitle').textContent='Tus sesiones guardadas';
+  $('trainSubtitle').textContent=window.__routineHistoryContext
+    ? (window.__routineHistoryContext.dayId===null?'Todas las sesiones de esta rutina':'Sesiones de este día')
+    : 'Tus sesiones guardadas';
   selectedWorkoutIds=new Set([...selectedWorkoutIds].filter(id=>h.some(x=>String(x.id)===id)));
 
   $('trainBody').innerHTML = `
