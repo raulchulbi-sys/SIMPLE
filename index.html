@@ -7066,9 +7066,11 @@ function formatStipulatedRest(e){
 async function backFromTrainerSession(){
   window.__workoutContextVersion=(window.__workoutContextVersion||0)+1;
   if(profile?.role!=='trainer'||!workoutRoutine?.id)return;
-  activeWorkout=null;
+  const routineId=workoutRoutine.id;
+  stopRestTimer();
+  closeM('trainModal');
   try{
-    await openRoutine(workoutRoutine.id);
+    await openLibraryRoutineEditor(routineId);
   }catch(e){
     console.error('backFromTrainerSession:',e);
     toast('No se pudo volver a las sesiones');
@@ -7078,24 +7080,21 @@ async function backFromTrainerSession(){
 function renderWorkoutDay(){
   setNestedView(true);
   const exs=activeWorkout.exercises||[],locked=!!activeWorkout.locked;
-  const trainer=profile?.role==='trainer',editing=!!activeWorkout.editing,reordering=!!activeWorkout.reordering;
+  // Structure is edited exclusively in the shared routine editor.
+  activeWorkout.editing=false;
+  activeWorkout.reordering=false;
+  const trainer=profile?.role==='trainer',editing=false,reordering=false;
   const actionBar=$('trainModalActions');
   if(actionBar){
     actionBar.innerHTML=`
+      ${trainer?'<button class="btn" type="button" onclick="backFromTrainerSession()">← Sesiones</button>':''}
       <button class="btn" type="button" onclick="openWorkoutHistory()">Historial</button>
       <button class="btn" type="button" onclick="closeM('trainModal')">Cerrar</button>`;
   }
 
-  const sessionBack=trainer
-    ? `<div class="session-back-row"><button class="btn" type="button" onclick="backFromTrainerSession()">← Sesiones</button></div>`
-    : '';
+  const sessionBack='';
 
-  const controls=trainer?`
-    <div class="workout-session-actions">
-      <button class="btn ${editing?'primary':''}" onclick="${editing?'saveWorkoutRoutineEdits()':'toggleWorkoutEditMode()'}">${editing?'Guardar cambios':'Editar'}</button>
-      <button class="btn ${editing?'':'reorder-only'}" ${editing?'onclick="addWorkoutExercise()"':'disabled'}>+ Añadir ejercicio</button>
-      ${!reordering?'<button class="btn" onclick="toggleWorkoutReorderMode()">Reordenar</button>':''}
-    </div>`:'';
+  const controls='';
 
   if(!exs.length){$('trainBody').innerHTML=`${sessionBack}${controls}<div class="empty">Este día no tiene ejercicios.</div>`;return;}
 
@@ -7109,7 +7108,6 @@ function renderWorkoutDay(){
         ${editing?`<input class="workout-edit-name" value="${esc(e.name)}" onchange="editWorkoutExerciseField('${key}','name',this.value)">`:`<b>${esc(e.name)}</b>`}
         <div class="history-objective" style="margin-top:5px">Objetivo: ${esc(e.target||'—')} · ${e.sets||1} series · ${esc(formatStipulatedRest(e))} · RIR ${esc(String(planned))}</div>
         ${renderPreviousSession(e.id)}
-        ${trainer&&!editing?`<button class="btn danger" type="button" style="margin-top:10px" onclick="deleteOpenRoutineElement('exercise','${key}')">Eliminar ejercicio de la rutina</button>`:''}
       </div></div>
       <div style="margin-top:10px">
         <div class="setrow" style="font-size:11px;color:var(--muted)"><span>Serie</span><span>KG</span><span>REPS</span><span>RIR</span><span>✓</span></div>
