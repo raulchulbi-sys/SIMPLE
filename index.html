@@ -4081,7 +4081,7 @@ async function trainFromRoutineEditor(dayIndex=null){
   if(changed&&!confirm('Abrir entrenamiento e historial. Los cambios de edición que no hayas guardado se descartarán. ¿Continuar?'))return;
   const owner=user;
   closeM('editModal');
-  const opening=openRoutine(state.routineId),version=window.__workoutContextVersion;
+  const opening=openRoutine(state.routineId,dayId!==null),version=window.__workoutContextVersion;
   await opening;
   if(dayId&&user===owner&&window.__workoutContextVersion===version&&
     String(workoutRoutine?.id)===String(state.routineId)&&
@@ -5598,12 +5598,19 @@ async function saveOpenRoutineNote(){
     window.__savingRoutineNote=false;
   }
 }
-async function openRoutine(id){
+async function openRoutine(id,trainingDay=false){
   const navigationVersion=window.__workoutContextVersion=(window.__workoutContextVersion||0)+1;
   const navigationUser=user;
   const navigationCurrent=()=>window.__workoutContextVersion===navigationVersion&&user===navigationUser;
   setNestedView(true);
   window.__openRoutineId=String(id);
+  if(trainingDay){
+    $('trainTitle').textContent='Entrenamiento';
+    $('trainSubtitle').textContent='';
+    $('trainModalActions').innerHTML='<button class="btn" onclick="closeM(\'trainModal\')">Cerrar</button>';
+    $('trainBody').innerHTML='<div class="muted" role="status">Cargando entrenamiento…</div>';
+    openM('trainModal');
+  }
   let r=routines.find(x=>String(x.id)===String(id));
   if(!r){
     const rq=await db.from('routines')
@@ -5629,6 +5636,8 @@ async function openRoutine(id){
     const d=await days(id);
     if(!navigationCurrent())return;
     window.__openRoutineDays=d;
+    // La entrada directa al día no debe mostrar el editor/listado intermedio.
+    if(trainingDay)return;
     $('trainTitle').textContent=r.name;
     $('trainSubtitle').textContent='Selecciona el día que vas a entrenar.';
     $('trainBody').innerHTML=d.length?`
@@ -6711,6 +6720,10 @@ function workoutNotesKey(){
 
 async function startWorkoutDay(dayId){
   if(!user?.id||!workoutRoutine?.id)return;
+  $('trainTitle').textContent='Entrenamiento';
+  $('trainSubtitle').textContent='';
+  $('trainModalActions').innerHTML='<button class="btn" onclick="closeM(\'trainModal\')">Cerrar</button>';
+  $('trainBody').innerHTML='<div class="muted" role="status">Cargando entrenamiento…</div>';
   const version=window.__workoutContextVersion=(window.__workoutContextVersion||0)+1;
   const openingUser=user,openingUserId=user.id,openingRoutine=workoutRoutine,openingRoutineId=workoutRoutine.id;
   let expectedWorkout=activeWorkout;
