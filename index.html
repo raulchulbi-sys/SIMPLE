@@ -2494,6 +2494,29 @@ label{
 #redeemCode{font-size:16px;min-height:48px;width:100%;box-sizing:border-box}
 .session-empty-actions{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
 </style>
+<style>
+/* Phase 1: touch targets and presentation only. */
+.routine-day-train{display:inline-flex;align-items:center;gap:10px;min-height:44px;max-width:100%;padding:8px 10px!important;border-radius:9px;overflow-wrap:anywhere}
+.routine-day-train:hover,.routine-day-train:focus-visible{background:var(--card2)}
+.routine-day-train:focus-visible{outline:2px solid var(--muted);outline-offset:2px}
+.routine-day-train .train-hint{font-size:11px;font-weight:400;color:var(--muted);white-space:nowrap}
+.history-check-hit{display:flex;align-items:center;justify-content:center;flex:0 0 44px;width:44px;min-height:44px;margin:0;cursor:pointer}
+.history-check-hit .history-check{margin:0;padding:0}
+.history-summary-main{flex:1}
+.history-title{overflow-wrap:anywhere}
+#passwordToggle{width:44px!important;height:44px!important;margin-top:0}
+.password-wrap input{padding-right:54px}
+.rest-mini{width:44px;height:44px;flex:0 0 44px;padding:0}
+.rest-floating.rest-mini-mode{max-width:112px}
+.workout-draft-status{margin:6px 0 10px;font-size:12px;color:var(--muted)}
+.toast{width:max-content;max-width:calc(100vw - 32px);overflow-wrap:anywhere}
+@media(max-width:650px){
+ .history-summary{flex-direction:column;align-items:stretch;gap:10px}
+ .history-summary-main{width:100%;gap:8px;align-items:flex-start}
+ .history-summary-actions{justify-content:flex-end;flex-wrap:wrap}
+ .history-summary-actions .btn{min-height:44px}
+}
+</style>
 </head>
 <body>
 <div class="modal" id="sessionActionModal" role="dialog" aria-modal="true" aria-labelledby="sessionActionTitle">
@@ -2644,7 +2667,7 @@ let user=null,profile=null,routines=[],assignments=[],editDays=[];let mode='logi
 let workoutRoutine=null,__dragItem=null;
 let __mineRenderToken=0,__editorOrderSaving=false;
 const $=id=>document.getElementById(id),esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
-function toast(x){const el=$('toast');el.textContent=x;el.style.display='block';el.setAttribute('role','status');clearTimeout(window._t);window._t=setTimeout(()=>{el.style.display='none'},2200)}function closeM(id){
+function toast(x,duration=2200){const el=$('toast');el.textContent=x;el.style.display='block';el.setAttribute('role','status');clearTimeout(window._t);window._t=setTimeout(()=>{el.style.display='none'},duration)}function closeM(id){
   if(id==='trainModal' && window.__sessionAction && $('sessionActionModal')?.classList.contains('show'))closeM('sessionActionModal');
   if(id==='sessionActionModal')window.__sessionAction?.restoreControls?.();
   if(id==='trainModal')window.__workoutContextVersion=(window.__workoutContextVersion||0)+1;
@@ -4180,7 +4203,7 @@ function renderClientRoutineSessions(){
               title="Arrastrar sesión">☷</span>`:''}
             <div style="min-width:0">
               ${state.context==='library'&&!state.reorder
-                ? `<button class="routine-day-train" type="button" style="font:inherit;font-size:17px;font-weight:700;color:inherit;background:none;border:0;padding:0;text-align:left;cursor:pointer" onclick="trainFromRoutineEditor(${i})" title="Entrenar esta sesión">${esc(d.name||'Sin nombre')}</button>`
+                ? `<button class="routine-day-train" type="button" style="font:inherit;font-size:17px;font-weight:700;color:inherit;background:none;border:0;padding:0;text-align:left;cursor:pointer" onclick="trainFromRoutineEditor(${i})" title="Entrenar esta sesión"><span>${esc(d.name||'Sin nombre')}</span><span class="train-hint" aria-hidden="true">Entrenar ›</span></button>`
                 : `<b style="font-size:17px">${esc(d.name||'Sin nombre')}</b>`}
               <div class="muted">${d.exercises?.length||0} ejercicios</div>
             </div>
@@ -6582,8 +6605,8 @@ function showHistory(){
       return `<details class="history-session card" data-workout-id="${esc(x.id)}">
         <summary class="history-summary">
           <div class="history-summary-main">
-            <input class="history-check" type="checkbox" aria-label="Seleccionar sesión" ${selectedWorkoutIds.has(String(x.id))?'checked':''}
-              onclick="event.stopPropagation()" onchange="toggleWorkoutSelection('${x.id}',this.checked)">
+            <label class="history-check-hit" onclick="event.stopPropagation()"><input class="history-check" type="checkbox" aria-label="Seleccionar sesión" ${selectedWorkoutIds.has(String(x.id))?'checked':''}
+              onclick="event.stopPropagation()" onchange="toggleWorkoutSelection('${x.id}',this.checked)"></label>
             <div>
               <b class="history-title">${esc(data.routine_name||'Entrenamiento')}</b>
               <div class="muted">${esc(data.day_name||x.day||'')} · ${esc(dateLabel)}</div>
@@ -6944,7 +6967,7 @@ async function startWorkoutDay(dayId){
     $('trainSubtitle').textContent=activeWorkout.locked
       ? 'Sesión ya guardada hoy. Puedes consultarla, pero no volver a modificarla.'
       : recovered
-        ? 'Sesión recuperada automáticamente. Tus datos se guardan mientras entrenas.'
+        ? 'Borrador recuperado de este dispositivo. Finaliza con Guardar sesión.'
         : 'Completa tus series y guarda tus datos.';
 
     renderWorkoutDay();
@@ -7016,7 +7039,16 @@ function saveWorkoutDraft(){
         ])
       )
     }));
+    updateWorkoutDraftStatus();
   }catch(e){console.warn('No se pudo guardar el borrador:',e);}
+}
+function updateWorkoutDraftStatus(){
+  const el=$('workoutDraftStatus');
+  if(!el)return;
+  let exists=false;
+  try{const key=workoutDraftKey();exists=!!key&&!activeWorkout?.locked&&!!localStorage.getItem(key);}catch(_){}
+  el.textContent=exists?'Borrador en este dispositivo · Pendiente de finalizar':'';
+  el.hidden=!exists;
 }
 function loadWorkoutDraft(){
   const key=workoutDraftKey();
@@ -7212,8 +7244,9 @@ function renderWorkoutDay(){
       <div class="workout-reorder-zone" ondragover="workoutReorderOver(event)" ondrop="workoutReorderDrop(event,${i+1})"></div>`).join('')}
     </div>`:normal;
 
-  $('trainBody').innerHTML=`${sessionBack}${controls}${reorder}<div id="restBox" class="rest-floating" style="display:none"></div>
+  $('trainBody').innerHTML=`${sessionBack}${controls}<div id="workoutDraftStatus" class="workout-draft-status" hidden></div>${reorder}<div id="restBox" class="rest-floating" style="display:none"></div>
     ${locked||activeWorkout.reordering?'':`<div class="buttons" style="justify-content:flex-end"><button id="saveWorkoutBtn" class="btn primary" onclick="saveWorkoutSession()">Guardar sesión</button></div>`}`;
+  updateWorkoutDraftStatus();
   // Guard: cada ejercicio debe mostrar un único campo de descanso en el editor.
   if(editing){
     document.querySelectorAll('#trainBody .card').forEach(card=>{
@@ -7634,15 +7667,15 @@ function renderRestTimer(){
   box.style.display='block';
   if(seconds<=0){
     clearInterval(restTimer); restTimer=null; restEndAt=null;
-    box.innerHTML='<div class="rest-header"><div class="rest-drag-handle">DESCANSO</div><div class="rest-actions"><button class="rest-mini" onclick="stopRestTimer()">×</button></div></div><b class="rest-finished">Descanso terminado</b>';
+    box.innerHTML='<div class="rest-header"><div class="rest-drag-handle">DESCANSO</div><div class="rest-actions"><button class="rest-mini" aria-label="Cerrar temporizador" onclick="stopRestTimer()">×</button></div></div><b class="rest-finished">Descanso terminado</b>';
     return;
   }
   box.innerHTML=`
     <div class="rest-header">
       <div class="rest-drag-handle" title="Arrastra el cronómetro">DESCANSO</div>
       <div class="rest-actions">
-        <button class="rest-mini" onclick="toggleRestMini()" title="Minimizar cronómetro">−</button>
-        <button class="rest-mini" onclick="stopRestTimer()" title="Cerrar">×</button>
+        <button class="rest-mini" aria-label="Minimizar o ampliar temporizador" onclick="toggleRestMini()" title="Minimizar cronómetro">−</button>
+        <button class="rest-mini" aria-label="Cerrar temporizador" onclick="stopRestTimer()" title="Cerrar">×</button>
       </div>
     </div>
     <div class="rest-time">${String(Math.floor(seconds/60)).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}</div>
@@ -7873,7 +7906,7 @@ async function saveWorkoutSession(){
     activeWorkout.locked=true;
     activeWorkout.lockedSession=r.data||null;
 
-    toast((noteFailure?'Sesión guardada. Algunas notas no se han sincronizado.':'Sesión guardada correctamente')+' · Duración de la sesión: '+formatWorkoutDuration(sessionData));
+    const savedMessage=(noteFailure?'Sesión guardada. Algunas notas no se han sincronizado.':'Sesión guardada correctamente')+' · Duración de la sesión: '+formatWorkoutDuration(sessionData);
     // La sesión ya está guardada: cerramos el entrenamiento y volvemos
     // automáticamente al menú principal correspondiente. Al marcarla como
     // bloqueada antes de cerrar evitamos que closeM() cree un borrador.
@@ -7892,6 +7925,7 @@ async function saveWorkoutSession(){
     }else{
       view('shared');
     }
+    toast(savedMessage,9000);
   }catch(e){
     if(!isCurrent())return;
     console.error('saveWorkoutSession:',e);
@@ -7918,7 +7952,17 @@ async function saveWorkoutSession(){
 
 function shareHeaderOpen(){
   if(!routines.length)return toast('Primero crea una rutina');
-  openShare(routines[0].id);
+  $('shareTitle').textContent='Compartir rutina';
+  $('shareForm').innerHTML=`
+    <label for="shareRoutineChoice">Qué rutina quieres compartir</label>
+    <select id="shareRoutineChoice" style="width:100%">
+      <option value="">Selecciona una rutina</option>
+      ${routines.map(r=>`<option value="${esc(r.id)}">${esc(r.name)}</option>`).join('')}
+    </select>
+    <div class="buttons" style="justify-content:flex-end;margin-top:14px">
+      <button class="btn primary" type="button" onclick="const id=$('shareRoutineChoice').value;if(id)openShare(id);else toast('Selecciona una rutina');">Continuar</button>
+    </div>`;
+  openM('shareModal');
 }
 
 async function openShare(routineId){
