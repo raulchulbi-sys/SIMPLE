@@ -2532,6 +2532,22 @@ label{
 .history-select-count{font-size:13px}
 .workout-save-feedback{font-size:13px;line-height:1.5;color:var(--danger);margin:12px 0 8px}
 </style>
+<style>
+/* Active workout only: preserve content and the final Save position. */
+#trainBody .workout-exercise{padding:12px;margin:9px 0}
+#trainBody .workout-exercise .previous-session{margin-top:8px;padding:8px 10px}
+#trainBody .workout-exercise .setrow{margin:5px 0}
+#trainBody .workout-exercise .workout-notes{margin-top:8px!important}
+#trainBody .workout-exercise textarea:placeholder-shown:not(:focus){min-height:44px;height:44px}
+#trainBody .workout-exercise .rest-buttons{margin-top:8px;gap:5px}
+#trainBody .tick{width:44px;min-width:44px;min-height:44px;touch-action:manipulation}
+#trainBody .workout-exercise .setrow{grid-template-columns:32px repeat(3,minmax(0,1fr)) 44px}
+#restBox .rest-stop{min-height:44px;touch-action:manipulation}
+#restBox .rest-clock{position:relative}
+#restBox .rest-finished{position:absolute;inset:0;margin:0;display:flex;align-items:center;justify-content:center;font-size:12px;pointer-events:none}
+#restBox .rest-finished[hidden]{display:none}
+#restBox.rest-mini-mode .rest-finished{font-size:9px;white-space:nowrap}
+</style>
 </head>
 <body>
 <div class="modal" id="sessionActionModal" role="dialog" aria-modal="true" aria-labelledby="sessionActionTitle">
@@ -2691,7 +2707,7 @@ function toast(x,duration=2200){const el=$('toast');el.textContent=x;el.style.di
   $(id).classList.remove('show');
   if($(id).dataset)delete $(id).dataset.requestToken;
   if(id==='editModal'){window.__routineEditorRequest=(window.__routineEditorRequest||0)+1;editorDragCleanup();dragEndItem();}
-  if(id==='trainModal'){finishOpenDayPointerDrag();workoutReorderEnd();}
+  if(id==='trainModal'){stopRestTimer();finishOpenDayPointerDrag();workoutReorderEnd();}
   // `activeWorkout` is a top-level `let`, so it is not exposed on `window`.
   // Closing the workout modal ends the in-memory active-session view.
   // Keep a pending draft so closing the modal never loses entered data.
@@ -3160,10 +3176,10 @@ function renderTabs(){
   // "Historial" del entrenamiento correspondiente.
 }
 
-async function updateTrashIconState(){
-  if(!user)return;
-
-  const setSharedTrash=(btn,full)=>{
+let __trashIconToken=0;
+function setTrashIconState(full){
+  ++__trashIconToken;
+  const btn=profile?.role==='trainer'?$('tTrash'):$('tTrashClient');
     if(!btn)return;
     const fullImg=btn.querySelector('.shared-trash-full-img');
     const emptyImg=btn.querySelector('.shared-trash-empty-img');
@@ -3177,23 +3193,27 @@ async function updateTrashIconState(){
     btn.classList.toggle('trash-empty',!full);
     btn.title=full?'Papelera (con rutinas)':'Papelera (vacía)';
     btn.setAttribute('aria-label',full?'Abrir papelera: hay rutinas eliminadas':'Abrir papelera: vacía');
-  };
-
-  if(profile?.role==='trainer'){
-    const btn=$('tTrash');
+  if(profile?.role==='client'&&window.updateClientTrashVisual)window.updateClientTrashVisual(full);
+}
+async function updateTrashIconState(){
+  if(!user)return;
+  const ownerId=user.id,role=profile?.role,token=++__trashIconToken;
+  const isCurrent=()=>user?.id===ownerId&&profile?.role===role&&token===__trashIconToken;
+  if(role==='trainer'){
     try{
       const r=await db.from('routines').select('id',{count:'exact',head:true})
-        .eq('owner_id',user.id).not('deleted_at','is',null);
-      setSharedTrash(btn,!r.error&&(r.count||0)>0);
+        .eq('owner_id',ownerId).not('deleted_at','is',null);
+      if(isCurrent()&&!r.error)setTrashIconState((r.count||0)>0);
     }catch(e){console.warn('Estado papelera entrenador:',e);}
-  }else if(profile?.role==='client'){
-    const btn=$('tTrashClient');
+  }else if(role==='client'){
     try{
       const r=await db.from('routine_assignments').select('id',{count:'exact',head:true})
-        .eq('client_id',user.id).not('client_deleted_at','is',null);
-      const fullState=!r.error&&(r.count||0)>0;
-      setSharedTrash(btn,fullState);
-      if(window.updateClientTrashVisual)window.updateClientTrashVisual(fullState);
+        .eq('client_id',ownerId).not('client_deleted_at','is',null);
+      if(!isCurrent())return;
+      // Match the existing list, which retains assignments hidden by RLS.
+      let cached=[];try{cached=JSON.parse(localStorage.getItem('simple_client_trash_'+ownerId)||'[]')}catch(_){}
+      const hasCached=Array.isArray(cached)&&cached.some(x=>x?.id&&x?.trainer_routine_id);
+      if(!r.error||hasCached)setTrashIconState(hasCached||(r.count||0)>0);
     }catch(e){console.warn('Estado papelera cliente:',e);}
   }
 }
@@ -3263,14 +3283,14 @@ async function reload(){
 let __trashRenderToken=0;
 async function renderTrash(){
   const box=$('trash'); if(!box)return;
-  const renderToken=++__trashRenderToken;
-  box.innerHTML='<div class="card"><h2 style="margin:0 0 4px">🗑️ Papelera</h2><div class="muted">Puedes restaurar las rutinas que hayas quitado por error o eliminarlas definitivamente.</div></div><div class="card"><div class="muted">Cargando...</div></div>';
+  const renderToken=++__trashRenderToken,ownerId=user?.id;
+  box.innerHTML='<div class="card"><h2 style="margin:0 0 4px">Papelera</h2><div class="muted">Puedes restaurar las rutinas que hayas quitado por error o eliminarlas definitivamente.</div></div><div class="card"><div class="muted">Cargando...</div></div>';
   try{
       const r=await db.from('routines').select('id,name,description,created_at,deleted_at')
         .eq('owner_id',user.id).not('deleted_at','is',null).order('deleted_at',{ascending:false});
       if(r.error)throw r.error;
       const rows=r.data||[];
-      let html='<div class="card"><h2 style="margin:0 0 4px">🗑️ Papelera</h2><div class="muted">Puedes restaurar las rutinas que hayas quitado por error.</div></div>';
+      let html='<div class="card"><h2 style="margin:0 0 4px">Papelera</h2><div class="muted">Puedes restaurar las rutinas que hayas quitado por error.</div></div>';
       if(!rows.length){
         html+='<div class="card"><div class="empty">La papelera está vacía.</div></div>';
       }else{
@@ -3286,12 +3306,12 @@ async function renderTrash(){
           </div>
         </div>`).join('');
       }
-      if(renderToken!==__trashRenderToken)return;
+      if(renderToken!==__trashRenderToken||user?.id!==ownerId||profile?.role!=='trainer')return;
       box.innerHTML=html;
-      updateTrashIconState();
+      setTrashIconState(rows.length>0);
     }catch(e){
       console.error('renderTrash:',e);
-      if(renderToken===__trashRenderToken){
+      if(renderToken===__trashRenderToken&&user?.id===ownerId&&profile?.role==='trainer'){
         box.innerHTML='<div class="card"><div class="empty">No se pudo cargar la papelera.</div></div>';
       }
     }
@@ -3327,7 +3347,9 @@ async function permanentlyDeleteRoutine(id){
 
 async function renderClientTrash(){
   const box=$('trash');if(!box)return;
-  box.innerHTML='<div class="card"><h2 style="margin:0 0 4px">🗑️ Papelera</h2><div class="muted">Rutinas que has quitado de tus rutinas.</div></div><div class="card"><div class="muted">Cargando...</div></div>';
+  const ownerId=user?.id,renderToken=++__trashRenderToken;
+  const isCurrent=()=>user?.id===ownerId&&profile?.role==='client'&&renderToken===__trashRenderToken;
+  box.innerHTML='<div class="card"><h2 style="margin:0 0 4px">Papelera</h2><div class="muted">Rutinas que has quitado de tus rutinas.</div></div><div class="card"><div class="muted">Cargando...</div></div>';
   try{
     const key='simple_client_trash_'+user.id;
     let cached=[];try{cached=JSON.parse(localStorage.getItem(key)||'[]')}catch(_){}
@@ -3340,12 +3362,13 @@ async function renderClientTrash(){
       .eq('client_id',user.id)
       .not('client_deleted_at','is',null)
       .order('client_deleted_at',{ascending:false});
+    if(!isCurrent())return;
     const rows=q.error?[]:(q.data||[]);
     const map=new Map();
     [...cached,...rows].forEach(x=>{if(x?.id)map.set(String(x.id),x)});
     const assignments=[...map.values()].filter(x=>x?.trainer_routine_id);
 
-    let html='<div class="card"><h2 style="margin:0 0 4px">🗑️ Papelera</h2><div class="muted">Puedes restaurar las rutinas que hayas quitado por error.</div></div>';
+    let html='<div class="card"><h2 style="margin:0 0 4px">Papelera</h2><div class="muted">Puedes restaurar las rutinas que hayas quitado por error.</div></div>';
     let shown=[];
 
     // Load all source-routine metadata in one query instead of one request
@@ -3356,6 +3379,7 @@ async function renderClientTrash(){
       const rr=await db.from('routines')
         .select('id,name,description,deleted_at')
         .in('id',sourceIds);
+      if(!isCurrent())return;
       if(!rr.error){
         for(const routine of (rr.data||[]))sourceMap.set(String(routine.id),routine);
       }
@@ -3394,7 +3418,9 @@ async function renderClientTrash(){
     localStorage.setItem(key,JSON.stringify(shown));
     if(!shown.length)html+='<div class="card"><div class="empty">La papelera está vacía.</div></div>';
     box.innerHTML=html;
+    setTrashIconState(shown.length>0);
   }catch(e){
+    if(!isCurrent())return;
     console.error('renderClientTrash:',e);
     box.innerHTML='<div class="card"><div class="empty">No se pudo cargar la papelera.</div></div>';
   }
@@ -7235,7 +7261,7 @@ function renderWorkoutDay(){
     activeWorkout.sets[key]=state;
     const planned=(e.rir!==null&&e.rir!==undefined&&e.rir!=='')?e.rir:'0';
     const dis=(locked&&!editing)?' disabled readonly':'';
-    return `<div class="card">
+    return `<div class="card workout-exercise">
       <div class="dayhead"><div style="min-width:0;width:100%">
         ${editing?`<input class="workout-edit-name" value="${esc(e.name)}" onchange="editWorkoutExerciseField('${key}','name',this.value)">`:`<b>${esc(e.name)}</b>`}
         <div class="history-objective" style="margin-top:5px">Objetivo: ${esc(e.target||'—')} · ${e.sets||1} series · ${esc(formatStipulatedRest(e))} · RIR ${esc(String(planned))}</div>
@@ -7248,7 +7274,7 @@ function renderWorkoutDay(){
           <input aria-label="KG · ${esc(e.name)} · serie ${si+1}" inputmode="decimal" placeholder="0" value="${esc(st.kg)}"${dis} oninput="updateSet('${key}',${si},'kg',this.value)">
           <input aria-label="Repeticiones · ${esc(e.name)} · serie ${si+1}" inputmode="numeric" placeholder="0" value="${esc(st.reps)}"${dis} oninput="updateSet('${key}',${si},'reps',this.value)">
           <input aria-label="RIR · ${esc(e.name)} · serie ${si+1}" inputmode="numeric" placeholder="0" min="0" max="10" value="${esc(st.rir)}"${dis} oninput="updateSet('${key}',${si},'rir',this.value)">
-          <button aria-label="Completar serie ${si+1} de ${esc(e.name)}" aria-pressed="${!!st.done}" class="tick ${st.done?'done':''}"${locked&&!editing?' disabled':''} onclick="toggleSet('${key}',${si})">${st.done?'✓':'○'}</button>
+          <button type="button" data-action="toggle-set" aria-label="Completar serie ${si+1} de ${esc(e.name)}" aria-pressed="${!!st.done}" class="tick ${st.done?'done':''}"${locked&&!editing?' disabled':''} onclick="toggleSet('${key}',${si})">${st.done?'✓':'○'}</button>
           ${editing&&!locked?`<button class="set-remove" type="button" onclick="removeWorkoutSet('${key}',${si})">×</button>`:''}
         </div>`).join('')}
       </div>
@@ -7267,7 +7293,7 @@ function renderWorkoutDay(){
         </div>
         <button class="btn" type="button" onclick="addWorkoutSet('${key}')">+ Añadir serie</button>
       </div>`:''}
-      <div style="margin-top:12px"><label>Notas del ejercicio</label>
+      <div class="workout-notes" style="margin-top:12px"><label>Notas del ejercicio</label>
         <textarea aria-label="Notas de ${esc(e.name)}" placeholder="Escribe aquí..."${dis} oninput="updateExerciseNote('${key}',this.value)">${esc(state.note||'')}</textarea></div>
       ${locked?'<div class="muted" style="margin-top:12px">Sesión guardada hoy · solo lectura</div>':`
         <div class="rest-buttons"><span class="muted">Descanso</span>${[1,2,3,4,5].map(m=>`<button class="btn" onclick="startRestTimer(${m*60})">${m}'</button>`).join('')}</div>`}
@@ -7706,27 +7732,33 @@ function renderRestTimer(){
   const seconds=Math.max(0,Math.ceil((restEndAt-Date.now())/1000));
   restLeft=seconds;
   box.style.display='block';
-  if(seconds<=0){
-    clearInterval(restTimer); restTimer=null; restEndAt=null;
-    box.innerHTML='<div class="rest-header"><div class="rest-drag-handle">DESCANSO</div><div class="rest-actions"><button class="rest-mini" aria-label="Cerrar temporizador" onclick="stopRestTimer()">×</button></div></div><b class="rest-finished">Descanso terminado</b>';
-    return;
-  }
-  box.innerHTML=`
-    <div class="rest-header">
-      <div class="rest-drag-handle" title="Arrastra el cronómetro">DESCANSO</div>
-      <div class="rest-actions">
-        <button class="rest-mini" aria-label="Minimizar o ampliar temporizador" onclick="toggleRestMini()" title="Minimizar cronómetro">−</button>
-        <button class="rest-mini" aria-label="Cerrar temporizador" onclick="stopRestTimer()" title="Cerrar">×</button>
+  // Preserve controls throughout a press, including the final second.
+  if(!box.querySelector('.rest-time')){
+    box.innerHTML=`
+      <div class="rest-header">
+        <div class="rest-drag-handle" title="Arrastra el cronómetro">DESCANSO</div>
+        <div class="rest-actions">
+          <button type="button" data-action="rest-mini" class="rest-mini" aria-label="Minimizar o ampliar temporizador" onclick="toggleRestMini()" title="Minimizar cronómetro">−</button>
+          <button type="button" data-action="rest-close" class="rest-mini" aria-label="Cerrar temporizador" onclick="stopRestTimer()" title="Cerrar">×</button>
+        </div>
       </div>
-    </div>
-    <div class="rest-time">${String(Math.floor(seconds/60)).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}</div>
-    <button class="btn rest-stop" onclick="stopRestTimer()">Terminar</button>`;
+      <div class="rest-clock"><div class="rest-time"></div>
+      <b class="rest-finished" hidden>Descanso terminado</b></div>
+      <button type="button" data-action="rest-stop" class="btn rest-stop" onclick="stopRestTimer()">Terminar</button>`;
+  }
+  const time=box.querySelector('.rest-time');
+  const label=String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0');
+  if(time.textContent!==label)time.textContent=label;
+  box.querySelector('.rest-finished').hidden=seconds>0;
+  time.style.visibility=seconds>0?'visible':'hidden';
+  if(seconds<=0){clearInterval(restTimer);restTimer=null;restEndAt=null;}
 }
 function startRestTimer(seconds){
   clearInterval(restTimer);
   restEndAt=Date.now()+Math.max(0,Number(seconds)||0)*1000;
   const box=$('restBox');if(!box)return;
   box.classList.remove('rest-mini-mode');
+  box.innerHTML=''; // A new rest gets fresh controls; ticks preserve them.
   box.style.left='';box.style.top='';box.style.right='24px';box.style.bottom='24px';
   renderRestTimer();
   restTimer=setInterval(renderRestTimer,250);
@@ -7819,6 +7851,19 @@ async function setSaveWorkoutButtonState(saving){
   }
 }
 
+function workoutHasExecutionData(){
+  return (activeWorkout?.exercises||[]).some(e=>{
+    const rows=activeWorkout?.sets?.[e.id];
+    return Array.isArray(rows)&&rows.some(row=>row&&(row.done||['kg','reps','rir'].some(key=>row[key]!=null&&String(row[key]).trim()!=='')));
+  });
+}
+function confirmEmptyWorkout(){
+  if(workoutHasExecutionData())return true;
+  const owner=user,routine=workoutRoutine,workout=activeWorkout,version=window.__workoutContextVersion;
+  const ownerId=user?.id,routineId=workoutRoutine?.id,dayId=activeWorkout?.day?.id;
+  if(!confirm('No has registrado ninguna serie. ¿Quieres guardar la sesión igualmente?'))return false;
+  return user===owner&&user?.id===ownerId&&workoutRoutine===routine&&workoutRoutine?.id===routineId&&activeWorkout===workout&&activeWorkout?.day?.id===dayId&&!activeWorkout?.locked&&window.__workoutContextVersion===version;
+}
 function showWorkoutSaveError(message){
   const el=$('workoutSaveFeedback');
   if(!el)return toast(message);
@@ -7830,6 +7875,7 @@ async function saveWorkoutSession(){
   if(!user?.id)return toast('Debes iniciar sesión.');
   if(!workoutRoutine?.id||!activeWorkout?.day?.id)return toast('No hay un entrenamiento activo.');
   if(activeWorkout.locked)return toast('Este entrenamiento ya está guardado hoy.');
+  if(!confirmEmptyWorkout())return;
 
   markWorkoutStarted();
   saveWorkoutDraft();
@@ -8613,7 +8659,7 @@ document.addEventListener('click', function(e){
     return;
   }
   btn.dataset.robustClick='1';
-  setTimeout(()=>btn.dataset.robustClick='0',900);
+  setTimeout(()=>btn.dataset.robustClick='0',btn.matches('#trainBody button.tick')?300:900);
 }, true);
 </script>
 <script>
