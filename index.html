@@ -2517,6 +2517,21 @@ label{
  .history-summary-actions .btn{min-height:44px}
 }
 </style>
+<style>
+/* Phase 2: readable progress and contextual feedback. */
+.progress-svg-wrap{overflow-x:auto;overscroll-behavior-x:contain;max-width:100%}
+.progress-svg-wrap svg{display:block;max-width:none!important}
+.progress-svg-wrap .progress-point-tooltip{transform:none;width:160px;min-width:0}
+.progress-svg-wrap .progress-tooltip-value{white-space:normal}
+.progress-scroll-hint{font-size:12px;color:var(--muted);margin:8px 0}
+.progress-point:focus{outline:none;stroke:var(--accent,#b9f6ca);stroke-width:2}
+.progress-point[aria-pressed="true"]{stroke:var(--accent,#b9f6ca);stroke-width:2}
+#clientProgressBody .muted,#clientProgressBody label,.compact-progress-stat small{font-size:12px;line-height:1.5}
+.history-summary-main .muted{font-size:12px;line-height:1.5;margin-top:3px}
+.history-selected{border-color:var(--accent,#b9f6ca);box-shadow:0 0 0 1px var(--accent,#b9f6ca) inset}
+.history-select-count{font-size:13px}
+.workout-save-feedback{font-size:13px;line-height:1.5;color:var(--danger);margin:12px 0 8px}
+</style>
 </head>
 <body>
 <div class="modal" id="sessionActionModal" role="dialog" aria-modal="true" aria-labelledby="sessionActionTitle">
@@ -3561,6 +3576,22 @@ function formatProgressValue(value,metric){
   return `${Number(value).toLocaleString('es-ES',{maximumFractionDigits:1})} kg`;
 }
 
+function progressEmptyMessage(){
+  const state=clientProgressChartState;
+  if(!(state.sessions||[]).length)return 'Todavía no hay sesiones registradas.';
+  const day=(state.days||[]).find(d=>String(d.key)===String(state.selectedDayKey));
+  const daySessions=day?.sessions||[];
+  if(!daySessions.length)return 'Todavía no hay sesiones de este día.';
+  const name=$('clientProgressExercise')?.value||'';
+  const metric=$('clientProgressMetric')?.value||state.metric;
+  const allPoints=getExercisePoints(daySessions,name,metric,state.currentExerciseNamesById,state.currentDayExerciseIds);
+  if(allPoints.length&&!((state.filteredSessions)||[]).length)return 'No hay datos en este periodo. Prueba otro periodo.';
+  if(allPoints.length){
+    const periodPoints=getExercisePoints(state.filteredSessions||[],name,metric,state.currentExerciseNamesById,state.currentDayExerciseIds);
+    return periodPoints.length?'No hay datos válidos de este ejercicio para esta métrica.':'No hay datos de este ejercicio en este periodo. Prueba otro periodo.';
+  }
+  return name?'Todavía no hay datos de este ejercicio para esta métrica.':'No hay ejercicios con datos para mostrar.';
+}
 let __progressRenderToken=0;
 function renderClientProgressChart(){
   const myToken=++__progressRenderToken;
@@ -3591,12 +3622,14 @@ function renderClientProgressChart(){
   if(myToken!==__progressRenderToken)return;
 
   if(!clean.length){
-    root.innerHTML='<div class="progress-chart-empty">No hay datos suficientes para este ejercicio.</div>';
+    root.innerHTML=`<div class="progress-chart-empty">${esc(progressEmptyMessage())}</div>`;
     $('clientProgressChartSummary').innerHTML='';
     return;
   }
 
-  const W=860,H=300,L=64,R=20,T=28,B=52;
+  const available=Math.max(220,Math.floor(root.clientWidth||860));
+  const H=280,L=96,R=28,T=28,B=44;
+  const W=Math.max(available,L+R+Math.max(0,clean.length-1)*48);
   const innerW=W-L-R, innerH=H-T-B;
   const values=clean.map(p=>p.value);
   let dataMin=Math.min(...values), dataMax=Math.max(...values);
@@ -3662,7 +3695,7 @@ function renderClientProgressChart(){
 
   const gridSvg=uniqueTicks.map(v=>`
     <line x1="${L}" y1="${y(v)}" x2="${W-R}" y2="${y(v)}" stroke="currentColor" opacity=".12"/>
-    <text x="${L-9}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="currentColor" opacity=".65">${esc(fmt(v))}</text>
+    <text x="${L-9}" y="${y(v)+4}" text-anchor="end" font-size="12" fill="currentColor" opacity=".85">${esc(fmt(v))}</text>
   `).join('');
 
   const poly=clean.length>1
@@ -3670,23 +3703,26 @@ function renderClientProgressChart(){
     : '';
 
   const pointsSvg=clean.map((p,i)=>`
-    <circle cx="${x(i).toFixed(1)}" cy="${y(p.value).toFixed(1)}" r="5"
-      fill="currentColor" opacity=".98"
-      stroke="currentColor" stroke-width="1"
-      data-progress-index="${i}"
-      style="cursor:pointer"
-      onclick="showProgressPoint(${i},this)"/>
+    <circle cx="${x(i).toFixed(1)}" cy="${y(p.value).toFixed(1)}" r="5" fill="currentColor" pointer-events="none"/>
+    <circle class="progress-point" cx="${x(i).toFixed(1)}" cy="${y(p.value).toFixed(1)}" r="22"
+      fill="transparent" data-progress-index="${i}" role="button" tabindex="0" aria-pressed="false"
+      aria-label="${esc(p.date.toLocaleDateString('es-ES')+' · '+fmt(p.value))}"
+      style="cursor:pointer" onclick="showProgressPoint(${i},this)"
+      onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();showProgressPoint(${i},this)}"/>
   `).join('');
 
+  let lastLabelX=-Infinity;
   const labels=clean.map((p,i)=>{
-    const every=Math.max(1,Math.ceil(clean.length/6));
-    if(i!==0&&i!==clean.length-1&&i%every!==0)return '';
-    return `<text x="${x(i).toFixed(1)}" y="${H-20}" text-anchor="middle" font-size="10" fill="currentColor" opacity=".65">${esc(p.date.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit'}))}</text>`;
+    const px=x(i),last=clean.length-1;
+    if(i!==0&&i!==last&&(px-lastLabelX<70||x(last)-px<70))return '';
+    lastLabelX=px;
+    return `<text class="progress-date-label" x="${px.toFixed(1)}" y="${H-16}" text-anchor="middle" font-size="12" fill="currentColor" opacity=".85">${esc(p.date.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit'}))}</text>`;
   }).join('');
 
   root.innerHTML=`
+    ${W>available?'<div class="progress-scroll-hint">Desliza la gráfica para ver todas las sesiones.</div>':''}
     <div class="progress-svg-wrap">
-      <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(progressMetricLabel(metric))}">
+      <svg style="width:${W}px;height:${H}px" viewBox="0 0 ${W} ${H}" role="group" aria-label="${esc(progressMetricLabel(metric))}">
         ${gridSvg}
         ${poly?`<polyline points="${poly}" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`:''}
         ${pointsSvg}
@@ -3743,13 +3779,15 @@ function showProgressPoint(index,node){
   if(!svg||!node)return;
   const vb=svg.viewBox.baseVal;
   const svgRect=svg.getBoundingClientRect();
-  const wrapRect=wrap.getBoundingClientRect();
+  const scroller=svg.parentElement;
+  const wrapRect=scroller.getBoundingClientRect();
   const cx=Number(node.getAttribute('cx')), cy=Number(node.getAttribute('cy'));
   const px=svgRect.left+(cx/vb.width)*svgRect.width-wrapRect.left;
   const py=svgRect.top+(cy/vb.height)*svgRect.height-wrapRect.top;
 
   tooltip.style.display='block';
-  tooltip.style.left=`${Math.max(8,Math.min(wrapRect.width-170,px))}px`;
+  tooltip.style.left=`${scroller.scrollLeft+Math.max(8,Math.min(wrapRect.width-170,px))}px`;
+  wrap.querySelectorAll('.progress-point').forEach(point=>point.setAttribute('aria-pressed',String(point===node)));
   tooltip.style.top=`${Math.max(8,py-72)}px`;
 
   const detail=$('clientProgressPointDetail');
@@ -3757,6 +3795,9 @@ function showProgressPoint(index,node){
 }
 
 
+window.addEventListener('resize',()=>{
+  if($('clientProgressChart')?.getClientRects().length)renderClientProgressChart();
+});
 function getProgressDays(sessions,orderedRoutineDays=[]){
   const map=new Map();
   const ordered=orderedRoutineDays||[];
@@ -3903,7 +3944,7 @@ function setupClientProgressChart(sessions){
       renderClientProgressChart();
     }
     else{
-      $('clientProgressChart').innerHTML='<div class="progress-chart-empty">No hay datos en este periodo para este día.</div>';
+      $('clientProgressChart').innerHTML=`<div class="progress-chart-empty">${esc(progressEmptyMessage())}</div>`;
       $('clientProgressChartSummary').innerHTML='';
     }
   };
@@ -6673,7 +6714,7 @@ function showHistory(){
           }).join(''):'<div class="muted" style="margin-top:12px">No hay ejercicios guardados en esta sesión.</div>'}
         </div>
       </details>`;
-    }).join(''):'<div class="empty">Todavía no tienes sesiones guardadas.</div>'}`;
+    }).join(''):`<div class="empty">${window.__routineHistoryContext?.dayId!=null?'Todavía no hay historial de este día.':window.__routineHistoryContext?'Todavía no hay sesiones guardadas de esta rutina.':'Todavía no tienes sesiones guardadas.'}</div>`}`;
 
   updateHistorySelectionUI();
 }
@@ -7245,7 +7286,7 @@ function renderWorkoutDay(){
     </div>`:normal;
 
   $('trainBody').innerHTML=`${sessionBack}${controls}<div id="workoutDraftStatus" class="workout-draft-status" hidden></div>${reorder}<div id="restBox" class="rest-floating" style="display:none"></div>
-    ${locked||activeWorkout.reordering?'':`<div class="buttons" style="justify-content:flex-end"><button id="saveWorkoutBtn" class="btn primary" onclick="saveWorkoutSession()">Guardar sesión</button></div>`}`;
+    ${locked||activeWorkout.reordering?'':`<div id="workoutSaveFeedback" class="workout-save-feedback" role="alert" hidden></div><div class="buttons" style="justify-content:flex-end"><button id="saveWorkoutBtn" aria-describedby="workoutSaveFeedback" class="btn primary" onclick="saveWorkoutSession()">Guardar sesión</button></div>`}`;
   updateWorkoutDraftStatus();
   // Guard: cada ejercicio debe mostrar un único campo de descanso en el editor.
   if(editing){
@@ -7778,6 +7819,12 @@ async function setSaveWorkoutButtonState(saving){
   }
 }
 
+function showWorkoutSaveError(message){
+  const el=$('workoutSaveFeedback');
+  if(!el)return toast(message);
+  el.textContent=message;
+  el.hidden=false;
+}
 async function saveWorkoutSession(){
   if(window.__savingWorkout)return;
   if(!user?.id)return toast('Debes iniciar sesión.');
@@ -7805,6 +7852,7 @@ async function saveWorkoutSession(){
 
   window.__savingWorkout=true;
   setSaveWorkoutButtonState(true);
+  const feedback=$('workoutSaveFeedback');if(feedback){feedback.textContent='';feedback.hidden=true;}
   try{
     // Fuente de verdad: Supabase. Sobrevive a recarga/cierre/otra pestaña.
     const existing=await db.from('workouts')
@@ -7942,7 +7990,7 @@ async function saveWorkoutSession(){
       return toast('Este entrenamiento ya está guardado hoy.');
     }
 
-    toast('No se pudo guardar la sesión: '+(e.message||'revisa la tabla workouts'));
+    showWorkoutSaveError('No se pudo guardar la sesión: '+(e.message||'Inténtalo de nuevo.'));
   }finally{
     window.__savingWorkout=false;
     setSaveWorkoutButtonState(false);
