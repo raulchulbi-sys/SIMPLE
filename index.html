@@ -2548,6 +2548,22 @@ label{
 #restBox .rest-finished[hidden]{display:none}
 #restBox.rest-mini-mode .rest-finished{font-size:9px;white-space:nowrap}
 </style>
+<style>
+/* Trainer overview reuses the existing client list and profile. */
+.client-overview-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:10px}
+button.client-overview-card{display:flex;flex-direction:column;align-items:stretch;text-align:left;width:100%;min-width:0;margin:0;padding:14px;gap:5px;white-space:normal;font:inherit;color:var(--text);cursor:pointer;touch-action:manipulation}
+.client-overview-card:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.client-overview-name{font-size:17px;font-weight:700;overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.client-overview-routine{font-size:13px;overflow-wrap:anywhere;color:var(--muted);display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.client-overview-cycle{display:block;font-size:14px;font-weight:600;line-height:1.5}
+.client-overview-last{display:block;font-size:13px;color:var(--muted);line-height:1.5}
+.client-overview-open{align-self:flex-end;font-size:13px;margin-top:2px}
+.client-profile-row{display:flex;gap:12px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap}
+.client-profile-main{flex:1 1 220px;min-width:0;overflow-wrap:anywhere}
+.client-profile-actions{display:flex;gap:8px;flex-wrap:wrap}
+#clientModalTitle{overflow-wrap:anywhere;min-width:0}
+@media(max-width:430px){.client-overview-grid{gap:8px}button.client-overview-card{padding:12px}.client-profile-actions{width:100%}.client-profile-actions .btn{flex:1 1 auto;min-height:44px}}
+</style>
 </head>
 <body>
 <div class="modal" id="sessionActionModal" role="dialog" aria-modal="true" aria-labelledby="sessionActionTitle">
@@ -3054,7 +3070,7 @@ async function start(chosenRole=null){
 
     renderTabs();
     await reload();
-    view(profile.role==='trainer'?'mine':'shared');
+    view(profile.role==='trainer'?'clients':'shared');
     window.__simpleStarted=true;
     return true;
   }catch(e){
@@ -4654,6 +4670,41 @@ async function openClientRoutineProgress(clientId,routineId,routineName){
   }
 }
 
+function clientRoutineAvailability(item){
+  if(!item)return 'Sin rutina asignada';
+  if(item.routine.deleted_at)return 'Rutina eliminada';
+  if(item.assignment.client_deleted_at)return 'Rutina retirada por el cliente';
+  if(item.routine.unavailable)return 'Rutina no disponible';
+  return '';
+}
+function clientLastSessionLabel(dateKey){
+  if(!dateKey)return 'Sin sesiones todavía';
+  const date=simpleDateFromKey(dateKey),today=simpleDateFromKey(simpleLocalDateKey());
+  if(!date||!today)return 'Última sesión: fecha no disponible';
+  const days=Math.round((Date.UTC(today.getFullYear(),today.getMonth(),today.getDate())-Date.UTC(date.getFullYear(),date.getMonth(),date.getDate()))/86400000);
+  return 'Última sesión: '+(days===0?'hoy':days===1?'ayer':days>1?'hace '+days+' días':date.toLocaleDateString('es-ES'));
+}
+async function loadClientRoutineOverview(clientId,item){
+  const unavailable=clientRoutineAvailability(item);
+  if(unavailable)return {unavailable};
+  const args={p_client_id:String(clientId),p_routine_id:String(item.routine.id)};
+  const [cycle,last]=await Promise.allSettled([
+    db.rpc('get_client_routine_cycle_progress',args),
+    db.rpc('get_client_routine_history',args).select('workout_date').order('workout_date',{ascending:false}).limit(1)
+  ]);
+  const progress=cycle.status==='fulfilled'&&!cycle.value.error?(cycle.value.data||[])[0]:null;
+  const latest=last.status==='fulfilled'&&!last.value.error?last.value.data:null;
+  return {progress,latest,latestUnavailable:latest===null};
+}
+function renderClientOverview(summary){
+  if(!summary)return '<span class="client-overview-last">No se pudo cargar el resumen.</span>';
+  if(summary.unavailable)return '<span class="client-overview-last">'+esc(summary.unavailable)+'</span>';
+  const p=summary.progress,total=Math.max(0,Number(p?.total_days)||0),done=Math.min(total,Math.max(0,Number(p?.completed_days)||0));
+  const cycle=!p?'Progreso no disponible':!total?'Rutina sin días':done+'/'+total+' del ciclo actual';
+  const last=summary.latestUnavailable?'Última sesión no disponible':clientLastSessionLabel(summary.latest?.[0]?.workout_date);
+  return '<span class="client-overview-cycle">'+esc(cycle)+'</span><span class="client-overview-last">'+esc(last)+'</span>';
+}
+
 async function openClientProfile(clientId){
   if(!user?.id)return toast('Debes iniciar sesión.');
   const cid=String(clientId);
@@ -4696,16 +4747,9 @@ async function openClientProfile(clientId){
       (async()=>{
         let name='Cliente';
         try{
-          const rpc=await db.rpc('get_public_profile_names',{p_user_ids:[cid]});
-          const row=(rpc.data||[]).find(x=>String(x.id)===cid);
-          if(row?.name)name=String(row.name).trim()||name;
+          const pr=await db.from('profiles').select('id,name').eq('id',cid).maybeSingle();
+          if(!pr.error&&pr.data?.name)name=String(pr.data.name).trim()||name;
         }catch(_){}
-        if(name==='Cliente'){
-          try{
-            const pr=await db.from('profiles').select('id,name').eq('id',cid).maybeSingle();
-            if(!pr.error && pr.data?.name)name=String(pr.data.name).trim()||name;
-          }catch(_){}
-        }
         return name;
       })(),
       routineIds.length
@@ -4736,36 +4780,35 @@ async function openClientProfile(clientId){
       routine:routineMap.get(String(a.trainer_routine_id)) || {
         id:a.trainer_routine_id,
         name:'Rutina asignada',
-        description:''
+        description:'',unavailable:true
       }
     }));
-    const profileRoutineIds=[...new Set(items.map(x=>x.routine.id).filter(Boolean).map(String))];
-    const profileAliases={};
-    for(const x of items){
-      if(x.assignment?.trainer_routine_id && x.assignment?.client_routine_id){
-        profileAliases[String(x.assignment.trainer_routine_id)]=String(x.assignment.client_routine_id);
-      }
+    const currentItem=items.find(item=>!clientRoutineAvailability(item));
+    const orderedItems=currentItem?[currentItem,...items.filter(item=>item!==currentItem)]:items;
+    const profileOverview=new Map();
+    for(let i=0;i<items.length;i+=4){
+      if(!isCurrent())return;
+      await Promise.all(items.slice(i,i+4).map(async item=>{
+        try{profileOverview.set(String(item.routine.id),await loadClientRoutineOverview(cid,item));}
+        catch(_){profileOverview.set(String(item.routine.id),null);}
+      }));
     }
-    const profileNames={};
-    for(const x of items){
-      if(x.routine?.id && x.routine?.name)profileNames[String(x.routine.id)]=x.routine.name;
-    }
-    const profileWeekly=await getWeeklyRoutineProgressForUser(cid,profileRoutineIds,profileAliases,profileNames);
 
     if(!isCurrent())return;
     body.innerHTML=`
       <div class="card" style="margin:0 0 12px">
         <div class="muted">Rutinas asignadas</div>
       </div>
-      ${items.map(x=>`
+      ${orderedItems.map(x=>`
         <div class="card" style="margin:8px 0">
-          <div style="display:flex;justify-content:space-between;gap:10px;align-items:center">
-            <div>
+          <div class="client-profile-row">
+            <div class="client-profile-main">
+              ${x===currentItem?'<div class="muted">Rutina actual</div>':''}
               <b>${esc(x.routine.name||'Rutina asignada')}</b>
-              <div class="muted">Asignada ${new Date(x.assignment.created_at).toLocaleDateString('es-ES')}</div>
-              ${renderWeeklyRoutineProgress(profileWeekly.get(String(x.routine.id))?.total||0,profileWeekly.get(String(x.routine.id))?.done||0)}
+              ${renderClientOverview(profileOverview.get(String(x.routine.id)))}
+              <div class="muted" style="margin-top:5px">Asignada ${new Date(x.assignment.created_at).toLocaleDateString('es-ES')}</div>
             </div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+            <div class="client-profile-actions">
               <button class="btn" onclick="openClientRoutineProgress(${esc(JSON.stringify(cid))},${esc(JSON.stringify(x.routine.id))},${esc(JSON.stringify(x.routine.name||'Rutina'))})">Ver progreso</button>
               <button class="btn primary" onclick="editClientAssignedRoutine(${esc(JSON.stringify(cid))},${esc(JSON.stringify(x.routine.id))},${esc(JSON.stringify(x.routine.name||'Rutina'))})">Editar rutina</button>
               <button class="btn danger" onclick="revokeFromClientProfile('${x.assignment.id}')">Revocar</button>
@@ -4788,9 +4831,12 @@ async function revokeFromClientProfile(assignmentId){
   }
 }
 
+let __clientsRenderToken=0;
 async function renderClients(){
   const box=$('clients');
-  if(!box)return;
+  if(!box||!user?.id||profile?.role!=='trainer')return;
+  const owner=user,ownerId=user.id,version=window.__workoutContextVersion,token=++__clientsRenderToken;
+  const isCurrent=()=>user===owner&&user?.id===ownerId&&profile?.role==='trainer'&&version===window.__workoutContextVersion&&token===__clientsRenderToken;
   box.innerHTML=`<div class="card"><h2 style="margin:0 0 4px">Mis clientes</h2><div class="muted">Cargando...</div></div>`;
 
   try{
@@ -4799,9 +4845,10 @@ async function renderClients(){
     // so this is the authoritative source for the trainer's client list.
     const q=await db.from('routine_assignments')
       .select('id,client_id,trainer_id,trainer_routine_id,client_routine_id,created_at,client_deleted_at')
-      .eq('trainer_id',user.id)
+      .eq('trainer_id',ownerId)
       .order('created_at',{ascending:false});
 
+    if(!isCurrent())return;
     if(q.error)throw q.error;
 
     const activeAssignments=q.data||[];
@@ -4826,15 +4873,16 @@ async function renderClients(){
     )];
 
     const names=new Map();
-    const [routineQuery,nameRpc]=await Promise.all([
+    const [routineQuery,nameQuery]=await Promise.all([
       routineIds.length
         ? db.from('routines').select('id,name,description,deleted_at').in('id',routineIds)
         : Promise.resolve({data:[],error:null}),
       ids.length
-        ? db.rpc('get_public_profile_names',{p_user_ids:ids})
+        ? db.from('profiles').select('id,name').in('id',ids)
         : Promise.resolve({data:[],error:null})
     ]);
 
+    if(!isCurrent())return;
     const routineMap=new Map();
     if(!routineQuery.error){
       for(const r of (routineQuery.data||[]))routineMap.set(String(r.id),r);
@@ -4842,99 +4890,53 @@ async function renderClients(){
       console.warn('No se pudieron leer nombres de rutinas:',routineQuery.error);
     }
 
-    // Names: try public RPC first, then profiles. Neither failure hides clients.
-    if(!nameRpc.error){
-      for(const row of (nameRpc.data||[])){
+    // Read only profiles already authorized by the assignment-based policy.
+    if(!nameQuery.error){
+      for(const row of (nameQuery.data||[])){
         if(row?.id)names.set(String(row.id),row.name||'');
       }
     }else{
-      console.warn('RPC nombres:',nameRpc.error);
+      console.warn('Nombres de clientes:',nameQuery.error);
     }
-
-    const missing=ids.filter(id=>!String(names.get(id)||'').trim());
-    if(missing.length){
-      try{
-        const prof=await db.from('profiles').select('id,name').in('id',missing);
-        if(!prof.error){
-          for(const row of (prof.data||[])){
-            if(row?.id)names.set(String(row.id),row.name||'');
-          }
-        }
-      }catch(err){
-        console.warn('profiles:',err);
-      }
-    }
-
-    const clientWeeklyByUser=new Map();
-    const assignmentsByClient=new Map();
-    for(const a of activeAssignments){
-      const key=String(a.client_id||'');
-      if(!assignmentsByClient.has(key))assignmentsByClient.set(key,[]);
-      assignmentsByClient.get(key).push(a);
-    }
-    await Promise.all(ids.map(async cid=>{
-      const clientAssignmentsForUser=assignmentsByClient.get(String(cid))||[];
-      const clientRoutineIds=[...new Set(clientAssignmentsForUser.map(a=>a.trainer_routine_id).filter(Boolean).map(String))];
-      const aliases={};
-      for(const a of clientAssignmentsForUser){
-        if(a.trainer_routine_id&&a.client_routine_id)
-          aliases[String(a.trainer_routine_id)]=String(a.client_routine_id);
-      }
-      const namesForClient={};
-      for(const a of clientAssignmentsForUser){
-        if(a.trainer_routine_id){
-          const rr=routineMap.get(String(a.trainer_routine_id));
-          if(rr?.name)namesForClient[String(a.trainer_routine_id)]=rr.name;
-        }
-      }
-      const weekly=await getWeeklyRoutineProgressForUser(cid,clientRoutineIds,aliases,namesForClient);
-      clientWeeklyByUser.set(cid,weekly);
-    }));
 
     const grouped=new Map();
     for(const a of activeAssignments){
       const cid=String(a.client_id);
       if(!grouped.has(cid))grouped.set(cid,[]);
 
-      const routine=routineMap.get(String(a.trainer_routine_id)) ||
-        (routines||[]).find(r=>String(r.id)===String(a.trainer_routine_id)) || {
+      const routine=routineMap.get(String(a.trainer_routine_id)) || {
           id:a.trainer_routine_id,
           name:'Rutina asignada',
-          description:''
+          description:'',unavailable:true
         };
 
       grouped.get(cid).push({assignment:a,routine});
     }
 
-    box.innerHTML=`
-      <div class="card">
-        <h2 style="margin:0 0 4px">Mis clientes</h2>
-        <div class="muted">${grouped.size} cliente${grouped.size===1?'':'s'} con rutinas asignadas.</div>
-      </div>
-      ${[...grouped.entries()].map(([cid,items])=>`
-        <div class="card">
-          <div style="display:flex;justify-content:space-between;gap:12px;align-items:center">
-            <div>
-              <h3 style="margin:0">${esc((names.get(cid)||'').trim() || cid)}</h3>
-              <div class="muted">${items.length} rutina${items.length===1?'':'s'} asignada${items.length===1?'':'s'}</div>
-            </div>
-            <button class="btn primary" onclick="openClientProfile('${cid}')">Ver cliente</button>
-          </div>
-          <div style="margin-top:12px">
-            ${items.map(x=>`
-              <div class="card" style="margin:8px 0;padding:12px">
-                <div style="display:flex;justify-content:space-between;gap:10px;align-items:center">
-                  <div>
-                    <b>${esc(x.routine.name||'Rutina asignada')}</b>
-                    <div class="muted">Asignada ${new Date(x.assignment.created_at).toLocaleDateString('es-ES')}</div>
-                    ${renderWeeklyRoutineProgress(clientWeeklyByUser.get(cid)?.get(String(x.routine.id))?.total||0,clientWeeklyByUser.get(cid)?.get(String(x.routine.id))?.done||0)}
-                  </div>
-                  <button class="btn danger" onclick="revokeClientRoutine('${x.assignment.id}')">Revocar</button>
-                </div>
-              </div>`).join('')}
-          </div>
-        </div>`).join('')}`;
+    const overviewByClient=new Map(),selectedByClient=new Map();
+    for(const [cid,items] of grouped)selectedByClient.set(cid,items.find(item=>!clientRoutineAvailability(item))||items[0]);
+    // Limit concurrent reads. Each summary retrieves only a cycle and one date.
+    for(let i=0;i<ids.length;i+=4){
+      if(!isCurrent())return;
+      await Promise.all(ids.slice(i,i+4).map(async cid=>{
+        try{overviewByClient.set(cid,await loadClientRoutineOverview(cid,selectedByClient.get(cid)));}
+        catch(_){overviewByClient.set(cid,null);}
+      }));
+    }
+    if(!isCurrent())return;
+    box.innerHTML=`<div class="card"><h2 style="margin:0 0 4px">Clientes</h2><div class="muted">${grouped.size} cliente${grouped.size===1?'':'s'} · Resumen de la rutina asignada más reciente</div></div>
+      <div class="client-overview-grid">${[...grouped.entries()].map(([cid,items])=>{
+        const selected=selectedByClient.get(cid),name=String(names.get(cid)||'').trim()||'Cliente';
+        return `<button type="button" data-action="open-client" data-client-id="${esc(cid)}" class="card client-overview-card" onclick="openClientProfile('${esc(cid)}')" aria-label="Ver cliente: ${esc(name)}">
+          <span class="client-overview-name" title="${esc(name)}">${esc(name)}</span>
+          <span class="client-overview-routine">${esc(selected?.routine.name||'Sin rutina asignada')}${items.length>1?' · '+(items.length-1)+' más':''}</span>
+          ${renderClientOverview(overviewByClient.get(cid))}
+          <span class="client-overview-open">Ver cliente →</span>
+        </button>`;
+      }).join('')}</div>`;
+
   }catch(e){
+    if(!isCurrent())return;
     console.error('renderClients:',e);
     box.innerHTML=`<div class="card">
       <h2>Mis clientes</h2>
