@@ -2507,6 +2507,8 @@ label{
 #passwordToggle{width:44px!important;height:44px!important;margin-top:0}
 .password-wrap input{padding-right:54px}
 .rest-mini{width:44px;height:44px;flex:0 0 44px;padding:0}
+#restBox .rest-header{flex-wrap:wrap;justify-content:center}
+#restBox [data-action="rest-close"]{display:grid;place-items:center;box-sizing:border-box;width:44px;height:44px;min-width:44px;min-height:44px;padding:0;line-height:1}
 .rest-floating.rest-mini-mode{max-width:112px}
 .workout-draft-status{margin:6px 0 10px;font-size:12px;color:var(--muted)}
 .toast{width:max-content;max-width:calc(100vw - 32px);overflow-wrap:anywhere}
@@ -4444,15 +4446,15 @@ function renderClientSingleDayExercises(di){
         <div style="display:flex;align-items:flex-start;gap:9px">
           <div style="flex:1">
             <div class="grid3">
-              <div><label>Ejercicio</label><input value="${esc(e.name)}" onchange="editDays[${di}].exercises[${ei}].name=this.value"></div>
-              <div><label>Series</label><input type="number" min="1" value="${e.sets||1}" onchange="editDays[${di}].exercises[${ei}].sets=Math.max(1,+this.value||1)"></div>
-              <div><label>Descanso previsto (min)</label><input type="number" min="0" step="0.5" value="${Number(e.rest_seconds??120)/60}" inputmode="decimal" onchange="editDays[${di}].exercises[${ei}].rest_seconds=Math.max(0,(parseFloat(this.value)||0)*60)"></div>
+              <div><label>Ejercicio</label><input value="${esc(e.name)}" onchange="setEditorExerciseField('${editorEntityKey(d)}','${editorEntityKey(e)}','name',this.value)"></div>
+              <div><label>Series</label><input type="number" min="1" value="${e.sets||1}" onchange="setEditorExerciseField('${editorEntityKey(d)}','${editorEntityKey(e)}','sets',this.value===''?null:Number(this.value),this)"></div>
+              <div><label>Descanso previsto (min)</label><input type="number" min="0" step="0.5" value="${e.rest_seconds==null?'':Number(e.rest_seconds)/60}" inputmode="decimal" onchange="setEditorExerciseField('${editorEntityKey(d)}','${editorEntityKey(e)}','rest_seconds',this.value===''?null:Number(this.value)*60,this)"></div>
             </div>
             <div class="grid" style="margin-top:8px">
-              <div><label>Objetivo de reps</label><input value="${esc(e.target||'')}" placeholder="2x10-15" onchange="editDays[${di}].exercises[${ei}].target=this.value"></div>
-              <div><label>RIR</label><input value="${esc(e.rir??'')}" placeholder="2" onchange="editDays[${di}].exercises[${ei}].rir=this.value"></div>
+              <div><label>Objetivo de reps</label><input value="${esc(e.target||'')}" placeholder="2x10-15" onchange="setEditorExerciseField('${editorEntityKey(d)}','${editorEntityKey(e)}','target',this.value)"></div>
+              <div><label>RIR</label><input value="${esc(e.rir??'')}" placeholder="2" onchange="setEditorExerciseField('${editorEntityKey(d)}','${editorEntityKey(e)}','rir',this.value)"></div>
             </div>
-            <div style="margin-top:8px"><label>Notas</label><input value="${esc(e.notes||'')}" onchange="editDays[${di}].exercises[${ei}].notes=this.value"></div>
+            <div style="margin-top:8px"><label>Notas</label><input value="${esc(e.notes||'')}" onchange="setEditorExerciseField('${editorEntityKey(d)}','${editorEntityKey(e)}','notes',this.value)"></div>
           </div>
         </div>
         <div class="buttons" style="justify-content:flex-end;margin-top:8px">
@@ -5287,15 +5289,15 @@ function renderEditor(){
                 title="Arrastrar ejercicio">☷</span>
               <div style="flex:1">
                 <div class="grid3">
-                  <div><label>Ejercicio</label><input value="${esc(e.name)}" onchange="editDays[${di}].exercises[${ei}].name=this.value"></div>
-                  <div><label>Series</label><input type="number" min="1" value="${e.sets||1}" onchange="editDays[${di}].exercises[${ei}].sets=Math.max(1,+this.value||1)"></div>
-                  <div><label>Descanso previsto (min)</label><input type="number" min="0" step="0.5" value="${Number(e.rest_seconds??120)/60}" onchange="editDays[${di}].exercises[${ei}].rest_seconds=Math.max(0,(parseFloat(this.value)||0)*60)"></div>
+                  <div><label>Ejercicio</label><input value="${esc(e.name)}" onchange="setEditorExerciseField('${editorEntityKey(d)}','${editorEntityKey(e)}','name',this.value)"></div>
+                  <div><label>Series</label><input type="number" min="1" value="${e.sets||1}" onchange="setEditorExerciseField('${editorEntityKey(d)}','${editorEntityKey(e)}','sets',this.value===''?null:Number(this.value),this)"></div>
+                  <div><label>Descanso previsto (min)</label><input type="number" min="0" step="0.5" value="${e.rest_seconds==null?'':Number(e.rest_seconds)/60}" onchange="setEditorExerciseField('${editorEntityKey(d)}','${editorEntityKey(e)}','rest_seconds',this.value===''?null:Number(this.value)*60,this)"></div>
                 </div>
                 <div class="grid" style="margin-top:8px">
-                  <div><label>Objetivo</label><input value="${esc(e.target||'')}" placeholder="2x10-15" onchange="editDays[${di}].exercises[${ei}].target=this.value"></div>
-                  <div><label>RIR</label><input value="${esc(e.rir??'')}" onchange="editDays[${di}].exercises[${ei}].rir=this.value"></div>
+                  <div><label>Objetivo</label><input value="${esc(e.target||'')}" placeholder="2x10-15" onchange="setEditorExerciseField('${editorEntityKey(d)}','${editorEntityKey(e)}','target',this.value)"></div>
+                  <div><label>RIR</label><input value="${esc(e.rir??'')}" onchange="setEditorExerciseField('${editorEntityKey(d)}','${editorEntityKey(e)}','rir',this.value)"></div>
                 </div>
-                <div style="margin-top:8px"><label>Notas</label><input value="${esc(e.notes||'')}" onchange="editDays[${di}].exercises[${ei}].notes=this.value"></div>
+                <div style="margin-top:8px"><label>Notas</label><input value="${esc(e.notes||'')}" onchange="setEditorExerciseField('${editorEntityKey(d)}','${editorEntityKey(e)}','notes',this.value)"></div>
               </div>
             </div>
             <div class="buttons" style="justify-content:flex-end;margin-top:7px">
@@ -5538,6 +5540,53 @@ function moveDay(dayIndex,direction){
 }
 
 function addDay(){editDays.push({id:null,name:'Nuevo día',day_order:editDays.length,exercises:[]});renderEditor()}function removeDay(i){if(confirm('¿Eliminar este día?')){editDays.splice(i,1);renderEditor()}}function addEx(di){editDays[di].exercises.push({id:null,name:'Nuevo ejercicio',sets:2,target:'2x10-15',rir:'2',rest_seconds:120,notes:''});renderEditor()}function removeEx(di,ei){editDays[di].exercises.splice(ei,1);renderEditor()}
+function routineEditorFieldPatch(id,context,name,description,rows){
+  if(!context?.initialSnapshot)return null;
+  const [beforeName,beforeDescription,beforeDays]=JSON.parse(context.initialSnapshot);
+  if(beforeDays.length!==rows.length)return null;
+  const changes=[];
+  const add=(entity,key,before,after,fields,dayId)=>{
+    const expected={},values={};
+    for(const field of fields){
+      if(JSON.stringify(before[field])===JSON.stringify(after[field]))continue;
+      expected[field]=before[field]??null;values[field]=after[field]??null;
+    }
+    if(Object.keys(values).length)changes.push({entity,id:key,...(dayId?{day_id:dayId}:{}),expected,values});
+  };
+  add('routine',id,{name:beforeName,description:beforeDescription},{name,description},['name','description']);
+  for(let i=0;i<rows.length;i++){
+    const d=rows[i],old=beforeDays[i];
+    // Structural edits keep their existing atomic path. Field edits never use an array index as identity.
+    if(!d.id||String(d.id)!==String(old.id)||d.exercises.length!==old.exercises.length)return null;
+    add('day',d.id,old,d,['name']);
+    for(let j=0;j<d.exercises.length;j++){
+      const e=d.exercises[j];
+      if(!e.id||String(e.id)!==String(old.exercises[j].id))return null;
+      const previous=old.exercises.find(x=>String(x.id)===String(e.id));
+      if(!previous)return null;
+      add('exercise',e.id,previous,e,['name','sets','target','rir','rest_seconds','notes'],d.id);
+    }
+  }
+  return {mode:'field_patch_v1',changes};
+}
+const editorEntityKeys=new WeakMap();
+function editorEntityKey(entity){
+  if(entity.id)return String(entity.id);
+  if(!editorEntityKeys.has(entity))editorEntityKeys.set(entity,crypto.randomUUID());
+  return editorEntityKeys.get(entity);
+}
+function setEditorExerciseField(dayKey,exerciseKey,field,value,input){
+  if(window.__routineSaving||__editorOrderSaving)return;
+  if(!['name','sets','target','rir','rest_seconds','notes'].includes(field))return;
+  if(field==='sets'||field==='rest_seconds'){
+    const valid=Number.isFinite(value)&&Number.isInteger(value)&&value>=(field==='sets'?1:0);
+    if(input)input.setCustomValidity(valid?'':field==='sets'?'Introduce al menos una serie.':'Introduce un descanso válido; utiliza 0 para indicar sin descanso.');
+    if(!valid)return;
+  }
+  const day=editDays.find(d=>editorEntityKey(d)===dayKey);
+  const exercise=day?.exercises.find(e=>editorEntityKey(e)===exerciseKey);
+  if(exercise)exercise[field]=value;
+}
 async function saveEditor(id){
   if(window.__routineSaving||__editorOrderSaving)return;
   const context=window.__clientRoutineEdit,owner=user,ownerId=user?.id,rows=editDays,request=window.__routineEditorRequest;
@@ -5548,6 +5597,10 @@ async function saveEditor(id){
   if(!name)return toast('Pon un nombre a la rutina');
   if(editDays.some(d=>!d.name.trim()))return toast('Pon nombre a todos los días');
   if(editDays.some(d=>d.exercises.some(e=>!e.name.trim())))return toast('Pon nombre a todos los ejercicios');
+  const invalid=$('editor').querySelector('input:invalid,textarea:invalid,select:invalid');
+  if(invalid){invalid.reportValidity();return;}
+  const fieldPatch=routineEditorFieldPatch(id,context,$('en').value,$('ed').value,editDays);
+  if(fieldPatch&&!fieldPatch.changes.length){toast('No hay cambios que guardar');return;}
   window.__routineSaving=true;
   const controls=context?[...$('editor').querySelectorAll('input,textarea,select,button')].map(el=>({el,disabled:el.disabled})):[];
   controls.forEach(({el})=>el.disabled=true);
@@ -5560,7 +5613,7 @@ async function saveEditor(id){
         name:e.name.trim(),
         sets:Math.max(1,Number(e.sets)||1),
         target:e.target||'',
-        rir:e.rir===''||e.rir==null?null:Number(e.rir),
+        rir:e.rir??null,
         rest_seconds:Math.max(0,Number(e.rest_seconds)||0),
         notes:e.notes||null
       }))
@@ -5569,7 +5622,7 @@ async function saveEditor(id){
       p_routine_id:id,
       p_name:name,
       p_description:description,
-      p_days:daysPayload
+      p_days:fieldPatch||daysPayload
     });
     if(!isCurrent())return;
     if(q.error)throw q.error;
@@ -5582,7 +5635,7 @@ async function saveEditor(id){
       return;
     }
     await reload();closeM('editModal');renderMine();toast('Rutina guardada');
-  }catch(e){if(isCurrent()){console.error('saveEditor:',e);toast('No se pudo guardar la rutina')}}
+  }catch(e){if(isCurrent()){console.error('saveEditor:',e);toast(e.message==='editor_conflict'?'El campo cambió en otra sesión. Cierra y vuelve a abrir el editor antes de guardar.':'No se pudo guardar la rutina')}}
   finally{controls.forEach(({el,disabled})=>{if(el.isConnected)el.disabled=disabled;});window.__routineSaving=false}
 }
 async function delRoutine(id){
@@ -6503,7 +6556,8 @@ async function editWorkout(id){
   const session=(window.workoutHistory||[]).find(x=>String(x.id)===String(id));
   if(!session)return toast('Sesión no encontrada.');
 
-  const data=session.data||{};
+  const data=JSON.parse(JSON.stringify(session.data||{}));
+  window.__workoutEditSnapshot={id:String(id),data,owner:user};
   const exercises=Array.isArray(data.exercises)?data.exercises:[];
   window.__editingWorkout=id;
 
@@ -6534,19 +6588,19 @@ async function editWorkout(id){
               <div class="history-row">
                 <span>${esc(String(set.set??si+1))}</span>
                 <input class="history-edit-input" inputmode="decimal"
-                  data-edit-ex="${ei}" data-edit-set="${si}" data-edit-field="kg"
+                  data-edit-ex="${ei}" data-edit-ex-id="${esc(e.exercise_id||'')}" data-edit-set="${si}" data-edit-field="kg"
                   value="${esc(set.kg??'')}">
                 <input class="history-edit-input" inputmode="numeric" min="0"
-                  data-edit-ex="${ei}" data-edit-set="${si}" data-edit-field="reps"
+                  data-edit-ex="${ei}" data-edit-ex-id="${esc(e.exercise_id||'')}" data-edit-set="${si}" data-edit-field="reps"
                   value="${esc(set.reps??'')}">
                 <input class="history-edit-input" inputmode="numeric" min="0" max="10"
-                  data-edit-ex="${ei}" data-edit-set="${si}" data-edit-field="rir"
+                  data-edit-ex="${ei}" data-edit-ex-id="${esc(e.exercise_id||'')}" data-edit-set="${si}" data-edit-field="rir"
                   value="${esc(set.rir??'')}">
               </div>`).join('')}
           </div>
           <div style="margin-top:10px">
             <label>Notas del ejercicio</label>
-            <textarea class="history-edit-note" data-edit-ex="${ei}">${esc(e.notes??'')}</textarea>
+            <textarea class="history-edit-note" data-edit-ex="${ei}" data-edit-ex-id="${esc(e.exercise_id||'')}">${esc(e.notes??'')}</textarea>
           </div>
           <button class="btn danger session-delete-exercise" type="button" onclick="requestSessionExerciseDelete('${esc(id)}',${ei})">Eliminar ejercicio</button>
         </div>`;
@@ -6576,25 +6630,31 @@ async function saveEditedWorkout(id){
   const editing=window.__editingWorkout;
   const isCurrent=()=>currentModal()&&window.workoutHistory===history&&window.__editingWorkout===editing;
 
+  const snapshot=window.__workoutEditSnapshot;
+  if(!snapshot||snapshot.id!==String(id)||snapshot.owner!==user)return toast('Vuelve a abrir la sesión para editarla.');
+  const controls=[...$('trainBody').querySelectorAll('input,textarea,button')].map(el=>({el,disabled:el.disabled}));
+  controls.forEach(({el})=>el.disabled=true);
   window.__savingEditedWorkout=true;
   try{
-    const data=JSON.parse(JSON.stringify(session.data||{}));
+    const data=JSON.parse(JSON.stringify(snapshot.data));
     const exercises=Array.isArray(data.exercises)?data.exercises:[];
-
-    document.querySelectorAll('.history-edit-input').forEach(input=>{
-      const ei=Number(input.dataset.editEx);
-      const si=Number(input.dataset.editSet);
-      const field=input.dataset.editField;
-      if(!exercises[ei]||!Array.isArray(exercises[ei].sets)||!exercises[ei].sets[si])return;
-      exercises[ei].sets[si][field]=input.value;
-    });
-
-    document.querySelectorAll('.history-edit-note').forEach(input=>{
-      const ei=Number(input.dataset.editEx);
-      if(exercises[ei])exercises[ei].notes=String(input.value??'');
-    });
-
-    data.exercises=exercises;
+    let changed=false;
+    for(const input of $('trainBody').querySelectorAll('.history-edit-input,.history-edit-note')){
+      if(input.value===input.defaultValue)continue;
+      const key=input.dataset.editExId;
+      const matches=key?exercises.filter(e=>String(e.exercise_id||'')===key):[];
+      // Legacy rows have no UUID: the full original JSON is checked atomically before any write.
+      const exercise=key?(matches.length===1?matches[0]:null):exercises[Number(input.dataset.editEx)];
+      if(!exercise)throw new Error('Identidad de ejercicio ambigua; vuelve a abrir la sesión.');
+      if(input.classList.contains('history-edit-note'))exercise.notes=input.value;
+      else{
+        const field=input.dataset.editField,si=Number(input.dataset.editSet);
+        if(!['kg','reps','rir'].includes(field)||!exercise.sets?.[si])throw new Error('Serie no disponible');
+        exercise.sets[si][field]=input.value;
+      }
+      changed=true;
+    }
+    if(!changed){toast('No hay cambios que guardar');return;}
 
     // Trainer editing a client's session must go through the secured RPC.
     // Direct UPDATE only works for the owner of the workout and was the reason
@@ -6603,7 +6663,7 @@ async function saveEditedWorkout(id){
     if(profile?.role==='trainer' && String(session.user_id)!==String(user.id)){
       r=await db.rpc('update_client_workout_data',{
         p_workout_id:String(id),
-        p_data:data
+        p_data:{__simple_edit_v1:true,expected:snapshot.data,data}
       });
       if(!isCurrent())return;
       if(r.error)throw r.error;
@@ -6620,6 +6680,7 @@ async function saveEditedWorkout(id){
         .update({data})
         .eq('id',id)
         .eq('user_id',user.id)
+        .eq('data',JSON.stringify(snapshot.data))
         .select('id,user_id,variant,day,workout_date,data')
         .single();
       if(!isCurrent())return;
@@ -6638,6 +6699,7 @@ async function saveEditedWorkout(id){
     console.error('saveEditedWorkout:',e);
     toast('No se pudieron guardar los cambios: '+(e.message||'error'));
   }finally{
+    controls.forEach(({el,disabled})=>{if(el.isConnected)el.disabled=disabled;});
     window.__savingEditedWorkout=false;
   }
 }
@@ -7056,13 +7118,11 @@ function workoutDraftKey(){
     : null;
 }
 
-// Opening a workout is provisional: only participation or explicit saving
-// establishes a persisted start. Merely consulting a day does not do so.
+// Only a first unchecked → checked transition establishes the start.
 function markWorkoutStarted(){
   if(!activeWorkout||activeWorkout.locked||!user?.id||!workoutRoutine?.id)return;
   if(!activeWorkout.startedAt){
-    const now=Date.now();
-    activeWorkout.startedAt=new Date(Math.min(activeWorkout.openedAt||now,now)).toISOString();
+    activeWorkout.startedAt=new Date().toISOString();
   }
 }
 function formatWorkoutDuration(data){
@@ -7648,7 +7708,6 @@ function updateSet(id,i,field,value){
   if(activeWorkout.locked&&!activeWorkout.editing)return;
   const arr=activeWorkout.sets[id];
   if(arr&&arr[i]){
-    markWorkoutStarted();
     arr[i][field]=value;
     saveWorkoutDraft();
   }
@@ -7661,7 +7720,6 @@ function updateExerciseNote(id,value){
   arr.note=String(value??'');
   const exercise=activeWorkout.exercises.find(e=>String(e.id)===String(id));
   if(!exercise)return;
-  markWorkoutStarted();
   saveWorkoutDraft();
 
   const key=workoutNotesKey();
@@ -7710,8 +7768,9 @@ function toggleSet(id,i){
   if(!activeWorkout)return;
   if(activeWorkout.locked)return;
   const arr=activeWorkout.sets[id]; if(!arr||!arr[i])return;
-  markWorkoutStarted();
-  arr[i].done=!arr[i].done;
+  const completing=!arr[i].done;
+  if(completing)markWorkoutStarted();
+  arr[i].done=completing;
   saveWorkoutDraft();
   // Only refresh the tick itself; never touch the rest timer.
   const rows=document.querySelectorAll(`button.tick`);
@@ -7879,9 +7938,8 @@ async function saveWorkoutSession(){
   if(activeWorkout.locked)return toast('Este entrenamiento ya está guardado hoy.');
   if(!confirmEmptyWorkout())return;
 
-  markWorkoutStarted();
   saveWorkoutDraft();
-  const completedAt=new Date().toISOString(),startedAt=activeWorkout.startedAt;
+  const completedAt=new Date().toISOString(),startedAt=activeWorkout.startedAt||null;
 
   const owner=user, routine=workoutRoutine, workout=activeWorkout;
   const ownerId=user.id, routineId=routine.id, dayId=workout.day.id;
@@ -7931,7 +7989,7 @@ async function saveWorkoutSession(){
       workout_date:today,
       started_at:startedAt,
       completed_at:completedAt,
-      duration_seconds:Math.max(0,Math.floor((Date.parse(completedAt)-Date.parse(startedAt))/1000)),
+      duration_seconds:startedAt?Math.max(0,Math.floor((Date.parse(completedAt)-Date.parse(startedAt))/1000)):null,
       exercises:(activeWorkout.exercises||[]).map(e=>{
         const st=activeWorkout.sets[e.id]||[];
         return {
@@ -8002,7 +8060,8 @@ async function saveWorkoutSession(){
     activeWorkout.locked=true;
     activeWorkout.lockedSession=r.data||null;
 
-    const savedMessage=(noteFailure?'Sesión guardada. Algunas notas no se han sincronizado.':'Sesión guardada correctamente')+' · Duración de la sesión: '+formatWorkoutDuration(sessionData);
+    const savedDuration=formatWorkoutDuration(sessionData);
+    const savedMessage=(noteFailure?'Sesión guardada. Algunas notas no se han sincronizado.':'Sesión guardada correctamente')+(savedDuration?' · Duración de la sesión: '+savedDuration:'');
     // La sesión ya está guardada: cerramos el entrenamiento y volvemos
     // automáticamente al menú principal correspondiente. Al marcarla como
     // bloqueada antes de cerrar evitamos que closeM() cree un borrador.
