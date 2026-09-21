@@ -4152,7 +4152,7 @@ async function openRoutineEditor(routineId,{clientId=null,routineName='',clientN
 
     editDays=daysResult;
     editorDragCleanup();
-    window.__clientRoutineEdit={clientId,routineId,assignmentId,context:clientId?'client':'library',reorder:false,dayIndex:null,
+    window.__clientRoutineEdit={clientId,routineId,assignmentId,context:clientId?'client':'library',reorder:false,dayIndex:null,originalRoutine:{name:r.name,description:r.description},
       initialSnapshot:JSON.stringify([r.name||routineName||'Rutina',r.description||'',editDays])};
 
     $('editor').innerHTML=`
@@ -4446,15 +4446,15 @@ function renderClientSingleDayExercises(di){
         <div style="display:flex;align-items:flex-start;gap:9px">
           <div style="flex:1">
             <div class="grid3">
-              <div><label>Ejercicio</label><input value="${esc(e.name)}" onchange="setEditorExerciseField('${editorEntityKey(d)}','${editorEntityKey(e)}','name',this.value)"></div>
-              <div><label>Series</label><input type="number" min="1" value="${e.sets||1}" onchange="setEditorExerciseField('${editorEntityKey(d)}','${editorEntityKey(e)}','sets',this.value===''?null:Number(this.value),this)"></div>
-              <div><label>Descanso previsto (min)</label><input type="number" min="0" step="0.5" value="${e.rest_seconds==null?'':Number(e.rest_seconds)/60}" inputmode="decimal" onchange="setEditorExerciseField('${editorEntityKey(d)}','${editorEntityKey(e)}','rest_seconds',this.value===''?null:Number(this.value)*60,this)"></div>
+              <div><label>Ejercicio</label><input value="${esc(e.name)}" oninput="this.onchange()" onchange="setEditorExerciseField('${editorEntityKey(d)}','${editorEntityKey(e)}','name',this.value)"></div>
+              <div><label>Series</label><input type="number" min="1" value="${e.sets||1}" oninput="this.onchange()" onchange="setEditorExerciseField('${editorEntityKey(d)}','${editorEntityKey(e)}','sets',this.value===''?null:Number(this.value),this)"></div>
+              <div><label>Descanso previsto (min)</label><input type="number" min="0" step="0.5" value="${e.rest_seconds==null?'':Number(e.rest_seconds)/60}" inputmode="decimal" oninput="this.onchange()" onchange="setEditorExerciseField('${editorEntityKey(d)}','${editorEntityKey(e)}','rest_seconds',this.value===''?null:Number(this.value)*60,this)"></div>
             </div>
             <div class="grid" style="margin-top:8px">
-              <div><label>Objetivo de reps</label><input value="${esc(e.target||'')}" placeholder="2x10-15" onchange="setEditorExerciseField('${editorEntityKey(d)}','${editorEntityKey(e)}','target',this.value)"></div>
-              <div><label>RIR</label><input value="${esc(e.rir??'')}" placeholder="2" onchange="setEditorExerciseField('${editorEntityKey(d)}','${editorEntityKey(e)}','rir',this.value)"></div>
+              <div><label>Objetivo de reps</label><input value="${esc(e.target||'')}" placeholder="2x10-15" oninput="this.onchange()" onchange="setEditorExerciseField('${editorEntityKey(d)}','${editorEntityKey(e)}','target',this.value)"></div>
+              <div><label>RIR</label><input value="${esc(e.rir??'')}" placeholder="2" oninput="this.onchange()" onchange="setEditorExerciseField('${editorEntityKey(d)}','${editorEntityKey(e)}','rir',this.value)"></div>
             </div>
-            <div style="margin-top:8px"><label>Notas</label><input value="${esc(e.notes||'')}" onchange="setEditorExerciseField('${editorEntityKey(d)}','${editorEntityKey(e)}','notes',this.value)"></div>
+            <div style="margin-top:8px"><label>Notas</label><input value="${esc(e.notes||'')}" oninput="this.onchange()" onchange="setEditorExerciseField('${editorEntityKey(d)}','${editorEntityKey(e)}','notes',this.value)"></div>
           </div>
         </div>
         <div class="buttons" style="justify-content:flex-end;margin-top:8px">
@@ -5289,15 +5289,15 @@ function renderEditor(){
                 title="Arrastrar ejercicio">☷</span>
               <div style="flex:1">
                 <div class="grid3">
-                  <div><label>Ejercicio</label><input value="${esc(e.name)}" onchange="setEditorExerciseField('${editorEntityKey(d)}','${editorEntityKey(e)}','name',this.value)"></div>
-                  <div><label>Series</label><input type="number" min="1" value="${e.sets||1}" onchange="setEditorExerciseField('${editorEntityKey(d)}','${editorEntityKey(e)}','sets',this.value===''?null:Number(this.value),this)"></div>
-                  <div><label>Descanso previsto (min)</label><input type="number" min="0" step="0.5" value="${e.rest_seconds==null?'':Number(e.rest_seconds)/60}" onchange="setEditorExerciseField('${editorEntityKey(d)}','${editorEntityKey(e)}','rest_seconds',this.value===''?null:Number(this.value)*60,this)"></div>
+                  <div><label>Ejercicio</label><input value="${esc(e.name)}" oninput="this.onchange()" onchange="setEditorExerciseField('${editorEntityKey(d)}','${editorEntityKey(e)}','name',this.value)"></div>
+                  <div><label>Series</label><input type="number" min="1" value="${e.sets||1}" oninput="this.onchange()" onchange="setEditorExerciseField('${editorEntityKey(d)}','${editorEntityKey(e)}','sets',this.value===''?null:Number(this.value),this)"></div>
+                  <div><label>Descanso previsto (min)</label><input type="number" min="0" step="0.5" value="${e.rest_seconds==null?'':Number(e.rest_seconds)/60}" oninput="this.onchange()" onchange="setEditorExerciseField('${editorEntityKey(d)}','${editorEntityKey(e)}','rest_seconds',this.value===''?null:Number(this.value)*60,this)"></div>
                 </div>
                 <div class="grid" style="margin-top:8px">
-                  <div><label>Objetivo</label><input value="${esc(e.target||'')}" placeholder="2x10-15" onchange="setEditorExerciseField('${editorEntityKey(d)}','${editorEntityKey(e)}','target',this.value)"></div>
-                  <div><label>RIR</label><input value="${esc(e.rir??'')}" onchange="setEditorExerciseField('${editorEntityKey(d)}','${editorEntityKey(e)}','rir',this.value)"></div>
+                  <div><label>Objetivo</label><input value="${esc(e.target||'')}" placeholder="2x10-15" oninput="this.onchange()" onchange="setEditorExerciseField('${editorEntityKey(d)}','${editorEntityKey(e)}','target',this.value)"></div>
+                  <div><label>RIR</label><input value="${esc(e.rir??'')}" oninput="this.onchange()" onchange="setEditorExerciseField('${editorEntityKey(d)}','${editorEntityKey(e)}','rir',this.value)"></div>
                 </div>
-                <div style="margin-top:8px"><label>Notas</label><input value="${esc(e.notes||'')}" onchange="setEditorExerciseField('${editorEntityKey(d)}','${editorEntityKey(e)}','notes',this.value)"></div>
+                <div style="margin-top:8px"><label>Notas</label><input value="${esc(e.notes||'')}" oninput="this.onchange()" onchange="setEditorExerciseField('${editorEntityKey(d)}','${editorEntityKey(e)}','notes',this.value)"></div>
               </div>
             </div>
             <div class="buttons" style="justify-content:flex-end;margin-top:7px">
@@ -5553,7 +5553,8 @@ function routineEditorFieldPatch(id,context,name,description,rows){
     }
     if(Object.keys(values).length)changes.push({entity,id:key,...(dayId?{day_id:dayId}:{}),expected,values});
   };
-  add('routine',id,{name:beforeName,description:beforeDescription},{name,description},['name','description']);
+  const original=context.originalRoutine||{name:beforeName,description:beforeDescription};
+  add('routine',id,original,{name:name===beforeName?original.name:name,description:description===beforeDescription?original.description:description},['name','description']);
   for(let i=0;i<rows.length;i++){
     const d=rows[i],old=beforeDays[i];
     // Structural edits keep their existing atomic path. Field edits never use an array index as identity.
@@ -5587,8 +5588,15 @@ function setEditorExerciseField(dayKey,exerciseKey,field,value,input){
   const exercise=day?.exercises.find(e=>editorEntityKey(e)===exerciseKey);
   if(exercise)exercise[field]=value;
 }
+function flushRoutineEditorInputs(){
+  // Commit the focused control before disabling it (including touch/keyboard saves).
+  for(const input of $('editor').querySelectorAll('input[onchange],textarea[onchange]')){
+    if(input.value!==input.defaultValue)input.dispatchEvent(new Event('change',{bubbles:true}));
+  }
+}
 async function saveEditor(id){
   if(window.__routineSaving||__editorOrderSaving)return;
+  flushRoutineEditorInputs();
   const context=window.__clientRoutineEdit,owner=user,ownerId=user?.id,rows=editDays,request=window.__routineEditorRequest;
   const isCurrent=()=>!context||(window.__clientRoutineEdit===context&&user===owner&&user?.id===ownerId&&editDays===rows&&
     window.__routineEditorRequest===request&&$('editModal').classList.contains('show'));
@@ -5607,27 +5615,57 @@ async function saveEditor(id){
   try{
     const daysPayload=editDays.map(d=>({
       id:d.id||null,
-      name:d.name.trim(),
+      name:d.id?d.name:d.name.trim(),
       exercises:(d.exercises||[]).map(e=>({
         id:e.id||null,
-        name:e.name.trim(),
-        sets:Math.max(1,Number(e.sets)||1),
-        target:e.target||'',
+        name:e.id?e.name:e.name.trim(),
+        sets:e.id?e.sets:Math.max(1,Number(e.sets)||1),
+        target:e.target??null,
         rir:e.rir??null,
-        rest_seconds:Math.max(0,Number(e.rest_seconds)||0),
-        notes:e.notes||null
+        rest_seconds:e.id?e.rest_seconds:Math.max(0,Number(e.rest_seconds)||0),
+        notes:e.notes??null
       }))
     }));
     const q=await db.rpc('save_routine_atomic',{
       p_routine_id:id,
-      p_name:name,
-      p_description:description,
-      p_days:fieldPatch||daysPayload
+      p_name:context&&$('en').value===JSON.parse(context.initialSnapshot)[0]?(context.originalRoutine?.name??name):name,
+      p_description:context&&$('ed').value===JSON.parse(context.initialSnapshot)[1]?(context.originalRoutine?.description??null):description,
+      p_days:fieldPatch||(context?{mode:'snapshot_v2',expected:{
+        name:context.originalRoutine?.name??JSON.parse(context.initialSnapshot)[0],
+        description:context.originalRoutine?.description??null,
+        days:JSON.parse(context.initialSnapshot)[2]
+      },days:daysPayload}:daysPayload)
     });
     if(!isCurrent())return;
     if(q.error)throw q.error;
     if(context){
-      routines=routines.map(r=>String(r.id)===String(id)?{...r,name,description}:r);
+      const [verified,verifiedDays]=await Promise.all([
+        db.from('routines').select('id,name,description').eq('id',id).eq('owner_id',ownerId).is('deleted_at',null).single(),days(id)
+      ]);
+      if(!isCurrent())return;
+      if(verified.error)throw verified.error;
+      if(!verified.data)throw Error('No se pudo volver a leer la rutina guardada.');
+      if(fieldPatch){
+        for(const change of fieldPatch.changes){
+          const actual=change.entity==='routine'?verified.data:change.entity==='day'?verifiedDays.find(d=>String(d.id)===String(change.id)):
+            verifiedDays.find(d=>String(d.id)===String(change.day_id))?.exercises.find(e=>String(e.id)===String(change.id));
+          if(!actual||Object.entries(change.values).some(([key,value])=>JSON.stringify(actual[key]??null)!==JSON.stringify(value)))throw Error('Los valores guardados no coinciden con la lectura del servidor. Vuelve a abrir la sesión.');
+        }
+      }else{
+        if(verifiedDays.length!==daysPayload.length)throw Error('La estructura guardada no coincide con el servidor.');
+        for(let di=0;di<daysPayload.length;di++){
+          const expectedDay=daysPayload[di],actualDay=verifiedDays[di];
+          if((expectedDay.id&&String(expectedDay.id)!==String(actualDay.id))||actualDay.name!==expectedDay.name||actualDay.exercises.length!==expectedDay.exercises.length)throw Error('La sesión guardada no coincide con el servidor.');
+          for(let ei=0;ei<expectedDay.exercises.length;ei++){
+            const expected=expectedDay.exercises[ei],actual=actualDay.exercises[ei];
+            if(!actual.id||(expected.id&&String(expected.id)!==String(actual.id))||['name','sets','target','rir','rest_seconds','notes'].some(key=>JSON.stringify(expected[key]??null)!==JSON.stringify(actual[key]??null)))throw Error('Un ejercicio guardado no coincide con el servidor.');
+          }
+        }
+      }
+      editDays=verifiedDays;
+      context.initialSnapshot=JSON.stringify([verified.data.name,verified.data.description??'',verifiedDays]);
+      context.originalRoutine={name:verified.data.name,description:verified.data.description};
+      routines=routines.map(r=>String(r.id)===String(id)?{...r,...verified.data}:r);
       closeM('editModal');
       toast('Rutina guardada');
       if(context.context==='client')await openClientProfile(context.clientId);
@@ -5635,7 +5673,7 @@ async function saveEditor(id){
       return;
     }
     await reload();closeM('editModal');renderMine();toast('Rutina guardada');
-  }catch(e){if(isCurrent()){console.error('saveEditor:',e);toast(e.message==='editor_conflict'?'El campo cambió en otra sesión. Cierra y vuelve a abrir el editor antes de guardar.':'No se pudo guardar la rutina')}}
+  }catch(e){if(isCurrent()){console.error('saveEditor:',e);toast(e.message==='editor_conflict'?'La rutina cambió en otra sesión. Cierra y vuelve a abrir el editor antes de guardar.':'No se pudo confirmar el guardado. '+(e.message||'Vuelve a abrir la rutina para comprobarla.'))}}
   finally{controls.forEach(({el,disabled})=>{if(el.isConnected)el.disabled=disabled;});window.__routineSaving=false}
 }
 async function delRoutine(id){
@@ -6304,6 +6342,17 @@ async function persistEditorOrder(previous,type,fd,td){
     const verify=await db.from(table).select('id').eq(key,parent).order(type==='day'?'day_order':'exercise_order',{ascending:true});
     if(verify.error)throw verify.error;
     if((verify.data||[]).map(x=>String(x.id)).join('|')!==ids.join('|'))throw Error('Orden no verificado');
+    if(window.__clientRoutineEdit===state&&state.initialSnapshot){
+      // Only advance the order baseline; preserve original field values for CAS.
+      const baseline=JSON.parse(state.initialSnapshot),oldDays=baseline[2];
+      if(type==='day'){
+        if(ids.length===oldDays.length&&ids.every(id=>oldDays.some(d=>String(d.id)===id)))baseline[2]=ids.map((id,i)=>({...oldDays.find(d=>String(d.id)===id),day_order:i}));
+      }else{
+        const day=oldDays.find(d=>String(d.id)===String(parent));
+        if(day&&ids.length===day.exercises.length&&ids.every(id=>day.exercises.some(e=>String(e.id)===id)))day.exercises=ids.map((id,i)=>({...day.exercises.find(e=>String(e.id)===id),exercise_order:i}));
+      }
+      state.initialSnapshot=JSON.stringify(baseline);
+    }
     toast('Orden guardado automáticamente');return true;
   }catch(err){
     if(editDays===current&&window.__clientRoutineEdit===state){
@@ -6508,13 +6557,14 @@ async function confirmSessionExerciseDelete(){
   op.busy=true;
   const button=$('sessionActionConfirm');button.disabled=true;button.textContent='Eliminando…';
   $('sessionActionError').textContent='';
-  // Keep unsaved edits to remaining exercises, keyed by the original array entry.
+  // Preserve pending edits to remaining exercises by stable identity.
   const edits=[];
-  document.querySelectorAll('.history-edit-input,.history-edit-note').forEach(input=>{
-    const original=op.session.data.exercises[Number(input.dataset.editEx)];
+  document.querySelectorAll('.history-edit-input,.history-edit-note,.history-edit-rest').forEach(input=>{
+    const original=op.session.data.exercises.find(e=>String(e.exercise_id||e.id||'')===input.dataset.editExId);
     const field=input.dataset.editField, si=Number(input.dataset.editSet);
-    const initial=field?original?.sets?.[si]?.[field]:original?.notes;
-    if(String(initial??'')!==input.value)edits.push({id:original?.exercise_id||original?.id,si,field,value:input.value});
+    const rest=input.classList.contains('history-edit-rest');
+    const initial=rest?original?.[field]:field?original?.sets?.[si]?.[field]:original?.notes;
+    if(original&&String(initial??'')!==input.value)edits.push({id:original.exercise_id||original.id,si,field,rest,value:input.value});
   });
   const controls=[...$('trainBody').querySelectorAll('input,textarea,button')];
   const disabled=controls.map(el=>el.disabled);controls.forEach(el=>el.disabled=true);
@@ -6536,7 +6586,7 @@ async function confirmSessionExerciseDelete(){
     for(const edit of edits){
       const ei=updated.data.exercises.findIndex(e=>(e.exercise_id||e.id)===edit.id);
       if(ei<0)continue;
-      const selector=edit.field?`.history-edit-input[data-edit-ex="${ei}"][data-edit-set="${edit.si}"][data-edit-field="${edit.field}"]`:
+      const selector=edit.rest?`.history-edit-rest[data-edit-ex-id="${CSS.escape(String(edit.id))}"]`:edit.field?`.history-edit-input[data-edit-ex="${ei}"][data-edit-set="${edit.si}"][data-edit-field="${edit.field}"]`:
         `.history-edit-note[data-edit-ex="${ei}"]`;
       const input=$('trainBody').querySelector(selector);if(input)input.value=edit.value;
     }
@@ -6588,20 +6638,24 @@ async function editWorkout(id){
               <div class="history-row">
                 <span>${esc(String(set.set??si+1))}</span>
                 <input class="history-edit-input" inputmode="decimal"
-                  data-edit-ex="${ei}" data-edit-ex-id="${esc(e.exercise_id||'')}" data-edit-set="${si}" data-edit-field="kg"
+                  data-edit-ex="${ei}" data-edit-ex-id="${esc(e.exercise_id||e.id||'')}" data-edit-set="${si}" data-edit-field="kg"
                   value="${esc(set.kg??'')}">
                 <input class="history-edit-input" inputmode="numeric" min="0"
-                  data-edit-ex="${ei}" data-edit-ex-id="${esc(e.exercise_id||'')}" data-edit-set="${si}" data-edit-field="reps"
+                  data-edit-ex="${ei}" data-edit-ex-id="${esc(e.exercise_id||e.id||'')}" data-edit-set="${si}" data-edit-field="reps"
                   value="${esc(set.reps??'')}">
                 <input class="history-edit-input" inputmode="numeric" min="0" max="10"
-                  data-edit-ex="${ei}" data-edit-ex-id="${esc(e.exercise_id||'')}" data-edit-set="${si}" data-edit-field="rir"
+                  data-edit-ex="${ei}" data-edit-ex-id="${esc(e.exercise_id||e.id||'')}" data-edit-set="${si}" data-edit-field="rir"
                   value="${esc(set.rir??'')}">
               </div>`).join('')}
           </div>
           <div style="margin-top:10px">
             <label>Notas del ejercicio</label>
-            <textarea class="history-edit-note" data-edit-ex="${ei}" data-edit-ex-id="${esc(e.exercise_id||'')}">${esc(e.notes??'')}</textarea>
+            <textarea class="history-edit-note" data-edit-ex="${ei}" data-edit-ex-id="${esc(e.exercise_id||e.id||'')}">${esc(e.notes??'')}</textarea>
           </div>
+          <div style="margin-top:10px"><label>Descanso registrado (${Object.hasOwn(e,'rest_seconds')?'seg':'min'})</label>
+            <input class="history-edit-rest" inputmode="decimal" data-edit-ex-id="${esc(e.exercise_id||e.id||'')}"
+              data-edit-field="${Object.hasOwn(e,'rest_seconds')?'rest_seconds':'rest_minutes'}"
+              value="${esc((Object.hasOwn(e,'rest_seconds')?e.rest_seconds:e.rest_minutes)??'')}"></div>
           <button class="btn danger session-delete-exercise" type="button" onclick="requestSessionExerciseDelete('${esc(id)}',${ei})">Eliminar ejercicio</button>
         </div>`;
       }).join('')}
@@ -6639,17 +6693,25 @@ async function saveEditedWorkout(id){
     const data=JSON.parse(JSON.stringify(snapshot.data));
     const exercises=Array.isArray(data.exercises)?data.exercises:[];
     let changed=false;
-    for(const input of $('trainBody').querySelectorAll('.history-edit-input,.history-edit-note')){
+    for(const input of $('trainBody').querySelectorAll('.history-edit-input,.history-edit-note,.history-edit-rest')){
       if(input.value===input.defaultValue)continue;
       const key=input.dataset.editExId;
-      const matches=key?exercises.filter(e=>String(e.exercise_id||'')===key):[];
-      // Legacy rows have no UUID: the full original JSON is checked atomically before any write.
-      const exercise=key?(matches.length===1?matches[0]:null):exercises[Number(input.dataset.editEx)];
+      const matches=key?exercises.filter(e=>String(e.exercise_id||e.id||'')===key):[];
+      const exercise=matches.length===1?matches[0]:null;
       if(!exercise)throw new Error('Identidad de ejercicio ambigua; vuelve a abrir la sesión.');
       if(input.classList.contains('history-edit-note'))exercise.notes=input.value;
+      else if(input.classList.contains('history-edit-rest')){
+        const field=input.dataset.editField;
+        if(!['rest_seconds','rest_minutes'].includes(field))throw Error('Descanso no disponible');
+        const value=input.value.trim();
+        if(value!==''&&(!Number.isFinite(Number(value))||Number(value)<0))throw Error('Introduce un descanso válido.');
+        exercise[field]=value===''?'':Number(value);
+      }
       else{
         const field=input.dataset.editField,si=Number(input.dataset.editSet);
         if(!['kg','reps','rir'].includes(field)||!exercise.sets?.[si])throw new Error('Serie no disponible');
+        const value=input.value.trim(),number=Number(value);
+        if(value!==''&&(!Number.isFinite(number)||number<0||(field==='reps'&&!Number.isInteger(number))||(field==='rir'&&number>10)))throw Error('Introduce un valor válido para '+field.toUpperCase()+'.');
         exercise.sets[si][field]=input.value;
       }
       changed=true;
@@ -6670,11 +6732,7 @@ async function saveEditedWorkout(id){
 
       // Keep the currently displayed client history in sync without calling
       // loadHistory(), which reads the trainer's own workouts.
-      const updated=r.data?.data||data;
-      const pos=(window.workoutHistory||[]).findIndex(x=>String(x.id)===String(id));
-      if(pos>=0){
-        window.workoutHistory[pos]={...window.workoutHistory[pos],data:updated};
-      }
+      if(String(r.data?.id)!==String(id)||!r.data?.data)throw Error('Respuesta de guardado incompleta.');
     }else{
       r=await db.from('workouts')
         .update({data})
@@ -6685,9 +6743,17 @@ async function saveEditedWorkout(id){
         .single();
       if(!isCurrent())return;
       if(r.error)throw r.error;
-      const pos=(window.workoutHistory||[]).findIndex(x=>String(x.id)===String(id));
-      if(pos>=0)window.workoutHistory[pos]=r.data;
+      if(String(r.data?.id)!==String(id)||!r.data?.data)throw Error('Respuesta de guardado incompleta.');
     }
+
+    const verified=String(session.user_id)===String(user.id)
+      ? await db.from('workouts').select('id,user_id,variant,day,workout_date,data').eq('id',id).eq('user_id',user.id).single()
+      : await db.rpc('get_client_routine_history',{p_client_id:String(session.user_id),p_routine_id:String(snapshot.data.routine_id??snapshot.data.routineId)});
+    if(!isCurrent())return;
+    if(verified.error)throw verified.error;
+    const canonical=Array.isArray(verified.data)?verified.data.find(x=>String(x.id)===String(id)):verified.data;
+    if(!canonical||String(canonical.id)!==String(id)||String(canonical.user_id)!==String(session.user_id)||!sameSessionData(canonical.data,data))throw Error('La lectura del servidor no coincide. Vuelve a abrir la sesión para comprobar los cambios.');
+    syncSessionObservation(session,canonical);
 
     window.__editingWorkout=null;
     showHistory();
@@ -6697,11 +6763,17 @@ async function saveEditedWorkout(id){
   }catch(e){
     if(!isCurrent())return;
     console.error('saveEditedWorkout:',e);
-    toast('No se pudieron guardar los cambios: '+(e.message||'error'));
+    toast(e.message==='workout_edit_conflict'||e.code==='PGRST116'?'La sesión cambió en otra pestaña. Vuelve a abrirla antes de guardar.':'No se pudieron confirmar los cambios: '+(e.message||'error'));
   }finally{
     controls.forEach(({el,disabled})=>{if(el.isConnected)el.disabled=disabled;});
     window.__savingEditedWorkout=false;
   }
+}
+function sameSessionData(a,b){
+  if(a===b)return true;
+  if(!a||!b||typeof a!=='object'||typeof b!=='object'||Array.isArray(a)!==Array.isArray(b))return false;
+  const keys=Object.keys(a);
+  return keys.length===Object.keys(b).length&&keys.every(key=>Object.hasOwn(b,key)&&sameSessionData(a[key],b[key]));
 }
 function visibleWorkoutHistory(){
   const h=window.workoutHistory||[],context=window.__routineHistoryContext;
@@ -7275,8 +7347,7 @@ function routinePresetForExercise(name){
   return presets[n]||null;
 }
 function formatStipulatedRest(e){
-  const preset=routinePresetForExercise(e?.name);
-  if(preset?.restLabel)return preset.restLabel;
+  // The session must display the saved prescription, never a preset keyed by name.
   const sec=Number(e?.rest_seconds)||0;
   if(!sec)return '-';
   const min=Math.floor(sec/60), rem=sec%60;
