@@ -25,4 +25,6 @@ Total de la ejecución final: **570 comprobaciones únicas**; las repeticiones d
 
 Los resultados y capturas antes/después se guardan exclusivamente en `results/`, ignorado por Git. El «antes» usa la CSS de la base de producción sobre los mismos datos ficticios. Durante la revisión se recuperó la etiqueta del estado vacío, detectada por la regresión de navegación, y se corrigió la restauración de CSS en el generador de capturas.
 
+La verificación pública detectó una lectura transitoria de WebKit: HTML transparente mientras BODY ya tenía el fondo crema correcto. La medición de primera pintura comprueba el fondo efectivo (BODY si HTML es transparente), sin aceptar un color distinto del esperado ni alterar el producto para satisfacer el test. Los diagnósticos originales se conservan en los resultados privados.
+
 `SIMPLE_PUBLIC_URL` permite ejecutar los mismos casos contra los assets publicados, interceptando el SDK y bloqueando cualquier petición a Supabase. Esto comprueba la interfaz servida realmente por Pages; **no equivale a un login autenticado real**. No crea usuarios, sesiones históricas ni fixtures remotas. Las verificaciones de integridad de producción son consultas de solo lectura y sus informes quedan fuera del commit.
