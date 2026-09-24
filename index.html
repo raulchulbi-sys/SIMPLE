@@ -2566,6 +2566,7 @@ button.client-overview-card{display:flex;flex-direction:column;align-items:stret
 #clientModalTitle{overflow-wrap:anywhere;min-width:0}
 @media(max-width:430px){.client-overview-grid{gap:8px}button.client-overview-card{padding:12px}.client-profile-actions{width:100%}.client-profile-actions .btn{flex:1 1 auto;min-height:44px}}
 </style>
+<link rel="stylesheet" href="assets/auth.css">
 </head>
 <body>
 <div class="modal" id="sessionActionModal" role="dialog" aria-modal="true" aria-labelledby="sessionActionTitle">
@@ -2582,46 +2583,73 @@ button.client-overview-card{display:flex;flex-direction:column;align-items:stret
  <button class="btn" type="button" onclick="closeM('redeemModal')">Cancelar</button>
  <button class="btn primary" id="redeemConfirm" type="submit">Vincular rutina</button>
  </div></form></div>
-<div id="auth" class="auth"><div class="authbox"><h1 class="simple-login-logo"><span>S</span>IMPLE</h1><p id="authText">Accede a tus rutinas y entrenamiento.</p>
-<div class="role-picker">
-  <label class="role-option">
-    <input type="radio" name="simpleRole" value="trainer" onchange="selectRole(this.value)">
-    <span>👨‍🏫 Entrenador</span>
-  </label>
-  <label class="role-option">
-    <input type="radio" name="simpleRole" value="client" checked onchange="selectRole(this.value)">
-    <span>👤 Cliente</span>
-  </label>
-</div>
-<input id="email" aria-label="Correo electrónico" autocomplete="username" autocapitalize="none" type="email" placeholder="Correo electrónico"><div class="password-wrap">
-  <input id="password" aria-label="Contraseña" type="password" placeholder="Contraseña" autocomplete="current-password">
-  <button type="button" id="passwordToggle" class="password-eye" aria-label="Mostrar contraseña" aria-pressed="false" onclick="toggleLoginPassword()"><svg class="password-eye-icon" viewBox="0 0 24 24" aria-hidden="true">
-    <path d="M3 3l18 18"></path>
-    <path d="M10.6 5.1C11.1 5 11.5 5 12 5c6.2 0 9.8 7 9.8 7a17 17 0 0 1-3.2 3.7"></path>
-    <path d="M6.4 6.5C3.8 8.3 2.2 12 2.2 12s3.6 7 9.8 7c1.4 0 2.7-.3 3.8-.8"></path>
-  </svg></button>
-</div><button type="button" id="forgotBtn" class="btn" style="margin-top:8px">¿Has olvidado tu contraseña?</button><button type="button" id="authBtn" class="btn primary">Iniciar sesión</button><button type="button" id="authSwitch" class="btn">Crear cuenta</button><div id="authMsg" class="msg" role="status"></div></div></div>
+<main id="auth" class="auth auth-shell" data-screen="boot" aria-label="Acceso a SIMPLE">
+ <div class="auth-art" aria-hidden="true"></div>
+ <div class="auth-layout">
+  <div class="auth-brand" aria-label="SIMPLE">
+   <svg class="auth-mark" viewBox="0 0 100 70" aria-hidden="true"><path d="M0 25h6v20H0zM13 12h6v46h-6zM26 0h6v70h-6zM68 0h6v70h-6zM81 12h6v46h-6zM94 25h6v20h-6z"/></svg>
+   <span class="auth-wordmark" aria-hidden="true">SIMPLE</span>
+   <div class="auth-loading" id="authLoading" role="status" hidden>Comprobando tu sesión…</div>
+  </div>
+  <div class="auth-content">
+   <section id="authWelcome" class="auth-panel auth-welcome" hidden aria-label="Bienvenida">
+    <button class="auth-button auth-primary" type="button" onclick="authNavigate('role')">Crear una cuenta</button>
+    <button class="auth-button auth-secondary" type="button" onclick="authNavigate('login')">Iniciar sesión</button>
+   </section>
+   <section id="authRoles" class="auth-panel" hidden aria-labelledby="authRoleTitle">
+    <button class="auth-back" type="button" onclick="authNavigate(user?'login':'welcome')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 6-6 6 6 6M8 12h13"/></svg>Volver</button>
+    <h1 id="authRoleTitle" tabindex="-1">¿Cómo vas a usar SIMPLE?</h1>
+    <button class="auth-role" type="button" onclick="chooseRegistrationRole('client')">
+     <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M7 13v14M12 9v22M28 9v22M33 13v14M12 20h16M3 17v6M37 17v6"/></svg>
+     <span><strong>Atleta</strong><small>Entrena, registra y sigue tu progreso</small></span><svg class="auth-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg>
+    </button>
+    <button class="auth-role" type="button" onclick="chooseRegistrationRole('trainer')">
+     <svg viewBox="0 0 40 40" aria-hidden="true"><rect x="9" y="8" width="22" height="27" rx="3"/><rect x="15" y="5" width="10" height="6" rx="2"/><path d="m14 20 3 3 8-8M15 29h10"/></svg>
+     <span><strong>Entrenador</strong><small>Crea rutinas y gestiona a tus atletas</small></span><svg class="auth-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg>
+    </button>
+   </section>
+   <section id="authCredentials" class="auth-panel" hidden aria-labelledby="authText">
+    <button class="auth-back" type="button" onclick="authNavigate(mode==='signup'?'role':'welcome')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 6-6 6 6 6M8 12h13"/></svg>Volver</button>
+    <h1 id="authText" tabindex="-1">Iniciar sesión</h1>
+    <p id="authSelectedRole" class="auth-selected-role" hidden><span id="authSelectedRoleText"></span><button class="auth-link" type="button" onclick="authNavigate('role')">Cambiar</button></p>
+    <form id="authForm" autocomplete="on">
+     <label class="auth-field" for="email"><span class="auth-field-label">Correo electrónico</span><span class="auth-input-wrap"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="4"/><path d="M4 22v-3a8 8 0 0 1 16 0v3"/></svg><input id="email" name="email" type="email" placeholder="tu@correo.com" autocomplete="username" inputmode="email" autocapitalize="none" spellcheck="false" required></span></label>
+     <label class="auth-field" for="password"><span class="auth-field-label">Contraseña</span></label>
+     <div class="auth-input-wrap"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10" width="16" height="12" rx="2"/><path d="M7 10V6a5 5 0 0 1 10 0v4M12 15v3"/></svg><input id="password" name="password" type="password" placeholder="Tu contraseña" autocomplete="current-password" required><button id="passwordToggle" class="password-eye" type="button" aria-label="Mostrar contraseña" aria-pressed="false" onclick="toggleLoginPassword()"><svg class="password-eye-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18M10 5h2c6 0 10 7 10 7a21 21 0 0 1-3 4M6 6C3 8 2 12 2 12s4 7 10 7a13 13 0 0 0 5-1"/></svg></button></div>
+     <button id="forgotBtn" class="auth-forgot" type="button" hidden>¿Se te ha olvidado la contraseña?</button>
+     <button id="authBtn" class="auth-button auth-primary" type="submit" data-keep-enabled="true">Iniciar sesión</button>
+    </form>
+    <p class="auth-footnote"><span id="authSwitchPrompt">¿Todavía no te has registrado?</span> <button id="authSwitch" class="auth-link" type="button">Crea tu cuenta</button></p>
+   </section>
+   <section id="authConfirmation" class="auth-panel" hidden aria-labelledby="authConfirmTitle"><h1 id="authConfirmTitle" tabindex="-1">Revisa tu correo</h1><p class="auth-copy">Si el registro puede completarse, recibirás un enlace para confirmar tu cuenta.</p><button class="auth-button auth-primary" type="button" onclick="authNavigate('login')">Iniciar sesión</button></section>
+   <section id="authProblem" class="auth-panel" hidden aria-labelledby="authProblemTitle"><h1 id="authProblemTitle" tabindex="-1">No se pudo abrir SIMPLE</h1><button class="auth-button auth-primary" type="button" onclick="bootstrapAuthSession()">Volver a intentar</button><button class="auth-button auth-secondary" type="button" onclick="authLogout()">Volver al inicio</button></section>
+   <div id="authMsg" class="auth-message" role="status" aria-live="polite"></div>
+   <p class="auth-legal" id="authLegal" hidden>Al continuar aceptas los <span id="authTerms">Términos</span> y la <span id="authPrivacy">Política de privacidad</span></p>
+  </div>
+ </div>
+</main>
+
 <div id="app" style="display:none"><div class="wrap"><header><div><h1>SIMPLE</h1><div class="sub"><span id="role"></span> · <span id="mail"></span></div></div><div class="actions"><button class="btn" onclick="shareHeaderOpen()">Compartir</button><button class="btn" onclick="logout()">Salir</button></div></header>
 <div id="tabs" class="tabs"></div>
 <div id="mine"></div>
 <div id="new" style="display:none"></div>
 <div id="shared" style="display:none"></div>
 <div id="clients" style="display:none"></div><div id="trash" style="display:none"></div></div></div>
-<div id="resetModal" class="modal center">
+<div id="resetModal" class="modal center" role="dialog" aria-modal="true" aria-labelledby="resetTitle">
   <div class="sheet">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
       <div>
-        <h2 style="margin:0">Cambiar contraseña</h2>
+        <h2 id="resetTitle" style="margin:0">Cambiar contraseña</h2>
         <div class="muted">Escribe una nueva contraseña para tu cuenta.</div>
       </div>
-      <button class="btn" type="button" onclick="closeM('resetModal')">Cerrar</button>
+      <button class="btn" type="button" onclick="authLogout()">Cerrar</button>
     </div>
     <div style="margin-top:14px">
-      <label>Nueva contraseña</label>
+      <label for="newPassword">Nueva contraseña</label>
       <input id="newPassword" type="password" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
-      <label style="margin-top:10px">Repite la contraseña</label>
+      <label for="newPassword2" style="margin-top:10px">Repite la contraseña</label>
       <input id="newPassword2" type="password" placeholder="Repite la contraseña" autocomplete="new-password">
-      <button id="resetPasswordBtn" type="button" class="btn primary" style="width:100%;margin-top:12px" onclick="updatePassword()">Cambiar contraseña</button>
+      <button id="resetPasswordBtn" type="button" class="btn primary" data-keep-enabled="true" style="width:100%;margin-top:12px" onclick="updatePassword()">Cambiar contraseña</button>
       <div id="resetMsg" class="msg"></div>
     </div>
   </div>
@@ -2705,6 +2733,12 @@ const SUPABASE_URL="https://yvguatdqncadkwewlepe.supabase.co";
 const SUPABASE_KEY="sb_publishable_VYoUECN0MaGIOC2LtGi0iw_C0wqUY-W";
 if(!window.supabase){ throw new Error("Supabase JS no cargó"); }
 const APP_URL = 'https://raulchulbi-sys.github.io/SIMPLE/';
+// Capture callback intent before the SDK consumes and removes the URL fragment.
+// No token or other credential is copied into application state here.
+const SIMPLE_AUTH_CALLBACK=Object.freeze({
+  recovery:new URLSearchParams(location.search).get('reset')==='1'||new URLSearchParams(location.hash.slice(1)).get('type')==='recovery',
+  error:new URLSearchParams(location.search).has('error')||new URLSearchParams(location.hash.slice(1)).has('error')
+});
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{
   auth:{
     persistSession:true,
@@ -2757,410 +2791,6 @@ async function openWorkoutHistory(){
     toast('No se pudo cargar el historial.');
   }
 }
-function msg(x,ok=false){$('authMsg').textContent=x;$('authMsg').className='msg '+(ok?'ok':'error')}
-function setResetMsg(text,ok=false){
-  const el=$('resetMsg');
-  if(el){el.textContent=text;el.className='msg '+(ok?'ok':'error');}
-}
-async function requestPasswordReset(){
-  const email=$('email').value.trim();
-  if(!email){msg('Introduce primero tu correo electrónico.');$('email').focus();return;}
-  const btn=$('forgotBtn');btn.disabled=true;btn.textContent='Enviando...';
-  try{
-    const r=await db.auth.resetPasswordForEmail(email,{redirectTo:APP_URL+'?reset=1'});
-    if(r.error)throw r.error;
-    msg('Te hemos enviado un correo para restablecer la contraseña.',true);
-  }catch(e){console.error('Password reset request:',e);msg(e?.message||'No se pudo enviar el correo de recuperación.');}
-  finally{btn.disabled=false;btn.textContent='¿Has olvidado tu contraseña?';}
-}
-function openPasswordReset(){
-  $('newPassword').value='';
-  $('newPassword2').value='';
-  setResetMsg('');
-  openM('resetModal');
-  try{window.history.replaceState({},document.title,window.location.origin+window.location.pathname);}catch(_){}
-  setTimeout(()=>$('newPassword').focus(),50);
-}
-async function updatePassword(){
-  const p1=$('newPassword').value,p2=$('newPassword2').value,btn=$('resetPasswordBtn');
-  if(p1.length<6){setResetMsg('La contraseña debe tener al menos 6 caracteres.');return;}
-  if(p1!==p2){setResetMsg('Las contraseñas no coinciden.');return;}
-  btn.disabled=true;btn.textContent='Guardando...';
-  try{
-    const r=await db.auth.updateUser({password:p1});
-    if(r.error)throw r.error;
-    setResetMsg('Contraseña cambiada correctamente.',true);toast('Contraseña actualizada');
-    setTimeout(async()=>{
-      closeM('resetModal');await db.auth.signOut();$('app').style.display='none';$('auth').style.display='flex';
-      mode='login';$('authBtn').textContent='Iniciar sesión';$('authSwitch').textContent='Crear cuenta';
-      $('authText').textContent='Accede a tus rutinas y entrenamiento.';msg('Contraseña actualizada. Ya puedes iniciar sesión.',true);
-    },900);
-  }catch(e){console.error('Password update:',e);setResetMsg(e?.message||'No se pudo cambiar la contraseña.');}
-  finally{btn.disabled=false;btn.textContent='Cambiar contraseña';}
-}
-let selectedRole='client';
-
-function selectRole(role){
-  selectedRole = role === 'trainer' ? 'trainer' : 'client';
-  document.querySelectorAll('input[name="simpleRole"]').forEach(input=>{
-    input.checked = input.value === selectedRole;
-  });
-}
-
-function getPendingRole(){
-  const metadataRole=user?.user_metadata?.simple_role;
-  if(metadataRole==='trainer' || metadataRole==='client') return metadataRole;
-  const saved=localStorage.getItem('simple_pending_role');
-  return saved==='trainer' || saved==='client' ? saved : 'client';
-}
-
-async function ensureProfile(chosenRole){
-  if(!user?.id) throw new Error('No hay una sesión activa.');
-
-  // First try to read the profile.
-  const p = await db.from('profiles')
-    .select('id,name,role')
-    .eq('id',user.id)
-    .maybeSingle();
-
-  if(p.error) throw p.error;
-  if(p.data) return p.data;
-
-  // A new account must have a role. Never invent one silently.
-  const role = chosenRole || getPendingRole();
-  if(role !== 'trainer' && role !== 'client'){
-    throw new Error('No se ha podido recuperar el tipo de cuenta. Vuelve a crear la cuenta seleccionando Cliente o Entrenador.');
-  }
-
-  const name =
-    user.user_metadata?.name ||
-    user.user_metadata?.full_name ||
-    user.email?.split('@')[0] ||
-    'Usuario';
-
-  const q = await db.from('profiles')
-    .insert({id:user.id,name,role})
-    .select('id,name,role')
-    .single();
-
-  if(q.error){
-    // If another auth event created it milliseconds earlier, read it again.
-    if(q.error.code === '23505'){
-      const retry = await db.from('profiles')
-        .select('id,name,role')
-        .eq('id',user.id)
-        .maybeSingle();
-      if(retry.error) throw retry.error;
-      if(retry.data) return retry.data;
-    }
-    throw q.error;
-  }
-
-  return q.data;
-}
-
-async function finishConfirmedSignup(){
-  if(!user?.id) throw new Error('No hay una sesión activa.');
-
-  const role = getPendingRole();
-  const profile = await ensureProfile(role);
-
-  // Once the profile exists, the pending local value is no longer needed.
-  localStorage.removeItem('simple_pending_role');
-  return profile;
-}
-
-function resetPasswordVisibility(){
-  const input=document.getElementById('password');
-  const button=document.getElementById('passwordToggle');
-  if(input) input.type='password';
-  if(button){
-    button.setAttribute('aria-pressed','false');
-    button.setAttribute('aria-label','Mostrar contraseña');
-    button.innerHTML='<svg class="password-eye-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18"></path><path d="M10.6 5.1C11.1 5 11.5 5 12 5c6.2 0 9.8 7 9.8 7a17 17 0 0 1-3.2 3.7"></path><path d="M6.4 6.5C3.8 8.3 2.2 12 2.2 12s3.6 7 9.8 7c1.4 0 2.7-.3 3.8-.8"></path></svg>';
-  }
-}
-
-function toggleLoginPassword(){
-  const input=$('password');
-  const button=$('passwordToggle');
-  if(!input)return;
-
-  const show = input.type === 'password';
-
-  input.type = show ? 'text' : 'password';
-
-  if(button){
-    button.setAttribute('aria-pressed', show ? 'true' : 'false');
-    button.setAttribute(
-      'aria-label',
-      show ? 'Ocultar contraseña' : 'Mostrar contraseña'
-    );
-
-    button.innerHTML = show
-      ? '<svg class="password-eye-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M2.2 12s3.6-6 9.8-6 9.8 6 9.8 6-3.6 6-9.8 6-9.8-6-9.8-6Z"></path><circle cx="12" cy="12" r="2.8"></circle></svg>'
-      : '<svg class="password-eye-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18"></path><path d="M10.6 5.1C11.1 5 11.5 5 12 5c6.2 0 9.8 7 9.8 7a17 17 0 0 1-3.2 3.7"></path><path d="M6.4 6.5C3.8 8.3 2.2 12 2.2 12s3.6 7 9.8 7c1.4 0 2.7-.3 3.8-.8"></path></svg>';
-  }
-}
-
-async function authSubmit(){
-  const email=$('email').value.trim();
-  const password=$('password').value;
-  const btn=$('authBtn');
-
-  if(!email || !password){
-    msg('Introduce correo y contraseña.');
-    return;
-  }
-  if(password.length < 6){
-    msg('La contraseña debe tener al menos 6 caracteres.');
-    return;
-  }
-
-  btn.disabled=true;
-  $('authSwitch').disabled=true;
-  document.querySelectorAll('input[name="simpleRole"]').forEach(x=>x.disabled=true);
-  btn.textContent='Conectando...';
-  msg('Conectando...',true);
-
-  const submittingMode=mode;
-  const submittingRole=selectedRole;
-
-  try{
-    if(submittingMode==='signup'){
-      if(submittingRole!=='trainer' && submittingRole!=='client'){
-        msg('Selecciona Cliente o Entrenador.');
-        return;
-      }
-      localStorage.setItem('simple_pending_role', submittingRole);
-    }
-
-    const r = submittingMode==='login'
-      ? await db.auth.signInWithPassword({email,password})
-      : await db.auth.signUp({
-          email,
-          password,
-          options:{
-            emailRedirectTo:APP_URL,
-            data:{
-              simple_role:submittingRole,
-              name:email.split('@')[0]
-            }
-          }
-        });
-
-    if(r.error){
-      console.error('Auth:',r.error);
-      msg(r.error.message || 'No se pudo iniciar sesión.');
-      return;
-    }
-
-    // Supabase normally returns a user without a session when email confirmation
-    // is required. In that case we deliberately stop here and let the email link
-    // create the authenticated session.
-    if(submittingMode==='signup' && !r.data?.session){
-      mode='login';
-      $('authBtn').textContent='Iniciar sesión';
-      $('authSwitch').textContent='Crear cuenta';
-      msg('Cuenta creada. Confirma el correo y después inicia sesión con esa cuenta.',true);
-      return;
-    }
-
-    if(!r.data?.user){
-      msg('No se pudo obtener la cuenta.');
-      return;
-    }
-
-    // Get the authenticated user from the server, not from stale local state.
-    const userCheck=await db.auth.getUser();
-    if(userCheck.error || !userCheck.data?.user){
-      console.error('User check:',userCheck.error);
-      msg('La sesión aún no está lista. Inténtalo de nuevo.');
-      return;
-    }
-    user=userCheck.data.user;
-
-    // IMPORTANT: after email confirmation, the first login can be the moment
-    // where the profile is created. Therefore LOGIN also runs ensureProfile().
-    try{
-      profile=await ensureProfile(
-        submittingMode==='signup' ? submittingRole : getPendingRole()
-      );
-    }catch(profileError){
-      console.error('Profile bootstrap:',profileError);
-      msg(
-        profileError?.code==='42501'
-          ? 'La cuenta funciona, pero Supabase bloquea la creación del perfil. Hay que revisar la política INSERT de profiles.'
-          : (profileError?.message || 'No se pudo crear o encontrar el perfil.')
-      );
-      return;
-    }
-
-    localStorage.removeItem('simple_pending_role');
-    await start(profile.role);
-  }catch(e){
-    console.error('Auth submit:',e);
-    msg(e?.message || 'Error de conexión con Supabase.');
-  }finally{
-    if($('app').style.display==='none'){
-      btn.disabled=false;
-      $('authSwitch').disabled=false;
-      document.querySelectorAll('input[name="simpleRole"]').forEach(x=>x.disabled=false);
-      btn.textContent=mode==='login'?'Iniciar sesión':'Crear cuenta';
-    }
-  }
-}
-
-$('authBtn').addEventListener('click',authSubmit);
-$('forgotBtn').addEventListener('click',requestPasswordReset);
-$('authSwitch').addEventListener('click',()=>{
-  mode=mode==='login'?'signup':'login';
-  $('authBtn').textContent=mode==='login'?'Iniciar sesión':'Crear cuenta';
-  $('authSwitch').textContent=mode==='login'?'Crear cuenta':'Ya tengo una cuenta';
-  $('authText').textContent=mode==='login'
-    ? 'Accede a tus rutinas y entrenamiento.'
-    : 'Crea tu cuenta y elige cómo usar SIMPLE.';
-  msg('');
-});
-
-async function getProfileStable(){
-  let lastError=null;
-  for(let attempt=0; attempt<4; attempt++){
-    const u=await db.auth.getUser();
-    if(u.error){ lastError=u.error; }
-    else if(u.data?.user){ user=u.data.user; }
-    if(user?.id){
-      const p=await db.from('profiles')
-        .select('id,name,role')
-        .eq('id',user.id)
-        .maybeSingle();
-      if(!p.error && p.data) return p.data;
-      lastError=p.error || new Error('No se ha podido cargar el perfil. Cierra sesión y vuelve a iniciar sesión.');
-    }
-    await new Promise(resolve=>setTimeout(resolve,250*(attempt+1)));
-  }
-  throw lastError || new Error('No se pudo cargar el perfil.');
-}
-
-async function start(chosenRole=null){
-  if(!user) return false;
-  // Auth can emit INITIAL_SESSION/SIGNED_IN while the explicit login/bootstrap
-  // path is already starting the app. Serialize that critical section so we
-  // never run reload()/view() twice at the same time.
-  if(window.__simpleStartBusy)return false;
-  window.__simpleStartBusy=true;
-  try{
-    profile=await getProfileStable();
-
-    if(chosenRole && profile.role!==chosenRole){
-      const actualRole=profile.role;
-      $('app').style.display='none';
-      $('auth').style.display='flex';
-      msg(
-        `Esta cuenta está configurada como ${actualRole==='trainer'?'entrenador':'cliente'}. ` +
-        `Selecciona el tipo correcto para iniciar sesión.`
-      );
-      return false;
-    }
-
-    $('auth').style.display='none';
-    $('app').style.display='block';
-    $('mail').textContent=user.email||'';
-    $('role').textContent=profile.role==='trainer'?'Entrenador':'Cliente';
-    document.querySelector('header .actions .btn').style.display=
-      profile.role==='trainer'?'inline-flex':'none';
-
-    renderTabs();
-    await reload();
-    view(profile.role==='trainer'?'clients':'shared');
-    window.__simpleStarted=true;
-    return true;
-  }catch(e){
-    console.error('Start:',e);
-    $('app').style.display='none';
-    $('auth').style.display='flex';
-    msg(e?.message || 'No se pudo cargar el perfil.');
-    return false;
-  }finally{
-    window.__simpleStartBusy=false;
-  }
-}
-
-
-async function bootstrapAuthSession(){
-  // Avoid booting the application twice when Supabase emits INITIAL_SESSION
-  // while the explicit bootstrap path is already starting it.
-  if(window.__simpleStarted || window.__simpleStartBusy)return false;
-  try{
-    const {data,error}=await db.auth.getSession();
-    if(error) throw error;
-
-    if(data?.session?.user){
-      user=data.session.user;
-
-      // This is the critical path after clicking "Confirm email".
-      // The confirmation redirect may arrive without the original signup form
-      // being present, so create the profile from user_metadata here.
-      try{
-        profile=await ensureProfile(getPendingRole());
-        localStorage.removeItem('simple_pending_role');
-        await start(profile.role);
-        return true;
-      }catch(profileError){
-        console.error('Confirmation/profile bootstrap:',profileError);
-        // Leave the user on the login screen with a useful message instead
-        // of showing a generic "Perfil no encontrado".
-        $('auth').style.display='block';
-        $('app').style.display='none';
-        msg(
-          profileError?.code==='42501'
-            ? 'Correo confirmado. Falta permitir la creación del perfil en Supabase.'
-            : (profileError?.message || 'Correo confirmado, pero no se pudo preparar el perfil.')
-        );
-      }
-    }
-  }catch(e){
-    console.error('bootstrapAuthSession:',e);
-  }
-  return false;
-}
-
-(async()=>{ await bootstrapAuthSession(); })();
-
-db.auth.onAuthStateChange((event, session)=>{
-  if(event==='SIGNED_OUT'){window.__workoutContextVersion=(window.__workoutContextVersion||0)+1;if(user?.id)location.reload();return;}
-  setTimeout(()=>handleAuthStateChange(event,session),0);
-});
-async function handleAuthStateChange(event,session){
-  if(event==='PASSWORD_RECOVERY'){
-    if(session?.user) user=session.user;
-    openPasswordReset();
-    return;
-  }
-  if(!session?.user) return;
-  if(event==='SIGNED_IN' || event==='INITIAL_SESSION'){
-    const recoveryMarker=new URLSearchParams(window.location.search).get('reset')==='1';
-    const recoveryHash=new URLSearchParams((window.location.hash||'').replace(/^#/,'')).get('type')==='recovery';
-    if(recoveryMarker || recoveryHash){
-      user=session.user;
-      openPasswordReset();
-      return;
-    }
-    try{
-      user=session.user;
-      profile=await finishConfirmedSignup();
-      if($('auth') && $('auth').style.display!=='none' && !window.__simpleStarted){
-        // Do not mark the app as started until `start()` has actually
-        // completed successfully. If bootstrap fails transiently, a later
-        // auth event must still be allowed to retry.
-        await start(null);
-      }
-    }catch(e){
-      console.error('Auth state/profile setup:',e);
-    }
-  }
-}
-
 function setNestedView(active){
   window.__simpleNestedView=!!active;
   const tabs=$('tabs');
@@ -3236,7 +2866,7 @@ async function updateTrashIconState(){
   }
 }
 
-async function logout(){window.__workoutContextVersion=(window.__workoutContextVersion||0)+1;await db.auth.signOut();location.reload()}
+async function logout(){return authLogout();}
 async function reload(){
   if(!user) throw new Error('No hay una sesión activa.');
 
@@ -3543,49 +3173,49 @@ async function revokeClientRoutine(assignmentId){
 let clientProgressChartState={sessions:[],exerciseNames:[],metric:'weight',currentExerciseNamesById:{}};
 function normalizeProgressExerciseName(v){return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\u00a0/g,' ').replace(/\s+/g,' ').trim().toLowerCase();}
 function getProgressExercises(sessions,currentExerciseNamesById={},currentDayExerciseIds=null){
-  const allowedIds=currentDayExerciseIds instanceof Set?currentDayExerciseIds:null;
-  const names=[],seen=new Set();
-  const add=(name)=>{
+  const allowed=currentDayExerciseIds instanceof Set?currentDayExerciseIds:null;
+  const entries=new Map();
+  const add=(id,name,historical=false)=>{
     const clean=String(name||'').trim();
-    const key=normalizeProgressExerciseName(clean);
-    if(clean&&key&&!seen.has(key)){seen.add(key);names.push(clean);}
+    if(!clean)return;
+    const key=id?'id:'+String(id):'legacy:'+normalizeProgressExerciseName(clean);
+    if(!entries.has(key))entries.set(key,{key,name:clean,historical});
   };
-  // The selector is always scoped to the currently selected routine day.
-  if(allowedIds){
-    allowedIds.forEach(id=>add(currentExerciseNamesById?.[String(id)]));
-  }else{
-    Object.values(currentExerciseNamesById||{}).forEach(add);
-  }
-  // Only add historical exercises when their exercise_id is still present in
-  // the selected day. This makes deleted exercises disappear automatically.
+  (allowed?[...allowed]:Object.keys(currentExerciseNamesById||{}))
+    .forEach(id=>add(String(id),currentExerciseNamesById[String(id)]));
+  // Keep orphaned historical UUIDs visible as separate identities. A missing
+  // template row is not evidence that a new namesake is the same exercise.
   (sessions||[]).forEach(s=>{
-    const ex=Array.isArray(s?.data?.exercises)?s.data.exercises:Array.isArray(s?.exercises)?s.exercises:[];
-    ex.forEach(e=>{
+    const exercises=Array.isArray(s?.data?.exercises)?s.data.exercises:Array.isArray(s?.exercises)?s.exercises:[];
+    exercises.forEach(e=>{
       const id=String(e?.exercise_id||'');
-      if(allowedIds&&!allowedIds.has(id))return;
-      add(currentExerciseNamesById?.[id]||e?.name||e?.exercise_name);
+      add(id,currentExerciseNamesById[id]||e?.name||e?.exercise_name,!id||(allowed?!allowed.has(id):!currentExerciseNamesById[id]));
     });
   });
-  return names.sort((a,b)=>a.localeCompare(b,'es',{sensitivity:'base'}));
+  const rows=[...entries.values()].sort((a,b)=>a.name.localeCompare(b.name,'es',{sensitivity:'base'}));
+  const counts=new Map(),seen=new Map();
+  rows.forEach(e=>{const n=normalizeProgressExerciseName(e.name);counts.set(n,(counts.get(n)||0)+1)});
+  return rows.map(e=>{
+    const n=normalizeProgressExerciseName(e.name),ordinal=(seen.get(n)||0)+1;seen.set(n,ordinal);
+    return {...e,label:e.name+(counts.get(n)>1?' · '+ordinal:'')+(e.historical?' · Histórico':'')};
+  });
 }
 
 function getExercisePoints(sessions,exerciseName,metric,currentExerciseNamesById={},currentDayExerciseIds=null){
   const ordered=[...(sessions||[])].sort((a,b)=>String(a.workout_date||'').localeCompare(String(b.workout_date||'')));
-  const target=normalizeProgressExerciseName(exerciseName);
-  const allowed=currentDayExerciseIds instanceof Set?currentDayExerciseIds:null;
+  const identity=String(exerciseName||'');
+  const exerciseId=identity.startsWith('id:')?identity.slice(3):null;
+  const legacyName=identity.startsWith('legacy:')?identity.slice(7):null;
   return ordered.map((s,idx)=>{
     const exs=Array.isArray(s?.data?.exercises)?s.data.exercises:Array.isArray(s?.exercises)?s.exercises:[];
     const matching=exs.filter(x=>{
       const id=String(x?.exercise_id||'');
-      const rawName=normalizeProgressExerciseName(x?.name||x?.exercise_name);
-      const mappedName=normalizeProgressExerciseName(currentExerciseNamesById?.[id]);
-      // Client workout copies can contain exercise IDs from an older copy of
-      // the trainer routine. When the IDs differ, match by the saved exercise
-      // name so the historical data still appears in the trainer chart.
-      if(allowed && allowed.has(id)) return mappedName===target || rawName===target;
-      if(allowed) return rawName===target;
-      return mappedName===target || rawName===target;
+      if(exerciseId!==null)return id===exerciseId;
+      // No UUID: show an explicit legacy series, never merge it into a UUID.
+      return !id && legacyName!==null && normalizeProgressExerciseName(x?.name||x?.exercise_name)===legacyName;
     });
+    // Two no-ID namesakes in one snapshot cannot be distinguished safely.
+    if(legacyName!==null && matching.length!==1)return null;
     if(!matching.length)return null;
     const date=simpleDateFromKey(s?.workout_date);if(!date)return null;
     const sets=matching.flatMap(e=>Array.isArray(e?.sets)?e.sets:Array.isArray(e?.series)?e.series:[]);
@@ -3824,6 +3454,11 @@ function showProgressPoint(index,node){
   const vb=svg.viewBox.baseVal;
   const svgRect=svg.getBoundingClientRect();
   const scroller=svg.parentElement;
+  // Keyboard focus may scroll the chart after the tooltip has opened.
+  // Keep the same selected point visible when that delayed scroll arrives.
+  scroller.onscroll=()=>{
+    if(node.isConnected&&node.getAttribute('aria-pressed')==='true')showProgressPoint(index,node);
+  };
   const wrapRect=scroller.getBoundingClientRect();
   const cx=Number(node.getAttribute('cx')), cy=Number(node.getAttribute('cy'));
   const px=svgRect.left+(cx/vb.width)*svgRect.width-wrapRect.left;
@@ -3843,64 +3478,28 @@ window.addEventListener('resize',()=>{
   if($('clientProgressChart')?.getClientRects().length)renderClientProgressChart();
 });
 function getProgressDays(sessions,orderedRoutineDays=[]){
-  const map=new Map();
-  const ordered=orderedRoutineDays||[];
-  const normalizeDayName=v=>String(v||'')
-    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
-    .replace(/\u00a0/g,' ').replace(/\s+/g,' ').trim().toLowerCase();
-
-  // A workout can contain the day id of a client-copy of the routine, while
-  // the progress screen may be opened from the trainer/source routine. Never
-  // trust an unknown routine_day_id blindly: first check that it belongs to
-  // the routine currently being displayed, then fall back to the day name.
-  const validIds=new Set(ordered.map(d=>String(d.id)));
-  const dayEntries=ordered.map(d=>({
-    id:String(d.id),
-    name:String(d.name||''),
-    norm:normalizeDayName(d.name)
-  }));
-
-  function resolveDayByName(rawName){
-    const n=normalizeDayName(rawName);
-    if(!n)return null;
-    let hit=dayEntries.find(d=>d.norm===n);
-    if(hit)return hit;
-
-    // Common saved labels are things like "MIÉRCOLES / LEGS". Match either
-    // side against the actual routine-day name.
-    const parts=n.split(/[\/|·-]+/).map(x=>x.trim()).filter(Boolean);
-    hit=dayEntries.find(d=>parts.includes(d.norm));
-    if(hit)return hit;
-
-    // Last resort: containment, but only when it is unambiguous.
-    const contains=dayEntries.filter(d=>d.norm && (n.includes(d.norm)||d.norm.includes(n)));
-    return contains.length===1?contains[0]:null;
-  }
-
+  const map=new Map(),ordered=orderedRoutineDays||[];
+  const normalize=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim().toLowerCase();
+  const byId=new Map(ordered.map(d=>[String(d.id),d]));
   (sessions||[]).forEach(s=>{
-    const d=s?.data||{};
-    const rawId=d.routine_day_id??d.routineDayId??d.day_id??d.dayId??null;
-    const rawName=String(d.day_name??d.dayName??d.day_title??s.variant??s.day??'Sesión').trim();
-    const byName=resolveDayByName(rawName);
-
-    // Only use an id directly when it is one of the current routine's day ids.
-    // Otherwise map the session to the equivalent day by its saved name.
-    const key=rawId!=null && validIds.has(String(rawId))
-      ? String(rawId)
-      : (byName?.id || `name:${normalizeDayName(rawName)}`);
-    const displayName=byName?.name || rawName || 'Sesión';
-    if(!map.has(key))map.set(key,{key,id:(byName?.id || (rawId!=null && validIds.has(String(rawId)) ? String(rawId) : null)),name:displayName,sessions:[]});
-    map.get(key).sessions.push(s);
+    const data=s?.data||{};
+    const id=String(data.routine_day_id??data.routineDayId??data.day_id??data.dayId??'');
+    const name=String(data.day_name??data.dayName??data.day_title??s.variant??s.day??'Sesión').trim();
+    // Existing and orphaned UUIDs both identify history. Only no-ID records
+    // may use a unique exact legacy name; fragments/containment are ambiguous.
+    const named=!id?ordered.filter(d=>normalize(d.name)===normalize(name)):[];
+    const current=id?byId.get(id):(named.length===1?named[0]:null);
+    const key=id||current?.id||'name:'+normalize(name);
+    if(!map.has(String(key)))map.set(String(key),{key:String(key),id:current?String(current.id):null,
+      name:String(current?.name||name||'Sesión'),historical:!current,sessions:[]});
+    map.get(String(key)).sessions.push(s);
   });
-
   const order=new Map(ordered.map((d,i)=>[String(d.id),i]));
-  return [...map.values()].sort((a,b)=>{
-    const ai=order.has(String(a.key))?order.get(String(a.key)):999999;
-    const bi=order.has(String(b.key))?order.get(String(b.key)):999999;
-    if(ai!==bi)return ai-bi;
-    const an=String(a.name||'').toLowerCase(),bn=String(b.name||'').toLowerCase();
-    return an.localeCompare(bn,'es');
-  });
+  const result=[...map.values()].sort((a,b)=>(order.get(a.key)??999999)-(order.get(b.key)??999999)||a.name.localeCompare(b.name,'es'));
+  const counts=new Map(),seen=new Map();
+  result.forEach(d=>{const n=normalize(d.name);counts.set(n,(counts.get(n)||0)+1)});
+  return result.map(d=>{const n=normalize(d.name),i=(seen.get(n)||0)+1;seen.set(n,i);
+    return {...d,name:d.name+(counts.get(n)>1?' · '+i:'')+(d.historical?' · Histórico':'')};});
 }
 
 function progressPeriodStart(period){
@@ -3978,12 +3577,12 @@ function setupClientProgressChart(sessions){
       clientProgressChartState.currentExerciseNamesById,
       dayExerciseIds
     );
-    exerciseSelect.innerHTML=names.slice(0,200).map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
+    exerciseSelect.innerHTML=names.slice(0,200).map(e=>`<option value="${esc(e.key)}">${esc(e.label)}</option>`).join('');
     exerciseSelect.disabled=!names.length;
     metric.disabled=!names.length;
     if(names.length){
-      if(!exerciseSelect.value || !names.some(n=>String(n)===String(exerciseSelect.value))){
-        exerciseSelect.value=names[0];
+      if(!exerciseSelect.value || !names.some(e=>e.key===String(exerciseSelect.value))){
+        exerciseSelect.value=names[0].key;
       }
       renderClientProgressChart();
     }
@@ -4556,8 +4155,8 @@ async function openClientRoutineProgress(clientId,routineId,routineName){
     const notesByExercise=new Map();
     for(const n of clientRoutineNotes){
       const k=simpleNormalizeNoteKey(n.exercise_key);
-      const v=String(n.note??'').trim();
-      if(k&&v&&!notesByExercise.has(k))notesByExercise.set(k,v);
+      const v=String(n.note??'');
+      if(k&&!notesByExercise.has(k))notesByExercise.set(k,v);
     }
 
     subtitle.textContent=`${sessions.length} sesión${sessions.length===1?'':'es'} registrada${sessions.length===1?'':'s'}`;
@@ -4653,7 +4252,7 @@ async function openClientRoutineProgress(clientId,routineId,routineName){
                       <span>${esc(String(set.rir!==''&&set.rir!=null?set.rir:'—'))}</span>
                     </div>`).join('')}
                 </div>
-                ${(String(e.notes??'').trim() || notesByExercise.get(simpleNormalizeNoteKey(e.name)) || '')?`<div class="history-notes"><span>Notas:</span> ${esc(String(e.notes??'').trim() || notesByExercise.get(simpleNormalizeNoteKey(e.name)) || '')}</div>`:''}
+                ${(Object.prototype.hasOwnProperty.call(e,'notes')?String(e.notes??''):notesByExercise.get(exerciseNoteKey(e))||'')?`<div class="history-notes"><span>Notas:</span> ${esc(Object.prototype.hasOwnProperty.call(e,'notes')?String(e.notes??''):notesByExercise.get(exerciseNoteKey(e))||'')}</div>`:''}
               </div>`;
             }).join(''):'<div class="muted">Sin ejercicios registrados.</div>'}
           </div>
@@ -6914,46 +6513,42 @@ async function deleteWorkout(id){
 }
 
 
+function confirmedHistoricalExerciseIds(ownerId,routineId,exerciseId){
+  // Owner-confirmed continuity (2026-09-23), for historical reads only.
+  // Never use this registry for notes, drafts, reopening or writing workouts.
+  if(String(ownerId)!=='b7ee910d-bc34-402c-b1a3-5cacceb29519' ||
+     String(routineId)!=='ba2d0a25-1844-45c1-9777-f0e1aa7aa392')return [];
+  const aliases=[
+    ['9740243b-0928-4c5a-b9dc-8ebd09e4d256','8f5b1173-dbb8-4f0f-9eab-a3058dcca969'],
+    ['ce87cfe5-4424-4645-92b6-091802f0153d','78bc6c44-1c7a-4f49-8983-4c731894534e'],
+    ['6bc9d317-1511-48f0-b126-1c307de41622','21dd0c95-6ae8-403f-91b7-08c51cd4b237'],
+    ['056f44c2-0914-479c-814b-75046654cb45','1207ebbd-6878-41d9-a955-10cd5b59cb9e'],
+    ['302dea2d-25ef-416a-a85d-8bc1b8a920db','fb36a1d3-a8bc-4cbc-97d1-45decc47bb67'],
+    ['bd31394a-5ee9-4f21-b90e-0c759781585f','37eedaee-ac32-4308-9194-5aae01c69ca3']
+  ];
+  return aliases.filter(([,current])=>current===String(exerciseId)).map(([old])=>old);
+}
+
 function getPreviousExerciseSession(exerciseId){
   if(!user?.id || !workoutRoutine?.id || !activeWorkout?.day?.id)return null;
-  const key=value=>String(value??'').trim().replace(/\s+/g,' ').toLocaleLowerCase('es');
-  const day=activeWorkout.day;
-  const currentExercises=activeWorkout.exercises||[];
-  const current=currentExercises.find(e=>String(e.id)===String(exerciseId));
-  if(!current)return null;
-  const currentDays=activeWorkout.historyDays||[];
+  if((activeWorkout.exercises||[]).filter(e=>String(e.id)===String(exerciseId)).length!==1)return null;
   const today=simpleLocalDateKey();
   const candidates=(window.workoutHistory||[]).filter(s=>
-    String(s.user_id||'')===String(user.id) &&
-    String(s.data?.routine_id||'')===String(workoutRoutine.id)
+    String(s.user_id||'')===String(user.id) && String(s.data?.routine_id||'')===String(workoutRoutine.id)
   ).sort((a,b)=>String(b.workout_date||'').localeCompare(String(a.workout_date||'')) ||
     String(b.data?.completed_at||'').localeCompare(String(a.data?.completed_at||'')));
-  for(const session of candidates){
-    const d=session.data||{}, date=String(session.workout_date||d.workout_date||'');
-    if(!/^\d{4}-\d{2}-\d{2}$/.test(date) || date>=today)continue;
-    const exercises=Array.isArray(d.exercises)?d.exercises:[];
-    // A stable exercise UUID survives renames and moves to another day.
-    const exact=exercises.filter(e=>String(e.exercise_id||'')===String(exerciseId));
-    if(exact.length===1 && Array.isArray(exact[0].sets) && exact[0].sets.length){
+  // Exact current identity takes precedence; only then consult confirmed aliases.
+  const identities=[String(exerciseId),...confirmedHistoricalExerciseIds(user.id,workoutRoutine.id,exerciseId)];
+  for(const identity of identities)for(const session of candidates){
+    const date=String(session.workout_date||session.data?.workout_date||'');
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||date>=today)continue;
+    const exact=(Array.isArray(session.data?.exercises)?session.data.exercises:[])
+      .filter(e=>String(e.exercise_id||'')===identity);
+    if(exact.length>1)return null;
+    if(exact.length===1&&Array.isArray(exact[0].sets)&&exact[0].sets.length)
       return {exercise:exact[0],date:simpleDateFromKey(date)};
-    }
-    const sameDay=String(d.routine_day_id||'')===String(day.id);
-    // Older save_routine_atomic versions recreated day/exercise UUIDs.
-    // Only bridge a removed day with a unique, unchanged name in this routine.
-    const rebuiltDay=!sameDay && !!d.routine_day_id && currentDays.length>0 &&
-      !currentDays.some(x=>String(x.id)===String(d.routine_day_id)) &&
-      key(d.day_name)===key(day.name) && key(day.name)!=='' &&
-      currentDays.filter(x=>key(x.name)===key(day.name)).length===1;
-    if(!sameDay && !rebuiltDay)continue;
-    let matches=exercises.filter(e=>String(e.exercise_id||'')===String(exerciseId));
-    if(matches.length===0 && rebuiltDay && key(current.name) &&
-       currentExercises.filter(e=>key(e.name)===key(current.name)).length===1){
-      matches=exercises.filter(e=>key(e.name)===key(current.name));
-    }
-    if(matches.length===1 && Array.isArray(matches[0].sets) && matches[0].sets.length){
-      return {exercise:matches[0],date:simpleDateFromKey(date)};
-    }
   }
+  // A removed UUID is historical identity, never proof that a namesake is it.
   return null;
 }
 
@@ -6984,6 +6579,41 @@ function renderPreviousSession(exerciseId){
 
 
 function simpleNormalizeNoteKey(value){return String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase().replace(/\s+/g,' ');}
+function exerciseNoteKey(exercise){
+  const id=String(exercise?.exercise_id||exercise?.id||'').trim().toLowerCase();
+  return id?'exercise:'+id:'';
+}
+function safeLegacyExerciseNote(exercise,notes,currentExercises,history){
+  const name=simpleNormalizeNoteKey(exercise.name),id=String(exercise.id||exercise.exercise_id||'');
+  if(!name||!id||!notes.has(name))return undefined;
+  const identities=new Set(),evidence=[];
+  for(const e of currentExercises||[]){
+    if(simpleNormalizeNoteKey(e.name)===name)identities.add(String(e.id||e.exercise_id||''));
+  }
+  for(const s of history||[]){
+    for(const e of s.data?.exercises||[]){
+      if(simpleNormalizeNoteKey(e.name)!==name)continue;
+      identities.add(String(e.exercise_id||''));
+      if(String(e.exercise_id||'')===id&&e.notes!==undefined)evidence.push(String(e.notes??''));
+    }
+  }
+  // Uniqueness today alone cannot establish who owned a legacy note.
+  const note=notes.get(name);
+  return identities.size===1&&identities.has(id)&&evidence.includes(note)?note:undefined;
+}
+function resolveExerciseNote(exercise,persistent,local,currentExercises,history){
+  const key=exerciseNoteKey(exercise),id=String(exercise.id||exercise.exercise_id||'');
+  if(key&&persistent.has(key))return persistent.get(key); // Empty is intentional.
+  if(Object.prototype.hasOwnProperty.call(local,id))return String(local[id]??'');
+  const exact=(history||[]).flatMap(s=>{
+    const matches=(s.data?.exercises||[]).filter(e=>String(e.exercise_id||'')===id);
+    return matches.length===1&&Object.prototype.hasOwnProperty.call(matches[0],'notes')?[matches[0]]:[];
+  });
+  if(exact.length)return String(exact[0].notes??'');
+  const legacy=safeLegacyExerciseNote(exercise,persistent,currentExercises,history);
+  if(legacy!==undefined)return legacy;
+  return String(exercise.notes??''); // Shared instruction attached to this UUID.
+}
 function workoutNotesKey(){
   return user?.id && workoutRoutine?.id && activeWorkout?.day?.id
     ? `simple_routine_notes_v3:${user.id}:${workoutRoutine.id}:${activeWorkout.day.id}`
@@ -7018,7 +6648,7 @@ async function startWorkoutDay(dayId){
         .select('id,name,sets,target,rir,rest_seconds,exercise_order,notes')
         .eq('day_id',dayId)
         .order('exercise_order'),
-      db.from('routine_days').select('id,name').eq('routine_id',openingRoutineId)
+      db.from('routine_days').select('id,name,exercises:routine_exercises(id,name)').eq('routine_id',openingRoutineId)
     ]);
     if(!isCurrent())return;
     if(d.error)throw d.error;
@@ -7038,43 +6668,24 @@ async function startWorkoutDay(dayId){
     };
     expectedState=stateKey();
 
-    // Notas personales persistentes. Nunca dejamos que una fila vacía pise una nota real.
+    // Personal notes are scoped to this user, routine and exercise UUID.
     const notesKey=workoutNotesKey();
     let localNotes={};
     try{localNotes=JSON.parse(localStorage.getItem(notesKey)||'{}')||{};}catch(_){}
-    let persistentNotes=[];
+    const persistentByKey=new Map();
     try{
-      const routineIds=[...new Set([workoutRoutine?.id,workoutRoutine?.source_routine_id,workoutRoutine?.trainer_routine_id].filter(Boolean).map(String))];
-      const q=await db.from('routine_user_notes')
-        .select('routine_id,exercise_key,note,updated_at')
-        .eq('user_id',String(user.id));
+      const q=await db.from('routine_user_notes').select('exercise_key,note,updated_at')
+        .eq('user_id',String(openingUserId)).eq('routine_id',String(openingRoutineId));
       if(!isCurrent())return;
       if(q.error)throw q.error;
-      // No filtramos la consulta por workoutRoutine.id: al abrir una rutina
-      // compartida ese objeto puede terminar de hidratarse después de abrir
-      // el día. Traemos todas las notas del usuario y luego priorizamos la
-      // familia de la rutina actual. Así PC y móvil leen la misma fuente.
-      persistentNotes=(q.data||[]).filter(r=>routineIds.includes(String(r.routine_id)));
+      for(const row of q.data||[]){
+        const key=simpleNormalizeNoteKey(row.exercise_key);
+        if(key&&!persistentByKey.has(key))persistentByKey.set(key,String(row.note??''));
+      }
     }catch(e){if(!isCurrent())return;console.warn('No se pudieron cargar las notas persistentes:',e)}
-    const familyIds=new Set([String(workoutRoutine?.id||''),String(workoutRoutine?.source_routine_id||''),String(workoutRoutine?.trainer_routine_id||'')].filter(Boolean));
-    persistentNotes.sort((a,b)=>{
-      const pa=familyIds.has(String(a.routine_id))?1:0,pb=familyIds.has(String(b.routine_id))?1:0;
-      return pa!==pb?pb-pa:String(b.updated_at||'').localeCompare(String(a.updated_at||''));
-    });
-    const persistentByKey=new Map();
-    for(const row of persistentNotes){
-      const k=simpleNormalizeNoteKey(row.exercise_key);
-      if(k&&!persistentByKey.has(k))persistentByKey.set(k,String(row.note));
-    }
     for(const e of activeWorkout.exercises){
       const base=Array.from({length:e.sets||1},()=>({kg:'',reps:'',rir:'',done:false}));
-      const nk=simpleNormalizeNoteKey(e.name);
-      const persistentNote=persistentByKey.get(nk)||'';
-      const localNote=localNotes[e.id]!==undefined?String(localNotes[e.id]??''):'';
-      const localByName=Object.keys(localNotes).find(k=>simpleNormalizeNoteKey(k)===nk);
-      const localNameNote=localByName!==undefined?String(localNotes[localByName]??''):'';
-      const legacyNote=String(e.notes??'');
-      base.note=persistentByKey.has(nk)?persistentByKey.get(nk):(legacyNote.trim()?legacyNote:(localNote.trim()?localNote:localNameNote));
+      base.note=resolveExerciseNote(e,persistentByKey,localNotes,[],[]);
       activeWorkout.sets[e.id]=base;
     }
 
@@ -7089,46 +6700,15 @@ async function startWorkoutDay(dayId){
       window.workoutHistory=[];
     }
 
-    // Recuperación de respaldo de TODAS las notas antiguas del usuario:
-    // rutina actual, copia del cliente, rutina del entrenador y sesiones históricas.
-    try{
-      const history=Array.isArray(window.workoutHistory)?window.workoutHistory:[];
-      const currentRoutineIds=new Set([
-        String(workoutRoutine?.id||''),
-        String(workoutRoutine?.trainer_routine_id||''),
-        String(workoutRoutine?.source_routine_id||'')
-      ].filter(Boolean));
-
-      const historicalNotes=new Map();
-      const orderedHistory=history
-        .filter(s=>{
-          const d=s?.data||{};
-          const rid=String(d.routine_id||d.routineId||'');
-          const srid=String(d.source_routine_id||'');
-          return currentRoutineIds.has(rid)||currentRoutineIds.has(srid);
-        })
-        .sort((a,b)=>String(b.workout_date||'').localeCompare(String(a.workout_date||'')));
-
-      for(const session of orderedHistory){
-        for(const old of (Array.isArray(session.data?.exercises)?session.data.exercises:[])){
-          const k=simpleNormalizeNoteKey(old?.name);
-          const n=String(old?.notes??'').trim();
-          if(k&&n&&!historicalNotes.has(k))historicalNotes.set(k,n);
-        }
-      }
-
-      for(const e of activeWorkout.exercises){
-        const current=String(activeWorkout.sets[e.id]?.note??'');
-        if(current.trim()||persistentByKey.has(simpleNormalizeNoteKey(e.name)))continue;
-        const oldNote=historicalNotes.get(simpleNormalizeNoteKey(e.name));
-        if(oldNote){
-          activeWorkout.sets[e.id].note=oldNote;
-          e.notes=oldNote;
-        }
-      }
-    }catch(noteRecoveryErr){
-      console.warn('No se pudieron recuperar notas antiguas:',noteRecoveryErr);
+    const noteHistory=(window.workoutHistory||[]).filter(s=>
+      String(s.user_id||'')===String(openingUserId)&&String(s.data?.routine_id||'')===String(openingRoutineId)
+    ).sort((a,b)=>String(b.workout_date||'').localeCompare(String(a.workout_date||'')) ||
+      String(b.created_at||'').localeCompare(String(a.created_at||'')));
+    const currentExercises=(dayList.data||[]).flatMap(d=>d.exercises||[]);
+    for(const e of activeWorkout.exercises){
+      activeWorkout.sets[e.id].note=resolveExerciseNote(e,persistentByKey,localNotes,currentExercises,noteHistory);
     }
+    expectedState=stateKey();
 
     const today=simpleLocalDateKey();
     const todaySession=(window.workoutHistory||[]).find(session=>{
@@ -7147,10 +6727,8 @@ async function startWorkoutDay(dayId){
         ? todaySession.data.exercises : [];
 
       for(const e of activeWorkout.exercises){
-        const saved=savedExercises.find(se=>String(se.exercise_id||'')===String(e.id))
-          || savedExercises.find(se=>
-            String(se.name||'').trim().toLowerCase()===String(e.name||'').trim().toLowerCase()
-          );
+        const exact=savedExercises.filter(se=>String(se.exercise_id||'')===String(e.id));
+        const saved=exact.length===1?exact[0]:null;
         if(!saved)continue;
 
         const base=Array.from({length:e.sets||1},(_,i)=>({
@@ -7274,6 +6852,7 @@ function loadWorkoutDraft(){
     if(Number.isFinite(started)&&started<=Date.now())activeWorkout.startedAt=new Date(started).toISOString();
     for(const e of activeWorkout.exercises){
       const base=Array.from({length:e.sets||1},()=>({kg:'',reps:'',rir:'',done:false}));
+      const previousNote=activeWorkout.sets[e.id]?.note;
       const rawSaved=draft.sets?.[e.id];
       const savedRows=Array.isArray(rawSaved)
         ? rawSaved
@@ -7289,6 +6868,7 @@ function loadWorkoutDraft(){
       if(savedNote!==undefined){
         activeWorkout.sets[e.id].note=String(savedNote??'');
       }else{
+        activeWorkout.sets[e.id].note=String(previousNote??'');
         const noteKey=workoutNotesKey();
         try{
           const notes=noteKey ? JSON.parse(localStorage.getItem(noteKey)||'{}')||{} : {};
@@ -7804,8 +7384,8 @@ function updateExerciseNote(id,value){
 
   const owner=user, ownerId=user.id, routine=workoutRoutine, workout=activeWorkout;
   const dayId=workout.day.id, version=window.__workoutContextVersion;
-  const routineIds=[routine.id,routine.trainer_routine_id,routine.source_routine_id];
-  const exerciseKey=simpleNormalizeNoteKey(exercise.name),note=arr.note;
+  const routineIds=[routine.id];
+  const exerciseKey=exerciseNoteKey(exercise),note=arr.note;
   const timerKey=JSON.stringify([ownerId,routine.id,dayId,id]);
   const isCurrent=()=>user===owner && user?.id===ownerId && workoutRoutine===routine && activeWorkout===workout &&
     workout.day?.id===dayId && window.__workoutContextVersion===version && workout.sets[id]===arr && arr.note===note;
@@ -8099,10 +7679,10 @@ async function saveWorkoutSession(){
     let noteFailure=false;
     const noteWrites=(activeWorkout.exercises||[]).map(async e=>{
       const note=String(activeWorkout.sets[e.id]?.note??'');
-      const exerciseKey=simpleNormalizeNoteKey(e.name);
+      const exerciseKey=exerciseNoteKey(e);
       if(!exerciseKey)return;
       try{
-        await persistExerciseNote(ownerId,[routine.id,routine.trainer_routine_id,routine.source_routine_id],exerciseKey,note,isCurrent);
+        await persistExerciseNote(ownerId,[routine.id],exerciseKey,note,isCurrent);
       }catch(error){console.warn('Nota pendiente de sincronizar:',error);noteFailure=true;}
     });
     await Promise.all(noteWrites);
@@ -8724,62 +8304,9 @@ async function redeemShareCode(){
 }
 
 
-(async()=>{
-  // Legacy fallback kept for recovery/confirmation redirects, but never
-  // start a second app instance after the main bootstrap has completed.
-  if(window.__simpleStarted || window.__simpleStartBusy)return;
-  try{
-    const s=await db.auth.getSession();
-
-    if(s.error){
-      console.error('Session error:',s.error);
-      msg('No se pudo comprobar la sesión.');
-      return;
-    }
-
-    const hashParams=new URLSearchParams((window.location.hash||'').replace(/^#/,' '));
-    const isRecovery=new URLSearchParams(window.location.search).get('reset')==='1' || hashParams.get('type')==='recovery';
-    if(isRecovery){
-      if(s.data?.session?.user) user=s.data.session.user;
-      openPasswordReset();
-      return;
-    }
-
-    if(s.data?.session){
-      // Tras confirmar el correo, Supabase vuelve a esta URL con una sesión.
-      // En ese momento creamos el perfil si todavía no existe y usamos el
-      // rol guardado en user_metadata.
-      const u=await db.auth.getUser();
-      if(u.data?.user){
-        user=u.data.user;
-        try{
-          profile=await finishConfirmedSignup();
-          // `start()` marks the app as started only after a successful bootstrap.
-          // Do not set the flag before it, otherwise a transient failure can
-          // permanently suppress later startup retries.
-          await start(null);
-        }catch(e){
-          console.error('Post-confirmation setup:',e);
-          msg(e?.message || 'La cuenta está confirmada, pero no se pudo completar el perfil.');
-        }
-      }
-    }
-  }catch(e){
-    console.error('Init error:',e);
-    msg(e?.message || 'No se pudo conectar con Supabase.');
-  }
-})();
-
-// Si llegamos a SIMPLE con parámetros de confirmación pero sin sesión,
-// no mostramos una página en blanco: damos una instrucción clara.
-if(/[?&](code|token_hash)=/.test(window.location.search) && !window.location.hash){
-  setTimeout(()=>{
-    if($('auth') && $('app').style.display==='none'){
-      msg('La confirmación está procesándose. Si no entras automáticamente, vuelve a abrir SIMPLE e inicia sesión.');
-    }
-  },1200);
-}
-</script><script>
+</script>
+<script src="assets/auth.js"></script>
+<script>
 // Protección contra dobles clics en acciones sensibles.
 document.addEventListener('click', function(e){
   const btn=e.target.closest('button');
@@ -8820,7 +8347,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     button.setAttribute('aria-label','Mostrar contraseña');
   }
 });
-document.addEventListener('DOMContentLoaded',resetPasswordVisibility);
+
 /* trash-tab-trainer-only-v1 */
 document.addEventListener('DOMContentLoaded',()=>{
   const b=document.getElementById('tTrash');
