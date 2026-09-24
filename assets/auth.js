@@ -29,6 +29,7 @@ function setAuthScreen(screen,focus=true){
     $('forgotBtn').hidden=screen!=='login'||!simpleAuth.failed;
   }
   if(focus){const heading=$(panels[screen])?.querySelector('h1');heading?.focus({preventScroll:true});}
+  renderOAuthButtons();
 }
 function authNavigate(screen){
   if(simpleAuth.busy)return;
@@ -43,6 +44,7 @@ function setAuthBusy(busy){
   simpleAuth.busy=busy;
   $('auth').setAttribute('aria-busy',String(busy));
   $('auth').querySelectorAll('button,input').forEach(el=>el.disabled=busy);
+  renderOAuthButtons();
 }
 function chooseRegistrationRole(role){
   if(simpleAuth.busy||!['client','trainer'].includes(role))return;
@@ -234,7 +236,6 @@ async function bootstrapAuthSession(){
   if(simpleAuth.screen!=='boot')setAuthScreen('loading',false);
   try{
     const result=await db.auth.getSession();
-    await new Promise(resolve=>setTimeout(resolve,Math.max(0,750-(performance.now()-simpleAuth.startedAt))));
     if(epoch!==simpleAuth.epoch)return false;
     // An expired callback must not become a reset form merely because another
     // valid session already exists in this browser.
@@ -248,7 +249,7 @@ async function bootstrapAuthSession(){
     if(result.data?.session?.user){setAuthScreen('loading',false);await prepareAuthenticatedUser();return true;}
     setAuthScreen('welcome',false);
     const hash=new URLSearchParams(location.hash.slice(1)),query=new URLSearchParams(location.search);
-    if(hash.has('error')||query.has('error')||query.has('code')||isRecoveryLocation()){
+    if(SIMPLE_AUTH_CALLBACK.access||hash.has('error')||query.has('error')||query.has('code')||isRecoveryLocation()){
       simpleAuth.recovery=false;
       setAuthScreen('login');msg('No se pudo completar el acceso con ese enlace. Inténtalo de nuevo.');
       history.replaceState({},document.title,location.origin+location.pathname);
@@ -282,6 +283,9 @@ for(const [id,url] of [['authTerms',SIMPLE_AUTH_LINKS.terms],['authPrivacy',SIMP
 try{localStorage.removeItem('simple_pending_role');}catch(_){}
 resetPasswordVisibility();
 db.auth.onAuthStateChange((event,session)=>{
+  // Bootstrap owns an invalid callback. A late initial SDK snapshot must not
+  // replace its expired-link message with the browser's previously stored session.
+  if(event==='INITIAL_SESSION'&&SIMPLE_AUTH_CALLBACK.error)return;
   // Never await a Supabase call inside the SDK's synchronous auth callback.
   // Clear synchronously so a queued SIGNED_OUT cannot erase the success screen
   // shown by updatePassword after signOut has resolved.
@@ -290,3 +294,4 @@ db.auth.onAuthStateChange((event,session)=>{
   setTimeout(()=>{if(epoch===simpleAuth.epoch)handleAuthStateChange(event,session);},0);
 });
 bootstrapAuthSession();
+loadOAuthAvailability();

@@ -1,3 +1,4 @@
+require('fs').mkdirSync(require('path').join(__dirname,'results'),{recursive:true});
 const fs=require('fs'),vm=require('vm'),crypto=require('crypto'),path=require('path');
 const legacy='C:/Users/raulc/Documents/Codex/2026-09-07/quiero-que-realices-una-auditor-a';
 process.env.PLAYWRIGHT_BROWSERS_PATH=legacy+'/work/pw-browsers';

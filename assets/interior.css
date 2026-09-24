@@ -1,0 +1,187 @@
+/* Interior system. Legacy structural CSS remains in the simple-legacy layer.
+   Auth and password recovery retain their dedicated stylesheet.
+   No training, persistence or identity behavior is controlled here. */
+.interior-brand-mark{display:none}
+/* Shared surfaces and controls for every existing interior view. */
+:is(#app,.modal:not(#resetModal),#restBox,#toast,#settingsDialog){--border:var(--simple-line);--bg-soft:var(--simple-bg);--card3:var(--simple-stone);--muted2:var(--simple-muted);--line-soft:var(--simple-line-soft);--accent-strong:var(--simple-primary-hover);--danger-soft:var(--simple-danger-soft);--warning:var(--simple-warning);--shadow:none;--shadow-soft:none;color-scheme:inherit}
+:is(#app,.modal:not(#resetModal),#restBox,#toast,#settingsDialog) :is(button,input,select,textarea){font-family:inherit}
+:is(#app,.modal:not(#resetModal),#settingsDialog) :is(input,textarea,select){min-width:0;max-width:100%;min-height:44px;padding:11px 12px;border:1px solid var(--line);background:var(--simple-card);color:var(--text);border-radius:10px;box-shadow:none;font-size:16px;line-height:1.4;letter-spacing:0}
+:is(#app,.modal:not(#resetModal),#settingsDialog) :is(input,textarea)::placeholder{color:var(--simple-placeholder)}
+:is(#app,.modal:not(#resetModal),#settingsDialog) :is(input,textarea,select):focus{border-color:var(--simple-focus);box-shadow:0 0 0 2px var(--simple-stone);background:var(--simple-card)}
+:is(#app,.modal:not(#resetModal),#settingsDialog) label{display:block;margin-bottom:6px;color:var(--muted);font-size:13px;font-weight:500;line-height:1.4;letter-spacing:0;text-transform:none}
+:is(#app,.modal:not(#resetModal),#settingsDialog) :is(textarea,select,summary):focus-visible{outline:2px solid var(--simple-focus);outline-offset:3px}
+:is(#app,.modal:not(#resetModal),#settingsDialog) :is(.exercise,.routine-editor-day,.routine-editor-exercise,.exercise-row,.day-edit-input,.client-routine-row){background:var(--card);border-color:var(--line);box-shadow:none;color:var(--text)}
+:is(#app,.modal:not(#resetModal),#settingsDialog) .exercise{padding:20px;border-radius:14px;margin:16px 0}
+:is(#app,.modal:not(#resetModal),#settingsDialog) .exercise:hover{border-color:var(--simple-control-line);transform:none;box-shadow:none}
+:is(#app,.modal:not(#resetModal),#settingsDialog) :is(.grid,.grid3)>div{min-width:0}
+:is(#app,.modal:not(#resetModal),#settingsDialog) .dayhead{flex-wrap:wrap;gap:14px}
+:is(#app,.modal:not(#resetModal),#settingsDialog) .dayhead>input{flex:1 1 220px}
+:is(#app,.modal:not(#resetModal),#settingsDialog) .buttons{gap:8px;flex-wrap:wrap}
+:is(#app,.modal:not(#resetModal),#settingsDialog) :is(h2,h3,.exname,.history-title,.routine-note-text){overflow-wrap:anywhere}
+.modal:not(#resetModal){background:var(--simple-overlay);backdrop-filter:blur(3px);align-items:center;padding:20px}
+.modal:not(#resetModal) .sheet{width:100%;max-width:940px;max-height:90dvh;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:22px;padding:28px;box-shadow:0 12px 40px var(--simple-shadow)}
+.modal:not(#resetModal) .sheet>div:first-child{flex-wrap:wrap;gap:12px}
+.modal:not(#resetModal) :is(h2,h3)::after{display:none}
+.modal:not(#resetModal) :is(.badge,.train-hint){background:var(--card2);border-color:var(--line);color:var(--muted)}
+#app #tabs.nested-hidden{display:none!important}
+#app #tabs .icon-trash-btn.trash-full{background:var(--card2)}
+#app #tabs .icon-trash-btn.trash-full::before{mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M5 7h14l-1 14H6zM3 4h6V2h6v2h6v2H3z'/%3E%3Cpath fill='white' d='M9 9h2v9H9zm4 0h2v9h-2z'/%3E%3C/svg%3E")}
+#new>.card>h2{margin-bottom:24px}
+#newDays>.card{margin-top:24px}
+#trash .trash-routine-card{padding:24px;gap:24px}
+#trash .trash-actions .btn{min-height:44px;font-size:14px;padding:11px 15px}
+#trash .trash-routine-main{min-width:0}
+#trash .trash-routine-main h3{overflow-wrap:anywhere}
+#restBox{background:var(--card);border:1px solid var(--line);box-shadow:0 5px 20px var(--simple-shadow);color:var(--text)}
+#restBox :is(.rest-time,.rest-mini){color:var(--text)}
+#restBox .rest-mini{background:transparent;border-color:var(--line)}
+#toast{background:var(--simple-bg);color:var(--simple-text);border:1px solid var(--simple-line);border-radius:10px;box-shadow:0 4px 16px var(--simple-shadow);padding:14px 18px;font-size:14px;font-weight:500;line-height:1.5;text-align:left}
+/* Workout, historical sessions and progress use the same quiet surfaces. */
+.modal:not(#resetModal) :is(.previous-session,.previous-set,.history-label,.routine-note-card,.progress-stat-card,.progress-chart-stat){background:var(--card2);border-color:var(--line);box-shadow:none;color:var(--text)}
+.modal:not(#resetModal) :is(.previous-session-title,.previous-session-date,.previous-empty,.history-objective,.history-notes,.meta){color:var(--muted);text-transform:none;letter-spacing:0;line-height:1.5}
+.modal:not(#resetModal) .exname{font-size:18px;font-weight:600;line-height:1.4}
+.modal:not(#resetModal) .tick{height:44px;width:44px;min-width:0;border:1px solid var(--simple-control-line);background:var(--simple-card);color:var(--simple-muted);border-radius:10px;box-shadow:none}
+.modal:not(#resetModal) .tick.done{background:var(--simple-success-fill);color:var(--simple-on-success);border-color:var(--simple-success-fill)}
+.modal:not(#resetModal) .setrow{grid-template-columns:34px repeat(3,minmax(0,1fr)) 44px;gap:6px}
+.modal:not(#resetModal) .setrow input{padding:9px 5px;text-align:center;font-size:16px}
+.modal:not(#resetModal) :is(.history-session,.history-table,.history-row,.progress-chart-wrap){border-color:var(--line);background:var(--simple-card);box-shadow:none}
+.modal:not(#resetModal) .history-session{padding:0;overflow:hidden}
+.modal:not(#resetModal) .history-summary:hover{background:var(--card2)}
+.modal:not(#resetModal) .history-title{font-weight:500;font-size:19px;line-height:1.4}
+.modal:not(#resetModal) .history-check{width:22px;height:22px;min-height:22px;accent-color:var(--simple-success-fill);flex-shrink:0}
+.modal:not(#resetModal) :is(.history-row,.history-label){font-size:13px}
+.modal:not(#resetModal) .history-selected{border-color:var(--simple-success-fill);box-shadow:0 0 0 1px var(--simple-success-fill) inset}
+.modal:not(#resetModal) :is(.routine-note-title,.routine-note-text){color:var(--text)}
+.modal:not(#resetModal) :is(.progress-chart,.progress-svg-wrap,.progress-chart-wrap){color:var(--simple-chart);background:var(--simple-card)}
+.modal:not(#resetModal) .progress-point-tooltip{background:var(--simple-card);color:var(--simple-text);border-color:var(--simple-success-fill);box-shadow:0 5px 15px var(--simple-shadow)}
+.modal:not(#resetModal) .progress-point-tooltip *{color:inherit}
+.modal:not(#resetModal) :is(.progress-stat-card.positive,.progress-summary-positive){color:var(--simple-success)}
+.modal:not(#resetModal) :is(.progress-stat-card.negative,.progress-summary-negative){color:var(--simple-danger)}
+.modal:not(#resetModal) :is(.progress-stat-card,.progress-chart-stat) b{color:inherit;font-size:21px;font-weight:500}
+.modal:not(#resetModal) :is(.compact-progress-stat small,.progress-chart-controls label){color:var(--muted)}
+.modal:not(#resetModal) :is(.progress-chart-controls,.progress-filters){background:var(--card2);border-color:var(--line);box-shadow:none}
+.modal:not(#resetModal) .progress-chart-summary{background:transparent;border:0;box-shadow:none}
+.modal:not(#resetModal) :is(.progress-day-tabs button,.client-progress-day-tab){background:var(--card2);color:var(--text);border-color:var(--line);box-shadow:none}
+#trainModal :is(.workout-bottom-save,.workout-save-btn){position:static}
+@media(max-width:650px){
+ .modal:not(#resetModal){padding:10px}
+ .modal:not(#resetModal) .sheet{padding:20px 14px;max-height:94dvh;border-radius:18px}
+ :is(#app,.modal:not(#resetModal),#settingsDialog) .exercise{padding:15px}
+ #trash .trash-routine-card{padding:20px}
+ :is(#app,.modal:not(#resetModal),#settingsDialog) .grid3{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+ :is(#app,.modal:not(#resetModal),#settingsDialog) .grid3>div:first-child{grid-column:1/-1}
+}
+body:has(#app[style*="block"]){background:var(--simple-bg)}
+:is(#app,.modal:not(#resetModal),#restBox,#toast,#settingsDialog){--bg:var(--simple-bg);--card:var(--simple-card);--card2:var(--simple-soft);--text:var(--simple-text);--muted:var(--simple-muted);--line:var(--simple-line);--accent:var(--simple-text);--accent-soft:var(--simple-stone);--accent-glow:transparent;--ok:var(--simple-success-fill);--danger:var(--simple-danger);color:var(--text);font-family:'Helvetica Neue',Arial,sans-serif}
+#app{min-height:100dvh;background:var(--bg)}
+#app .wrap{max-width:1120px;padding:34px 32px 80px}
+#app header{padding:0 0 26px;margin:0;border:0;border-bottom:1px solid var(--line);background:none;box-shadow:none;gap:24px;align-items:center}
+#app header h1{display:flex;gap:18px;align-items:center;font-family:inherit;font-size:23px;font-weight:400;letter-spacing:.35em;line-height:1.3;color:var(--text);text-shadow:none}
+#app header h1::first-letter{color:inherit}
+#app .interior-brand-mark{display:block;width:37px;height:30px;fill:currentColor;flex:none}
+#app header .sub{font-size:12px;line-height:1.5;margin:10px 0 0;overflow-wrap:anywhere;color:var(--muted);letter-spacing:0;text-transform:none}
+#app header .actions{gap:8px;flex-shrink:0}
+:is(#app,.modal:not(#resetModal),#restBox,#toast,#settingsDialog) .btn{transition:none;font:inherit;font-size:14px;font-weight:500;line-height:1.3;min-height:44px;padding:11px 17px;background:transparent;color:var(--text);border:1px solid var(--line);border-radius:10px;box-shadow:none;text-transform:none;letter-spacing:0;white-space:normal}
+:is(#app,.modal:not(#resetModal),#restBox,#toast,#settingsDialog) .btn:hover{background:var(--card2);border-color:var(--simple-hover-line);transform:none;box-shadow:none}
+:is(#app,.modal:not(#resetModal),#restBox,#toast,#settingsDialog) .btn.primary{background:var(--simple-primary);border-color:var(--simple-primary);color:var(--simple-on-primary);box-shadow:none}
+:is(#app,.modal:not(#resetModal),#restBox,#toast,#settingsDialog) .btn.primary:hover{background:var(--simple-primary-hover)}
+:is(#app,.modal:not(#resetModal),#restBox,#toast,#settingsDialog) .btn.danger{color:var(--danger);border-color:var(--simple-danger-line);background:transparent}
+:is(#app,.modal:not(#resetModal),#restBox,#toast,#settingsDialog) .btn.danger:hover{border-color:var(--simple-danger-line);background:var(--simple-danger-soft)}
+:is(#app,.modal:not(#resetModal),#restBox,#toast,#settingsDialog) :is(button,a,input):focus-visible{outline:2px solid var(--simple-focus);outline-offset:4px}
+#app #tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) 44px;gap:5px;align-items:center;margin:24px 0 40px;padding:0;border:0;background:transparent;box-shadow:none;max-width:600px}
+#app #tabs:has(#tShared){grid-template-columns:minmax(0,1fr) 44px;max-width:320px}
+#app h2::after{display:none}
+#app #tabs>button:not(.icon-trash-btn){min-height:44px;padding:11px 18px;border:1px solid transparent;border-radius:9px;font-size:14px;font-weight:500;text-transform:none;letter-spacing:0;background:transparent;color:var(--muted);box-shadow:none}
+#app #tabs>button.active:not(.icon-trash-btn){background:var(--simple-stone);border-color:var(--simple-stone);color:var(--text)}
+#app #tabs .icon-trash-btn{margin-left:auto;width:44px;height:44px;min-width:44px;max-width:44px;flex:none;border:1px solid var(--line);background:transparent;border-radius:10px;padding:11px}
+#app #tabs .icon-trash-btn .trash-visual{display:none}
+#app #tabs .icon-trash-btn::before{content:"";display:block;width:20px;height:20px;background:var(--muted);mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7'/%3E%3C/g%3E%3C/svg%3E") center/contain no-repeat}
+#app #tabs .icon-trash-btn.trash-full::before{background:var(--text)}
+:is(#app,.modal:not(#resetModal),#restBox,#toast,#settingsDialog) .card{background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:18px;box-shadow:none;padding:24px;margin:0 0 16px}
+:is(#app,.modal:not(#resetModal),#restBox,#toast,#settingsDialog) :is(h2,h3){font-family:inherit;color:var(--text);letter-spacing:-.035em;text-transform:none}
+:is(#app,.modal:not(#resetModal),#restBox,#toast,#settingsDialog) h2{font-size:30px;font-weight:500;line-height:1.2}
+:is(#app,.modal:not(#resetModal),#restBox,#toast,#settingsDialog) h3{font-size:21px;font-weight:500;line-height:1.3}
+:is(#app,.modal:not(#resetModal),#restBox,#toast,#settingsDialog) .muted{color:var(--muted);font-size:14px;line-height:1.6;overflow-wrap:anywhere}
+#app :is(#mine,#shared,#clients,#trash)>.card:first-child:not(.routine){border:0;background:none;padding:0;margin:0 0 26px;border-radius:0;box-shadow:none}
+#app :is(#mine,#shared,#clients)>.card:first-child h2{margin-bottom:9px}
+#app #shared>.card:first-child{position:relative;padding-right:180px}
+#app #addRoutineButton{position:absolute;right:0;top:0;margin:0}
+#app .routine{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:32px;align-items:center;padding:28px}
+#app .routine h3{margin:0 0 8px;overflow-wrap:anywhere}
+#app .routine .buttons{display:grid;grid-template-columns:repeat(2,minmax(88px,1fr));gap:7px;min-width:200px;margin:0}
+#app #shared .routine .buttons{display:flex;flex-direction:column;min-width:116px}
+#app .routine-description{max-width:65ch}
+#app .drag-handle{color:var(--simple-muted);align-self:flex-start;margin-top:4px;min-width:24px}
+#app .routine-order-zone{height:8px}
+#app .weekly-routine-progress{margin-top:22px;padding:0;border:0;background:none;max-width:460px}
+#app .weekly-routine-progress-head{display:flex;flex-wrap:wrap;gap:6px;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:9px;letter-spacing:0;text-transform:none}
+#app .weekly-routine-progress-head b{font-weight:500;font-size:13px;color:var(--text)}
+#app .weekly-progress-bar{gap:5px;background:none;border:0;padding:0;height:5px;min-height:5px;width:100%;max-width:none;box-shadow:none}
+#app .weekly-progress-segment{background:var(--simple-stone);border-radius:2px;height:5px;box-shadow:none}
+#app .weekly-progress-segment.is-done{background:var(--simple-success-fill);box-shadow:none}
+#app .weekly-progress-celebration{display:none}
+#app .client-overview-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+#app button.client-overview-card{padding:26px;text-align:left;gap:8px;border-radius:18px;transition:border-color .15s}
+#app button.client-overview-card:hover{background:var(--simple-card);border-color:var(--simple-hover-line);transform:none}
+#app .client-overview-name{font-size:21px;font-weight:500;line-height:1.3;letter-spacing:-.025em;display:block;overflow:visible}
+#app .client-overview-routine{font-size:14px;line-height:1.5;display:block;overflow:visible;color:var(--muted)}
+#app .client-overview-cycle{margin-top:20px;padding-top:18px;border-top:1px solid var(--simple-line-soft);font-size:16px;font-weight:500}
+#app .client-overview-last{font-size:13px;color:var(--muted)}
+#app .client-overview-open{margin-top:10px;font-size:13px;font-weight:500}
+:is(#app,.modal:not(#resetModal),#restBox,#toast,#settingsDialog) .empty{padding:30px 20px;text-align:left;color:var(--muted);border:1px dashed var(--line);border-radius:14px;line-height:1.7;background:transparent}
+:is(#app,.modal:not(#resetModal),#restBox,#toast,#settingsDialog) .empty b{color:var(--text);font-weight:500}
+:is(#app,.modal:not(#resetModal),#restBox,#toast,#settingsDialog) .error{color:var(--simple-danger);background:var(--simple-danger-soft);border:1px solid var(--simple-danger-line);border-radius:12px;padding:18px;overflow-wrap:anywhere}
+#trainModal .sheet{background:var(--bg);border:1px solid var(--line);box-shadow:none;padding:28px;max-width:940px}
+#trainModal .train-modal-head{padding-bottom:22px;border-bottom:1px solid var(--line);gap:20px}
+#trainModal #trainTitle{font-weight:500;overflow-wrap:anywhere}
+#trainModal #trainBody{margin-top:24px}
+#trainModal .interior-session-list{padding:26px}
+#trainModal .interior-session-list>h3{margin:0 0 20px}
+#trainModal .interior-session-list>.btn{display:flex;justify-content:space-between;align-items:center;gap:20px;min-height:76px;padding:19px 20px;margin:0;border:0;border-radius:0;border-top:1px solid var(--line);background:none}
+#trainModal .interior-session-list>.btn>b{font-size:18px;font-weight:500;overflow-wrap:anywhere;text-align:left}
+#trainModal .interior-session-list>.btn>.muted{float:none;flex:none;font-size:13px}
+#editModal .sheet{background:var(--bg);border:1px solid var(--line);box-shadow:none}
+#editModal #clientRoutineEditor>.card{background:none;border:0;padding:12px 0 20px}
+#editModal #clientSessionList{display:flex;flex-direction:column;gap:12px}
+#editModal #clientSessionList .routine-editor-day{padding:22px;background:var(--simple-card);color:var(--text);border:1px solid var(--line);box-shadow:none}
+#editModal #clientSessionList .dayhead{gap:18px}
+#trainModal #trainBody .interior-session-list>.btn{min-height:76px;padding:19px 20px;border:0;border-top:1px solid var(--line);border-radius:0;background:none}
+#trainModal #trainBody h3::after{display:none}
+#trainModal,#editModal{align-items:center}
+#trainModal .sheet,#editModal .sheet{max-width:940px;max-height:90dvh;border-radius:22px}
+#editModal .routine-day-train{gap:12px}
+#editModal .routine-day-train>span:first-child{font-size:19px;font-weight:500;overflow-wrap:anywhere}
+#editModal .train-hint{color:var(--muted);font-size:12px}
+#editModal .routine-editor-day .buttons{gap:6px}
+#editModal label{text-transform:none;letter-spacing:0}
+#editModal :is(input,textarea){background:var(--simple-card);color:var(--text);border-color:var(--line)}
+@media(max-width:650px){
+ #app .wrap{padding:24px 18px 50px}
+ #app header{gap:18px;align-items:flex-start;flex-wrap:wrap}
+ #app header h1{font-size:21px;gap:13px}
+ #app header .actions{width:100%;justify-content:flex-end}
+ #app #tabs{margin:18px 0 30px;gap:3px}
+ #app #tabs>button:not(.icon-trash-btn){padding:10px 12px;font-size:13px}
+ :is(#app,.modal:not(#resetModal),#restBox,#toast,#settingsDialog) h2{font-size:27px}
+ #app #shared>.card:first-child{padding-right:0}
+ #app #addRoutineButton{position:static;margin-top:18px}
+ #app .routine{display:block;padding:22px}
+ #app .routine .buttons,#app #shared .routine .buttons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));margin-top:24px;min-width:0}
+ #app .client-overview-grid{grid-template-columns:minmax(0,1fr);gap:12px}
+ #app button.client-overview-card{padding:22px}
+ #trainModal .sheet{padding:20px 16px}
+ #trainModal .train-modal-head{align-items:flex-start;flex-direction:column}
+ #trainModal .interior-session-list{padding:20px}
+ #trainModal .interior-session-list>.btn{gap:9px;flex-wrap:wrap;padding:18px 0}
+ #trainModal .interior-session-list>.btn>b{width:100%}
+ #editModal #clientSessionList .routine-editor-day{padding:18px}
+ #editModal .routine-editor-day .buttons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%}
+}
+@media(prefers-reduced-motion:reduce){:is(#app,.modal:not(#resetModal),#restBox,#toast,#settingsDialog) *{transition:none;animation:none}}
+
+#toast[data-tone='success']{border-inline-start:4px solid var(--simple-success)}
+#toast[data-tone='error']{border-inline-start:4px solid var(--simple-danger)}
+#toast[data-tone='success']::before{content:'✓';color:var(--simple-success);margin-right:9px}
+#toast[data-tone='error']::before{content:'!';color:var(--simple-danger);margin-right:9px;font-weight:700}
+:is(#app,.modal:not(#resetModal)) :is(.progress-chart-empty,.progress-point-detail){background:var(--simple-soft);color:var(--simple-muted);border-color:var(--simple-line)}
+:is(#app,.modal:not(#resetModal)) :is(input,textarea,select){border-color:var(--simple-control-line)}

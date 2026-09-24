@@ -1,0 +1,14 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert/strict'),cp=require('child_process');
+const before=cp.execFileSync('git',['show','36dc00f:index.html'],{encoding:'utf8',maxBuffer:4e6}).replace(/\r\n/g,'\n'),after=fs.readFileSync('index.html','utf8').replace(/\r\n/g,'\n'),checks=[];
+const test=(name,fn)=>{try{fn();checks.push({name,pass:true})}catch(e){checks.push({name,pass:false,error:e.message})}};
+const scripts=s=>[...s.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g)].map(x=>x[1]).filter(Boolean);
+test('Inline logic identical apart from approved presentation strings',()=>{
+ const normalized=after.replace(/^  access:new URLSearchParams\(location.hash.slice\(1\)\).has\('access_token'\)\|\|new URLSearchParams\(location.search\).has\('code'\),\n/m,'').replace('<span>Ciclo actual</span><b>\${done}/\${total} del ciclo actual</b>','<span>Progreso de hoy</span><b>\${done}/\${total} · \${pct}%</b>').replaceAll('class="card interior-session-list"','class="card"').replaceAll('class="empty interior-session-list"','class="empty"');
+ assert.deepEqual(scripts(normalized.replace('style="color:var(--text)">No tienes rutinas todavía.','style="color:#fff">No tienes rutinas todavía.')),scripts(before));
+});
+test('Legacy presentation lives in a lower cascade layer',()=>{for(const match of after.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/g))assert(match[1].includes('@layer simple-legacy'))});
+test('All scripts compile',()=>{for(const script of scripts(after))new vm.Script(script)});
+for(const f of ['assets/atlas.webp'])test(f+' Git blob identical to production (checkout EOL filter)',()=>assert.equal(cp.execFileSync('git',['hash-object','--path='+f,f],{encoding:'utf8'}).trim(),cp.execFileSync('git',['rev-parse','36dc00f:'+f],{encoding:'utf8'}).trim()));
+test('Onboarding forms/branding identical except explicitly approved loading indicator',()=>assert.equal(after.match(/<main id="auth"[\s\S]*?<\/main>/)[0].replace('<div class="auth-loading" id="authLoading" role="status" aria-label="Cargando SIMPLE"></div>','<div class="auth-loading" id="authLoading" role="status" hidden>Comprobando tu sesión…</div>'),before.match(/<main id="auth"[\s\S]*?<\/main>/)[0]));
+test('No new interior artwork or external fonts',()=>{const css=fs.readFileSync('assets/interior.css','utf8');assert(!/atlas|url\(["']?https?:|@import/i.test(css));assert(!/:root/.test(css.replace(/\/\*[\s\S]*?\*\//g,'')))});
+const result={passed:checks.filter(c=>c.pass).length,failed:checks.filter(c=>!c.pass),checks};fs.mkdirSync('tests/interior/results',{recursive:true});fs.writeFileSync('tests/interior/results/contracts.json',JSON.stringify(result,null,2));console.log(JSON.stringify(result,null,2));if(result.failed.length)process.exitCode=1;

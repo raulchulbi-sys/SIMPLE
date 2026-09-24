@@ -3,7 +3,10 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>SIMPLE</title>
+<script src="assets/theme.js"></script>
 <style>
+@layer simple-legacy {
+
 :root{--bg:#0b0d10;--card:#15191e;--card2:#1b2026;--text:#f4f6f8;--muted:#9ba4ae;--line:#2a3139;--ok:#b9f6ca;--danger:#ff9a9a}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button,input,textarea{font:inherit}button{cursor:pointer}.wrap{max-width:1050px;margin:auto;padding:20px 15px 80px}header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:20px}h1{margin:0;font-size:26px;letter-spacing:-.5px}.sub{color:var(--muted);font-size:12px;margin-top:4px}.actions,.tabs,.buttons{display:flex;gap:7px;flex-wrap:wrap}.btn{border:1px solid var(--line);background:var(--card);color:var(--text);padding:10px 13px;border-radius:11px}.btn.primary{background:#fff;color:#111;border-color:#fff}.btn.danger{color:var(--danger)}.tabs{background:#111419;border:1px solid var(--line);padding:5px;border-radius:13px;margin-bottom:18px}.tabs button{flex:1;border:0;background:transparent;color:var(--muted);padding:10px;border-radius:9px}.tabs button.active{background:#fff;color:#111}.card{background:var(--card);border:1px solid var(--line);border-radius:17px;padding:16px;margin:12px 0}.empty{text-align:center;color:var(--muted);padding:38px 18px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.grid3{display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px} .routine-editor-exercise .grid3{grid-template-columns:minmax(0,2fr) minmax(90px,1fr) minmax(150px,1fr)}label{display:block;color:var(--muted);font-size:11px;margin:0 0 5px}input,textarea{width:100%;background:var(--card2);border:1px solid var(--line);border-radius:10px;color:var(--text);padding:10px;outline:none}textarea{min-height:65px;resize:vertical}.routine{display:flex;justify-content:space-between;align-items:center;gap:12px}.routine h3{margin:0}.muted{color:var(--muted);font-size:12px}.badge{border:1px solid var(--line);padding:4px 8px;border-radius:99px;font-size:11px;color:var(--muted)}.day{border-top:1px solid var(--line);margin-top:14px;padding-top:14px}.dayhead{display:flex;justify-content:space-between;gap:10px;align-items:center}.exercise{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px;margin:8px 0}.exercisehead{display:flex;justify-content:space-between;gap:8px}.exname{font-weight:700}.meta{color:var(--muted);font-size:11px;margin-top:3px}.modal{position:fixed;inset:0;background:#000b;display:none;align-items:flex-end;justify-content:center;z-index:20}.modal.show{display:flex}.sheet{width:min(760px,100%);max-height:90vh;overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:20px 20px 0 0;padding:18px}.modal.center{align-items:center}.modal.center .sheet{border-radius:20px}.auth{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:18px}.authbox{width:min(420px,100%);background:var(--card);border:1px solid var(--line);border-radius:22px;padding:25px}.authbox h1{margin-bottom:5px}.authbox p{color:var(--muted);font-size:13px}.authbox input,.authbox button{margin-top:8px}.authbox button{width:100%}.msg{font-size:12px;min-height:18px;margin-top:8px}.error{color:var(--danger)}.ok{color:var(--ok)}.toast{position:fixed;z-index:2147483647!important;top:18px;left:50%;transform:translateX(-50%);background:#fff;color:#111;padding:10px 14px;border-radius:11px;display:none;z-index:50;font-size:13px}@media(max-width:650px){.grid,.grid3,.routine-editor-exercise .grid3{grid-template-columns:1fr}.routine{align-items:flex-start;flex-direction:column}header{align-items:flex-start}}
 
 .setrow{display:grid;grid-template-columns:42px minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) 48px;gap:7px;align-items:center;margin:7px 0}
@@ -194,7 +197,7 @@
 .password-wrap input{
   width:100%;
   box-sizing:border-box;
-  padding-right:52px !important;
+  padding-right:52px;
 }
 .password-eye{
   position:absolute !important;
@@ -204,25 +207,25 @@
   width:34px !important;
   height:30px !important;
   min-width:34px !important;
-  padding:0 !important;
-  margin:0 !important;
+  padding:0;
+  margin:0;
   display:flex !important;
   align-items:center !important;
   justify-content:center !important;
-  border:1px solid rgba(255,255,255,.30) !important;
-  border-radius:7px !important;
-  background:rgba(255,255,255,.06) !important;
-  color:var(--muted) !important;
+  border:1px solid rgba(255,255,255,.30);
+  border-radius:7px;
+  background:rgba(255,255,255,.06);
+  color:var(--muted);
   cursor:pointer !important;
-  box-shadow:none !important;
+  box-shadow:none;
   outline:0 !important;
 }
 .password-eye:hover{
-  background:rgba(255,255,255,.11) !important;
+  background:rgba(255,255,255,.11);
 }
 .password-eye:focus,
 .password-eye:active{
-  box-shadow:none !important;
+  box-shadow:none;
 }
 .password-eye-icon{
   width:19px;
@@ -266,11 +269,11 @@
   width:40px !important;
   min-width:40px !important;
   height:40px !important;
-  padding:0 !important;
+  padding:0;
   display:inline-flex !important;
   align-items:center !important;
   justify-content:center !important;
-  font-size:18px !important;
+  font-size:18px;
 }
 
 .progress-stat-card{
@@ -324,7 +327,7 @@
 .open-day-row.dragging{opacity:.45}
 .open-day-row.open-day-drag-over{outline:2px solid var(--ok);border-radius:12px}
 .open-day-handle{font-size:20px;flex:0 0 30px;text-align:center;cursor:grab}
-.open-day-button{margin:0 !important;width:auto !important;min-width:0}
+.open-day-button{margin:0;width:auto !important;min-width:0}
 .open-day-drop-zone{height:7px;border-radius:8px;transition:all .12s ease}
 .open-day-drop-zone.open-day-drop-active{height:30px;border:1px dashed var(--ok);background:rgba(255,255,255,.04)}
 
@@ -335,12 +338,12 @@
 .routine-pointer-dragging{cursor:grabbing!important;user-select:none}
 .routine-drag-handle{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;cursor:grab!important;touch-action:none;user-select:none}
 .routine-drag-handle:active{cursor:grabbing!important}
-.routine-sortable.routine-drag-over{border-color:var(--ok)!important;box-shadow:0 0 0 2px rgba(255,255,255,.14)}
+.routine-sortable.routine-drag-over{border-color:var(--ok);box-shadow:0 0 0 2px rgba(255,255,255,.14)}
 .routine-sortable.dragging{opacity:.45;transform:scale(.99)}
 
 #mine .routine-order-zone{height:12px;min-height:12px}
 #mine .routine-order-zone-active{height:36px;min-height:36px;border:2px dashed var(--ok);background:rgba(255,255,255,.05);margin:4px 0}
-#mine .routine-sortable.drag-over{border-color:var(--ok)!important;box-shadow:0 0 0 2px rgba(255,255,255,.15)}
+#mine .routine-sortable.drag-over{border-color:var(--ok);box-shadow:0 0 0 2px rgba(255,255,255,.15)}
 #mine .routine-drag-handle{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;cursor:grab!important;touch-action:none;user-select:none}
 #mine .routine-drag-handle:active{cursor:grabbing!important}
 
@@ -622,8 +625,8 @@
 #trainModal .open-day-order-zone-active{
   height:42px!important;
   min-height:42px!important;
-  border:2px dashed var(--ok)!important;
-  background:rgba(255,255,255,.06)!important;
+  border:2px dashed var(--ok);
+  background:rgba(255,255,255,.06);
 }
 
 @media (max-width:700px){
@@ -772,17 +775,19 @@
 .session-back-row{display:flex;justify-content:flex-start;margin:0 0 10px}
 .session-back-row .btn{min-height:40px}
 
-.trash-visual{position:relative;width:25px;height:27px;display:inline-flex;align-items:center;justify-content:center}
-
 /* SIMPLE UX polish v1 — visual/feedback only */
 .btn:disabled{opacity:.6;cursor:not-allowed}
 .simple-save-loading{display:inline-flex;align-items:center;gap:8px}
 .simple-spinner{width:14px;height:14px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;display:inline-block;animation:simpleSpin .7s linear infinite}
 @keyframes simpleSpin{to{transform:rotate(360deg)}}
+
+}
 </style>
 
 <style id="simple-v36-fixes">
-.authbox h1::first-letter{color:var(--accent)!important}
+@layer simple-legacy {
+
+.authbox h1::first-letter{color:var(--accent)}
 .trash-routine-card .trash-actions{
   width:100%;
   margin-top:12px;
@@ -794,24 +799,6 @@
 .trash-routine-card .trash-actions .btn{
   white-space:normal;
 }
-#tTrash .shared-trash-visual,#tTrashClient .client-trash-visual{
-  position:relative!important;
-  width:34px!important;height:34px!important;
-  display:inline-flex!important;
-  align-items:center!important;justify-content:center!important;
-  background:transparent!important;
-}
-#tTrash .shared-trash-full-img,#tTrash .shared-trash-empty-img{
-  position:absolute!important;left:50%!important;top:50%!important;
-  width:34px!important;height:34px!important;
-  object-fit:contain!important;margin:0!important;
-  background:transparent!important;opacity:1!important;filter:none!important;
-  transform:translate(-50%,-50%)!important;
-}
-#tTrash .shared-trash-full-img{display:none!important}
-#tTrash .shared-trash-empty-img{display:block!important}
-#tTrash.trash-full .shared-trash-full-img{display:block!important}
-#tTrash.trash-full .shared-trash-empty-img{display:none!important}
 
 /* Touch reorder: give the placeholder a very clear insertion slot. */
 @media(max-width:760px){
@@ -820,9 +807,9 @@
     width:100%;
     min-height:74px;
     margin:6px 0;
-    border:2px dashed var(--accent)!important;
+    border:2px dashed var(--accent);
     border-radius:16px;
-    background:var(--accent-soft)!important;
+    background:var(--accent-soft);
     box-sizing:border-box;
   }
   .routine-sortable.routine-dragging{
@@ -836,9 +823,13 @@
     justify-content:center;
   }
 }
+
+}
 </style>
 
 <style id="simple-weekly-progress-celebration-v58">
+@layer simple-legacy {
+
 .weekly-progress-complete-row{display:flex;align-items:center;gap:10px;width:100%;}
 .weekly-progress-complete-row .weekly-progress-bar{flex:1;min-width:0;}
 .weekly-progress-celebration{display:flex;align-items:center;gap:7px;flex:0 0 auto;}
@@ -853,67 +844,25 @@
   .weekly-progress-celebration-copy b{font-size:9px;}
   .weekly-progress-celebration-copy a{font-size:7px;}
 }
+
+}
 </style>
 <style>
-.trash-reference-img{
-  width:34px;
-  height:34px;
-  object-fit:contain;
-  display:block;
-}
-.icon-trash-btn.trash-full .trash-reference-img{
-  transform:scale(1.12);
-  transform-origin:center;
+@layer simple-legacy {
+
 }
 </style>
 
 <style>
-.trash-reference-img{opacity:0;position:absolute;inset:50% auto auto 50%;transform:translate(-50%,-50%) scale(.95)}
-.trash-empty-icon{display:block;font-size:19px;line-height:1}
-.icon-trash-btn.trash-full .trash-empty-icon{display:none}
-.icon-trash-btn.trash-full .trash-reference-img{opacity:1;transform:translate(-50%,-50%) scale(1.12)}
+@layer simple-legacy {
+
+}
 </style>
 
-<style id="client-trash-final-visibility-v33">
-/* FINAL CLIENT TRASH: two real images, no emoji/canvas/filtering. */
-#tTrashClient .client-trash-visual{
-  position:relative!important;
-  width:34px!important;
-  height:34px!important;
-  display:inline-flex!important;
-  align-items:center!important;
-  justify-content:center!important;
-  overflow:visible!important;
-}
-#tTrashClient .client-trash-visual .client-trash-full-img,
-#tTrashClient .client-trash-visual .client-trash-empty-img{
-  position:absolute!important;
-  left:50%!important;
-  top:50%!important;
-  width:34px!important;
-  height:34px!important;
-  margin:0!important;
-  object-fit:contain!important;
-  opacity:1!important;
-  transform:translate(-50%,-50%) scale(.95)!important;
-  filter:none!important;
-}
-#tTrashClient .client-trash-visual .client-trash-full-img{
-  display:none!important;
-}
-#tTrashClient .client-trash-visual .client-trash-empty-img{
-  display:block!important;
-}
-#tTrashClient.trash-full .client-trash-visual .client-trash-full-img{
-  display:block!important;
-  opacity:1!important;
-  transform:translate(-50%,-50%) scale(1.02)!important;
-}
-#tTrashClient.trash-full .client-trash-visual .client-trash-empty-img{
-  display:none!important;
-}
-</style>
+
 <style id="simple-visual-refresh">
+@layer simple-legacy {
+
 /* =========================================================
    SIMPLE — VISUAL REFRESH
    Inspirado en el mockup: dark premium + verde fitness.
@@ -1038,7 +987,7 @@ header h1::first-letter{color:var(--accent)}
   border-style:dashed;
   background:rgba(18,23,27,.58);
 }
-.empty b{color:var(--text)!important}
+.empty b{color:var(--text)}
 
 .routine{
   min-height:88px;
@@ -1056,12 +1005,12 @@ header h1::first-letter{color:var(--accent)}
 }
 
 .routine-drag-handle,.drag-handle,.editor-drag-handle{
-  color:var(--muted2)!important;
+  color:var(--muted2);
   border-radius:9px;
   transition:color .15s,background .15s;
 }
 .routine-drag-handle:hover,.drag-handle:hover,.editor-drag-handle:hover{
-  color:var(--accent)!important;
+  color:var(--accent);
   background:var(--accent-soft);
 }
 .routine-order-zone,.day-order-zone,.open-day-order-zone,.exercise-drop-zone,.workout-reorder-zone{
@@ -1219,7 +1168,7 @@ textarea{min-height:72px}
 }
 .role-option input{display:none}
 .authbox input,.authbox button{margin-top:9px}
-.password-eye{background:transparent!important;border:0!important;box-shadow:none!important}
+.password-eye{background:transparent;border:0;box-shadow:none}
 
 .toast{
   top:22px;
@@ -1231,34 +1180,34 @@ textarea{min-height:72px}
 }
 
 .progress-stat-card,.compact-progress-stat,.progress-chart-stat{
-  background:linear-gradient(145deg,#171e23,#12181c)!important;
-  border:1px solid #29343b!important;
-  border-radius:14px!important;
+  background:linear-gradient(145deg,#171e23,#12181c);
+  border:1px solid #29343b;
+  border-radius:14px;
 }
 .progress-stat-card strong,.compact-progress-stat strong{color:var(--accent)}
 .progress-chart-controls{
-  background:#11171b!important;
-  border:1px solid #27323a!important;
-  border-radius:14px!important;
-  padding:10px!important;
+  background:#11171b;
+  border:1px solid #27323a;
+  border-radius:14px;
+  padding:10px;
 }
 .progress-point-detail,.progress-chart-summary{
-  background:#11171b!important;
-  border:1px solid #27323a!important;
-  border-radius:14px!important;
+  background:#11171b;
+  border:1px solid #27323a;
+  border-radius:14px;
 }
 .progress-chart-empty{
-  border:1px dashed #303b43!important;
-  border-radius:14px!important;
-  background:#101519!important;
+  border:1px dashed #303b43;
+  border-radius:14px;
+  background:#101519;
 }
 
 .routine-note-card{
-  background:linear-gradient(145deg,rgba(131,230,160,.055),#12181c)!important;
-  border-color:rgba(131,230,160,.18)!important;
+  background:linear-gradient(145deg,rgba(131,230,160,.055),#12181c);
+  border-color:rgba(131,230,160,.18);
 }
-.routine-note-title{color:var(--accent)!important}
-.routine-note-text{color:#c3cbd0!important}
+.routine-note-title{color:var(--accent)}
+.routine-note-text{color:#c3cbd0}
 
 .workout-session-actions,.history-toolbar{
   gap:8px;
@@ -1270,23 +1219,23 @@ textarea{min-height:72px}
   gap:5px;
 }
 .workout-reorder-bar{
-  margin:0!important;
+  margin:0;
   min-height:58px;
   display:flex;
   align-items:center;
   gap:12px;
   border-radius:13px;
-  background:#171e23!important;
+  background:#171e23;
 }
 .workout-reorder-handle{
-  color:var(--muted2)!important;
+  color:var(--muted2);
   cursor:grab;
   font-size:20px;
 }
-.workout-reorder-bar:hover .workout-reorder-handle{color:var(--accent)!important}
+.workout-reorder-bar:hover .workout-reorder-handle{color:var(--accent)}
 .workout-reorder-zone{
   min-height:8px!important;
-  margin:0 4px!important;
+  margin:0 4px;
 }
 .workout-reorder-zone.active,.workout-reorder-zone.drag-over{
   min-height:42px!important;
@@ -1294,7 +1243,7 @@ textarea{min-height:72px}
   background:var(--accent-soft);
 }
 .session-back-row{
-  margin:0 0 10px!important;
+  margin:0 0 10px;
 }
 .session-back-row .btn{
   color:var(--accent);
@@ -1303,16 +1252,16 @@ textarea{min-height:72px}
 }
 
 .routine-editor-day{
-  background:linear-gradient(145deg,#151b20,#12171b)!important;
-  border:1px solid #29343b!important;
-  border-radius:16px!important;
+  background:linear-gradient(145deg,#151b20,#12171b);
+  border:1px solid #29343b;
+  border-radius:16px;
 }
 .routine-editor-exercise{
-  background:#171d22!important;
-  border:1px solid #29343b!important;
-  border-radius:13px!important;
+  background:#171d22;
+  border:1px solid #29343b;
+  border-radius:13px;
 }
-.routine-editor-day:hover,.routine-editor-exercise:hover{border-color:#36434c!important}
+.routine-editor-day:hover,.routine-editor-exercise:hover{border-color:#36434c}
 .routine-order-zone,.day-order-zone{
   min-height:8px;
 }
@@ -1330,12 +1279,10 @@ textarea{min-height:72px}
   justify-content:center;
   overflow:visible;
 }
-.trash-visual{width:30px;height:34px}
 .icon-trash-btn.trash-full{
   border-color:rgba(131,230,160,.28);
   background:rgba(131,230,160,.06);
 }
-.icon-trash-btn.trash-full .trash-reference-img{width:34px;height:34px;filter:drop-shadow(0 4px 6px rgba(0,0,0,.24));}
 
 @media(max-width:760px){
   .wrap{padding:20px 13px 75px}
@@ -1359,7 +1306,7 @@ textarea{min-height:72px}
   .role-picker{grid-template-columns:1fr}
   .workout-reorder-bar{
     min-height:54px;
-    padding:12px!important;
+    padding:12px;
   }
   .workout-reorder-zone.active,.workout-reorder-zone.drag-over{min-height:36px!important}
 }
@@ -1371,8 +1318,12 @@ textarea{min-height:72px}
   .setrow input{padding:9px 5px;font-size:13px}
   .tick{width:40px}
 }
+
+}
 </style>
 <style id="simple-polish-v24">
+@layer simple-legacy {
+
 /* ---------- Design tokens ---------- */
 :root{
   --bg:#070a0c;
@@ -1529,11 +1480,11 @@ header .sub{margin-top:7px}
 /* ---------- Drag / reorder ---------- */
 .routine-drag-handle,.drag-handle,.editor-drag-handle{
   opacity:.72;
-  color:var(--muted-2)!important;
+  color:var(--muted-2);
 }
 .routine-drag-handle:hover,.drag-handle:hover,.editor-drag-handle:hover{
   opacity:1;
-  color:var(--accent)!important;
+  color:var(--accent);
   background:var(--accent-soft);
 }
 .routine-order-zone,.day-order-zone,.workout-reorder-zone,.exercise-drop-zone{
@@ -1619,53 +1570,53 @@ label{
 
 /* ---------- Progress ---------- */
 .progress-stat-card,.compact-progress-stat,.progress-chart-stat{
-  background:linear-gradient(145deg,#171e23,#12181c)!important;
-  border-color:var(--line)!important;
+  background:linear-gradient(145deg,#171e23,#12181c);
+  border-color:var(--line);
   box-shadow:0 5px 17px rgba(0,0,0,.10);
 }
 
 .progress-chart-controls{
-  background:#11171b!important;
-  border-color:var(--line)!important;
+  background:#11171b;
+  border-color:var(--line);
 }
 .progress-point-detail,.progress-chart-summary{
-  background:#11171b!important;
-  border-color:var(--line)!important;
+  background:#11171b;
+  border-color:var(--line);
 }
 .progress-chart-empty{
-  background:#0f1418!important;
-  border-color:rgba(255,255,255,.10)!important;
+  background:#0f1418;
+  border-color:rgba(255,255,255,.10);
 }
 
 /* ---------- Notes ---------- */
 .routine-note-card{
-  background:linear-gradient(145deg,rgba(131,230,160,.045),#11171b)!important;
-  border-color:var(--accent-line)!important;
+  background:linear-gradient(145deg,rgba(131,230,160,.045),#11171b);
+  border-color:var(--accent-line);
 }
 
-.routine-note-text{color:var(--text-2)!important}
+.routine-note-text{color:var(--text-2)}
 
 /* ---------- Editor ---------- */
 .routine-editor-day{
-  background:linear-gradient(145deg,#151b20,#11171b)!important;
-  border-color:var(--line)!important;
+  background:linear-gradient(145deg,#151b20,#11171b);
+  border-color:var(--line);
 }
 .routine-editor-exercise{
-  background:#161c21!important;
-  border-color:var(--line)!important;
+  background:#161c21;
+  border-color:var(--line);
 }
-.routine-editor-day:hover,.routine-editor-exercise:hover{border-color:rgba(255,255,255,.11)!important}
+.routine-editor-day:hover,.routine-editor-exercise:hover{border-color:rgba(255,255,255,.11)}
 .workout-reorder-list{gap:6px}
 .workout-reorder-bar{
-  background:#161c21!important;
-  border:1px solid var(--line)!important;
-  border-radius:12px!important;
+  background:#161c21;
+  border:1px solid var(--line);
+  border-radius:12px;
 }
-.workout-reorder-handle{color:var(--muted-2)!important}
+.workout-reorder-handle{color:var(--muted-2)}
 
 .workout-reorder-zone.active,.workout-reorder-zone.drag-over{
-  border-color:var(--accent-line)!important;
-  background:var(--accent-soft)!important;
+  border-color:var(--accent-line);
+  background:var(--accent-soft);
 }
 .session-back-row .btn{
   color:var(--accent);
@@ -1680,11 +1631,6 @@ label{
 .icon-trash-btn.trash-full{
   background:rgba(131,230,160,.045);
   border-color:var(--accent-line);
-}
-.icon-trash-btn.trash-full .trash-reference-img{
-  width:34px!important;
-  height:34px!important;
-  filter:drop-shadow(0 4px 6px rgba(0,0,0,.24));
 }
 
 /* ---------- Login ---------- */
@@ -1749,14 +1695,18 @@ label{
 }
 @media(prefers-reduced-motion:reduce){
   *,*:before,*:after{
-    animation-duration:.01ms!important;
+    animation-duration:.01ms;
     animation-iteration-count:1!important;
-    transition-duration:.01ms!important;
-    scroll-behavior:auto!important;
+    transition-duration:.01ms;
+    scroll-behavior:auto;
   }
+}
+
 }
 </style>
 <style id="simple-ux-v25">
+@layer simple-legacy {
+
 /* ---------- V25: app-like micro polish ---------- */
 ::selection{background:rgba(131,230,160,.24);color:#fff}
 :focus-visible{outline:2px solid rgba(131,230,160,.55);outline-offset:2px}
@@ -1839,8 +1789,12 @@ label{
   border-radius:99px;
 }
 *::-webkit-scrollbar-thumb:hover{background:#46525b}
+
+}
 </style>
 <style id="simple-login-role-mobile-v26">
+@layer simple-legacy {
+
 /* Cliente + Entrenador stay side-by-side on mobile, like desktop. */
 @media(max-width:760px){
   .role-picker{
@@ -1859,8 +1813,12 @@ label{
   .role-picker{gap:7px}
   .role-option{font-size:12px;padding:9px 6px}
 }
+
+}
 </style>
 <style id="simple-final-polish-v27">
+@layer simple-legacy {
+
 /* =========================================================
    SIMPLE V27 — final UX polish
    No onboarding. Visual/interaction refinements only.
@@ -1894,7 +1852,7 @@ label{
 
 /* Automatic-save feedback should feel like system status. */
 .save-status,.autosave-status,.saved-status{
-  color:var(--accent)!important;
+  color:var(--accent);
   font-size:11px;
   font-weight:700;
 }
@@ -1948,10 +1906,10 @@ label{
     gap:5px;
   }
   .workout-reorder-bar{
-    padding:11px!important;
+    padding:11px;
   }
   .session-back-row{
-    margin-bottom:8px!important;
+    margin-bottom:8px;
   }
 }
 
@@ -1959,116 +1917,39 @@ label{
 @media(prefers-reduced-motion:reduce){
   .card:hover,.routine:hover,.exercise:hover{transform:none!important}
 }
+
+}
 </style>
 <style id="simple-icons-v27">
-/* Consistent tiny action affordance for common icon buttons. */
-.icon-trash-btn .trash-empty-icon{
-  font-size:0!important;
-  width:18px;height:18px;
-  display:block;
-  position:relative;
-}
-.icon-trash-btn .trash-empty-icon::before{
-  content:"";
-  position:absolute;
-  inset:2px 3px 1px;
-  border:1.7px solid currentColor;
-  border-top:0;
-  border-radius:2px 2px 4px 4px;
-}
-.icon-trash-btn .trash-empty-icon::after{
-  content:"";
-  position:absolute;
-  left:5px;right:5px;top:1px;
-  height:2px;
-  border-radius:2px;
-  background:currentColor;
-  box-shadow:3px 3px 0 -0.5px currentColor;
+@layer simple-legacy {
+
 }
 </style>
 <style id="simple-navigation-v28">
+@layer simple-legacy {
+
 #tabs.nested-hidden{display:none!important}
-</style>
-<style id="simple-trash-unification-v30">
-/* Trainer and client use exactly the same trash component. */
-#tTrash,#tTrashClient{
-  width:48px;
-  min-width:48px;
-  height:44px;
-  padding:0;
-}
-#tTrash .trash-visual,#tTrashClient .trash-visual{
-  width:30px!important;
-  height:34px!important;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-}
-#tTrash .trash-reference-img,#tTrashClient .trash-reference-img{
-  width:34px!important;
-  height:34px!important;
+
 }
 </style>
-<style id="client-trash-two-state-css-v32">
-#tTrashClient .client-trash-visual{
-  width:34px!important;height:34px!important;
-  display:inline-flex!important;
-  align-items:center;justify-content:center;
-}
-#tTrashClient .client-trash-full-img,
-#tTrashClient .client-trash-empty-img{
-  width:34px!important;height:34px!important;
-  object-fit:contain;
-}
-</style>
-<style id="client-trash-transparent-bg-v34">
-#tTrashClient .client-trash-empty-img{
-  background:transparent!important;
-  mix-blend-mode:normal!important;
-}
-</style>
-<style id="client-trash-final-assets-v35">
-/* Final trash assets: image 1 = empty, image 2 = full. */
-#tTrashClient .client-trash-visual{
-  position:relative!important;
-  width:34px!important;
-  height:34px!important;
-  display:inline-flex!important;
-  align-items:center!important;
-  justify-content:center!important;
-  overflow:visible!important;
-  background:transparent!important;
-}
-#tTrashClient .client-trash-full-img,
-#tTrashClient .client-trash-empty-img{
-  position:absolute!important;
-  inset:50% auto auto 50%!important;
-  width:34px!important;
-  height:34px!important;
-  margin:0!important;
-  object-fit:contain!important;
-  background:transparent!important;
-  opacity:1!important;
-  filter:none!important;
-  transform:translate(-50%,-50%)!important;
-}
-#tTrashClient .client-trash-full-img{display:none!important;}
-#tTrashClient .client-trash-empty-img{display:block!important;}
-#tTrashClient.trash-full .client-trash-full-img{
-  display:block!important;
-}
-#tTrashClient.trash-full .client-trash-empty-img{
-  display:none!important;
-}
-</style>
+
+
+
+
 <style id="simple-login-s-green-v37">
+@layer simple-legacy {
+
 .simple-login-logo span{
-  color:var(--accent,#83e6a0)!important;
+  color:var(--accent,#83e6a0);
   text-decoration:none!important;
-  border:0!important;
+  border:0;
+}
+
 }
 </style>
 <style id="simple-v37-final-fixes">
+@layer simple-legacy {
+
 /* Trash action text never escapes its card. */
 .trash-routine-card{align-items:flex-start}
 .trash-routine-main{min-width:0;flex:1 1 240px}
@@ -2108,10 +1989,10 @@ label{
 /* The selected client/trainer trash section is visibly active. */
 #tabs #tTrashClient.active,
 #tabs #tTrash.active{
-  background:var(--accent,#83e6a0)!important;
-  color:#111!important;
-  font-weight:800!important;
-  box-shadow:none!important;
+  background:var(--accent,#83e6a0);
+  color:#111;
+  font-weight:800;
+  box-shadow:none;
 }
 
 /* While reordering routines on touch, show only the handle + routine name. */
@@ -2125,8 +2006,12 @@ label{
 #mine .routine-dragging .routine-drag-name{
   display:block!important;
 }
+
+}
 </style>
 <style id="simple-mobile-typography-v38">
+@layer simple-legacy {
+
 /* SIMPLE V38 — mobile density & typography polish
    Goal: less visual bulk, tighter hierarchy, easier scanning.
    Desktop remains unchanged. */
@@ -2210,9 +2095,9 @@ label{
 
   /* Trash: compact cards, no huge empty vertical areas. */
   .trash-routine-card{
-    padding:12px!important;
-    margin:8px 0!important;
-    border-radius:13px!important;
+    padding:12px;
+    margin:8px 0;
+    border-radius:13px;
     gap:9px!important;
   }
   .trash-routine-card h3{
@@ -2229,10 +2114,10 @@ label{
   }
   .trash-actions .btn{
     min-height:38px!important;
-    padding:8px 9px!important;
-    font-size:11.5px!important;
+    padding:8px 9px;
+    font-size:11.5px;
     line-height:1.2!important;
-    border-radius:9px!important;
+    border-radius:9px;
   }
 
   /* Generic buttons: slightly less bulky while retaining touch targets. */
@@ -2265,7 +2150,7 @@ label{
   /* Client cards and assigned-routine rows. */
   .client-card,
   .profile-card{
-    padding:12px!important;
+    padding:12px;
   }
 
   /* Progress: reduce oversized metric/chart framing. */
@@ -2317,56 +2202,32 @@ label{
     padding-right:6px;
   }
 }
-</style>
-<style id="simple-trash-density-v39">
-@media(max-width:650px){
-  #trash .trash-routine-card{
-    padding:9px 10px!important;
-    margin:6px 0!important;
-    gap:7px!important;
-    border-radius:11px!important;
-  }
-  #trash .trash-routine-main h3{
-    font-size:13px!important;
-    line-height:1.2!important;
-  }
-  #trash .trash-routine-main .muted{
-    font-size:9.5px!important;
-    line-height:1.25!important;
-    margin-top:3px!important;
-  }
-  #trash .trash-actions{
-    gap:5px!important;
-  }
-  #trash .trash-actions .btn{
-    min-height:34px!important;
-    padding:6px 7px!important;
-    font-size:10.5px!important;
-    line-height:1.15!important;
-    border-radius:8px!important;
-  }
-}
-@media(max-width:380px){
-  #trash .trash-routine-card{padding:8px 9px!important}
-  #trash .trash-actions .btn{font-size:10px!important}
+
 }
 </style>
+
 <style id="simple-progress-selector-v39">
+@layer simple-legacy {
+
 @media(max-width:650px){
   #clientProgressModal select,
   #clientProgressModal .progress-exercise-select{
     width:100%!important;
     min-height:42px!important;
-    font-size:13px!important;
-    padding:9px 11px!important;
-    border-radius:10px!important;
+    font-size:13px;
+    padding:9px 11px;
+    border-radius:10px;
     display:block!important;
     opacity:1!important;
     pointer-events:auto!important;
   }
 }
+
+}
 </style>
 <style id="simple-progress-final-v40">
+@layer simple-legacy {
+
 @media(max-width:650px){
   #clientProgressExercise,
   #clientProgressDay,
@@ -2378,14 +2239,18 @@ label{
     touch-action:manipulation!important;
   }
 }
+
+}
 </style>
 <style id="simple-nav-fixed-trash-v41">
+@layer simple-legacy {
+
 @media(max-width:650px){
   #tabs{
     position:sticky!important;
     top:0!important;
     z-index:1000!important;
-    background:rgba(10,13,15,.96)!important;
+    background:rgba(10,13,15,.96);
     backdrop-filter:blur(12px);
     -webkit-backdrop-filter:blur(12px);
   }
@@ -2394,16 +2259,16 @@ label{
     grid-template-columns:minmax(0,1fr) auto!important;
     align-items:center!important;
     column-gap:10px!important;
-    padding:9px 10px!important;
-    margin:6px 0!important;
+    padding:9px 10px;
+    margin:6px 0;
     min-height:0!important;
   }
   #trash .trash-routine-main{min-width:0!important}
   #trash .trash-routine-main h3{
-    margin:0!important;font-size:13px!important;line-height:1.2!important;
+    margin:0;font-size:13px;line-height:1.2!important;
   }
   #trash .trash-routine-main .muted{
-    font-size:9.5px!important;line-height:1.25!important;
+    font-size:9.5px;line-height:1.25!important;
   }
   #trash .trash-actions{
     width:auto!important;display:flex!important;flex-direction:column!important;
@@ -2412,22 +2277,26 @@ label{
   }
   #trash .trash-actions .btn{
     width:auto!important;min-width:94px!important;min-height:32px!important;
-    padding:6px 8px!important;font-size:10.5px!important;line-height:1.1!important;
+    padding:6px 8px;font-size:10.5px;line-height:1.1!important;
     white-space:nowrap!important;
   }
 }
 @media(max-width:380px){
-  #trash .trash-routine-card{column-gap:7px!important;padding:8px 9px!important}
-  #trash .trash-actions .btn{min-width:84px!important;font-size:10px!important}
+  #trash .trash-routine-card{column-gap:7px!important;padding:8px 9px}
+  #trash .trash-actions .btn{min-width:84px!important;font-size:10px}
+}
+
 }
 </style>
 <style id="simple-nav-smart-hide-v43">
+@layer simple-legacy {
+
 @media(max-width:650px){
   #tabs{
     position:sticky!important;
     top:0!important;
     z-index:1000!important;
-    transition:transform .20s ease,opacity .16s ease!important;
+    transition:transform .20s ease,opacity .16s ease;
     will-change:transform;
   }
   #tabs.nav-hidden-on-scroll{
@@ -2436,8 +2305,12 @@ label{
     pointer-events:none!important;
   }
 }
+
+}
 </style>
 <style id="simple-weekly-progress-v44">
+@layer simple-legacy {
+
 .weekly-routine-progress{margin-top:10px;max-width:420px}
 .weekly-routine-progress-head{display:flex;justify-content:space-between;gap:8px;margin-bottom:5px;font-size:11px}
 .weekly-routine-progress-head span{opacity:.72}
@@ -2450,8 +2323,12 @@ label{
  .weekly-routine-progress-head,.weekly-routine-progress-head b{font-size:10px}
  .weekly-progress-bar{height:9px}
 }
+
+}
 </style>
 <style id="simple-weekly-progress-trainer-v45">
+@layer simple-legacy {
+
 .weekly-routine-progress{margin-top:9px;max-width:360px}
 .weekly-routine-progress-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:5px;font-size:10.5px}
 
@@ -2464,39 +2341,59 @@ label{
   .weekly-routine-progress-head,.weekly-routine-progress-head b{font-size:9.5px}
   .weekly-progress-bar{height:8px}
 }
+
+}
 </style>
 <style id="simple-weekly-progress-own-routines-v46">
+@layer simple-legacy {
+
 @media(max-width:650px){
-  #mine .weekly-routine-progress{margin-top:7px!important;width:100%!important;max-width:none!important}
-  #mine .weekly-routine-progress-head{font-size:9.5px!important;margin-bottom:5px!important}
+  #mine .weekly-routine-progress{margin-top:7px;width:100%!important;max-width:none!important}
+  #mine .weekly-routine-progress-head{font-size:9.5px;margin-bottom:5px}
   #mine .weekly-progress-bar{height:8px!important}
+}
+
 }
 </style>
 <style id="simple-edit-rest-notes-chart-v51">
+@layer simple-legacy {
+
 /* Editing: make rest and notes fields comfortable on desktop and mobile. */
 .history-edit-note{font-family:inherit}
 @media(max-width:650px){
   .history-edit-note{min-height:64px!important}
 }
+
+}
 </style>
 <meta name="simple-build" content="daily-progress-notes-restored-2026-09-04-v2">
 <style id="simple-ux-mobile-inputs">
+@layer simple-legacy {
+
 @media(max-width:650px), (pointer:coarse){
-  #trainBody .setrow input, #trainBody textarea, .history-edit-input, #auth input{font-size:16px!important}
+  #trainBody .setrow input, #trainBody textarea, .history-edit-input, #auth input{font-size:16px}
   .sheet{max-height:90dvh}
+}
+
 }
 </style>
 <style>
+@layer simple-legacy {
+
 .session-delete-exercise{min-height:44px;margin-top:10px}
 #sessionActionModal .sheet,#redeemModal .sheet{width:min(500px,100%);max-height:90dvh;overflow:auto}
 #sessionActionModal .btn,#redeemModal .btn,#addRoutineButton{min-height:44px}
 #sessionActionTitle{overflow-wrap:anywhere}
 #redeemCode{font-size:16px;min-height:48px;width:100%;box-sizing:border-box}
 .session-empty-actions{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+
+}
 </style>
 <style>
+@layer simple-legacy {
+
 /* Phase 1: touch targets and presentation only. */
-.routine-day-train{display:inline-flex;align-items:center;gap:10px;min-height:44px;max-width:100%;padding:8px 10px!important;border-radius:9px;overflow-wrap:anywhere}
+.routine-day-train{display:inline-flex;align-items:center;gap:10px;min-height:44px;max-width:100%;padding:8px 10px;border-radius:9px;overflow-wrap:anywhere}
 .routine-day-train:hover,.routine-day-train:focus-visible{background:var(--card2)}
 .routine-day-train:focus-visible{outline:2px solid var(--muted);outline-offset:2px}
 .routine-day-train .train-hint{font-size:11px;font-weight:400;color:var(--muted);white-space:nowrap}
@@ -2518,8 +2415,12 @@ label{
  .history-summary-actions{justify-content:flex-end;flex-wrap:wrap}
  .history-summary-actions .btn{min-height:44px}
 }
+
+}
 </style>
 <style>
+@layer simple-legacy {
+
 /* Phase 2: readable progress and contextual feedback. */
 .progress-svg-wrap{overflow-x:auto;overscroll-behavior-x:contain;max-width:100%}
 .progress-svg-wrap svg{display:block;max-width:none!important}
@@ -2533,13 +2434,17 @@ label{
 .history-selected{border-color:var(--accent,#b9f6ca);box-shadow:0 0 0 1px var(--accent,#b9f6ca) inset}
 .history-select-count{font-size:13px}
 .workout-save-feedback{font-size:13px;line-height:1.5;color:var(--danger);margin:12px 0 8px}
+
+}
 </style>
 <style>
+@layer simple-legacy {
+
 /* Active workout only: preserve content and the final Save position. */
 #trainBody .workout-exercise{padding:12px;margin:9px 0}
 #trainBody .workout-exercise .previous-session{margin-top:8px;padding:8px 10px}
 #trainBody .workout-exercise .setrow{margin:5px 0}
-#trainBody .workout-exercise .workout-notes{margin-top:8px!important}
+#trainBody .workout-exercise .workout-notes{margin-top:8px}
 #trainBody .workout-exercise textarea:placeholder-shown:not(:focus){min-height:44px;height:44px}
 #trainBody .workout-exercise .rest-buttons{margin-top:8px;gap:5px}
 #trainBody .tick{width:44px;min-width:44px;min-height:44px;touch-action:manipulation}
@@ -2549,8 +2454,12 @@ label{
 #restBox .rest-finished{position:absolute;inset:0;margin:0;display:flex;align-items:center;justify-content:center;font-size:12px;pointer-events:none}
 #restBox .rest-finished[hidden]{display:none}
 #restBox.rest-mini-mode .rest-finished{font-size:9px;white-space:nowrap}
+
+}
 </style>
 <style>
+@layer simple-legacy {
+
 /* Trainer overview reuses the existing client list and profile. */
 .client-overview-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:10px}
 button.client-overview-card{display:flex;flex-direction:column;align-items:stretch;text-align:left;width:100%;min-width:0;margin:0;padding:14px;gap:5px;white-space:normal;font:inherit;color:var(--text);cursor:pointer;touch-action:manipulation}
@@ -2565,8 +2474,13 @@ button.client-overview-card{display:flex;flex-direction:column;align-items:stret
 .client-profile-actions{display:flex;gap:8px;flex-wrap:wrap}
 #clientModalTitle{overflow-wrap:anywhere;min-width:0}
 @media(max-width:430px){.client-overview-grid{gap:8px}button.client-overview-card{padding:12px}.client-profile-actions{width:100%}.client-profile-actions .btn{flex:1 1 auto;min-height:44px}}
+
+}
 </style>
+<link rel="stylesheet" href="assets/theme.css">
 <link rel="stylesheet" href="assets/auth.css">
+<link rel="stylesheet" href="assets/interior.css">
+<link rel="stylesheet" href="assets/settings.css">
 </head>
 <body>
 <div class="modal" id="sessionActionModal" role="dialog" aria-modal="true" aria-labelledby="sessionActionTitle">
@@ -2589,7 +2503,7 @@ button.client-overview-card{display:flex;flex-direction:column;align-items:stret
   <div class="auth-brand" aria-label="SIMPLE">
    <svg class="auth-mark" viewBox="0 0 100 70" aria-hidden="true"><path d="M0 25h6v20H0zM13 12h6v46h-6zM26 0h6v70h-6zM68 0h6v70h-6zM81 12h6v46h-6zM94 25h6v20h-6z"/></svg>
    <span class="auth-wordmark" aria-hidden="true">SIMPLE</span>
-   <div class="auth-loading" id="authLoading" role="status" hidden>Comprobando tu sesión…</div>
+   <div class="auth-loading" id="authLoading" role="status" aria-label="Cargando SIMPLE"></div>
   </div>
   <div class="auth-content">
    <section id="authWelcome" class="auth-panel auth-welcome" hidden aria-label="Bienvenida">
@@ -2629,7 +2543,7 @@ button.client-overview-card{display:flex;flex-direction:column;align-items:stret
  </div>
 </main>
 
-<div id="app" style="display:none"><div class="wrap"><header><div><h1>SIMPLE</h1><div class="sub"><span id="role"></span> · <span id="mail"></span></div></div><div class="actions"><button class="btn" onclick="shareHeaderOpen()">Compartir</button><button class="btn" onclick="logout()">Salir</button></div></header>
+<div id="app" style="display:none"><div class="wrap"><header><div><h1><svg class="interior-brand-mark" viewBox="0 0 100 70" aria-hidden="true"><path d="M0 25h6v20H0zM13 12h6v46h-6zM26 0h6v70h-6zM68 0h6v70h-6zM81 12h6v46h-6zM94 25h6v20h-6z"/></svg>SIMPLE</h1><div class="sub"><span id="role"></span> · <span id="mail"></span></div></div><div class="actions"><button class="btn" onclick="shareHeaderOpen()">Compartir</button><button class="btn" onclick="logout()">Salir</button></div></header>
 <div id="tabs" class="tabs"></div>
 <div id="mine"></div>
 <div id="new" style="display:none"></div>
@@ -2697,7 +2611,19 @@ button.client-overview-card{display:flex;flex-direction:column;align-items:stret
   </div>
 </div>
 <div id="viewModal" class="modal"><div class="sheet"><div style="display:flex;justify-content:space-between;align-items:center"><h2 id="viewTitle" style="margin:0"></h2><button class="btn" onclick="closeM('viewModal')">Cerrar</button></div><div id="viewBody"></div></div></div>
-<div id="toast" class="toast"></div>
+<div id="toast" class="toast" aria-live="polite" aria-atomic="true"></div>
+<dialog id="settingsDialog" aria-labelledby="settingsTitle">
+ <div class="settings-head"><h2 id="settingsTitle">Ajustes</h2><button class="btn" type="button" data-settings-close>Cerrar</button></div>
+ <fieldset class="settings-theme"><legend>Apariencia</legend><div class="settings-theme-options">
+  <label><input type="radio" name="simpleTheme" value="system"><span>Sistema</span></label>
+  <label><input type="radio" name="simpleTheme" value="light"><span>Claro</span></label>
+  <label><input type="radio" name="simpleTheme" value="dark"><span>Oscuro</span></label>
+ </div></fieldset>
+ <dl class="settings-account"><div><dt>Correo electrónico</dt><dd id="settingsEmail"></dd></div><div><dt>Perfil</dt><dd id="settingsRole"></dd></div></dl>
+ <div class="settings-legal"><span data-legal="terms" aria-disabled="true">Términos</span><span data-legal="privacy" aria-disabled="true">Política de privacidad</span></div>
+ <p class="settings-legal-note muted">Enlaces legales pendientes de publicación.</p>
+ <button class="btn settings-logout" type="button" data-settings-logout>Cerrar sesión</button>
+</dialog>
 
 
 <div id="shareModal" class="modal">
@@ -2736,6 +2662,7 @@ const APP_URL = 'https://raulchulbi-sys.github.io/SIMPLE/';
 // Capture callback intent before the SDK consumes and removes the URL fragment.
 // No token or other credential is copied into application state here.
 const SIMPLE_AUTH_CALLBACK=Object.freeze({
+  access:new URLSearchParams(location.hash.slice(1)).has('access_token')||new URLSearchParams(location.search).has('code'),
   recovery:new URLSearchParams(location.search).get('reset')==='1'||new URLSearchParams(location.hash.slice(1)).get('type')==='recovery',
   error:new URLSearchParams(location.search).has('error')||new URLSearchParams(location.hash.slice(1)).has('error')
 });
@@ -4555,7 +4482,7 @@ async function renderMine(){
   const box=$('mine'); if(!box)return;
   const header='<div class="card"><h2 style="margin:0 0 4px">Mis rutinas</h2></div>';
   if(!routines.length){
-    box.innerHTML=header+'<div class="card empty"><b style="color:#fff">No tienes rutinas todavía.</b><div style="margin-top:6px">Crea la primera desde aquí.</div><button class="btn primary" style="margin-top:14px" onclick="view(\'new\')">Crear rutina</button></div>';
+    box.innerHTML=header+'<div class="card empty"><b style="color:var(--text)">No tienes rutinas todavía.</b><div style="margin-top:6px">Crea la primera desde aquí.</div><button class="btn primary" style="margin-top:14px" onclick="view(\'new\')">Crear rutina</button></div>';
     return;
   }
 
@@ -8133,7 +8060,7 @@ function renderWeeklyRoutineProgress(totalDays,completedDays){
       </div>
     </div>`:'';
   return `<div class="weekly-routine-progress">
-    <div class="weekly-routine-progress-head"><span>Progreso de hoy</span><b>${done}/${total} · ${pct}%</b></div>
+    <div class="weekly-routine-progress-head"><span>Ciclo actual</span><b>${done}/${total} del ciclo actual</b></div>
     <div class="weekly-progress-complete-row">
       <div class="weekly-progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${total}" aria-valuenow="${done}">
         ${Array.from({length:total},(_,i)=>`<span class="weekly-progress-segment ${i<done?'is-done':''}"></span>`).join('')}
@@ -8246,12 +8173,12 @@ async function openSharedRoutine(id){
     $('trainTitle').textContent=original.name;
     $('trainSubtitle').textContent='Rutina compartida por tu entrenador.';
     $('trainBody').innerHTML=d.length?`
-      <div class="card">
+      <div class="card interior-session-list">
         <h3 style="margin-top:0">Días de entrenamiento</h3>
         ${d.map(x=>`<button class="btn" style="width:100%;margin:6px 0;text-align:left" onclick="startWorkoutDay('${x.id}')">
           <b>${esc(x.name)}</b><span class="muted" style="float:right">${x.exercises.length} ejercicios</span>
         </button>`).join('')}
-      </div>`:'<div class="empty">Esta rutina todavía no tiene días.</div>';
+      </div>`:'<div class="empty interior-session-list">Esta rutina todavía no tiene días.</div>';
     openM('trainModal');
   }catch(e){if(!isCurrent())return;console.error('openSharedRoutine:',e);toast('La rutina existe, pero no se pudieron cargar sus sesiones.');}
 }
@@ -8305,7 +8232,9 @@ async function redeemShareCode(){
 
 
 </script>
+<script src="assets/oauth.js"></script>
 <script src="assets/auth.js"></script>
+<script src="assets/settings.js"></script>
 <script>
 // Protección contra dobles clics en acciones sensibles.
 document.addEventListener('click', function(e){

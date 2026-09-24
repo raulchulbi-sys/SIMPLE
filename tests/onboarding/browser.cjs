@@ -44,7 +44,8 @@ const results=[];
   async function test(name,fn){try{await fn();results.push({engine,width,name,pass:true})}catch(e){results.push({engine,width,name,pass:false,error:e.message})}}
   async function reset(seed={}){await p.addInitScript(s=>{window.__seed=s},seed);await p.goto('http://simple.test/');}
   async function screenshot(name){await p.waitForFunction(()=>!document.getElementById('auth').getAnimations({subtree:true}).some(a=>a.playState==='running'));await p.screenshot({path:path.join(out,`${engine}-${width}-${name}.png`),fullPage:true})}
-  await reset();
+  // Hold the mocked session read: splash exists only during real pending work.
+  await reset({delay:800});
   await test('Initial neutral splash has no form or buttons',async()=>{assert.equal(await p.locator('#auth').getAttribute('data-screen'),'boot');assert.equal(await p.locator('#auth button:visible').count(),0)});
   await p.waitForFunction(()=>document.getElementById('auth').dataset.screen==='welcome');
   await test('Welcome has only two actions, no credentials or roles',async()=>{assert.equal(await p.locator('#auth button:visible').count(),2);assert.equal(await p.locator('#email').isVisible(),false);assert.equal(await p.locator('#authRoles').isVisible(),false)});

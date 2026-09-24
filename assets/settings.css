@@ -1,0 +1,27 @@
+/* One settings component, using the same theme tokens as the interior. */
+.settings-trigger{display:inline-flex;align-items:center;justify-content:center;width:44px;min-width:44px;height:44px;flex:none}
+:is(#app,.modal,#settingsDialog) .settings-trigger{padding:10px}
+.settings-trigger svg{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+.settings-has-access{position:relative;padding-right:54px}
+.settings-modal-access{position:absolute;top:0;right:0;display:inline-flex}
+#settingsDialog{width:min(460px,calc(100vw - 28px));max-height:calc(100dvh - 36px);margin:auto;padding:26px;border:1px solid var(--simple-line);border-radius:22px;background:var(--simple-bg);color:var(--simple-text);box-shadow:0 12px 40px var(--simple-shadow);overflow:auto}
+#settingsDialog::backdrop{background:var(--simple-overlay);backdrop-filter:blur(3px)}
+#settingsDialog .settings-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:28px}
+#settingsTitle{margin:0;font-size:27px}
+#settingsDialog fieldset{padding:0;border:0;margin:0}
+#settingsDialog legend{font-size:14px;font-weight:500;margin-bottom:12px;color:var(--simple-text)}
+#settingsDialog .settings-theme-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+#settingsDialog .settings-theme-options label{position:relative;display:flex;align-items:center;justify-content:center;margin:0;min-height:48px;border:1px solid var(--simple-control-line);border-radius:10px;cursor:pointer;background:var(--simple-card);color:var(--simple-text);font-size:14px}
+#settingsDialog .settings-theme-options input{position:absolute;opacity:0;width:1px;height:1px}
+#settingsDialog .settings-theme-options label:has(:checked){background:var(--simple-stone);border-color:var(--simple-text);box-shadow:inset 0 0 0 1px var(--simple-text)}
+#settingsDialog .settings-theme-options label:focus-within{outline:2px solid var(--simple-focus);outline-offset:3px}
+#settingsDialog .settings-account{border-block:1px solid var(--simple-line);padding:22px 0;margin:26px 0}
+#settingsDialog .settings-account>div+div{margin-top:16px}
+#settingsDialog dt{font-size:12px;color:var(--simple-muted);margin-bottom:5px}
+#settingsDialog dd{margin:0;font-size:14px;overflow-wrap:anywhere}
+#settingsDialog .settings-legal{display:flex;flex-wrap:wrap;gap:12px 20px;font-size:13px;color:var(--simple-muted)}
+#settingsDialog .settings-legal a{color:var(--simple-text);text-underline-offset:3px}
+#settingsDialog .settings-legal-note{font-size:12px;margin:10px 0 24px}
+#settingsDialog [hidden]{display:none}
+#settingsDialog .settings-logout{width:100%;background:var(--simple-card)}
+@media(max-width:359px){#settingsDialog{padding:20px}}
