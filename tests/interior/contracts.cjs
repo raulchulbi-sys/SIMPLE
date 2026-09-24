@@ -4,7 +4,7 @@ const test=(name,fn)=>{try{fn();checks.push({name,pass:true})}catch(e){checks.pu
 const scripts=s=>[...s.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g)].map(x=>x[1]).filter(Boolean);
 test('Inline logic identical apart from approved presentation strings',()=>{
  const normalized=after.replace(/^  access:new URLSearchParams\(location.hash.slice\(1\)\).has\('access_token'\)\|\|new URLSearchParams\(location.search\).has\('code'\),\n/m,'').replace('<span>Ciclo actual</span><b>\${done}/\${total} del ciclo actual</b>','<span>Progreso de hoy</span><b>\${done}/\${total} · \${pct}%</b>').replaceAll('class="card interior-session-list"','class="card"').replaceAll('class="empty interior-session-list"','class="empty"');
- assert.deepEqual(scripts(normalized.replace('style="color:var(--text)">No tienes rutinas todavía.','style="color:#fff">No tienes rutinas todavía.')),scripts(before));
+ assert.deepEqual(scripts(normalized.replace('Sin registro anterior.','Todavía no hay un registro anterior de este ejercicio.').replaceAll('class="previous-session-sets" tabindex="0" role="region" aria-label="Series de la última sesión"','class="previous-session-sets"').replace('style="color:var(--text)">No tienes rutinas todavía.','style="color:#fff">No tienes rutinas todavía.')),scripts(before));
 });
 test('Legacy presentation lives in a lower cascade layer',()=>{for(const match of after.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/g))assert(match[1].includes('@layer simple-legacy'))});
 test('All scripts compile',()=>{for(const script of scripts(after))new vm.Script(script)});

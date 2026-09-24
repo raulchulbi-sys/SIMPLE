@@ -2615,7 +2615,6 @@ button.client-overview-card{display:flex;flex-direction:column;align-items:stret
 <dialog id="settingsDialog" aria-labelledby="settingsTitle">
  <div class="settings-head"><h2 id="settingsTitle">Ajustes</h2><button class="btn" type="button" data-settings-close>Cerrar</button></div>
  <fieldset class="settings-theme"><legend>Apariencia</legend><div class="settings-theme-options">
-  <label><input type="radio" name="simpleTheme" value="system"><span>Sistema</span></label>
   <label><input type="radio" name="simpleTheme" value="light"><span>Claro</span></label>
   <label><input type="radio" name="simpleTheme" value="dark"><span>Oscuro</span></label>
  </div></fieldset>
@@ -6483,7 +6482,7 @@ function renderPreviousSession(exerciseId){
   const prev=getPreviousExerciseSession(exerciseId);
   if(!prev)return `<div class="previous-session">
     <div class="previous-session-head"><span class="previous-session-title">Última sesión</span></div>
-    <div class="previous-empty">Todavía no hay un registro anterior de este ejercicio.</div>
+    <div class="previous-empty">Sin registro anterior.</div>
   </div>`;
 
   const sets=Array.isArray(prev.exercise.sets)?prev.exercise.sets:[];
@@ -6493,7 +6492,7 @@ function renderPreviousSession(exerciseId){
       <span class="previous-session-title">Última sesión</span>
       <span class="previous-session-date">${esc(date)}</span>
     </div>
-    <div class="previous-session-sets">
+    <div class="previous-session-sets" tabindex="0" role="region" aria-label="Series de la última sesión">
       ${sets.length?sets.map((s,i)=>{
         const kg=s.kg!==''&&s.kg!=null?s.kg:'—';
         const reps=s.reps!==''&&s.reps!=null?s.reps:'—';
