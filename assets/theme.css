@@ -28,5 +28,6 @@
  --auth-error:var(--simple-danger);--auth-reset-error:var(--simple-danger);--auth-success:var(--simple-success);--auth-hover:var(--simple-soft);--auth-hover-line:var(--simple-hover-line);
  color-scheme:dark;
 }
-body{background:var(--simple-bg)}
+html,body{background-color:var(--simple-bg);min-height:100%;}
+html{overscroll-behavior-y:contain}
 ::selection{background:var(--simple-stone);color:var(--simple-text)}

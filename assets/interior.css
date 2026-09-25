@@ -36,9 +36,32 @@
 #restBox :is(.rest-time,.rest-mini){color:var(--text)}
 #restBox .rest-mini{background:transparent;border-color:var(--line)}
 #toast{background:var(--simple-bg);color:var(--simple-text);border:1px solid var(--simple-line);border-radius:10px;box-shadow:0 4px 16px var(--simple-shadow);padding:14px 18px;font-size:14px;font-weight:500;line-height:1.5;text-align:left}
+.reorder-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
+#mine:not(.routine-compact-mode) .routine-drag-handle,#trainBody:not(.open-compact-mode) .open-day-handle{display:none}
+.reorder-tools{margin:8px 0 16px;color:var(--simple-muted);font-size:13px}
+.reorder-tools p{margin:0 0 10px;max-width:60ch}
+:is(#app #mine.routine-compact-mode,#editModal #clientSessionList.day-compact-mode,#trainModal #trainBody.open-compact-mode) :is(.routine-description,.routine-actions,.weekly-routine-progress,.dayhead .buttons,.dayhead .muted,.open-day-menu,.open-day-row>.danger,.open-day-button .muted){display:none!important}
+:is(#app #mine.routine-compact-mode,#editModal #clientSessionList.day-compact-mode,#trainModal #trainBody.open-compact-mode) :is(.routine-order-zone,.day-order-gap,.open-day-order-zone){display:none!important}
+:is(#app #mine.routine-compact-mode,#editModal #clientSessionList.day-compact-mode,#trainModal #trainBody.open-compact-mode) :is(.routine-sortable,.routine-editor-day,.open-day-row),.compact-reorder-ghost{min-height:60px;padding:8px 12px;margin:8px 0!important;border:1px solid var(--simple-line);border-radius:12px;background:var(--simple-card);color:var(--simple-text);display:flex;align-items:center;gap:10px;touch-action:pan-y;box-shadow:none}
+:is(#app #mine.routine-compact-mode,#editModal #clientSessionList.day-compact-mode,#trainModal #trainBody.open-compact-mode) :is(h3,b){font-size:16px;line-height:1.4;margin:0;overflow-wrap:anywhere}
+#clientSessionList.day-compact-mode .dayhead{width:100%}
+.open-compact-mode .open-day-button{border:0!important;background:none!important;box-shadow:none!important;padding:0!important;pointer-events:none}
+:is(.routine-compact-mode,.day-compact-mode,.open-compact-mode) .drag-handle{display:inline-flex;align-items:center;justify-content:center;flex:0 0 44px;width:44px;height:44px;touch-action:none;cursor:grab}
+.reorder-selected{outline:2px solid var(--simple-focus);outline-offset:1px}
+:is(.routine-compact-mode,.day-compact-mode,.open-compact-mode) [role=button]:focus-visible{outline:2px solid var(--simple-focus);outline-offset:3px}
+.compact-reorder-placeholder{box-sizing:border-box;min-height:0;border:1px dashed var(--simple-focus);border-radius:12px;background:var(--simple-soft)}
+.compact-reorder-ghost{opacity:.95;box-shadow:0 6px 20px var(--simple-shadow)}
+.compact-reorder-ghost :is(.routine-description,.routine-actions,.weekly-routine-progress,.dayhead .buttons,.dayhead .muted,.open-day-menu,.danger,.open-day-button .muted){display:none!important}
+.compact-reorder-ghost .drag-handle{flex:0 0 44px;display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px}
+.compact-reorder-ghost h3,.compact-reorder-ghost b{font-size:16px;line-height:1.4;margin:0}
+.compact-pointer-dragging{user-select:none;-webkit-user-select:none;cursor:grabbing}
 /* Workout, historical sessions and progress use the same quiet surfaces. */
 .modal:not(#resetModal) :is(.previous-session,.previous-set,.history-label,.routine-note-card,.progress-stat-card,.progress-chart-stat){background:var(--card2);border-color:var(--line);box-shadow:none;color:var(--text)}
 .modal:not(#resetModal) :is(.previous-session-title,.previous-session-date,.previous-empty,.history-objective,.history-notes,.meta){color:var(--muted);text-transform:none;letter-spacing:0;line-height:1.5}
+/* The label sits above a stable row of five equal rest controls. */
+#trainBody .workout-exercise .rest-buttons{display:grid;grid-template-columns:repeat(5,minmax(44px,1fr));gap:6px;overflow-x:auto;max-width:100%;padding:2px 0}
+#trainBody .workout-exercise .rest-buttons>span{grid-column:1/-1}
+#trainBody .workout-exercise .rest-buttons>.btn{min-width:44px;min-height:44px;width:100%;padding:8px 2px;margin:0}
 /* Previous results are secondary reference text, with every set still reachable. */
 #trainBody .workout-exercise .previous-session{margin:6px 0 2px;padding:2px 0;border:0;border-radius:0;background:transparent;color:var(--muted);min-width:0}
 #trainBody .previous-session-head{justify-content:flex-start;gap:8px;margin:0;line-height:16px}
@@ -128,7 +151,9 @@ body:has(#app[style*="block"]){background:var(--simple-bg)}
 #app .weekly-progress-bar{gap:5px;background:none;border:0;padding:0;height:5px;min-height:5px;width:100%;max-width:none;box-shadow:none}
 #app .weekly-progress-segment{background:var(--simple-stone);border-radius:2px;height:5px;box-shadow:none}
 #app .weekly-progress-segment.is-done{background:var(--simple-success-fill);box-shadow:none}
-#app .weekly-progress-celebration{display:none}
+#app .weekly-progress-complete-row{flex-wrap:wrap}
+#app .weekly-progress-celebration{display:flex;align-items:center;gap:8px;flex-basis:100%;margin-top:6px}
+:is(#app,#clientModal) .weekly-progress-celebration-copy b{font-size:13px;color:var(--simple-success);white-space:normal}
 #app .client-overview-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
 #app button.client-overview-card{padding:26px;text-align:left;gap:8px;border-radius:18px;transition:border-color .15s}
 #app button.client-overview-card:hover{background:var(--simple-card);border-color:var(--simple-hover-line);transform:none}
@@ -194,3 +219,5 @@ body:has(#app[style*="block"]){background:var(--simple-bg)}
 #toast[data-tone='error']::before{content:'!';color:var(--simple-danger);margin-right:9px;font-weight:700}
 :is(#app,.modal:not(#resetModal)) :is(.progress-chart-empty,.progress-point-detail){background:var(--simple-soft);color:var(--simple-muted);border-color:var(--simple-line)}
 :is(#app,.modal:not(#resetModal)) :is(input,textarea,select){border-color:var(--simple-control-line)}
+@media(prefers-reduced-motion:reduce){.weekly-progress-gif{display:none!important}}
+@media(max-width:340px){#trainModal #trainBody .workout-exercise{padding-inline:10px}#trainBody .workout-exercise .rest-buttons{gap:4px}}

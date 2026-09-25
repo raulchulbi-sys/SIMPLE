@@ -2,15 +2,15 @@
 window.mock={tables:{},calls:[],scenario:'normal',role:'client'};
 (function(){
 const query=(rows,table)=>{
- const filters=[];let single=false,sort=null,desc=false,limit=Infinity,write=false;
- const q={select(){return q},eq(k,v){filters.push(x=>String(k.includes('->>')?x[k.split('->>')[0]]?.[k.split('->>')[1]]:x[k])===String(v));return q},is(k,v){filters.push(x=>x[k]==v);return q},in(k,v){filters.push(x=>v.includes(x[k]));return q},not(k,op,v){filters.push(x=>x[k]!=v);return q},order(k,opts){sort=k;desc=opts?.ascending===false;return q},limit(n){limit=n;return q},single(){single=true;return q},maybeSingle(){single=true;return q},insert(){write=true;return q},update(){write=true;return q},upsert(){write=true;return q},delete(){write=true;return q},
+ const filters=[],sorts=[];let single=false,offset=0,limit=Infinity,write=false;
+ const q={select(){return q},eq(k,v){filters.push(x=>String(k.includes('->>')?x[k.split('->>')[0]]?.[k.split('->>')[1]]:x[k])===String(v));return q},is(k,v){filters.push(x=>x[k]==v);return q},in(k,v){filters.push(x=>v.includes(x[k]));return q},not(k,op,v){filters.push(x=>x[k]!=v);return q},order(k,opts){sorts.push([k,opts?.ascending===false]);return q},range(a,b){offset=a;limit=b-a+1;return q},limit(n){limit=n;return q},single(){single=true;return q},maybeSingle(){single=true;return q},insert(){write=true;return q},update(){write=true;return q},upsert(){write=true;return q},delete(){write=true;return q},
  async then(resolve,reject){try{
   mock.calls.push({table,write});
   if(mock.scenario==='loading'&&table==='routine_assignments')await new Promise(()=>{});
   if(mock.scenario==='error'&&table==='routine_assignments')return resolve({data:null,error:{message:'No se pudo conectar. Comprueba tu conexión.'}});
   if(write)return resolve({data:null,error:{message:'Vista local: los cambios no se guardan.'}});
-  let list=rows().filter(x=>filters.every(f=>f(x)));if(sort)list=list.slice().sort((a,b)=>String(a[sort]).localeCompare(String(b[sort]))*(desc?-1:1));
-  list=list.slice(0,limit);return resolve({data:structuredClone(single?list[0]||null:list),count:list.length,error:null});
+  let list=rows().filter(x=>filters.every(f=>f(x)));if(sorts.length)list=list.slice().sort((a,b)=>{for(const [key,desc] of sorts){const order=(typeof a[key]==='number'&&typeof b[key]==='number'?a[key]-b[key]:String(a[key]).localeCompare(String(b[key])))*(desc?-1:1);if(order)return order;}return 0;});
+  list=list.slice(offset,offset+limit);return resolve({data:structuredClone(single?list[0]||null:list),count:list.length,error:null});
  }catch(e){return reject?.(e)}}};return q;
 };
 window.supabase={createClient:()=>({

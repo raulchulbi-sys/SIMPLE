@@ -3098,7 +3098,7 @@ async function revokeClientRoutine(assignmentId){
 
 let clientProgressChartState={sessions:[],exerciseNames:[],metric:'weight',currentExerciseNamesById:{}};
 function normalizeProgressExerciseName(v){return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\u00a0/g,' ').replace(/\s+/g,' ').trim().toLowerCase();}
-function getProgressExercises(sessions,currentExerciseNamesById={},currentDayExerciseIds=null){
+function getProgressExercises(sessions,currentExerciseNamesById={},currentDayExerciseIds=null,context=null){
   const allowed=currentDayExerciseIds instanceof Set?currentDayExerciseIds:null;
   const entries=new Map();
   const add=(id,name,historical=false)=>{
@@ -3114,7 +3114,7 @@ function getProgressExercises(sessions,currentExerciseNamesById={},currentDayExe
   (sessions||[]).forEach(s=>{
     const exercises=Array.isArray(s?.data?.exercises)?s.data.exercises:Array.isArray(s?.exercises)?s.exercises:[];
     exercises.forEach(e=>{
-      const id=String(e?.exercise_id||'');
+      const id=resolveProgressExerciseId(e?.exercise_id,context);
       add(id,currentExerciseNamesById[id]||e?.name||e?.exercise_name,!id||(allowed?!allowed.has(id):!currentExerciseNamesById[id]));
     });
   });
@@ -3127,15 +3127,16 @@ function getProgressExercises(sessions,currentExerciseNamesById={},currentDayExe
   });
 }
 
-function getExercisePoints(sessions,exerciseName,metric,currentExerciseNamesById={},currentDayExerciseIds=null){
-  const ordered=[...(sessions||[])].sort((a,b)=>String(a.workout_date||'').localeCompare(String(b.workout_date||'')));
+function getExercisePoints(sessions,exerciseName,metric,currentExerciseNamesById={},currentDayExerciseIds=null,context=null){
+  const seenWorkouts=new Set();
+  const ordered=(sessions||[]).filter(row=>{if(!row.id)return true;const key=String(row.id);if(seenWorkouts.has(key))return false;seenWorkouts.add(key);return true;}).sort((a,b)=>String(a.workout_date||'').localeCompare(String(b.workout_date||''))||String(a.created_at||'').localeCompare(String(b.created_at||''))||String(a.id||'').localeCompare(String(b.id||'')));
   const identity=String(exerciseName||'');
   const exerciseId=identity.startsWith('id:')?identity.slice(3):null;
   const legacyName=identity.startsWith('legacy:')?identity.slice(7):null;
   return ordered.map((s,idx)=>{
     const exs=Array.isArray(s?.data?.exercises)?s.data.exercises:Array.isArray(s?.exercises)?s.exercises:[];
     const matching=exs.filter(x=>{
-      const id=String(x?.exercise_id||'');
+      const id=resolveProgressExerciseId(x?.exercise_id,context);
       if(exerciseId!==null)return id===exerciseId;
       // No UUID: show an explicit legacy series, never merge it into a UUID.
       return !id && legacyName!==null && normalizeProgressExerciseName(x?.name||x?.exercise_name)===legacyName;
@@ -3143,6 +3144,10 @@ function getExercisePoints(sessions,exerciseName,metric,currentExerciseNamesById
     // Two no-ID namesakes in one snapshot cannot be distinguished safely.
     if(legacyName!==null && matching.length!==1)return null;
     if(!matching.length)return null;
+    // An exact UUID wins if an anomalous snapshot contains both generations.
+    const exact=matching.filter(x=>String(x?.exercise_id||'')===exerciseId);
+    if(exact.length>1 || (!exact.length && matching.length>1))return null;
+    if(exact.length===1)matching.splice(0,matching.length,exact[0]);
     const date=simpleDateFromKey(s?.workout_date);if(!date)return null;
     const sets=matching.flatMap(e=>Array.isArray(e?.sets)?e.sets:Array.isArray(e?.series)?e.series:[]);
     const nums=sets.map((set,setIndex)=>{
@@ -3184,10 +3189,10 @@ function progressEmptyMessage(){
   if(!daySessions.length)return 'Todavía no hay sesiones de este día.';
   const name=$('clientProgressExercise')?.value||'';
   const metric=$('clientProgressMetric')?.value||state.metric;
-  const allPoints=getExercisePoints(daySessions,name,metric,state.currentExerciseNamesById,state.currentDayExerciseIds);
+  const allPoints=getExercisePoints(daySessions,name,metric,state.currentExerciseNamesById,state.currentDayExerciseIds,state.identityContext);
   if(allPoints.length&&!((state.filteredSessions)||[]).length)return 'No hay datos en este periodo. Prueba otro periodo.';
   if(allPoints.length){
-    const periodPoints=getExercisePoints(state.filteredSessions||[],name,metric,state.currentExerciseNamesById,state.currentDayExerciseIds);
+    const periodPoints=getExercisePoints(state.filteredSessions||[],name,metric,state.currentExerciseNamesById,state.currentDayExerciseIds,state.identityContext);
     return periodPoints.length?'No hay datos válidos de este ejercicio para esta métrica.':'No hay datos de este ejercicio en este periodo. Prueba otro periodo.';
   }
   return name?'Todavía no hay datos de este ejercicio para esta métrica.':'No hay ejercicios con datos para mostrar.';
@@ -3205,14 +3210,13 @@ function renderClientProgressChart(){
   clientProgressChartState.metric=metric;
 
   let sourceSessions=clientProgressChartState.filteredSessions||clientProgressChartState.sessions||[];
-  let points=getExercisePoints(sourceSessions,exerciseName,metric,clientProgressChartState.currentExerciseNamesById,clientProgressChartState.currentDayExerciseIds);
+  let points=getExercisePoints(sourceSessions,exerciseName,metric,clientProgressChartState.currentExerciseNamesById,clientProgressChartState.currentDayExerciseIds,clientProgressChartState.identityContext);
   const pointDetail=$('clientProgressPointDetail');
   if(pointDetail){pointDetail.style.display='none';pointDetail.innerHTML='';}
   const oldTooltip=$('progressPointTooltip');
   if(oldTooltip){oldTooltip.style.display='none';oldTooltip.innerHTML='';}
 
-  // Never let a huge/dirty history freeze the browser.
-  if(points.length>120)points=points.slice(-120);
+  // Preserve every valid observation in the selected period.
 
   const clean=points
     .filter(p=>p && p.date instanceof Date && !Number.isNaN(p.date.getTime()) &&
@@ -3222,6 +3226,7 @@ function renderClientProgressChart(){
   if(myToken!==__progressRenderToken)return;
 
   if(!clean.length){
+    clientProgressChartState.points=[];
     root.innerHTML=`<div class="progress-chart-empty">${esc(progressEmptyMessage())}</div>`;
     $('clientProgressChartSummary').innerHTML='';
     return;
@@ -3403,29 +3408,63 @@ function showProgressPoint(index,node){
 window.addEventListener('resize',()=>{
   if($('clientProgressChart')?.getClientRects().length)renderClientProgressChart();
 });
-function getProgressDays(sessions,orderedRoutineDays=[]){
+// Read-only compatibility: explicit owner/routine scope; never used by notes or writes.
+function progressIdentityContext(clientId,routineId,orderedDays){
+  const currentDays=new Set((orderedDays||[]).map(d=>String(d.id)));
+  const currentExercises=new Set((orderedDays||[]).flatMap(d=>(d.exercises||[]).map(e=>String(e.id))));
+  const dayAliases=new Map(),exerciseAliases=new Map();
+  if(String(clientId)==='b7ee910d-bc34-402c-b1a3-5cacceb29519'&&String(routineId)==='ba2d0a25-1844-45c1-9777-f0e1aa7aa392'){
+    for(const [old,id] of [
+      ['05b6c573-abcb-4259-9c0a-93459ddd5a24','1f9fbb95-9941-4cc4-989c-bfc1d590977b'],
+      ['879e13f3-9c0d-4020-b10d-d7f753fedb6b','21a2160e-8822-423a-933f-e0413136983c'],
+      ['0e4e1c85-3612-481c-9f67-41345b0afa20','950d5458-270f-4f9a-a16a-be4c7d346ca7'],
+      ['041166f2-4306-45c1-b86f-0eb4aca27ed1','7f929817-c4cf-447b-b7f1-0353f73d6659']
+    ])if(currentDays.has(id)&&!currentDays.has(old))dayAliases.set(old,id);
+  }
+  for(const id of currentExercises)for(const old of confirmedHistoricalExerciseIds(clientId,routineId,id))if(!currentExercises.has(old))exerciseAliases.set(old,id);
+  return {clientId:String(clientId),routineId:String(routineId),dayAliases,exerciseAliases};
+}
+function resolveProgressExerciseId(id,context){const key=String(id||'');return context?.exerciseAliases?.get(key)||key;}
+function getProgressDays(sessions,orderedRoutineDays=[],context=null){
   const map=new Map(),ordered=orderedRoutineDays||[];
-  const normalize=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim().toLowerCase();
+  const normalize=normalizeProgressExerciseName;
   const byId=new Map(ordered.map(d=>[String(d.id),d]));
-  (sessions||[]).forEach(s=>{
+  for(const d of ordered)map.set(String(d.id),{key:String(d.id),id:String(d.id),name:d.name||'Sesión',historical:false,sessions:[]});
+  const seen=new Set();
+  for(const s of sessions||[]){
     const data=s?.data||{};
-    const id=String(data.routine_day_id??data.routineDayId??data.day_id??data.dayId??'');
+    if(context&&(String(s.user_id||context.clientId)!==context.clientId||String(data.routine_id??data.routineId??'')!==context.routineId))continue;
+    if(s.id&&seen.has(String(s.id)))continue;if(s.id)seen.add(String(s.id));
+    const original=String(data.routine_day_id??data.routineDayId??data.day_id??data.dayId??'');
+    const id=context?.dayAliases?.get(original)||original;
     const name=String(data.day_name??data.dayName??data.day_title??s.variant??s.day??'Sesión').trim();
-    // Existing and orphaned UUIDs both identify history. Only no-ID records
-    // may use a unique exact legacy name; fragments/containment are ambiguous.
     const named=!id?ordered.filter(d=>normalize(d.name)===normalize(name)):[];
     const current=id?byId.get(id):(named.length===1?named[0]:null);
-    const key=id||current?.id||'name:'+normalize(name);
-    if(!map.has(String(key)))map.set(String(key),{key:String(key),id:current?String(current.id):null,
-      name:String(current?.name||name||'Sesión'),historical:!current,sessions:[]});
-    map.get(String(key)).sessions.push(s);
-  });
+    const key=String(id||current?.id||'name:'+normalize(name));
+    if(!map.has(key))map.set(key,{key,id:current?String(current.id):null,name:String(current?.name||name||'Sesión'),historical:!current,sessions:[]});
+    map.get(key).sessions.push(s);
+  }
   const order=new Map(ordered.map((d,i)=>[String(d.id),i]));
   const result=[...map.values()].sort((a,b)=>(order.get(a.key)??999999)-(order.get(b.key)??999999)||a.name.localeCompare(b.name,'es'));
-  const counts=new Map(),seen=new Map();
+  const counts=new Map(),seenNames=new Map();
   result.forEach(d=>{const n=normalize(d.name);counts.set(n,(counts.get(n)||0)+1)});
-  return result.map(d=>{const n=normalize(d.name),i=(seen.get(n)||0)+1;seen.set(n,i);
-    return {...d,name:d.name+(counts.get(n)>1?' · '+i:'')+(d.historical?' · Histórico':'')};});
+  return result.map(d=>{const n=normalize(d.name),i=(seenNames.get(n)||0)+1;seenNames.set(n,i);return {...d,name:d.name+(counts.get(n)>1?' · '+i:'')+(d.historical?' · Histórico':'')};});
+}
+
+async function loadProgressHistory(clientId,routineId,trainer,isCurrent=()=>true){
+  const rows=[],seen=new Set(),size=500;
+  for(let offset=0;;offset+=size){
+    if(!isCurrent())return null;
+    let query=trainer?db.rpc('get_client_routine_history',{p_client_id:String(clientId),p_routine_id:String(routineId)}):db.from('workouts').select('id,user_id,variant,day,workout_date,created_at,data').eq('user_id',clientId);
+    query=query.order('workout_date',{ascending:false}).order('id',{ascending:false});
+    const result=await query.range(offset,offset+size-1);
+    if(!isCurrent())return null;if(result.error)throw result.error;
+    const page=result.data||[];let added=0;
+    for(const row of page){if(row.id&&seen.has(String(row.id)))continue;if(row.id)seen.add(String(row.id));added++;if(String(row.user_id)===String(clientId)&&String(row.data?.routine_id??row.data?.routineId??'')===String(routineId))rows.push(row);}
+    if(page.length<size)break;
+    if(!added)throw Error('El historial paginado no avanza.');
+  }
+  return rows;
 }
 
 function progressPeriodStart(period){
@@ -3479,7 +3518,7 @@ function setupClientProgressChart(sessions){
   const metric=$('clientProgressMetric'), periodSelect=$('clientProgressPeriod');
   if(!exerciseSelect||!metric)return;
 
-  const allDays=getProgressDays(clientProgressChartState.sessions,clientProgressChartState.orderedRoutineDays||[]);
+  const allDays=getProgressDays(clientProgressChartState.sessions,clientProgressChartState.orderedRoutineDays||[],clientProgressChartState.identityContext);
   clientProgressChartState.days=allDays;
 
   if(daySelect){
@@ -3488,7 +3527,7 @@ function setupClientProgressChart(sessions){
   }
 
   const rebuildExercises=()=>{
-    const period=periodSelect?.value||'month';
+    const period=periodSelect?.value||'all';
     clientProgressChartState.period=period;
     const key=daySelect?.value??allDays[0]?.key;
     const day=allDays.find(d=>String(d.key)===String(key));
@@ -3501,9 +3540,11 @@ function setupClientProgressChart(sessions){
     const names=getProgressExercises(
       periodSessions.length?periodSessions:daySessions,
       clientProgressChartState.currentExerciseNamesById,
-      dayExerciseIds
+      dayExerciseIds,clientProgressChartState.identityContext
     );
-    exerciseSelect.innerHTML=names.slice(0,200).map(e=>`<option value="${esc(e.key)}">${esc(e.label)}</option>`).join('');
+    const previousExercise=exerciseSelect.value;
+    exerciseSelect.innerHTML=names.map(e=>`<option value="${esc(e.key)}">${esc(e.label)}</option>`).join('');
+    if(names.some(e=>e.key===previousExercise))exerciseSelect.value=previousExercise;
     exerciseSelect.disabled=!names.length;
     metric.disabled=!names.length;
     if(names.length){
@@ -3513,6 +3554,7 @@ function setupClientProgressChart(sessions){
       renderClientProgressChart();
     }
     else{
+      clientProgressChartState.points=[];
       $('clientProgressChart').innerHTML=`<div class="progress-chart-empty">${esc(progressEmptyMessage())}</div>`;
       $('clientProgressChartSummary').innerHTML='';
     }
@@ -3553,9 +3595,7 @@ async function openRoutineProgress(routineId){
     // The workout history and routine-day structure are independent reads.
     // Start both immediately so the progress view does not wait on a serial
     // network round-trip before loading the day ordering.
-    const workoutsPromise=db.from('workouts').select('id,user_id,variant,day,workout_date,data')
-      .eq('user_id',user.id)
-      .order('workout_date',{ascending:false});
+    const workoutsPromise=loadProgressHistory(user.id,routineId,false,isCurrent).then(data=>({data}));
     const daysPromise=days(routineId);
     const [r,orderedRoutineDaysResult]=await Promise.all([workoutsPromise,daysPromise.catch(e=>({error:e,data:[]}))]);
     if(!isCurrent())return;
@@ -3566,11 +3606,6 @@ async function openRoutineProgress(routineId){
       return rid!=null && String(rid)===requestedRoutineId;
     });
     if(!isCurrent())return;
-    if(!sessions.length){
-      body.innerHTML='<div class="empty">Todavía no tienes sesiones registradas de esta rutina.</div>';
-      subtitle.textContent='0 sesiones registradas';
-      return;
-    }
     subtitle.textContent=`${sessions.length} sesión${sessions.length===1?'':'es'} registrada${sessions.length===1?'':'s'}`;
     const orderedRoutineDays=orderedRoutineDaysResult.error?[]:(orderedRoutineDaysResult.data||orderedRoutineDaysResult);
     if(orderedRoutineDaysResult.error)console.warn('Orden de días:',orderedRoutineDaysResult.error);
@@ -3578,7 +3613,7 @@ async function openRoutineProgress(routineId){
       <div class="card" style="margin:0 0 12px">
         <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">
           <div><div class="muted">Sesiones</div><b style="font-size:20px">${sessions.length}</b></div>
-          <div><div class="muted">Última sesión</div><b>${simpleFormatDateKey(sessions[0].workout_date)}</b></div>
+          <div><div class="muted">Última sesión</div><b>${sessions.length?simpleFormatDateKey(sessions[0].workout_date):'Sin sesiones'}</b></div>
         </div>
       </div>
       <div class="card client-progress-chart">
@@ -3587,10 +3622,10 @@ async function openRoutineProgress(routineId){
         <div class="progress-chart-controls"><div>
             <label for="clientProgressPeriod">Periodo</label>
             <select id="clientProgressPeriod" class="input">
-              <option value="month" selected>Mes</option>
+              <option value="month">Mes</option>
               <option value="quarter">Trimestre</option>
               <option value="year">Año</option>
-              <option value="all">Todo</option>
+              <option value="all" selected>Todo</option>
             </select>
           </div>
           <div>
@@ -3625,6 +3660,7 @@ async function openRoutineProgress(routineId){
           }).join(''):'<div class="muted">Sin ejercicios registrados.</div>'}</div></details>`;
       }).join('')}`;
     clientProgressChartState.orderedRoutineDays=orderedRoutineDays;
+    clientProgressChartState.identityContext=progressIdentityContext(user.id,routineId,orderedRoutineDays);
     clientProgressChartState.currentExerciseNamesById=Object.fromEntries((orderedRoutineDays||[]).flatMap(d=>(d.exercises||[]).map(e=>[String(e.id),String(e.name||'').trim()]).filter(([id,name])=>id&&name)));
     setupClientProgressChart(sessions);
   }catch(e){
@@ -3869,6 +3905,8 @@ function renameClientSession(i){
 }
 
 function toggleClientSessionReorder(){
+  if(__editorOrderSaving||window.__routineSaving)return;
+  window.simpleReorder?.cancel();
   const state=window.__clientRoutineEdit||{};
   state.reorder=!state.reorder;
   window.__clientRoutineEdit=state;
@@ -4046,12 +4084,8 @@ async function openClientRoutineProgress(clientId,routineId,routineName){
   const isCurrent=beginModalRequest('clientProgressModal');
 
   try{
-    const r=await db.rpc('get_client_routine_history',{
-      p_client_id:String(clientId),
-      p_routine_id:String(routineId)
-    });
+    const r={data:await loadProgressHistory(clientId,routineId,true,isCurrent)};
     if(!isCurrent())return;
-    if(r.error)throw r.error;
 
     // El RPC debe devolver solo la rutina solicitada, pero hacemos una segunda
     // comprobación en el cliente para impedir que una rutina pueda mostrar
@@ -4091,16 +4125,12 @@ async function openClientRoutineProgress(clientId,routineId,routineName){
     catch(e){ console.warn('No se pudo cargar el orden de los días:',e); }
 
     if(!isCurrent())return;
-    if(!sessions.length){
-      body.innerHTML='<div class="empty">El cliente todavía no tiene sesiones registradas de esta rutina.</div>';
-      return;
-    }
 
     body.innerHTML=`
       <div class="card" style="margin:0 0 12px">
         <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">
           <div><div class="muted">Sesiones</div><b style="font-size:20px">${sessions.length}</b></div>
-          <div><div class="muted">Última sesión</div><b>${simpleFormatDateKey(sessions[0].workout_date)}</b></div>
+          <div><div class="muted">Última sesión</div><b>${sessions.length?simpleFormatDateKey(sessions[0].workout_date):'Sin sesiones'}</b></div>
         </div>
       </div>
 
@@ -4112,10 +4142,10 @@ async function openClientRoutineProgress(clientId,routineId,routineName){
         <div class="progress-chart-controls"><div>
             <label for="clientProgressPeriod">Periodo</label>
             <select id="clientProgressPeriod" class="input">
-              <option value="month" selected>Mes</option>
+              <option value="month">Mes</option>
               <option value="quarter">Trimestre</option>
               <option value="year">Año</option>
-              <option value="all">Todo</option>
+              <option value="all" selected>Todo</option>
             </select>
           </div>
           <div>
@@ -4185,6 +4215,7 @@ async function openClientRoutineProgress(clientId,routineId,routineName){
         </details>`;
       }).join('')}`;
     clientProgressChartState.orderedRoutineDays=orderedRoutineDays;
+    clientProgressChartState.identityContext=progressIdentityContext(clientId,routineId,orderedRoutineDays);
     clientProgressChartState.currentExerciseNamesById=Object.fromEntries((orderedRoutineDays||[]).flatMap(d=>(d.exercises||[]).map(e=>[String(e.id),String(e.name||'').trim()]).filter(([id,name])=>id&&name)));
     setupClientProgressChart(sessions);
   }catch(e){
@@ -4216,12 +4247,12 @@ async function loadClientRoutineOverview(clientId,item){
   if(unavailable)return {unavailable};
   const args={p_client_id:String(clientId),p_routine_id:String(item.routine.id)};
   const [cycle,last]=await Promise.allSettled([
-    db.rpc('get_client_routine_cycle_progress',args),
+    readRoutineCycleProgress(clientId,item.routine.id),
     db.rpc('get_client_routine_history',args).select('workout_date').order('workout_date',{ascending:false}).limit(1)
   ]);
   const progress=cycle.status==='fulfilled'&&!cycle.value.error?(cycle.value.data||[])[0]:null;
   const latest=last.status==='fulfilled'&&!last.value.error?last.value.data:null;
-  return {progress,latest,latestUnavailable:latest===null};
+  return {progress,latest,latestUnavailable:latest===null,contextKey:String(clientId)+'|'+String(item.routine.id)};
 }
 function renderClientOverview(summary){
   if(!summary)return '<span class="client-overview-last">No se pudo cargar el resumen.</span>';
@@ -4229,12 +4260,13 @@ function renderClientOverview(summary){
   const p=summary.progress,total=Math.max(0,Number(p?.total_days)||0),done=Math.min(total,Math.max(0,Number(p?.completed_days)||0));
   const cycle=!p?'Progreso no disponible':!total?'Rutina sin días':done+'/'+total+' del ciclo actual';
   const last=summary.latestUnavailable?'Última sesión no disponible':clientLastSessionLabel(summary.latest?.[0]?.workout_date);
-  return '<span class="client-overview-cycle">'+esc(cycle)+'</span><span class="client-overview-last">'+esc(last)+'</span>';
+  return '<span class="client-overview-cycle">'+esc(cycle)+'</span>'+renderCycleCompletion(total,done,summary.contextKey)+'<span class="client-overview-last">'+esc(last)+'</span>';
 }
 
 async function openClientProfile(clientId){
   if(!user?.id)return toast('Debes iniciar sesión.');
   const cid=String(clientId);
+  $('clientModal').dataset.cycleClientId=cid;
   const title=$('clientModalTitle'), subtitle=$('clientModalSubtitle'), body=$('clientModalBody');
   if(!title||!body)return;
 
@@ -4477,9 +4509,10 @@ async function renderClients(){
 
 let __routineDrag=null;
 async function renderMine(){
+  if(window.simpleReorder?.dragging)return;
   const token=++__mineRenderToken;
   const box=$('mine'); if(!box)return;
-  const header='<div class="card"><h2 style="margin:0 0 4px">Mis rutinas</h2></div>';
+  const header='<div class="card reorder-heading"><h2 style="margin:0">Mis rutinas</h2><button id="routineReorderToggle" class="btn" type="button" onclick="simpleReorder.toggle(\'routine\')">Reordenar</button></div>';
   if(!routines.length){
     box.innerHTML=header+'<div class="card empty"><b style="color:var(--text)">No tienes rutinas todavía.</b><div style="margin-top:6px">Crea la primera desde aquí.</div><button class="btn primary" style="margin-top:14px" onclick="view(\'new\')">Crear rutina</button></div>';
     return;
@@ -4487,7 +4520,7 @@ async function renderMine(){
 
   const routineIds=routines.map(r=>String(r.id));
   const weekly=await getWeeklyRoutineProgressForUser(user.id,routineIds);
-  if(token!==__mineRenderToken)return;
+  if(token!==__mineRenderToken||window.simpleReorder?.dragging)return;
 
   // `weekly` conserva el nombre histórico de la variable; el contador representa
   // el progreso actual del ciclo de la rutina.
@@ -4507,7 +4540,7 @@ async function renderMine(){
         <div class="routine-drag-name" style="min-width:0">
           <h3>${esc(r.name)}</h3>
           <div class="muted routine-description">${esc(r.description||'Sin descripción')}</div>
-          ${renderWeeklyRoutineProgress(p.total,p.done)}
+          ${renderWeeklyRoutineProgress(p.total,p.done,String(user.id)+'|'+String(r.id))}
         </div>
       </div>
       <div class="buttons routine-actions">
@@ -5021,7 +5054,7 @@ async function reorderRoutine(from,targetIndex){
     routines=previous;
     renderMine();
     toast('No se pudo guardar el orden');
-  }finally{window.__routineReordering=false;}
+  }finally{window.__routineReordering=false;window.simpleReorder?.refresh();}
 }
 
 function moveEx(dayIndex, exerciseIndex, direction){
@@ -5396,7 +5429,7 @@ async function openRoutine(id,trainingDay=false){
         </div>
       </div>
       <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><h3 style="margin:0">Días de entrenamiento</h3>${profile?.role==='trainer'?'<button class="btn" onclick="addSessionToOpenRoutine()">+ Añadir sesión</button>':''}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><h3 style="margin:0">Días de entrenamiento</h3>${profile?.role==='trainer'?'<div class="buttons"><button id="openReorderToggle" class="btn" type="button" onclick="simpleReorder.toggle(\'open\')">Reordenar</button><button class="btn" onclick="addSessionToOpenRoutine()">+ Añadir sesión</button></div>':''}</div>
         ${profile?.role==='trainer'
           ? d.map((x,i)=>`
             <div class="open-day-order-zone"
@@ -5887,7 +5920,7 @@ async function persistEditorOrder(previous,type,fd,td){
     }
     console.error('persistEditorOrder:',err);
     toast('No se pudo verificar el guardado. Vuelve a abrir la rutina para comprobar el orden.');return false;
-  }finally{__editorOrderSaving=false;}
+  }finally{__editorOrderSaving=false;window.simpleReorder?.refresh();}
 }
 
 async function persistClientExerciseOrder(fd,td){
@@ -6064,6 +6097,7 @@ function requestSessionExerciseDelete(id,index,whole=false){
   window.__sessionAction={...context,id,exerciseId,whole,busy:false,isCurrent:()=>context.isCurrent()&&modalCurrent()};
 }
 function syncSessionObservation(previous,updated){
+  announceCycleChange();
   const matches=s=>String(s.id)===String(previous.id)&&String(s.user_id)===String(previous.user_id);
   window.workoutHistory=(window.workoutHistory||[]).flatMap(s=>matches(s)?(updated?[updated]:[]):[s]);
   for(const key of ['sessions','filteredSessions']){
@@ -7413,21 +7447,27 @@ function stopRestTimer(){
 }
 
 function simpleLocalDateKey(date=new Date()){
+  if(arguments.length===0)return simpleCycleDateKey();
   const d=date instanceof Date?date:new Date(date);
   if(Number.isNaN(d.getTime()))return '';
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
 /* daily-progress-boundary-v1 */
-let __dailyProgressDateKey=simpleLocalDateKey(new Date());
+function simpleCycleDateKey(date=new Date()){
+  const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Madrid',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(date);
+  const value=type=>parts.find(p=>p.type===type)?.value;
+  return `${value('year')}-${value('month')}-${value('day')}`;
+}
+let __dailyProgressDateKey=simpleCycleDateKey();
 let __dailyProgressBoundaryTimer=null;
 
-async function refreshDailyProgressAfterDateChange(){
-  const nowKey=simpleLocalDateKey(new Date());
-  if(!nowKey || nowKey===__dailyProgressDateKey)return;
+async function refreshDailyProgressAfterDateChange(force=false){
+  if(window.simpleReorder?.dragging)return;
+  const nowKey=simpleCycleDateKey();
+  if(!nowKey || (!force && nowKey===__dailyProgressDateKey))return;
   __dailyProgressDateKey=nowKey;
-  // The progress is calculated from the current local calendar day.
-  // Re-render the visible dashboard so yesterday's 100% cannot remain on screen.
+  // Same calendar as the RPC. Never replace a training draft or open editor.
   try{
     const visible=['mine','shared','clients'].find(id=>{
       const el=$(id);
@@ -7436,26 +7476,31 @@ async function refreshDailyProgressAfterDateChange(){
     if(visible==='mine')await renderMine();
     else if(visible==='shared')await renderShared();
     else if(visible==='clients')await renderClients();
+    const clientModal=$('clientModal');
+    if(clientModal?.classList.contains('show')&&clientModal.dataset.cycleClientId)await openClientProfile(clientModal.dataset.cycleClientId);
   }catch(e){
     console.warn('No se pudo refrescar el progreso al cambiar de día:',e);
   }
 }
 
+function announceCycleChange(refresh=true){
+  try{localStorage.setItem('simple_cycle_refresh_v1',String(Date.now())+'|'+String(Math.random()));}catch(_){}
+  if(refresh)refreshDailyProgressAfterDateChange(true);
+}
+window.addEventListener('storage',event=>{if(event.key==='simple_cycle_refresh_v1')refreshDailyProgressAfterDateChange(true);});
 function scheduleDailyProgressBoundary(){
   if(__dailyProgressBoundaryTimer)clearTimeout(__dailyProgressBoundaryTimer);
-  const now=new Date();
-  const next=new Date(now);
-  next.setHours(24,0,1,0);
   __dailyProgressBoundaryTimer=setTimeout(async()=>{
     await refreshDailyProgressAfterDateChange();
     scheduleDailyProgressBoundary();
-  },Math.max(1000,next.getTime()-now.getTime()));
+  // Align checks with wall-clock boundaries, including Madrid midnight/DST.
+  },30000-(Date.now()%30000)+50);
 }
 
 scheduleDailyProgressBoundary();
-window.addEventListener('focus',refreshDailyProgressAfterDateChange);
+window.addEventListener('focus',()=>refreshDailyProgressAfterDateChange(true));
 document.addEventListener('visibilitychange',()=>{
-  if(!document.hidden)refreshDailyProgressAfterDateChange();
+  if(!document.hidden)refreshDailyProgressAfterDateChange(true);
 });
 
 // SQL DATE values (YYYY-MM-DD) are calendar dates, not UTC instants.
@@ -7657,6 +7702,7 @@ async function saveWorkoutSession(){
     }else{
       view('shared');
     }
+    announceCycleChange(false);
     toast(savedMessage,9000);
   }catch(e){
     if(!isCurrent())return;
@@ -7944,6 +7990,14 @@ function simpleWeeklyProgressFromSessions(sessions,total,weekStart,aliases,routi
   return simpleDailyProgressFromSessions(sessions,total,aliases,routineIds);
 }
 
+async function readRoutineCycleProgress(clientId,routineId){
+  for(let attempt=0;attempt<2;attempt++){
+    const date=simpleCycleDateKey();
+    const result=await db.rpc('get_client_routine_cycle_progress',{p_client_id:String(clientId),p_routine_id:String(routineId)});
+    if(date===simpleCycleDateKey())return result;
+  }
+  throw Error('La fecha cambió durante la lectura del ciclo.');
+}
 async function getWeeklyRoutineProgressForUser(userId,routineIds,workoutRoutineAliases={},routineNames={}){
   const primaryIds=[...new Set((routineIds||[]).filter(Boolean).map(String))];
   const result=new Map(primaryIds.map(id=>[id,{total:0,done:0}]));
@@ -7960,10 +8014,7 @@ async function getWeeklyRoutineProgressForUser(userId,routineIds,workoutRoutineA
     await Promise.all(primaryIds.map(async rid=>{
       const x=result.get(rid);
       try{
-        const rpc=await db.rpc('get_client_routine_cycle_progress',{
-          p_client_id:String(userId),
-          p_routine_id:String(rid)
-        });
+        const rpc=await readRoutineCycleProgress(userId,rid);
         if(rpc.error)throw rpc.error;
         const row=(rpc.data||[])[0]||{};
         x.total=Number(row.total_days)||0;
@@ -8045,19 +8096,28 @@ async function getWeeklyRoutineProgressForUser(userId,routineIds,workoutRoutineA
   return result;
 }
 
-function renderWeeklyRoutineProgress(totalDays,completedDays){
+function renderCycleCompletion(total,done,contextKey){
+  if(!total||done<total)return '';
+  let animate=false;
+  if(contextKey){
+    const today=simpleCycleDateKey(),key=today+'|'+contextKey;
+    window.__cycleCelebrations=window.__cycleCelebrations||new Set();
+    try{const stored=JSON.parse(localStorage.getItem('simple_cycle_celebrations_v1')||'{}');if(stored.date===today)for(const item of stored.seen||[])window.__cycleCelebrations.add(item);}catch(_){}
+    if(!window.__cycleCelebrations.has(key)){
+      animate=!matchMedia('(prefers-reduced-motion: reduce)').matches;
+      window.__cycleCelebrations.add(key);
+      try{localStorage.setItem('simple_cycle_celebrations_v1',JSON.stringify({date:today,seen:[...window.__cycleCelebrations].filter(x=>x.startsWith(today+'|'))}));}catch(_){}
+    }
+  }
+  return '<div class="weekly-progress-celebration" aria-label="Rutina finalizada">'+(animate?'<img class="weekly-progress-gif" src="https://media.tenor.com/uYAHiDSVAn4AAAA1/baldi-dance.webp" alt="Baile de celebración" loading="lazy" referrerpolicy="no-referrer">':'')+'<div class="weekly-progress-celebration-copy"><b>Rutina finalizada</b></div></div>';
+}
+function renderWeeklyRoutineProgress(totalDays,completedDays,contextKey=''){
+
   const total=Math.max(0,Number(totalDays)||0);
   const done=Math.min(total,Math.max(0,Number(completedDays)||0));
   const pct=total?Math.round(done/total*100):0;
   if(!total)return '';
-  const isComplete=done>=total;
-  const celebration=isComplete?`
-    <div class="weekly-progress-celebration" aria-label="Rutina completada hoy">
-      <img class="weekly-progress-gif" src="https://media.tenor.com/uYAHiDSVAn4AAAA1/baldi-dance.webp" alt="Baile de celebración" loading="lazy" referrerpolicy="no-referrer">
-      <div class="weekly-progress-celebration-copy">
-        <b>¡Rutina completada hoy! 🔥</b>
-      </div>
-    </div>`:'';
+  const celebration=renderCycleCompletion(total,done,contextKey);
   return `<div class="weekly-routine-progress">
     <div class="weekly-routine-progress-head"><span>Ciclo actual</span><b>${done}/${total} del ciclo actual</b></div>
     <div class="weekly-progress-complete-row">
@@ -8119,7 +8179,7 @@ async function renderShared(parentCurrent=()=>true){
       <div>
         <h3>${esc(name)}</h3>
         <div class="muted">${esc(description)}</div>
-        ${renderWeeklyRoutineProgress(weekly.total,weekly.done)}
+        ${renderWeeklyRoutineProgress(weekly.total,weekly.done,String(user.id)+'|'+String(trainerRoutineId))}
       </div>
       <div class="buttons">
         <button class="btn primary" onclick="openSharedRoutine('${trainerRoutineId}')">Abrir</button>
@@ -8479,4 +8539,5 @@ window.updateClientTrashVisual=function(full){
 </script>
 
 
+<script src="assets/reorder.js"></script>
 </body></html>

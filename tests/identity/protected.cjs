@@ -7,6 +7,9 @@ test('Published baseline is exact',()=>assert.equal(crypto.createHash('sha256').
 test('Every inline script compiles',()=>{for(const s of after.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi))new vm.Script(s[1])});
 // The interior redesign explicitly changes CSS. Identity/persistence function
 // equality remains mandatory below; visual isolation has its own browser suite.
-for(const name of ['loadHistory','showHistory','saveEditedWorkout','saveEditor','saveClientRoutineEditor','saveWorkoutRoutineEdits','saveWorkoutDraft','persistExerciseNote','getWeeklyRoutineProgressForUser','redeemShareCode','createShareCode','deleteWorkout','formatStipulatedRest','markWorkoutStarted'])test(name+' unchanged',()=>assert.equal(extract(after,name),extract(before,name)));
+for(const name of ['loadHistory','showHistory','saveEditedWorkout','saveEditor','saveClientRoutineEditor','saveWorkoutRoutineEdits','saveWorkoutDraft','persistExerciseNote','redeemShareCode','createShareCode','deleteWorkout','formatStipulatedRest','markWorkoutStarted'])test(name+' unchanged',()=>assert.equal(extract(after,name),extract(before,name)));
+// The authorized midnight guard delegates to the same RPC. Every other byte
+// of this protected function must still match the published identity baseline.
+test('Cycle read changes only by delegation to the shared midnight guard',()=>assert.equal(extract(after,'getWeeklyRoutineProgressForUser').replace('await readRoutineCycleProgress(userId,rid)',"await db.rpc('get_client_routine_cycle_progress',{\n          p_client_id:String(userId),\n          p_routine_id:String(rid)\n        })"),extract(before,'getWeeklyRoutineProgressForUser')));
 const report={sha256:crypto.createHash('sha256').update(after).digest('hex'),passed:results.filter(r=>r.pass).length,failed:results.filter(r=>!r.pass),results};
 fs.writeFileSync('tests/identity/results/protected.json',JSON.stringify(report,null,2));console.log(JSON.stringify({passed:report.passed,failed:report.failed}));if(report.failed.length)process.exitCode=1;

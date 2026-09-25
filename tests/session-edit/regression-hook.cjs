@@ -14,6 +14,9 @@ const helpers=(helperStart>=0?source.slice(helperStart,helperEnd):'')+'\n'+(alia
 const extract=require('../integration/function-source.cjs'),auth=read(path.join(root,'assets/auth.js'),'utf8');
 vm.runInContext=function(code,...args){
  let dependencies=helpers;
+ // The current frontend delegates date boundaries and save notifications to
+ // shared helpers. Isolated historical harnesses must load those real helpers.
+ for(const name of ['simpleCycleDateKey','announceCycleChange'])if(!code.includes('function '+name+'('))dependencies+='\n'+extract(source,name);
  if(code.includes('async function logout(){return authLogout();}')){
   // VM suites isolate application functions: supply the real extracted Auth
   // logout/reset and minimal UI doubles, retaining all concurrency assertions.
