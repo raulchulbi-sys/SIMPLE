@@ -91,6 +91,13 @@
 .modal:not(#resetModal) :is(.progress-stat-card.negative,.progress-summary-negative){color:var(--simple-danger)}
 .modal:not(#resetModal) :is(.progress-stat-card,.progress-chart-stat) b{color:inherit;font-size:21px;font-weight:500}
 .modal:not(#resetModal) :is(.compact-progress-stat small,.progress-chart-controls label){color:var(--muted)}
+/* Emphasize the existing trend without changing its calculation or neutral state. */
+#clientProgressChartSummary{--trend-up:#17653c;--trend-up-bg:#e4f3e9;--trend-up-line:#70a686;--trend-down:#a12828;--trend-down-bg:#fbe8e6;--trend-down-line:#cc8178}
+:root[data-theme='dark'] #clientProgressChartSummary{--trend-up:#83dda6;--trend-up-bg:#243d2e;--trend-up-line:#508f65;--trend-down:#ffaaa0;--trend-down-bg:#472b2a;--trend-down-line:#b87066}
+.modal:not(#resetModal) #clientProgressChartSummary .progress-stat-card.positive{color:var(--trend-up);background:var(--trend-up-bg);border-color:var(--trend-up-line)}
+.modal:not(#resetModal) #clientProgressChartSummary .progress-stat-card.negative{color:var(--trend-down);background:var(--trend-down-bg);border-color:var(--trend-down-line)}
+.modal:not(#resetModal) #clientProgressChartSummary .progress-stat-card:is(.positive,.negative) :is(.muted,small){color:inherit;opacity:1}
+.modal:not(#resetModal) #clientProgressChartSummary .progress-stat-card:is(.positive,.negative) b{font-weight:600}
 .modal:not(#resetModal) :is(.progress-chart-controls,.progress-filters){background:var(--card2);border-color:var(--line);box-shadow:none}
 .modal:not(#resetModal) .progress-chart-summary{background:transparent;border:0;box-shadow:none}
 .modal:not(#resetModal) :is(.progress-day-tabs button,.client-progress-day-tab){background:var(--card2);color:var(--text);border-color:var(--line);box-shadow:none}
