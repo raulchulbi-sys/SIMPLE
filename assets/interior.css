@@ -156,8 +156,9 @@ body:has(#app[style*="block"]){background:var(--simple-bg)}
 #app .weekly-routine-progress-head{display:flex;flex-wrap:wrap;gap:6px;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:9px;letter-spacing:0;text-transform:none}
 #app .weekly-routine-progress-head b{font-weight:500;font-size:13px;color:var(--text)}
 #app .weekly-progress-bar{gap:5px;background:none;border:0;padding:0;height:5px;min-height:5px;width:100%;max-width:none;box-shadow:none}
-#app .weekly-progress-segment{background:var(--simple-stone);border-radius:2px;height:5px;box-shadow:none}
-#app .weekly-progress-segment.is-done{background:var(--simple-success-fill);box-shadow:none}
+#app .weekly-progress-segment{background:var(--simple-cycle-track);border-radius:2px;height:5px;box-shadow:none}
+:is(#app,.modal) .weekly-progress-segment{background:var(--simple-cycle-track);box-shadow:none}
+:is(#app,.modal) .weekly-progress-segment.is-done{background:var(--simple-cycle-fill);box-shadow:none}
 #app .weekly-progress-complete-row{flex-wrap:wrap}
 #app .weekly-progress-celebration{display:flex;align-items:center;gap:8px;margin-top:6px}
 #app .weekly-progress-complete-row>.weekly-progress-celebration{flex-basis:100%}

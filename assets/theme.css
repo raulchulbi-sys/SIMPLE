@@ -5,6 +5,7 @@
  --simple-control-line:#818981;--simple-hover-line:#818981;--simple-focus:#677568;--simple-placeholder:#696f6b;
  --simple-primary:#252929;--simple-on-primary:#fff;--simple-primary-hover:#3a403d;
  --simple-success:#3f624a;--simple-success-fill:#535d55;--simple-on-success:#fff;
+ --simple-cycle-fill:#2f6f89;--simple-cycle-track:var(--simple-stone);
  --simple-danger:#963f3c;--simple-danger-line:#9c6e67;--simple-danger-soft:#fcf6f4;--simple-warning:#796020;
  --simple-chart:#3f5748;--simple-overlay:rgba(37,41,41,.3);--simple-shadow:rgba(37,41,41,.08);
  --simple-paper-rgb:247 245 241;--simple-card-rgb:255 255 255;--simple-atlas-opacity:.12;
@@ -20,6 +21,7 @@
  --simple-control-line:#818c84;--simple-hover-line:#a0aba3;--simple-focus:#b7c8b9;--simple-placeholder:#b1b9b2;
  --simple-primary:#e7e8df;--simple-on-primary:#242a26;--simple-primary-hover:#fffdf5;
  --simple-success:#b2c8b5;--simple-success-fill:#bbcbbd;--simple-on-success:#243029;
+ --simple-cycle-fill:#71b7d1;--simple-cycle-track:var(--simple-stone);
  --simple-danger:#e7ada5;--simple-danger-line:#a77670;--simple-danger-soft:#3a2c2b;--simple-warning:#d5c698;
  --simple-chart:#c1d0c2;--simple-overlay:rgba(10,14,12,.55);--simple-shadow:rgba(0,0,0,.18);
  --simple-paper-rgb:32 36 35;--simple-card-rgb:42 47 45;--simple-atlas-opacity:.09;
