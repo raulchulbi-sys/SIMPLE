@@ -87,8 +87,10 @@ const results=[];fs.mkdirSync(out,{recursive:true});
    await p.goto('http://simple.test/');await p.waitForFunction(()=>!simpleAuth.busy);await p.getByRole('button',{name:'Iniciar sesión',exact:true}).click();
    await p.locator('#email').fill('local-only@example.invalid');await p.locator('#password').fill('Wrong-Local-Only');await p.locator('#authBtn').click();await p.waitForFunction(()=>!simpleAuth.busy);
    await p.locator('#forgotBtn').click();await p.waitForFunction(()=>!simpleAuth.busy);
-   const req=calls.find(c=>c.path==='/auth/v1/recover');assert.equal(req.body.email,'local-only@example.invalid');assert.equal(new URLSearchParams(req.query).get('redirect_to'),'https://raulchulbi-sys.github.io/SIMPLE/?reset=1');assert.match(await p.locator('#authMsg').innerText(),/Si existe una cuenta/);
-   control.resetError=true;await p.locator('#forgotBtn').click();await p.waitForFunction(()=>!simpleAuth.busy);assert.match(await p.locator('#authMsg').innerText(),/No se pudo enviar/);
+   const req=calls.find(c=>c.path==='/auth/v1/recover');assert.equal(req.body.email,'local-only@example.invalid');assert.equal(new URLSearchParams(req.query).get('redirect_to'),'https://raulchulbi-sys.github.io/SIMPLE/?reset=1');assert.match(await p.locator('#authRecoverySentCopy').innerText(),/Si existe una cuenta/);
+   await p.getByRole('button',{name:'Volver a iniciar sesión',exact:true}).click();
+   await p.locator('#password').fill('Wrong-Local-Only');await p.locator('#authBtn').click();await p.waitForFunction(()=>!simpleAuth.busy);
+   control.resetError=true;await p.locator('#forgotBtn').click();await p.waitForFunction(()=>!simpleAuth.busy);assert.match(await p.locator('#authMsg').innerText(),/No se pudo solicitar/);
   });
   console.log(engine,width,results.filter(r=>r.engine===engine&&r.width===width&&r.pass).length,'passed');
  }}finally{await browser.close()}

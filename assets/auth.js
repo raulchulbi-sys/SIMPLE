@@ -1,5 +1,5 @@
 /* SIMPLE onboarding. Roles are read from profiles, never authorized by metadata. */
-const simpleAuth={screen:'boot',busy:false,epoch:0,role:null,failed:false,recovery:SIMPLE_AUTH_CALLBACK.recovery,callbackError:SIMPLE_AUTH_CALLBACK.error,startedAt:performance.now()};
+const simpleAuth={screen:'boot',busy:false,epoch:0,resetEpoch:null,role:null,failed:false,recovery:SIMPLE_AUTH_CALLBACK.recovery,callbackError:SIMPLE_AUTH_CALLBACK.error,startedAt:performance.now()};
 // No social provider is configured in production (verified 2026-09-23).
 // Do not enable a provider until its external config and complete redirect flow are tested.
 const SIMPLE_AUTH_LINKS=Object.freeze({terms:null,privacy:null});
@@ -10,8 +10,8 @@ function setAuthScreen(screen,focus=true){
   $('auth').dataset.screen=screen;
   $('auth').style.display='flex';
   $('app').style.display='none';
-  const panels={welcome:'authWelcome',role:'authRoles',complete:'authRoles',login:'authCredentials',signup:'authCredentials',confirmation:'authConfirmation',error:'authProblem'};
-  ['authWelcome','authRoles','authCredentials','authConfirmation','authProblem'].forEach(id=>$(id).hidden=id!==panels[screen]);
+  const panels={welcome:'authWelcome',role:'authRoles',complete:'authRoles',login:'authCredentials',signup:'authCredentials',confirmation:'authConfirmation','recovery-sent':'authRecoverySent',error:'authProblem'};
+  ['authWelcome','authRoles','authCredentials','authConfirmation','authRecoverySent','authProblem'].forEach(id=>$(id).hidden=id!==panels[screen]);
   $('authLoading').hidden=!['boot','loading'].includes(screen);
   $('authLegal').hidden=!['welcome','signup'].includes(screen);
   $('authRoleTitle').textContent=screen==='complete'?'Completar registro':'¿Cómo vas a usar SIMPLE?';
@@ -32,7 +32,11 @@ function setAuthScreen(screen,focus=true){
   renderOAuthButtons();
 }
 function authNavigate(screen){
-  if(simpleAuth.busy)return;
+  if(simpleAuth.busy){
+    if(simpleAuth.resetEpoch!==simpleAuth.epoch)return;
+    // Leaving a recovery request invalidates its UI response, not the request.
+    setAuthBusy(false);
+  }
   if(user&&!profile&&['login','welcome'].includes(screen)){authLogout();return;}
   simpleAuth.epoch++;
   simpleAuth.failed=false;
@@ -175,15 +179,28 @@ async function authSubmit(event){
   }
 }
 async function requestPasswordReset(){
-  if(simpleAuth.busy||!simpleAuth.failed||simpleAuth.screen!=='login')return;
-  if(!$('email').reportValidity())return;
-  const email=$('email').value.trim();setAuthBusy(true);msg('');
+  if(simpleAuth.busy||simpleAuth.resetEpoch!==null||!simpleAuth.failed||simpleAuth.screen!=='login')return;
+  if(!$('email').reportValidity()){msg('Introduce un correo electrónico válido para solicitar el enlace.');return;}
+  const email=$('email').value.trim(),epoch=++simpleAuth.epoch;
+  simpleAuth.resetEpoch=epoch;setAuthBusy(true);msg('');
+  $('forgotBtn').textContent='Solicitando enlace…';
+  $('authCredentials').querySelector('.auth-back').disabled=false;
   try{
     const result=await db.auth.resetPasswordForEmail(email,{redirectTo:APP_URL+'?reset=1'});
-    if(result.error&&[429,500,502,503].includes(result.error.status))throw result.error;
-    msg('Si existe una cuenta con ese correo, recibirás un enlace para cambiar tu contraseña.',true);
-  }catch(_){msg('No se pudo enviar la solicitud. Inténtalo de nuevo más tarde.');}
-  finally{setAuthBusy(false);}
+    if(epoch!==simpleAuth.epoch||simpleAuth.screen!=='login')return;
+    if(result.error)throw result.error;
+    setAuthScreen('recovery-sent');
+  }catch(error){
+    if(epoch!==simpleAuth.epoch||simpleAuth.screen!=='login')return;
+    msg(error?.status===429
+      ?'Se ha alcanzado el límite de solicitudes. Espera unos minutos antes de volver a intentarlo.'
+      :'No se pudo solicitar el enlace. Comprueba tu conexión e inténtalo de nuevo más tarde.');
+  }finally{
+    simpleAuth.resetEpoch=null;
+    $('forgotBtn').textContent='¿Se te ha olvidado la contraseña?';
+    // An older request must never unlock or replace a newer login operation.
+    if(epoch===simpleAuth.epoch)setAuthBusy(false);
+  }
 }
 function setResetMsg(text,ok=false){const el=$('resetMsg');el.textContent=text;el.className='msg '+(ok?'ok':'error');el.setAttribute('role','status');}
 function openPasswordReset(){
