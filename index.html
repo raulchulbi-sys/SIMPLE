@@ -3537,8 +3537,10 @@ function setupClientProgressChart(sessions){
     clientProgressChartState.filteredSessions=periodSessions;
     const dayExerciseIds=new Set((day?.id?((clientProgressChartState.orderedRoutineDays||[]).find(d=>String(d.id)===String(day.id))?.exercises||[]):[]).map(e=>String(e.id)));
     clientProgressChartState.currentDayExerciseIds=dayExerciseIds;
+    // The selector lists the current template only. Historical snapshots remain
+    // available below; confirmed UUID aliases still supply points for these IDs.
     const names=getProgressExercises(
-      periodSessions.length?periodSessions:daySessions,
+      [],
       clientProgressChartState.currentExerciseNamesById,
       dayExerciseIds,clientProgressChartState.identityContext
     );

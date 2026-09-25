@@ -44,6 +44,21 @@ for(const width of (process.env.CYCLE_WIDTHS||'320,360,390,430,1280').split(',')
   assert.equal(await p.locator('.progress-point').count(),4);for(const metric of ['reps','1rm','weight']){await p.locator('#clientProgressMetric').selectOption(metric);assert.equal(await p.locator('.progress-point').count(),4);}
   const selected=await p.locator('#clientProgressExercise').inputValue();await p.locator('#clientProgressPeriod').selectOption('month');assert.equal(await p.locator('#clientProgressExercise').inputValue(),selected);assert.equal(await p.locator('.progress-point').count(),4);await p.locator('#clientProgressPeriod').selectOption('all');
   if([390,1280].includes(width))await shot(p,engine+'-'+width+'-graph-confirmed');
+  // Current-template selector: old namesakes must not add numbered options.
+  for(const day of real.days){
+    await p.locator('#clientProgressDay').selectOption(day.id);
+    const current=real.exercises.filter(e=>e.day_id===day.id),options=await p.locator('#clientProgressExercise option').evaluateAll(es=>es.map(e=>({key:e.value,label:e.textContent})));
+    assert.deepEqual(options.map(e=>e.key).sort(),current.map(e=>'id:'+e.id).sort());
+    for(const exercise of current)assert.equal(options.find(e=>e.key==='id:'+exercise.id).label,exercise.name);
+    if(current.some(e=>e.name==='Pull over unilat')){
+      assert.equal(options.filter(e=>e.label==='Pull over unilat').length,1);
+      const currentId=current.find(e=>e.name==='Pull over unilat').id;
+      await p.locator('#clientProgressExercise').selectOption('id:'+currentId);
+      await p.waitForTimeout(120);
+      assert.equal(await p.locator('.progress-point').count(),3);
+      if(width===390)await shot(p,engine+'-'+width+'-current-pull-selector');
+    }
+  }
   await p.locator('#clientProgressDay').selectOption(real.days[4].id);assert.equal(await p.locator('.progress-point').count(),0);assert.match(await p.locator('#clientProgressChart').innerText(),/No hay|Sin registros|sin registros|sin datos/i);
   assert.equal(await p.evaluate(()=>JSON.stringify(mock.tables.workouts)),JSON.stringify(real.sessions));assert.deepEqual(errors,[]);
  });
