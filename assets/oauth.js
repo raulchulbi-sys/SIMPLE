@@ -1,6 +1,6 @@
 /* Provider release gate. Turn a flag on only after the real provider flow has
    been configured and verified in that environment. No credentials live here. */
-const SIMPLE_OAUTH_VERIFIED=Object.freeze({google:false,apple:false,facebook:false});
+const SIMPLE_OAUTH_VERIFIED=Object.freeze({google:true,apple:false,facebook:false});
 const simpleOAuth={available:new Set(),loading:null};
 const oauthNames=Object.freeze({google:'Google',apple:'Apple',facebook:'Facebook'});
 

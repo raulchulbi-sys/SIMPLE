@@ -1,7 +1,6 @@
 /* SIMPLE onboarding. Roles are read from profiles, never authorized by metadata. */
 const simpleAuth={screen:'boot',busy:false,epoch:0,resetEpoch:null,role:null,failed:false,recovery:SIMPLE_AUTH_CALLBACK.recovery,callbackError:SIMPLE_AUTH_CALLBACK.error,startedAt:performance.now()};
-// No social provider is configured in production (verified 2026-09-23).
-// Do not enable a provider until its external config and complete redirect flow are tested.
+// Provider availability is gated in oauth.js after real redirect-flow validation.
 const SIMPLE_AUTH_LINKS=Object.freeze({terms:null,privacy:null});
 
 function msg(text,ok=false){const el=$('authMsg');el.textContent=text;el.className='auth-message'+(ok?' ok':'');}
