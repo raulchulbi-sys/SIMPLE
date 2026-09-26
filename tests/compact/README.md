@@ -1,5 +1,11 @@
 # Última sesión compacta y apariencia explícita
 
+## Revisión vigente — series visibles sin desplazamiento
+
+La petición posterior a `a5d97e8` sustituye el límite de dos líneas: todas las series se distribuyen en filas según el ancho disponible, sin desplazamiento horizontal ni recorte. Se conserva la tipografía secundaria, cada valor y la resolución UUID/alias. El bloque ya no añade una parada de teclado porque no es interactivo. Los párrafos siguientes documentan la entrega anterior, no el criterio visual vigente.
+
+`SIMPLE_PREVIEW_URL` permite apuntar `browser.cjs` a la preview local. Su matriz mantiene 110 casos; ahora comprueba que las ocho series están completamente dentro del contenedor, envuelven en varias filas, no tienen scroll interno y conservan contraste, ceros, vacíos, historial y estado activo. La comparación visual usa `a5d97e8`.
+
 Base de producción: `c6bf40072248ba9b5d2d98521aeb2c735693c7e8`.
 
 ## Alcance

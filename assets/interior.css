@@ -62,15 +62,13 @@
 #trainBody .workout-exercise .rest-buttons{display:grid;grid-template-columns:repeat(5,minmax(44px,1fr));gap:6px;overflow-x:auto;max-width:100%;padding:2px 0}
 #trainBody .workout-exercise .rest-buttons>span{grid-column:1/-1}
 #trainBody .workout-exercise .rest-buttons>.btn{min-width:44px;min-height:44px;width:100%;padding:8px 2px;margin:0}
-/* Previous results are secondary reference text, with every set still reachable. */
+/* Keep every previous set visible; the reference grows naturally instead of scrolling. */
 #trainBody .workout-exercise .previous-session{margin:6px 0 2px;padding:2px 0;border:0;border-radius:0;background:transparent;color:var(--muted);min-width:0}
 #trainBody .previous-session-head{justify-content:flex-start;gap:8px;margin:0;line-height:16px}
 #trainBody :is(.previous-session-title,.previous-session-date){font-size:11px;line-height:16px;font-weight:400}
-#trainBody .previous-session-sets{display:flex;flex-wrap:nowrap;gap:0;max-width:100%;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;scrollbar-color:var(--simple-line) transparent;border-radius:2px}
-#trainBody .previous-set{flex:0 0 auto;white-space:nowrap;padding:0;border:0;border-radius:0;background:transparent;color:var(--muted);font-size:12px;font-weight:400;line-height:20px}
-#trainBody .previous-set+.previous-set::before{content:'·';padding:0 8px;color:var(--muted)}
+#trainBody .previous-session-sets{display:flex;flex-wrap:wrap;gap:2px 16px;max-width:100%;overflow:visible}
+#trainBody .previous-set{flex:0 1 auto;max-width:100%;white-space:normal;overflow-wrap:anywhere;padding:0;border:0;border-radius:0;background:transparent;color:var(--muted);font-size:12px;font-weight:400;line-height:20px}
 #trainBody .previous-empty{font-size:12px;line-height:20px}
-#trainBody .previous-session-sets:focus-visible{outline:2px solid var(--simple-focus);outline-offset:2px}
 .modal:not(#resetModal) .exname{font-size:18px;font-weight:600;line-height:1.4}
 .modal:not(#resetModal) .tick{height:44px;width:44px;min-width:0;border:1px solid var(--simple-control-line);background:var(--simple-card);color:var(--simple-muted);border-radius:10px;box-shadow:none}
 .modal:not(#resetModal) .tick.done{background:var(--simple-success-fill);color:var(--simple-on-success);border-color:var(--simple-success-fill)}

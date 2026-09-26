@@ -6529,7 +6529,7 @@ function renderPreviousSession(exerciseId){
       <span class="previous-session-title">Última sesión</span>
       <span class="previous-session-date">${esc(date)}</span>
     </div>
-    <div class="previous-session-sets" tabindex="0" role="region" aria-label="Series de la última sesión">
+    <div class="previous-session-sets" role="region" aria-label="Series de la última sesión">
       ${sets.length?sets.map((s,i)=>{
         const kg=s.kg!==''&&s.kg!=null?s.kg:'—';
         const reps=s.reps!==''&&s.reps!=null?s.reps:'—';
