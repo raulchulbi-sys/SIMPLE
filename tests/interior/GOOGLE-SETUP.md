@@ -32,6 +32,8 @@ requires both the release flag and Google enabled in Supabase settings. If
 settings fail or Google is disabled, its button remains hidden. Apple and
 Facebook remain false. The only `assets/auth.js` edit removes an outdated
 configuration comment; email, recovery and callback/profile code are unchanged.
+The OAuth script URL is versioned so a previously open tab fetches the released
+Google gate on reload instead of reusing the pre-release script from cache.
 
 ## Real account validation
 
