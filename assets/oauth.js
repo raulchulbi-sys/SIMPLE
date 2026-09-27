@@ -24,16 +24,24 @@ function renderOAuthButtons(preview=false){
   if(!group&&!providers.length)return;
   if(!group){
     group=document.createElement('div');group.id='authOAuth';group.className='auth-oauth';
-    document.querySelector('#authCredentials .auth-footnote').before(group);
+    document.getElementById('authForm').before(group);
   }
   group.hidden=!['login','signup'].includes(simpleAuth.screen)||!providers.length;
   group.replaceChildren();
   for(const provider of providers){
     const button=document.createElement('button');button.type='button';button.className='auth-oauth-button';
-    button.textContent='Continuar con '+oauthNames[provider];
+    button.setAttribute('aria-label','Continuar con '+oauthNames[provider]);
+    button.setAttribute('aria-busy',String(simpleAuth.busy));
+    const label=document.createElement('span');label.className='auth-oauth-label';
+    label.textContent=simpleAuth.busy?'Conectando…':'Continuar con '+oauthNames[provider];button.append(label);
+    if(provider==='google'){
+      const logo=document.createElement('img');logo.src='assets/google-g.png';logo.alt='';logo.width=20;logo.height=20;logo.className='auth-oauth-logo';
+      button.prepend(logo);
+    }
     button.disabled=preview||simpleAuth.busy||!simpleOAuth.available.has(provider);
     button.addEventListener('click',()=>beginOAuth(provider));group.append(button);
   }
+  const separator=document.createElement('div');separator.className='auth-oauth-separator';separator.textContent='o';separator.setAttribute('aria-hidden','true');group.append(separator);
   if(preview){const note=document.createElement('p');note.textContent='Vista previa · proveedores sin configurar. Estos botones no inician sesión.';note.className='auth-oauth-note';group.append(note);}
 }
 async function beginOAuth(provider){

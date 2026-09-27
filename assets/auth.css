@@ -93,10 +93,18 @@
 @media(max-height:680px) and (max-width:759px){#auth .auth-brand{margin-top:8px;gap:14px}#auth .auth-mark{height:42px;width:59px}#auth .auth-wordmark{font-size:24px}#auth .auth-content,#auth[data-screen='role'] .auth-content,#auth[data-screen='complete'] .auth-content{margin-top:45px}#auth[data-screen='welcome'] .auth-content{padding-top:190px;margin-top:auto}}
 @media(prefers-reduced-motion:reduce){#auth *,#auth *::before,#auth *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 /* Social methods appear only after the configured + verified release gate. */
-#auth .auth-oauth{display:grid;gap:8px;margin:22px 0 0;padding-top:20px;border-top:1px solid var(--simple-line)}
+#auth .auth-oauth{display:grid;gap:0;margin:0 0 20px}
 #auth .auth-oauth[hidden]{display:none}
-#auth .auth-oauth-button{width:100%;min-height:46px;background:var(--simple-card);color:var(--simple-text);border:1px solid var(--simple-line);border-radius:12px;padding:11px 16px;font:inherit;font-size:15px;letter-spacing:0;text-transform:none;box-shadow:none}
-#auth .auth-oauth-button:hover{background:var(--simple-soft)}
+#auth .auth-oauth-button{display:grid;grid-template-columns:20px minmax(0,1fr) 20px;align-items:center;gap:10px;width:100%;min-height:48px;background:var(--simple-card);color:var(--simple-text);border:1px solid var(--simple-line);border-radius:12px;padding:11px 12px;font:inherit;font-size:15px;letter-spacing:0;text-transform:none;box-shadow:none;touch-action:manipulation}
+#auth .auth-oauth-logo{width:20px;height:20px;flex:none;object-fit:contain;background:#fff;border-radius:2px}
+#auth .auth-oauth-label{grid-column:2;text-align:center}
+#auth .auth-oauth-button:hover:not(:disabled){background:var(--simple-soft)}
+#auth .auth-oauth-button:active:not(:disabled){background:var(--simple-soft);border-color:var(--simple-text)}
+#auth .auth-oauth-button:disabled{opacity:.6;cursor:default}
+#auth .auth-oauth-button[aria-busy='true']{cursor:progress;opacity:.8}
+#auth .auth-oauth-button[aria-busy='true']::after{content:'';width:14px;height:14px;border:1px solid var(--simple-line);border-top-color:var(--simple-text);border-radius:50%;animation:simpleSpin 1s linear infinite;grid-column:3;grid-row:1}
+#auth .auth-oauth-separator{display:flex;align-items:center;gap:12px;margin-top:18px;color:var(--auth-secondary);font-size:13px;line-height:20px}
+#auth .auth-oauth-separator::before,#auth .auth-oauth-separator::after{content:'';height:1px;flex:1;background:var(--simple-line)}
 #auth .auth-oauth-button:focus-visible{outline:2px solid var(--simple-focus);outline-offset:3px}
 #auth .auth-oauth-note{font-size:12px;line-height:1.5;color:var(--simple-muted);margin:4px 0}
 /* Preserve the published password control after isolating legacy CSS. */

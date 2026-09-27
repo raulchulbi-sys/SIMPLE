@@ -45,9 +45,20 @@ linking was handled by Supabase; no manual linking, profile update or deletion.
 
 Reload and a new public navigation preserved the session. Logout returned to
 welcome. Entering through Create account with Athlete selected still reopened
-the existing Trainer profile. No duplicate account/profile was created. A new
-Google account registration and a real athlete Google account have not been
-claimed as live-tested; those paths are covered by the isolated SDK matrix.
+the existing Trainer profile. No duplicate account/profile was created.
+
+The existing email athlete was subsequently verified through real Google login:
+same UUID, client profile and role, automatic Supabase linking, unchanged routine,
+assignment, workout and note fingerprints, reload, logout and second sign-in.
+
+On 27 September the authorized new temporary Google athlete also completed real
+registration. Before OAuth the email had no Auth user. On return, the existing
+Complete registration screen asked for the role; choosing Athlete created one
+client profile with the Auth UUID. Reload, logout and a second Google sign-in
+preserved that UUID and sole profile. No routines, assignments, workouts, notes
+or code uses were attached. The account is retained pending explicit cleanup
+authorization. Private evidence contains the exact UUID, not this public file.
+An expired earlier request was retried; Auth logs confirmed expired OAuth state.
 
 ## Regression tests
 
@@ -68,6 +79,25 @@ email login, profile precedence, navigation and session regressions.
 confirmation, errors, rate limits, duplicate input, stale response and navigation
 in light/dark, mobile/desktop and both browser engines. No real email sent.
 Results and live-account evidence remain private in ignored results directories.
+
+## Final Google button presentation (27 September)
+
+Reuses the official Google logo from
+https://developers.google.com/static/identity/images/g-logo.png, in its original
+colors. Source guidelines: https://developers.google.com/identity/branding-guidelines.
+Google precedes the email form with an `o` separator, a centered visible label,
+48px minimum target, focus/hover/pressed/disabled and busy presentation. Only
+rendering, scoped CSS and asset version URLs changed; OAuth initiation, callback,
+profile creation/linking, roles, logout and session logic are unchanged.
+
+Final affected regression run: **280/280**, replacing rather than accumulating
+the earlier total: 96 Google SDK +92 onboarding +72 recovery +20 button scenarios.
+`node tests/interior/google-button.cjs` covers Chromium/WebKit, 320/360/390/430/1280,
+light/dark, login and signup in each case, logo loading, layout order, centered
+text, keyboard focus, busy state, double activation, errors and retry.
+These automated suites intercept Auth HTTP; real Google results above are a
+separate manual-browser validation. No physical-device or real recovery-email
+receipt/password-change validation is claimed. Screenshot/result files are ignored.
 
 ## Independent pending work
 
