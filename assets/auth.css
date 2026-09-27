@@ -107,6 +107,51 @@
 #auth .auth-oauth-separator::before,#auth .auth-oauth-separator::after{content:'';height:1px;flex:1;background:var(--simple-line)}
 #auth .auth-oauth-button:focus-visible{outline:2px solid var(--simple-focus);outline-offset:3px}
 #auth .auth-oauth-note{font-size:12px;line-height:1.5;color:var(--simple-muted);margin:4px 0}
+/* Fit credential screens to the available height without clipping content. */
+#auth:is([data-screen='login'],[data-screen='signup']){padding-top:max(12px,env(safe-area-inset-top));padding-bottom:max(12px,env(safe-area-inset-bottom))}
+#auth:is([data-screen='login'],[data-screen='signup']) .auth-layout{min-height:0}
+#auth:is([data-screen='login'],[data-screen='signup']) .auth-brand{margin-top:0;gap:8px}
+#auth:is([data-screen='login'],[data-screen='signup']) .auth-mark{width:58px;height:40px}
+#auth:is([data-screen='login'],[data-screen='signup']) .auth-wordmark{font-size:22px}
+#auth:is([data-screen='login'],[data-screen='signup']) .auth-content{margin:18px auto 0}
+#auth:is([data-screen='login'],[data-screen='signup']) .auth-panel{padding:20px}
+#auth:is([data-screen='login'],[data-screen='signup']) .auth-back{margin:-8px 0 4px -4px}
+#auth:is([data-screen='login'],[data-screen='signup']) h1{margin-bottom:14px}
+#auth:is([data-screen='login'],[data-screen='signup']) .auth-field{margin-top:12px}
+#auth:is([data-screen='login'],[data-screen='signup']) .auth-field:first-child{margin-top:0}
+#auth:is([data-screen='login'],[data-screen='signup']) .auth-field-label{margin-bottom:6px}
+#auth:is([data-screen='login'],[data-screen='signup']) input{height:50px;padding-top:11px;padding-bottom:11px}
+#auth:is([data-screen='login'],[data-screen='signup']) .auth-input-wrap>svg{top:14px}
+#auth:is([data-screen='login'],[data-screen='signup']) .password-eye{top:2px}
+#auth:is([data-screen='login'],[data-screen='signup']) .auth-primary{min-height:48px;margin-top:16px;padding:12px 18px}
+#auth:is([data-screen='login'],[data-screen='signup']) .auth-oauth{margin-top:16px}
+#auth:is([data-screen='login'],[data-screen='signup']) .auth-oauth-separator{margin-bottom:12px}
+#auth:is([data-screen='login'],[data-screen='signup']) .auth-footnote{margin-top:16px;line-height:1.4}
+#auth:is([data-screen='login'],[data-screen='signup']) .auth-selected-role{margin:0 0 12px}
+#auth:is([data-screen='login'],[data-screen='signup']) .auth-legal{margin-top:12px;line-height:1.4}
+@media(max-height:740px){
+ #auth:is([data-screen='login'],[data-screen='signup']){padding-top:max(8px,env(safe-area-inset-top));padding-bottom:max(8px,env(safe-area-inset-bottom))}
+ #auth:is([data-screen='login'],[data-screen='signup']) .auth-brand{flex-direction:row;justify-content:center;gap:12px}
+ #auth:is([data-screen='login'],[data-screen='signup']) .auth-mark{width:40px;height:28px}
+ #auth:is([data-screen='login'],[data-screen='signup']) .auth-wordmark{font-size:20px}
+ #auth:is([data-screen='login'],[data-screen='signup']) .auth-content{margin-top:6px}
+ #auth:is([data-screen='login'],[data-screen='signup']) #authCredentials{display:grid;grid-template-columns:76px minmax(0,1fr);padding:12px 16px}
+ #auth:is([data-screen='login'],[data-screen='signup']) .auth-back{grid-column:1;grid-row:1;margin:0 0 4px -4px}
+ #auth:is([data-screen='login'],[data-screen='signup']) h1{grid-column:2;grid-row:1;align-self:center;text-align:right;font-size:21px;margin:0 0 4px}
+ #auth:is([data-screen='login'],[data-screen='signup']) :is(#authForm,#authSelectedRole,#authOAuth,.auth-footnote){grid-column:1 / -1}
+ #auth:is([data-screen='login'],[data-screen='signup']) .auth-selected-role{margin-bottom:6px;font-size:13px}
+ #auth:is([data-screen='login'],[data-screen='signup']) .auth-field{margin-top:8px}
+ #auth:is([data-screen='login'],[data-screen='signup']) .auth-field-label{margin-bottom:4px}
+ #auth:is([data-screen='login'],[data-screen='signup']) input{height:44px;padding-top:8px;padding-bottom:8px}
+ #auth:is([data-screen='login'],[data-screen='signup']) .auth-input-wrap>svg{top:11px}
+ #auth:is([data-screen='login'],[data-screen='signup']) .password-eye{top:0;width:44px;height:44px}
+ #auth:is([data-screen='login'],[data-screen='signup']) .auth-primary{min-height:44px;margin-top:8px;padding:10px 18px}
+ #auth:is([data-screen='login'],[data-screen='signup']) .auth-oauth{margin-top:8px}
+ #auth:is([data-screen='login'],[data-screen='signup']) .auth-oauth-button{min-height:44px;padding-top:9px;padding-bottom:9px}
+ #auth:is([data-screen='login'],[data-screen='signup']) .auth-oauth-separator{margin-bottom:6px;line-height:16px}
+ #auth:is([data-screen='login'],[data-screen='signup']) .auth-footnote{margin-top:8px;font-size:13px}
+ #auth:is([data-screen='login'],[data-screen='signup']) .auth-legal{margin-top:6px}
+}
 /* Preserve the published password control after isolating legacy CSS. */
 #auth #passwordToggle{padding:0;border-radius:7px;color:var(--auth-eye)}
 @media(prefers-reduced-motion:reduce){#resetModal *{transition-duration:.00001s;animation-duration:.00001s}}

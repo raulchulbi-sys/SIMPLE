@@ -9,8 +9,8 @@ const base=publicMode?'https://raulchulbi-sys.github.io/SIMPLE/':'http://simple.
 const results=[],out=path.join(__dirname,'results');fs.mkdirSync(out,{recursive:true});
 (async()=>{for(const engine of ['chromium','webkit']){
  const browser=await(engine==='webkit'?webkit:chromium).launch({headless:true,...(engine==='chromium'?{channel:'msedge'}:{})});
- try{for(const width of [320,360,390,430,1280])for(const theme of ['light','dark']){
-  const page=await browser.newPage({viewport:{width,height:900}});page.setDefaultTimeout(8000);const errors=[];let unexpected=0;
+ try{for(const [width,height] of [[320,568],[360,640],[390,664],[390,844],[430,740],[430,932],[1280,720],[1280,900]])for(const theme of ['light','dark']){
+  const page=await browser.newPage({viewport:{width,height}});page.setDefaultTimeout(8000);const errors=[];let unexpected=0;
   page.on('pageerror',e=>errors.push(e.message));
   try{
    await page.addInitScript(t=>localStorage.setItem('simple_theme_v1',t),theme);
@@ -41,11 +41,14 @@ const results=[],out=path.join(__dirname,'results');fs.mkdirSync(out,{recursive:
     const labelBox=await google.locator('.auth-oauth-label').boundingBox();assert(Math.abs(labelBox.x+labelBox.width/2-box.x-box.width/2)<1,'Text is visually centered');
     const logoBox=await google.locator('img').boundingBox();assert(logoBox.x<labelBox.x,'Official logo stays left of text');
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollHeight>innerHeight+1),false,`${entry} fits ${width}x${height} without vertical scroll`);
+    for(const selector of ['#email','#password','#authBtn','#authSwitch','#authCredentials .auth-back']){const rect=await page.locator(selector).boundingBox();assert(rect.y>=0&&rect.y+rect.height<=height,selector+' remains on screen');}
+    assert.equal(await page.locator('#email').evaluate(e=>getComputedStyle(e).fontSize),'16px');
     assert.equal(await google.locator('img').getAttribute('alt'),'');
     assert.deepEqual(await google.locator('img').evaluate(i=>({width:i.width,height:i.height})),{width:20,height:20});
     await page.keyboard.press('Tab');await google.focus();assert(await google.evaluate(e=>e===document.activeElement));
     assert(await google.evaluate(e=>parseFloat(getComputedStyle(e).outlineWidth)>=2));
-    if(engine==='chromium'&&[390,1280].includes(width))await page.screenshot({path:path.join(out,`google-button-${publicMode?'public':'local'}-${entry}-${width}-${theme}.png`),fullPage:true});
+    if(engine==='chromium')await page.screenshot({path:path.join(out,`google-button-${publicMode?'public':'local'}-${entry}-${width}x${height}-${theme}.png`),fullPage:true});
     // Keep the request pending to exercise the busy guard and double activation.
     await page.evaluate(()=>{window.__googleCalls=0;db.auth.signInWithOAuth=()=>{window.__googleCalls++;return new Promise(resolve=>window.__finishGoogle=resolve);};});
     await google.evaluate(b=>{b.click();b.click();});
@@ -56,8 +59,8 @@ const results=[],out=path.join(__dirname,'results');fs.mkdirSync(out,{recursive:
     await google.click();assert.equal(await page.evaluate(()=>window.__googleCalls),2);
     await page.evaluate(()=>window.__finishGoogle({error:{message:'retry failure'}}));await page.waitForFunction(()=>!simpleAuth.busy);
    }
-   assert.equal(unexpected,0);assert.deepEqual(errors,[]);results.push({engine,width,theme,entries:['login','signup'],pass:true});
-  }catch(e){results.push({engine,width,theme,pass:false,error:e.message});}
+   assert.equal(unexpected,0);assert.deepEqual(errors,[]);results.push({engine,width,height,theme,entries:['login','signup'],pass:true});
+  }catch(e){results.push({engine,width,height,theme,pass:false,error:e.message});}
   await page.close();
  }}finally{await browser.close();}
 }
