@@ -24,7 +24,7 @@ function renderOAuthButtons(preview=false){
   if(!group&&!providers.length)return;
   if(!group){
     group=document.createElement('div');group.id='authOAuth';group.className='auth-oauth';
-    document.getElementById('authForm').before(group);
+    document.getElementById('authForm').after(group);
   }
   group.hidden=!['login','signup'].includes(simpleAuth.screen)||!providers.length;
   group.replaceChildren();
@@ -41,7 +41,7 @@ function renderOAuthButtons(preview=false){
     button.disabled=preview||simpleAuth.busy||!simpleOAuth.available.has(provider);
     button.addEventListener('click',()=>beginOAuth(provider));group.append(button);
   }
-  const separator=document.createElement('div');separator.className='auth-oauth-separator';separator.textContent='o';separator.setAttribute('aria-hidden','true');group.append(separator);
+  const separator=document.createElement('div');separator.className='auth-oauth-separator';separator.textContent='o';separator.setAttribute('aria-hidden','true');group.prepend(separator);
   if(preview){const note=document.createElement('p');note.textContent='Vista previa · proveedores sin configurar. Estos botones no inician sesión.';note.className='auth-oauth-note';group.append(note);}
 }
 async function beginOAuth(provider){

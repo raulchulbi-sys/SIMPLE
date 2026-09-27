@@ -35,7 +35,8 @@ const results=[],out=path.join(__dirname,'results');fs.mkdirSync(out,{recursive:
     assert(await google.isEnabled());assert.equal(await page.getByRole('button',{name:/Continuar con (Apple|Facebook)/}).count(),0);
     assert(await page.getByLabel('Correo electrónico',{exact:true}).isVisible());assert(await page.getByLabel('Contraseña',{exact:true}).isVisible());
     const box=await google.boundingBox(),form=await page.locator('#authForm').boundingBox();assert(box.height>=44);assert(Math.abs(box.width-form.width)<1);
-    assert(box.y+box.height<form.y,'Google precedes the email form');
+    assert(box.y>form.y+form.height,'Google follows the email form');
+    const separatorBox=await page.locator('.auth-oauth-separator').boundingBox();assert(separatorBox.y+separatorBox.height<box.y,'Separator precedes Google');
     assert.equal(await page.locator('.auth-oauth-separator').innerText(),'o');
     const labelBox=await google.locator('.auth-oauth-label').boundingBox();assert(Math.abs(labelBox.x+labelBox.width/2-box.x-box.width/2)<1,'Text is visually centered');
     const logoBox=await google.locator('img').boundingBox();assert(logoBox.x<labelBox.x,'Official logo stays left of text');

@@ -85,7 +85,7 @@ Results and live-account evidence remain private in ignored results directories.
 Reuses the official Google logo from
 https://developers.google.com/static/identity/images/g-logo.png, in its original
 colors. Source guidelines: https://developers.google.com/identity/branding-guidelines.
-Google precedes the email form with an `o` separator, a centered visible label,
+Google follows the email form with an `o` separator, a centered visible label,
 48px minimum target, focus/hover/pressed/disabled and busy presentation. Only
 rendering, scoped CSS and asset version URLs changed; OAuth initiation, callback,
 profile creation/linking, roles, logout and session logic are unchanged.
@@ -98,6 +98,11 @@ text, keyboard focus, busy state, double activation, errors and retry.
 These automated suites intercept Auth HTTP; real Google results above are a
 separate manual-browser validation. No physical-device or real recovery-email
 receipt/password-change validation is claimed. Screenshot/result files are ignored.
+
+Follow-up placement requested on 27 September: the email/password form and its
+submit action come first, then `o` and Google. Only DOM placement, spacing and
+asset versions change; the 20-case button matrix verifies this updated order.
+The preceding 280-case run is historical, not a new run for this placement tweak.
 
 ## Independent pending work
 
