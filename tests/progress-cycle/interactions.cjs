@@ -1,9 +1,9 @@
 const fs=require('fs'),path=require('path'),assert=require('assert/strict');
 process.env.PLAYWRIGHT_BROWSERS_PATH='C:/Users/raulc/Documents/Codex/2026-09-07/quiero-que-realices-una-auditor-a/work/pw-browsers';
 const {chromium,webkit}=require('C:/Users/raulc/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
-const results=[],out=path.join(__dirname,'results'),base=process.env.SIMPLE_PUBLIC_URL||'http://127.0.0.1:4184/',publicMode=!!process.env.SIMPLE_PUBLIC_URL;
+const results=[],out=path.join(__dirname,'results'),base=process.env.SIMPLE_PREVIEW_URL||process.env.SIMPLE_PUBLIC_URL||'http://127.0.0.1:4184/',publicMode=!!process.env.SIMPLE_PUBLIC_URL;
 const write=()=>fs.writeFileSync(path.join(out,(publicMode?'public-':'')+'interactions.json'),JSON.stringify({passed:results.filter(x=>x.pass).length,failed:results.filter(x=>!x.pass),results},null,2));
-async function page(context){const p=await context.newPage();p.setDefaultTimeout(8000);if(publicMode)await p.route('**/*',r=>{const u=new URL(r.request().url());if(u.hostname==='cdn.jsdelivr.net'&&u.pathname.includes('supabase-js'))return r.fulfill({body:fs.readFileSync('tests/interior/mock-sdk.js'),contentType:'application/javascript'});if(u.origin===new URL(base).origin&&r.request().method()==='GET')return r.continue();return r.abort()});return p;}
+async function page(context){const p=await context.newPage();p.setDefaultTimeout(8000);p.setDefaultNavigationTimeout(30000);if(publicMode)await p.route('**/*',r=>{const u=new URL(r.request().url());if(u.hostname==='cdn.jsdelivr.net'&&u.pathname.includes('supabase-js'))return r.fulfill({body:fs.readFileSync('tests/interior/mock-sdk.js'),contentType:'application/javascript'});if(u.origin===new URL(base).origin&&r.request().method()==='GET')return r.continue();return r.abort()});return p;}
 async function go(p,role='trainer'){await p.goto(base+'?role='+role+'&state=history');if(publicMode)await p.addScriptTag({content:fs.readFileSync('tests/interior/preview-seed.js','utf8')});await p.waitForFunction(()=>window.previewReady);}
 async function extendedOrder(p){await p.evaluate(async()=>{
  const r=mock.tables.routines[0],day=mock.tables.routine_days[0],id=n=>'00000000-0000-4000-8000-'+String(n).padStart(12,'0');
@@ -20,7 +20,7 @@ async function endToEndDrag(p,kind,reverse=false){
 }
 (async()=>{for(const engine of ['chromium','webkit']){const browser=await(engine==='webkit'?webkit:chromium).launch({headless:true,...(engine==='chromium'?{channel:'msedge'}:{})});
 const context=await browser.newContext({viewport:{width:390,height:900},timezoneId:'America/Los_Angeles'}),p=await page(context);
-const test=async(name,fn)=>{try{await fn();results.push({engine,name,pass:true})}catch(e){console.error(engine,name,e.message);results.push({engine,name,pass:false,error:e.stack})}write();};
+const test=async(name,fn)=>{if(process.env.SIMPLE_INTERACTION_CASE&&process.env.SIMPLE_INTERACTION_CASE!==engine+'|'+name)return;try{await fn();results.push({engine,name,pass:true})}catch(e){console.error(engine,name,e.message);results.push({engine,name,pass:false,error:e.stack})}write();};
 try{
 await test('Long routine and day lists: first-last-first, autoscroll and order-only writes',async()=>{await go(p);await extendedOrder(p);await p.locator('#tMine').click();await p.locator('#routineReorderToggle').click();await p.waitForFunction(()=>document.querySelector('#mine.routine-compact-mode'));const id=await p.evaluate(()=>routines[0].id);
  await endToEndDrag(p,'routine');assert.equal(await p.evaluate(()=>routines.at(-1).id),id);await p.waitForTimeout(500);await endToEndDrag(p,'routine',true);assert.equal(await p.evaluate(()=>routines[0].id),id);await p.waitForTimeout(500);

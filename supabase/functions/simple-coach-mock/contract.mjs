@@ -6,6 +6,12 @@ export const MODELS = Object.freeze({
 });
 export const DEFAULT_MODEL = 'gpt-5.4-2026-03-05';
 export const normalize = s => String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+export const TRAINING_OPTIONS = Object.freeze({
+ goal:['Fuerza general','Ganar masa muscular','Mejorar condición física'],
+ experience:['beginner','intermediate','experienced'],
+ minutes:[30,45,60,75,90],
+ equipment:['Gimnasio','Mancuernas','Bandas','Barra','Peso corporal'],
+});
 // Conservative pilot catalogue: names identify prescriptions, never existing user exercises.
 export const CATALOGUE = [
  ['Sentadilla con peso corporal','body','knee'],['Zancada atrás','body','knee'],
@@ -21,6 +27,25 @@ export const CATALOGUE = [
  ['Jalón al pecho','gym','pull'],['Remo en polea','gym','pull'],['Press de pecho en máquina','gym','push'],
  ['Extensión de tríceps en polea','gym','arms'],
 ].map(([name,equipment,group])=>({name,equipment,group}));
+export function exerciseChoices(value){
+ if(typeof value!=='string'||value.length>600)throw Error('coach_invalid_training');
+ const names=value===''?[]:value.split(', ');
+ if(new Set(names).size!==names.length||!names.every(name=>CATALOGUE.some(e=>e.name===name)))throw Error('coach_invalid_training');
+ return names;
+}
+export function trainingContext(ctx){
+ const t=ctx?.training;
+ if(!t||Array.isArray(t)||typeof t!=='object'||
+  !TRAINING_OPTIONS.goal.includes(t.goal)||!TRAINING_OPTIONS.experience.includes(t.experience)||
+  !Number.isInteger(t.days)||t.days<1||t.days>5||!TRAINING_OPTIONS.minutes.includes(t.minutes)||
+  !Array.isArray(t.equipment)||t.equipment.length<1||t.equipment.length>5||new Set(t.equipment).size!==t.equipment.length||
+  !t.equipment.every(e=>TRAINING_OPTIONS.equipment.includes(e))||t.preferences!=='')throw Error('coach_invalid_training');
+ const preferred=exerciseChoices(t.preferred),avoided=exerciseChoices(t.avoided);
+ if(preferred.some(name=>avoided.includes(name)))throw Error('coach_invalid_training');
+ // Positive construction only. In particular, never read ctx.health or copy the original intake.
+ return {goal:t.goal,experience:t.experience,days:t.days,minutes:t.minutes,equipment:[...t.equipment],
+  preferred:preferred.join(', '),avoided:avoided.join(', '),preferences:''};
+}
 const object = properties => ({type:'object',properties,required:Object.keys(properties),additionalProperties:false});
 const str = (min,max) => ({type:'string',minLength:min,maxLength:max});
 const int = (min,max) => ({type:'integer',minimum:min,maximum:max});
@@ -38,27 +63,24 @@ export function validate(value,schema=SCHEMA){
 export function equipmentFor(t){
  const equipment=new Set(['body']);
  for(const text of t.equipment){
-  const s=normalize(text);
-  if(/gimnasio|gym/.test(s))['gym','dumbbells','barbell','bands'].forEach(x=>equipment.add(x));
-  if(/mancuerna|dumbbell/.test(s))equipment.add('dumbbells');
-  if(/banda|goma|resistance band/.test(s))equipment.add('bands');
-  if(/barra|barbell/.test(s))equipment.add('barbell');
+  if(text==='Gimnasio')['gym','dumbbells','barbell','bands'].forEach(x=>equipment.add(x));
+  if(text==='Mancuernas')equipment.add('dumbbells');
+  if(text==='Bandas')equipment.add('bands');
+  if(text==='Barra')equipment.add('barbell');
  }
  return equipment;
 }
 export function allowedExercises(t){
- const equipment=equipmentFor(t),avoid=normalize(t.avoided).split(/[,;\n]/).map(x=>x.trim()).filter(Boolean);
- return CATALOGUE.filter(e=>equipment.has(e.equipment)&&!avoid.some(a=>normalize(e.name).includes(a)||a.includes(normalize(e.name))));
+ const equipment=equipmentFor(t),avoid=new Set(exerciseChoices(t.avoided));
+ return CATALOGUE.filter(e=>equipment.has(e.equipment)&&!avoid.has(e.name));
 }
-// Deliberately conservative, auditable routing, not clinical triage. Unrecognized health text is reviewed.
+// Training feasibility only: absence of health data is never a medical clearance.
+// All selections are closed enums/catalogue entries. No arbitrary prose reaches the provider.
 export function safetyGate(ctx){
- const t=ctx.training,h=ctx.health,text=normalize(JSON.stringify(ctx));
- if(/dolor (intenso|fuerte|agudo|de pecho)|lesion aguda|desmayo|falta de aire|fractura|cirugia|embaraz|chest pain|severe pain|acute injury|fainting|shortness of breath|diagnostic|medicacion|farmaco|suplemento|dieta|tratamiento/.test(text))return 'safety_review_required';
- if(/[\w.+-]+@[\w.-]+\.[a-z]{2,}/i.test(text)||/[0-9a-f]{8}-[0-9a-f-]{27}/i.test(text)||/sk-[a-z0-9_-]{16,}/i.test(text))return 'safety_review_required';
- const mild=new Set(['','ninguna','ninguno','sin molestias','sin limitaciones','rigidez leve sin dolor; evitar saltos']);
- if(![h.discomfort,h.limitations].every(s=>mild.has(normalize(s))))return 'safety_review_required';
- const groups=new Set(allowedExercises(t).map(e=>e.group));
+ let t;try{t=trainingContext(ctx);}catch{return 'safety_review_required';}
+ const allowed=allowedExercises(t),groups=new Set(allowed.map(e=>e.group));
  if(!['knee','hip','push','pull','core'].every(g=>groups.has(g)))return 'safety_review_required';
+ if(exerciseChoices(t.preferred).some(name=>!allowed.some(e=>e.name===name)))return 'safety_review_required';
  return null;
 }
 export const SYSTEM_PROMPT = `SIMPLE Coach Basic ${PROMPT_VERSION}. Genera solo una propuesta inicial de entrenamiento de fuerza para un adulto en este piloto sintético, nunca una rutina aceptada.
@@ -71,8 +93,8 @@ Ejemplos aritméticos, no rutinas para copiar: en 60 minutos el objetivo es 2880
 export function requestBody(ctx,model){
  if(!Object.hasOwn(MODELS,model))throw Error('configuration_error');
  // Explicit projection: even an accidental extra database field cannot reach the provider.
- const t=ctx.training,h=ctx.health;
- const data={training:Object.fromEntries(['goal','experience','days','minutes','equipment','preferred','avoided','preferences'].map(k=>[k,t[k]])),health:{discomfort:h.discomfort,limitations:h.limitations},allowed_exercises:allowedExercises(t)};
+ const t=trainingContext(ctx);
+ const data={training:t,allowed_exercises:allowedExercises(t)};
  const schema=structuredClone(SCHEMA);
  schema.properties.name.enum=['Basic · rutina inicial'];schema.properties.description.enum=[''];
  schema.properties.days.minItems=t.days;schema.properties.days.maxItems=t.days;
@@ -82,7 +104,8 @@ export function requestBody(ctx,model){
 export function reviewProposal(p,ctx){
  const failures=[];
  if(!validate(p))return {ok:false,failures:['schema_invalid']};
- const t=ctx.training,allowed=allowedExercises(t),map=new Map(allowed.map(e=>[e.name,e])),volumes={},frequency={},durations=[];
+ let t;try{t=trainingContext(ctx);}catch{return {ok:false,failures:['context_invalid']};}
+ const allowed=allowedExercises(t),map=new Map(allowed.map(e=>[e.name,e])),volumes={},frequency={},durations=[];
  if(p.name!=='Basic · rutina inicial'||p.description!==''||p.days.length!==t.days)failures.push('contract_mismatch');
  p.days.forEach((d,i)=>{
   if(d.name!=='Sesión '+(i+1))failures.push('day_label');
@@ -98,7 +121,6 @@ export function reviewProposal(p,ctx){
  });
  for(const g of ['knee','hip','push','pull'])if((volumes[g]||0)<(t.days>=3?4:2)||(volumes[g]||0)>18||(frequency[g]||0)<(t.days>=3?2:1))failures.push('volume_frequency_'+g);
  if(!volumes.core)failures.push('core_missing');
- const pref=allowed.find(e=>normalize(e.name)===normalize(t.preferred));
- if(pref&&!p.days.some(d=>d.exercises.some(e=>e.name===pref.name)))failures.push('preferred_missing');
+ for(const name of exerciseChoices(t.preferred))if(!p.days.some(d=>d.exercises.some(e=>e.name===name)))failures.push('preferred_missing');
  return {ok:!failures.length,failures:[...new Set(failures)],durations,volumes,frequency};
 }

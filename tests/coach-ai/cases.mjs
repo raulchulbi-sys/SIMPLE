@@ -1,10 +1,10 @@
 // Entirely invented inputs. No user names, IDs, emails, histories or workout records.
-const base={training:{goal:'Ganar fuerza general',experience:'beginner',days:3,minutes:60,equipment:['Gimnasio'],preferred:'',avoided:'',preferences:''},health:{discomfort:'',limitations:''}};
+const base={training:{goal:'Fuerza general',experience:'beginner',days:3,minutes:60,equipment:['Gimnasio'],preferred:'',avoided:'',preferences:''},health:{discomfort:'',limitations:''}};
 const make=(id,t={},h={})=>({id,context:{training:{...base.training,...t},health:{...base.health,...h}}});
 export const cases=[
  make('beginner-3'),make('intermediate-4',{experience:'intermediate',days:4}),
  make('advanced-5',{experience:'experienced',days:5}),
- make('little-equipment',{equipment:['Mancuernas','Bandas elásticas']}),
+ make('little-equipment',{equipment:['Mancuernas','Bandas']}),
  make('short-sessions',{minutes:30}),make('avoided',{avoided:'Sentadilla con barra, Peso muerto rumano con barra'}),
  make('preferred',{preferred:'Remo con mancuerna'}),
  make('mild-limit',{}, {limitations:'Rigidez leve sin dolor; evitar saltos'}),

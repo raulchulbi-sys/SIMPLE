@@ -6,11 +6,11 @@ const literalToasts=[...fs.readFileSync('index.html','utf8').matchAll(/toast\('(
 (async()=>{for(const engine of ['chromium','webkit']){
  const browser=await(engine==='webkit'?webkit:chromium).launch({headless:true,...(engine==='chromium'?{channel:'msedge'}:{})});
  try{for(const width of (process.env.POLISH_WIDTHS||'320,360,390,430,768,1280').split(',').map(Number)){
- const p=await browser.newPage({viewport:{width,height:900},colorScheme:'light',reducedMotion:'reduce',hasTouch:width<700}),errors=[];p.setDefaultTimeout(6000);p.on('pageerror',e=>errors.push(e.message));p.on('dialog',d=>d.dismiss());
- const test=async(name,fn)=>{try{await fn();results.push({engine,width,name,pass:true})}catch(e){results.push({engine,width,name,pass:false,error:e.message});console.error(engine,width,name,e.message)}};
+ const p=await browser.newPage({viewport:{width,height:900},colorScheme:'light',reducedMotion:'reduce',hasTouch:width<700}),errors=[];p.setDefaultTimeout(6000);p.setDefaultNavigationTimeout(30000);p.on('pageerror',e=>errors.push(e.message));p.on('dialog',d=>d.dismiss());
+ const test=async(name,fn)=>{try{await fn();results.push({engine,width,name,pass:true})}catch(e){results.push({engine,width,name,pass:false,error:e.message});console.error(engine,width,name,e.message)}fs.writeFileSync(path.join(out,'browser-progress.json'),JSON.stringify({passed:results.filter(r=>r.pass).length,failed:results.filter(r=>!r.pass),results},null,2));};
  const go=async(role,state='normal')=>{await p.goto((process.env.SIMPLE_PREVIEW_URL||'http://127.0.0.1:4182/')+'?role='+role+'&state='+state);await p.waitForFunction(()=>window.previewReady);};
  const theme=async value=>{await p.evaluate(v=>simpleTheme.set(v),value);await p.waitForTimeout(30)};
- const shot=async name=>{const file=engine+'-'+width+'-'+name+'.png';await p.screenshot({path:path.join(out,file),fullPage:!(await p.locator('.modal.show,dialog[open]').count())});shots.push(file)};
+ const shot=async name=>{if(process.env.SIMPLE_SKIP_SCREENSHOTS==='1')return;const file=engine+'-'+width+'-'+name+'.png';await p.screenshot({path:path.join(out,file),fullPage:!(await p.locator('.modal.show,dialog[open]').count())});shots.push(file)};
  const fit=async selector=>{assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);const box=await p.locator(selector).first().boundingBox();assert(box&&box.x>=-1&&box.x+box.width<=width+1,'Bounds '+JSON.stringify(box));};
  const contrast=async selector=>{const bad=await p.locator(selector).evaluateAll(es=>{
   const rgba=s=>{const x=s.match(/[\d.]+/g)?.map(Number)||[0,0,0];return [x[0],x[1],x[2],x[3]??1]};

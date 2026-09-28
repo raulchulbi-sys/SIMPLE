@@ -6,7 +6,11 @@
 .coach-dialog input,.coach-dialog textarea,.coach-dialog select{font-weight:400;text-transform:none;letter-spacing:0}
 .coach-dialog .btn{background:var(--card2);color:var(--text);border:1px solid var(--line);box-shadow:none;font-weight:500}
 .coach-dialog .btn.primary{background:var(--simple-primary);color:var(--simple-on-primary);border-color:var(--simple-primary)}
-.coach-dialog .btn:hover:not(:disabled){border-color:var(--simple-hover-line)}
+.coach-dialog .btn,.coach-dialog textarea{appearance:none;-webkit-appearance:none}
+.coach-dialog .btn:hover:not(:disabled){border-color:var(--simple-hover-line);transform:none}
 .coach-dialog .btn:active:not(:disabled){transform:translateY(1px)}
 .coach-dialog .coach-consent{min-height:44px;align-items:center}
 .coach-notice{font-size:14px;line-height:1.5;border-left:2px solid var(--line);padding:0 14px;margin:20px 0}.coach-dialog dd{margin:4px 0 12px;overflow-wrap:anywhere}.coach-dialog dt{font-weight:600}.coach-dialog summary{min-height:44px;padding:12px 0;cursor:pointer}.coach-dialog[aria-busy="true"] #coachStatus{padding:12px 0}.coach-dialog [hidden]{display:none!important}
+.coach-dialog{box-sizing:border-box;overflow:auto;overscroll-behavior:contain}.coach-dialog *{box-sizing:border-box}.coach-dialog p{line-height:1.55;overflow-wrap:anywhere}.coach-dialog .buttons{flex-wrap:wrap;gap:10px}.coach-dialog .btn{white-space:normal;overflow-wrap:anywhere;max-width:100%}.coach-dialog h4{margin:18px 0 8px}.coach-dialog .coach-options{border:0;margin:0;padding:0;min-width:0}.coach-dialog .coach-choice{display:flex;align-items:center;gap:10px;min-height:44px;margin:2px 0;padding:7px 0;font-weight:400}.coach-dialog .coach-choice input{width:20px;height:20px;min-height:20px;flex:0 0 20px;margin:0;padding:0}.coach-dialog .coach-choice:has(input:disabled){color:var(--muted)}.coach-dialog .coach-consent{padding:8px 0}.coach-dialog .coach-consent input{flex:0 0 22px}.coach-dialog select{min-width:0}.coach-dialog .coach-expiry{border-left:2px solid var(--text);padding:8px 12px}.coach-operation-meta{font-size:13px;color:var(--muted)}.coach-context{font-size:14px}.coach-dialog .btn.danger{color:var(--danger)}
+@media(min-width:600px){.coach-dialog .coach-options{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}.coach-dialog .coach-context{display:grid;grid-template-columns:145px 1fr;gap:6px 16px}.coach-dialog .coach-context dd{margin:0 0 8px}}
+@media(max-height:500px){.coach-dialog{max-height:calc(100dvh - 12px);margin:6px auto}}
