@@ -1,0 +1,5 @@
+tests/coach/private/
+tests/coach/results/
+supabase/.temp/
+tests/**/private/
+tests/**/results/

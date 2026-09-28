@@ -1,0 +1,12 @@
+.coach-dialog{width:min(680px,calc(100% - 24px));max-height:90dvh;border:1px solid var(--line);border-radius:18px;padding:22px;background:var(--card);color:var(--text)}
+.coach-dialog::backdrop{background:#0009}.coach-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}.coach-heading h2{margin:0}.coach-dialog h3{margin:22px 0 14px}.coach-dialog label{display:block;font-size:14px;margin:12px 0;color:var(--text)}
+.coach-dialog input,.coach-dialog textarea,.coach-dialog select{font:inherit;font-size:16px;margin-top:6px;width:100%;min-height:44px;background:var(--card2);color:var(--text);border:1px solid var(--line);border-radius:9px;padding:10px}.coach-dialog .btn{min-height:44px}.coach-dialog :focus-visible{outline:2px solid var(--text);outline-offset:3px}.coach-dialog .coach-consent{display:flex;align-items:flex-start;gap:10px}.coach-dialog .coach-consent input{width:22px;min-width:22px;height:22px;min-height:22px;margin-top:0}.coach-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.coach-day{border-top:1px solid var(--line);margin-top:18px}.coach-day p{line-height:1.6;overflow-wrap:anywhere}#coachError{color:var(--danger);margin:12px 0}#coachStatus{font-size:14px}#coachProposal{scroll-margin-top:16px}.coach-dialog button:disabled{opacity:.6;cursor:wait}
+@media(max-width:360px){.coach-dialog{padding:16px}.coach-dialog .buttons{flex-direction:column}.coach-grid{gap:8px}}
+.coach-dialog label{font-weight:500;text-transform:none;letter-spacing:0;line-height:1.4}
+.coach-dialog input,.coach-dialog textarea,.coach-dialog select{font-weight:400;text-transform:none;letter-spacing:0}
+.coach-dialog .btn{background:var(--card2);color:var(--text);border:1px solid var(--line);box-shadow:none;font-weight:500}
+.coach-dialog .btn.primary{background:var(--simple-primary);color:var(--simple-on-primary);border-color:var(--simple-primary)}
+.coach-dialog .btn:hover:not(:disabled){border-color:var(--simple-hover-line)}
+.coach-dialog .btn:active:not(:disabled){transform:translateY(1px)}
+.coach-dialog .coach-consent{min-height:44px;align-items:center}
+.coach-notice{font-size:14px;line-height:1.5;border-left:2px solid var(--line);padding:0 14px;margin:20px 0}.coach-dialog dd{margin:4px 0 12px;overflow-wrap:anywhere}.coach-dialog dt{font-weight:600}.coach-dialog summary{min-height:44px;padding:12px 0;cursor:pointer}.coach-dialog[aria-busy="true"] #coachStatus{padding:12px 0}.coach-dialog [hidden]{display:none!important}

@@ -1,0 +1,12 @@
+const fs=require('fs'),path=require('path'),crypto=require('crypto');const root=path.resolve(__dirname,'../..');process.chdir(root);
+const tables=['training_intakes','intake_health','context_grants','coach_operations','routine_management','routine_revisions','coach_pilot_feedback'];
+const strip=s=>s.replace(/^\s*(begin|commit);\s*$/gmi,'');
+const guard=`do $guard$ declare n text; busy boolean; begin foreach n in array array[${tables.map(x=>"'"+x+"'").join(',')}] loop execute format('select exists(select 1 from public.%I)',n) into busy; if busy then raise exception 'coach_rollback_requires_empty_data: %',n; end if; end loop; end $guard$;`;
+const files=['rollback-coach-production-readiness.sql','rollback-coach-phase1c.sql','rollback-coach-prompt-v2.sql','rollback-coach-phase1b.sql','rollback-coach-phase1a.sql'];
+const rollback='-- Full closed-pilot rollback. Never remove the guard. Refuses ANY Coach rows.\n-- First disable new access; with real data retain schema, accepted routines and receipts.\nbegin;\n'+guard+'\n'+files.map(f=>'-- '+f+'\n'+strip(fs.readFileSync('supabase/'+f,'utf8'))).join('\n')+'\ncommit;\n';
+fs.writeFileSync('supabase/rollback-coach-production.sql',rollback);
+const migrations=fs.readdirSync('supabase/migrations').filter(f=>f.endsWith('.sql')).sort();
+const manifest=migrations.map(f=>({file:f,sha256:crypto.createHash('sha256').update(fs.readFileSync('supabase/migrations/'+f)).digest('hex')}));
+fs.writeFileSync('tests/coach-prod/results/migration-manifest.json',JSON.stringify(manifest,null,2));
+fs.writeFileSync('tests/coach-prod/private/rollback-test.sql',rollback.replace(/commit;\s*$/,'select to_regclass(\'public.training_intakes\') is null as coach_removed;\nrollback;'));
+console.log('Prepared guarded rollback and '+manifest.length+' migration hashes.');

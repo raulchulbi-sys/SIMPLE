@@ -2481,6 +2481,7 @@ button.client-overview-card{display:flex;flex-direction:column;align-items:stret
 <link rel="stylesheet" href="assets/auth.css?v=auth-fit-20260927">
 <link rel="stylesheet" href="assets/interior.css">
 <link rel="stylesheet" href="assets/settings.css">
+<link rel="stylesheet" href="assets/coach.css">
 </head>
 <body>
 <div class="modal" id="sessionActionModal" role="dialog" aria-modal="true" aria-labelledby="sessionActionTitle">
@@ -3070,6 +3071,7 @@ function view(v){
   if(v==='shared') renderShared();
   if(v==='clients') renderClients();
   if(v==='trash') profile?.role==='client' ? renderClientTrash() : renderTrash();
+  if(profile?.role==='trainer'&&typeof renderCoachReviewerEntry==='function')renderCoachReviewerEntry();
 }
 
 async function revokeClientRoutine(assignmentId){
@@ -8192,6 +8194,8 @@ async function renderShared(parentCurrent=()=>true){
   }
   try{localStorage.setItem(mk,JSON.stringify(mm))}catch(_){ }
   $('shared').innerHTML=h;
+  if(typeof renderCoachHome==='function')await renderCoachHome(isCurrent);
+  if(isCurrent()&&typeof renderCoachReviewerEntry==='function')await renderCoachReviewerEntry();
 }
 async function openSharedRoutine(id){
   const version=window.__workoutContextVersion=(window.__workoutContextVersion||0)+1;
@@ -8543,4 +8547,6 @@ window.updateClientTrashVisual=function(full){
 
 
 <script src="assets/reorder.js"></script>
+<script src="assets/coach.js"></script>
+<script src="assets/coach-reviewer.js"></script>
 </body></html>

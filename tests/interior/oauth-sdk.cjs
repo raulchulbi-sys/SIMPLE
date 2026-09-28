@@ -28,7 +28,12 @@ if(googleOnly)scenarios.push('existing-linked-client','existing-linked-trainer',
    }
    if(u.hostname==='cdn.jsdelivr.net')return r.fulfill({body:sdk,contentType:'application/javascript'});
    if(u.hostname!=='yvguatdqncadkwewlepe.supabase.co')return r.abort();
-   calls.push({path:u.pathname,method,query:u.search,body:r.request().postDataJSON()});const reply=(body,status=200)=>r.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
+   // Match Supabase's real CORS response and the closed-pilot capability contract.
+   const cors={'access-control-allow-origin':'*','access-control-allow-methods':'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS','access-control-allow-headers':'authorization,apikey,content-type,x-client-info'};
+   if(method==='OPTIONS')return r.fulfill({status:200,headers:cors});
+   calls.push({path:u.pathname,method,query:u.search,body:r.request().postDataJSON()});const reply=(body,status=200)=>r.fulfill({status,headers:cors,contentType:'application/json',body:JSON.stringify(body)});
+   if(u.pathname==='/rest/v1/rpc/get_coach_reviewer_access')return reply(false);
+   if(u.pathname==='/rest/v1/rpc/get_my_coach_access')return reply({authorized:false,can_generate:false,can_feedback:false,routine_id:null});
    if(u.pathname==='/auth/v1/settings')return scenario==='settings-error'?reply({error:'local unavailable'},503):reply({external:{google:scenario!=='unconfigured',apple:!googleOnly&&scenario!=='unconfigured',facebook:!googleOnly&&scenario!=='unconfigured'}});
    if(u.pathname==='/auth/v1/authorize'){assert.equal(u.searchParams.get('provider'),provider);assert.equal(u.searchParams.get('redirect_to'),'https://raulchulbi-sys.github.io/SIMPLE/');return r.fulfill({contentType:'text/html',body:'<script>location.replace('+JSON.stringify('http://simple.test/'+(scenario==='cancel'?'#error=access_denied&error_description=Cancelled':hash))+')</script>'});}
    if(u.pathname==='/auth/v1/user')return scenario==='invalid-callback'?reply({code:'bad_jwt',msg:'invalid test token'},401):reply(account);

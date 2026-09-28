@@ -1,0 +1,22 @@
+const a=require('./api.cjs'),{check,fs,path,rpc,table,c,crypto}=a;
+(async()=>{await a.login();const ops=JSON.parse(fs.readFileSync(path.join(__dirname,'private/operations.json'))),o=ops.owner.operation.id;
+ for(const w of ['owner','other','trainer',null]){const r=await rpc(w,'review_coach_proposal',{p_operation:o,p_approve:true,p_reason:'SYNTHETIC unauthorized'});check((w||'anon')+' cannot review',!r.ok);}
+ const original=(await table('owner','coach_operations','id=eq.'+o)).data[0];
+ let r=await rpc('reviewer','review_coach_proposal',{p_operation:o,p_approve:false,p_reason:''});check('review reason required',!r.ok);
+ r=await rpc('reviewer','review_coach_proposal',{p_operation:o,p_approve:false,p_reason:'SYNTHETIC: revise distribution'});check('authorized reviewer rejection',r.ok&&r.data.state==='rejected'&&r.data.reviewed_by===c.users.reviewer.id&&!!r.data.reviewed_at);
+ check('rejection does not edit proposal',JSON.stringify(r.data.proposal)===JSON.stringify(original.proposal));
+ r=await rpc('owner','reserve_basic_generation',{p_intake_id:ops.owner.intake.id,p_key:crypto.randomUUID()});check('rejection cannot self regenerate',!r.ok&&r.data.message==='coach_retry_review_required');
+ for(const w of ['owner','trainer','other'])check(w+' cannot authorize retry',!(await rpc(w,'authorize_coach_retry',{p_operation:o,p_reason:'SYNTHETIC retry'})).ok);
+ check('reviewer controlled retry grant',(await rpc('reviewer','authorize_coach_retry',{p_operation:o,p_reason:'SYNTHETIC new controlled attempt'})).ok);
+ const rs=await Promise.all([1,2].map(()=>rpc('owner','reserve_basic_generation',{p_intake_id:ops.owner.intake.id,p_key:crypto.randomUUID()})));check('retry two tabs one operation',rs.every(x=>x.ok)&&rs[0].data.id===rs[1].data.id&&rs[0].data.retry_source===o);
+ check('retry authorization cannot be reused',!(await rpc('reviewer','authorize_coach_retry',{p_operation:o,p_reason:'again'})).ok);
+ const sid=ops.stale.operation.id;check('revoke pending consent',(await rpc('stale','set_my_coach_context_permission',{p_scope:'declared_health',p_allow:false})).ok);
+ check('reviewer cannot approve revoked',!(await rpc('reviewer','review_coach_proposal',{p_operation:sid,p_approve:true,p_reason:'SYNTHETIC'})).ok);
+ const queue=await rpc('reviewer','get_coach_review_queue');check('revoked context excluded from review queue',queue.ok&&!queue.data.some(x=>x.operation.id===sid));
+ const rid=ops.rollback.operation.id;r=await rpc('reviewer','review_coach_proposal',{p_operation:rid,p_approve:true,p_reason:'SYNTHETIC proposal reviewed'});check('reviewer approves valid proposal',r.ok&&r.data.state==='ready');
+ r=await rpc('rollback','decline_my_coach_proposal',{p_operation:rid,p_comment:'SYNTHETIC not suitable'});check('athlete may decline approved proposal',r.ok);
+ check('declined cannot accept',!(await rpc('rollback','accept_basic_plan',{p_operation:rid})).ok);
+ check('declined cannot self regenerate',!(await rpc('rollback','reserve_basic_generation',{p_intake_id:ops.rollback.intake.id,p_key:crypto.randomUUID()})).ok);
+ const metrics=await rpc('reviewer','get_coach_pilot_metrics');check('aggregate reports review decisions',metrics.ok&&metrics.data.reviewer_rejected===1&&metrics.data.reviewer_approved===1&&metrics.data.blocked===1);
+ a.save('review-security');
+})().catch(e=>{a.save('review-security');console.error(e.message);process.exitCode=1});
