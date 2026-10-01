@@ -1,5 +1,5 @@
 /* Closed supervised pilot. UI choices never grant server capabilities. */
-const simpleCoach={epoch:0,intake:null,operation:null,busy:false,accepted:false,pageActive:true};
+const simpleCoach={epoch:0,intake:null,operation:null,busy:false,accepted:false,newGeneration:false,pageActive:true};
 function coachEnabled(){return simpleCoach.pageActive&&['https://dmqjexigdnfzobarhnib.supabase.co','https://yvguatdqncadkwewlepe.supabase.co'].includes(SUPABASE_URL);}
 // A cancelled read must not start another request from an unloading document.
 let coachPageHidden=false;
@@ -70,10 +70,12 @@ function coachDialog(){
 }
 function coachShell(content){
  const d=coachDialog();simpleCoach.busy=false;d.setAttribute('aria-busy','false');
- d.innerHTML='<div class="coach-heading"><h2 id="coachTitle" tabindex="-1">SIMPLE Coach</h2><button data-keep-enabled="true" class="btn" aria-label="Cerrar SIMPLE Coach" onclick="document.getElementById(\'coachDialog\').close()">Cerrar</button></div><p class="muted">Basic · piloto sin cobro. Tu propuesta tendrá revisión humana antes de que puedas aceptarla.</p><div id="coachError" role="alert"></div><div id="coachStatus" role="status" aria-live="polite"></div>'+content;
+ d.innerHTML='<div class="coach-heading"><h2 id="coachTitle" tabindex="-1">'+(simpleCoach.newGeneration?'Nueva propuesta':'SIMPLE Coach')+'</h2><button data-keep-enabled="true" class="btn" aria-label="Cerrar SIMPLE Coach" onclick="document.getElementById(\'coachDialog\').close()">Cerrar</button></div><p class="muted">Basic · piloto sin cobro. Tu propuesta tendrá revisión humana antes de que puedas aceptarla.</p><div id="coachError" role="alert"></div><div id="coachStatus" role="status" aria-live="polite"></div>'+content;
  if(!d.open)d.showModal();d.scrollTop=0;$('coachTitle').focus();
 }
 function coachMessage(code){
+ if(code==='coach_generation_limit')return 'No quedan nuevas generaciones autorizadas. Tus rutinas se conservan.';
+ if(code==='coach_new_intake_required')return 'Completa el nuevo cuestionario Basic antes de generar otra propuesta.';
  const messages={coach_retry_review_required:'Ya se ha utilizado el intento disponible. Solicita al reviewer autorización para otro intento.',coach_review_required:'La propuesta necesita aprobación del reviewer.',coach_reviewer_required:'No tienes permiso para revisar propuestas.',coach_feedback_workout_required:'Podrás valorar esta rutina después de guardar tu primer entrenamiento.',coach_invalid_feedback:'Elige una valoración de 1 a 5 y un comentario de hasta 1.000 caracteres.',coach_pilot_required:'Esta cuenta todavía no tiene acceso al piloto.',coach_context_required:'Acepta el permiso de entrenamiento para continuar.',coach_health_disabled:'Este piloto no admite información de salud.',coach_invalid_intake:'Elige únicamente las opciones de entrenamiento disponibles.',coach_invalid_training:'Elige únicamente las opciones de entrenamiento disponibles.',coach_intake_conflict:'El formulario cambió en otra pestaña. Vuelve a abrirlo para cargar la versión actual.',coach_draft_delete_unavailable:'Solo se puede borrar un borrador propio que no se haya enviado ni utilizado.',coach_draft_required:'Solo se puede borrar un borrador que no se haya enviado.',coach_intake_in_use:'Este contexto ya se utilizó en una operación y se conserva para su trazabilidad.',coach_current_intake_required:'Guarda y envía la anamnesis actual antes de generar.',coach_proposal_not_ready:'La propuesta ya no está vigente. Revisa el formulario y solicita otro intento.',coach_intake_changed:'La anamnesis ha cambiado. Esta propuesta no se puede aceptar.',coach_context_changed:'Los permisos cambiaron. Revisa el consentimiento antes de continuar.',coach_rate_limit:'Se ha alcanzado el límite de intentos. Espera antes de reintentar.',safety_review_required:'No podemos preparar una propuesta con estas opciones. Solicita revisión profesional antes de continuar.'};
  return messages[code]||'No se pudo completar la acción. Tus datos guardados se conservan; puedes reintentar.';
 }
@@ -85,11 +87,30 @@ function coachBusy(value,label='Procesando…'){
 }
 async function openSimpleCoach(){
  if(!coachEnabled()||profile?.role!=='client')return;
- const owner=user.id,epoch=++simpleCoach.epoch;simpleCoach.intake=null;simpleCoach.operation=null;simpleCoach.wizard=null;coachShell('<p>Cargando tu acceso…</p>');
+ const owner=user.id,epoch=++simpleCoach.epoch;simpleCoach.intake=null;simpleCoach.operation=null;simpleCoach.wizard=null;simpleCoach.newGeneration=false;coachShell('<p>Cargando tu acceso…</p>');
  try{const access=await coachCall('get_my_coach_access',{});if(!coachCurrent(epoch,owner))return;simpleCoach.accepted=!!access.routine_id;
- if(access.routine_id){coachShell('<p>Ya tienes tu primera rutina Basic.</p><div class="buttons"><button data-keep-enabled="true" class="btn primary" id="coachOpen">Abrir rutina</button><button data-keep-enabled="true" class="btn" id="coachContext">Anamnesis y permisos</button>'+(access.can_feedback?'<button data-keep-enabled="true" class="btn" id="coachFeedback">'+(access.has_feedback?'Ver o actualizar valoración':'Valorar rutina')+'</button>':'')+'</div>');$('coachOpen').onclick=()=>{coachDialog().close();openCoachRoutine(access.routine_id)};$('coachContext').onclick=()=>coachLoadIntake(true);if($('coachFeedback'))$('coachFeedback').onclick=()=>coachFeedback(access.routine_id);return;}
+ if(access.routine_id){
+  const saved=access.accepted_routines?.length?access.accepted_routines:[{routine_id:access.routine_id,name:'Tu rutina Basic'}];
+  const pending=access.latest_operation_state&&access.latest_operation_state!=='accepted';
+  coachShell('<h3>Tus rutinas Basic</h3><p>Las rutinas aceptadas y sus entrenamientos se conservan.</p>'+saved.map((r,n)=>'<p>'+esc(r.name)+' <button data-keep-enabled="true" class="btn" data-coach-routine="'+esc(r.routine_id)+'"'+(n===0?' id="coachOpen"':'')+'>Abrir rutina</button></p>').join('')+'<div class="buttons">'+(pending?'<button data-keep-enabled="true" class="btn primary" id="coachPending">Ver nueva propuesta</button>':access.can_generate?'<button data-keep-enabled="true" class="btn primary" id="coachNewGeneration">Nueva propuesta</button>':'')+'<button data-keep-enabled="true" class="btn" id="coachContext">Anamnesis y permisos</button>'+(access.can_feedback?'<button data-keep-enabled="true" class="btn" id="coachFeedback">'+(access.has_feedback?'Ver o actualizar valoración':'Valorar rutina')+'</button>':'')+'</div>');
+  coachDialog().querySelectorAll('[data-coach-routine]').forEach(b=>b.onclick=()=>{coachDialog().close();openCoachRoutine(b.dataset.coachRoutine);});
+  $('coachContext').onclick=()=>{simpleCoach.newGeneration=false;simpleCoach.accepted=true;coachLoadIntake(true);};
+  if($('coachNewGeneration'))$('coachNewGeneration').onclick=coachBeginNewGeneration;
+  if($('coachPending'))$('coachPending').onclick=()=>{simpleCoach.accepted=false;coachLoadIntake();};
+  if($('coachFeedback'))$('coachFeedback').onclick=()=>coachFeedback(access.routine_id);return;
+ }
  if(!access.authorized){coachShell('<p>Esta cuenta todavía no está autorizada para el piloto.</p>');return;}
  coachShell('<h3>Basic · piloto</h3><p>Describe tu contexto de entrenamiento, revisa la propuesta y acepta tu primera rutina cuando esté aprobada.</p><button data-keep-enabled="true" class="btn primary" id="coachBegin">Elegir Basic</button>');$('coachBegin').onclick=()=>coachLoadIntake();
+ }catch(e){if(coachCurrent(epoch,owner))$('coachError').textContent=coachMessage(e.message);}
+}
+async function coachBeginNewGeneration(){
+ if(simpleCoach.busy)return;
+ const owner=user.id,epoch=++simpleCoach.epoch;coachShell('<p>Cargando tu acceso…</p>');
+ try{const access=await coachCall('get_my_coach_access',{});if(!coachCurrent(epoch,owner))return;
+  if(!access.authorized||!access.can_generate||access.latest_operation_state!=='accepted')throw Error('coach_generation_limit');
+  simpleCoach.newGeneration=true;simpleCoach.accepted=false;simpleCoach.wizard=null;
+  coachShell('<h3>Nueva propuesta</h3><p>Crearás una nueva rutina Basic independiente. Tu rutina anterior y sus entrenamientos se conservan; esta propuesta necesitará revisión y aceptación.</p><button data-keep-enabled="true" class="btn primary" id="coachBegin">Elegir Basic</button>');
+  $('coachBegin').onclick=()=>coachLoadIntake(true);
  }catch(e){if(coachCurrent(epoch,owner))$('coachError').textContent=coachMessage(e.message);}
 }
 async function coachLoadIntake(permissions=false){
@@ -118,7 +139,7 @@ function coachShowConsent(){
  finally{if(coachCurrent(epoch,owner)){coachBusy(false);if(!allow&&!simpleCoach.granted)$('coachStatus').textContent='Permiso retirado. Tu rutina aceptada se conserva.';}}};
  $('coachConsentForm').onsubmit=e=>{e.preventDefault();if(simpleCoach.busy)return;if(!simpleCoach.granted){$('coachError').textContent=coachMessage('coach_context_required');$('coachGrantTraining').focus();return;}coachShowIntake();};
 }
-function coachShowIntake(){if(simpleCoach.wizard?.owner===user?.id&&!simpleCoach.wizard.premium)return coachRenderQuestionnaire();coachStartQuestionnaire(simpleCoach.intake?.training||null);}
+function coachShowIntake(){if(simpleCoach.wizard?.owner===user?.id&&!simpleCoach.wizard.premium)return coachRenderQuestionnaire();coachStartQuestionnaire(simpleCoach.newGeneration&&simpleCoach.intake?.state!=='draft'?null:simpleCoach.intake?.training||null);}
 function coachTraining(complete=true){return coachWizardTraining(complete);}
 function coachTrainingMarkup(t){t=t||{};if(t?.schema_version==='basic-intake-v2')return coachWizardMarkup(t);const fields=[['Objetivo',t.goal],['Experiencia',coachChoices.experience[t?.experience]||t?.experience||'No indicado'],['Días',t.days],['Minutos por sesión',t.minutes],['Material',(Array.isArray(t?.equipment)?t.equipment:[]).join(', ')||'No indicado'],['Preferidos',t.preferred||'Sin preferencia'],['Evitar',t.avoided||'Ninguno seleccionado']];return '<dl class="coach-context">'+fields.map(([k,v])=>'<dt>'+esc(k)+'</dt><dd>'+esc(String(v??'No indicado'))+'</dd>').join('')+'</dl>';}
 async function coachSave(generate){
