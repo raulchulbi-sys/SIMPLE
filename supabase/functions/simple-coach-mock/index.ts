@@ -23,7 +23,7 @@ Deno.serve(async req=>{
   const r=await fetch(URL+'/rest/v1/rpc/'+name,{method:'POST',headers:{apikey:service?SERVICE:ANON,Authorization:service?'Bearer '+SERVICE:auth,'Content-Type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(10000)});
   const data=await r.json();if(!r.ok)throw Error(data.message||'coach_request_failed');return data;
  }
- const publicOp=(o:any)=>({id:o.id,state:o.state,error_code:o.error_code,proposal:o.proposal,routine_id:o.routine_id});
+ const publicOp=(o:any)=>({id:o.id,state:o.state,error_code:o.error_code,proposal:o.proposal,prompt_version:o.prompt_version,routine_id:o.routine_id});
  try{
   const identity=await fetch(URL+'/auth/v1/user',{headers:{apikey:ANON,Authorization:auth},signal:AbortSignal.timeout(10000)});
   if(!identity.ok)return reply({error:'not_authenticated'},401);
@@ -42,7 +42,11 @@ Deno.serve(async req=>{
   const result=error?{proposal:null,error_code:error,latency_ms:0,attempts:[]}:
    await generate(claim.context,{key:Deno.env.get('OPENAI_API_KEY'),model:MODEL});
   op=await rpc('coach_backend_finish',{p_user:user.id,p_operation:op.id,p_proposal:result.proposal,p_error:result.error_code,p_latency_ms:result.latency_ms,p_attempts:result.attempts},true);
-  return reply({operation:publicOp(op)});
+  // Only authenticated synthetic staging participants may inspect a rejected candidate.
+  // Never persisted as an approvable proposal, never enabled on production.
+  const diagnostic=staging&&/^coach-q5-[0-9a-f-]+@example\.invalid$/.test(user.email||'')&&'rejected_proposal' in result
+   ?{proposal:result.rejected_proposal,quality:result.quality}:undefined;
+  return reply({operation:publicOp(op),...(diagnostic?{diagnostic}:{})});
  }catch(e){
   // If finish is uncertain, let the reservation expire. Never overwrite its receipt with invented zero usage.
   const message=e instanceof Error?e.message:'';

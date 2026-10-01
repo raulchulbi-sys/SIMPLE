@@ -1,0 +1,13 @@
+# V5 — staging only, base 2a8bfc0
+
+## Persistence audit before schema changes
+
+`routine_exercises` holds scalar sets, target text, rir text, rest_seconds. It cannot represent distinct set targets by itself. `workouts.data.exercises[].sets` holds actual kg/reps/rir/done per set, distinct from planned_sets (a count). Do not repurpose either field. `coach_operations.proposal` and `routine_revisions.snapshot` are JSONB; acceptance already copies each complete exercise object into the immutable revision, adding real exercise/day UUIDs. `routine_management.current_revision_id` supplies the exact revision. Therefore no new routine/workout columns or tables are needed.
+
+Proposal schema 2 adds `scheme` and `planned_sets` (array of set_number,reps_min,reps_max,rir,rest_seconds) to each exercise. Scalar fields retain the FIRST set as an explicit compatibility projection, never the union of ranges. `sets` equals array length. The authoritative v5 prescription is the array. SQL validates exact keys, ordering, bounds, projection and scheme. Schema 1 validation remains unchanged. Output schema constraint admits 1 or 2; claim uses 2 only for new v5 operations. No updates to prior proposals or revisions.
+
+The training UI resolves the current accepted revision through the existing owner/RLS reads, validates UUID/routine/operation provenance and projects each target beside its actual input row. Same-name exercises do not inherit prescriptions. Reordering preserves UUID mapping. A mismatch between current scalar structure and a v5 accepted revision blocks opening; it cannot silently fall back to the first set or overwrite current fields. The fixed Coach structure already has server guards. Actual logging is unchanged, not repurposed as planned data. The historical scalar target remains the compatibility projection; the authoritative full planned prescription stays in the immutable accepted revision. The history UI is not extended in this delivery.
+
+Basic keeps its eight questions and schema version. A versioned vocabulary extension adds six abdominal exclusions and two explicit equipment entries (abdominal machine, wheel), necessary to avoid inventing material or making new exercises impossible to exclude. Original intake module, Premium preview and v4 engine remain independently usable. Free-text custom inventory is not interpreted as permission to invent equipment.
+
+No permission, RLS, approval workflow, Auth, whitelist-production or real participant changes. Backend modifications are staging only. Rollback must refuse to downgrade while schema-2 operations/revisions remain; never delete participant data to make rollback pass.

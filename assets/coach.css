@@ -14,3 +14,25 @@
 .coach-dialog{box-sizing:border-box;overflow:auto;overscroll-behavior:contain}.coach-dialog *{box-sizing:border-box}.coach-dialog p{line-height:1.55;overflow-wrap:anywhere}.coach-dialog .buttons{flex-wrap:wrap;gap:10px}.coach-dialog .btn{white-space:normal;overflow-wrap:anywhere;max-width:100%}.coach-dialog h4{margin:18px 0 8px}.coach-dialog .coach-options{border:0;margin:0;padding:0;min-width:0}.coach-dialog .coach-choice{display:flex;align-items:center;gap:10px;min-height:44px;margin:2px 0;padding:7px 0;font-weight:400}.coach-dialog .coach-choice input{width:20px;height:20px;min-height:20px;flex:0 0 20px;margin:0;padding:0}.coach-dialog .coach-choice:has(input:disabled){color:var(--muted)}.coach-dialog .coach-consent{padding:8px 0}.coach-dialog .coach-consent input{flex:0 0 22px}.coach-dialog select{min-width:0}.coach-dialog .coach-expiry{border-left:2px solid var(--text);padding:8px 12px}.coach-operation-meta{font-size:13px;color:var(--muted)}.coach-context{font-size:14px}.coach-dialog .btn.danger{color:var(--danger)}
 @media(min-width:600px){.coach-dialog .coach-options{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}.coach-dialog .coach-context{display:grid;grid-template-columns:145px 1fr;gap:6px 16px}.coach-dialog .coach-context dd{margin:0 0 8px}}
 @media(max-height:500px){.coach-dialog{max-height:calc(100dvh - 12px);margin:6px auto}}
+/* Questionnaire v2: scoped to Coach, using the existing SIMPLE theme tokens. */
+.coach-questionnaire .coach-step{color:var(--muted);font-size:13px;margin:24px 0 6px}
+.coach-questionnaire h3{font-size:23px;line-height:1.3;margin:8px 0 22px;max-width:30ch;text-wrap:pretty}
+.coach-questionnaire .coach-answer-list{border:0;min-width:0;padding:0;margin:0}
+.coach-questionnaire .coach-answer{display:flex;align-items:center;gap:12px;min-height:52px;padding:12px 2px;margin:0;border-bottom:1px solid var(--line);font-weight:400;cursor:pointer}
+.coach-questionnaire .coach-answer input{width:20px;height:20px;min-height:20px;flex:0 0 20px;padding:0;margin:0;accent-color:var(--text)}
+.coach-questionnaire .coach-answer:has(input:checked){font-weight:600}
+.coach-questionnaire .coach-answer:hover{background:var(--card2)}
+.coach-step-actions{display:flex;justify-content:space-between;gap:12px;margin-top:28px}
+.coach-step-actions .btn{min-width:96px}
+.coach-questionnaire .coach-draft-link{display:inline-block;background:none;border:0;text-decoration:underline;text-underline-offset:4px;font:inherit;font-size:14px;color:var(--muted);min-height:44px;padding:10px 0;cursor:pointer}
+.coach-questionnaire .coach-draft-link:disabled{opacity:.6;cursor:wait}
+.coach-questionnaire #coachSearchResults{max-height:340px;overflow:auto;overscroll-behavior:contain;padding:2px 5px}
+.coach-questionnaire .coach-equipment-category summary{font-weight:600}
+.coach-questionnaire .coach-custom-list{list-style:none;padding:0}
+.coach-questionnaire .coach-custom-list li{display:flex;justify-content:space-between;align-items:center;gap:8px;overflow-wrap:anywhere;margin:8px 0}
+.coach-questionnaire .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(max-width:360px){.coach-questionnaire h3{font-size:20px}.coach-questionnaire .coach-answer{padding:10px 0}.coach-questionnaire #coachSearchResults{max-height:280px}}
+/* v5 per-set targets share the existing input row; no nested cards or sticky action. */
+.coach-set-target{font-size:.76rem;color:var(--muted);line-height:1.4;margin:10px 0 4px;overflow-wrap:anywhere}
+.coach-prescription{padding:10px 0;border-bottom:1px solid var(--line)}
+.coach-prescription ol{margin:5px 0 0;padding-left:24px;font-size:.84rem;line-height:1.65}

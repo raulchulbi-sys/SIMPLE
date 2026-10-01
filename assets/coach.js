@@ -30,16 +30,40 @@ async function renderCoachHome(isCurrent=()=>true){
  }
 }
 async function openCoachRoutine(id){
+ const owner=user?.id,epoch=(simpleCoach.hintsEpoch||0)+1;simpleCoach.hintsEpoch=epoch;simpleCoach.routineHints=null;
+ let hints;try{hints=await coachReadRoutineHints(id,owner);if(hints===null)throw Error('invalid_revision');}catch{if(user?.id===owner&&simpleCoach.hintsEpoch===epoch)toast('No se pudo cargar la prescripción. Vuelve a abrir la rutina.');return;}
+ if(user?.id!==owner||simpleCoach.hintsEpoch!==epoch)return;
+ simpleCoach.routineHints={owner,routine:id,byId:hints};
  await openSharedRoutine(id);
- if(workoutRoutine?.id===id)$('trainSubtitle').textContent='SIMPLE Coach · prescripción fija del piloto';
+ if(workoutRoutine?.id===id)$('trainSubtitle').textContent='SIMPLE Coach · prescripción fija del piloto'+(hints===null?' · No se pudo comprobar la indicación por lado. Vuelve a abrir la rutina.':'');
 }
-// Presentation choices mirror the server allowlist; only the server authorizes requests.
-const coachChoices={
- goal:['Fuerza general','Ganar masa muscular','Mejorar condición física'],
- experience:{beginner:'Principiante',intermediate:'Intermedio',experienced:'Avanzado'},
- minutes:[30,45,60,75,90],equipment:['Gimnasio','Mancuernas','Bandas','Barra','Peso corporal'],
- exercises:[['Sentadilla con peso corporal','body'],['Zancada atrás','body'],['Puente de glúteos','body'],['Flexiones','body'],['Flexiones de rodillas','body'],['Dead bug','body'],['Bird dog','body'],['Elevación de talones','body'],['Sentadilla goblet','dumbbells'],['Peso muerto rumano con mancuernas','dumbbells'],['Remo con mancuerna','dumbbells'],['Press de suelo con mancuernas','dumbbells'],['Press de hombros con mancuernas','dumbbells'],['Elevaciones laterales','dumbbells'],['Curl con mancuernas','dumbbells'],['Remo con banda','bands'],['Curl con banda','bands'],['Sentadilla con barra','barbell'],['Peso muerto rumano con barra','barbell'],['Remo con barra','barbell'],['Prensa de piernas','gym'],['Curl femoral','gym'],['Jalón al pecho','gym'],['Remo en polea','gym'],['Press de pecho en máquina','gym'],['Extensión de tríceps en polea','gym']]
-};
+function coachRevisionHints(revision,operation,routine,owner){
+ if(operation?.prompt_version==='basic-initial-v5')return coachV5RevisionHints(revision,operation,routine,owner);
+ if(operation?.prompt_version!=='basic-initial-v4')return new Map();
+ const s=revision?.snapshot;
+ if(operation.state!=='accepted'||operation.routine_id!==routine||operation.user_id!==owner||revision?.routine_id!==routine||revision.user_id!==owner||revision.operation_id!==operation.id||s?.id!==routine||s?.owner_id!==owner||!Array.isArray(s.days))return null;
+ const hints=new Map(),seen=new Set(),uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+ for(const d of s.days){if(!Array.isArray(d.exercises))return null;for(const e of d.exercises){
+  if(!uuid.test(e.id||'')||seen.has(e.id))return null;seen.add(e.id);
+  const metadata=globalThis.SimpleCoachProgrammingV4.byName.get(e.name);if(!metadata)return null;
+  if(metadata.unilateral)hints.set(e.id,true);
+ }}return hints;
+}
+async function coachReadRoutineHints(routine,owner){
+ const m=await db.from('routine_management').select('routine_id,operation_id,current_revision_id').eq('routine_id',routine).maybeSingle();if(m.error)throw m.error;if(!m.data)return new Map();
+ const o=await db.from('coach_operations').select('id,user_id,routine_id,state,prompt_version').eq('id',m.data.operation_id).single();if(o.error)throw o.error;
+ if(!['basic-initial-v4','basic-initial-v5'].includes(o.data.prompt_version))return new Map();
+ const r=await db.from('routine_revisions').select('id,routine_id,user_id,operation_id,snapshot').eq('id',m.data.current_revision_id).single();if(r.error)throw r.error;
+ if(r.data?.id!==m.data.current_revision_id||o.data?.routine_id!==routine||o.data?.user_id!==owner)return null;
+ return coachRevisionHints(r.data,o.data,routine,owner);
+}
+function coachRepetitionSuffix(exercise,routine,locked=false){
+ const h=simpleCoach.routineHints;
+ const value=h?.byId?.get(exercise.id);
+ return !locked&&h?.owner===user?.id&&h?.routine===routine&&(value===true||value?.unilateral)?' por lado':'';
+}
+// Historical labels only; the active questionnaire catalogue lives in coach-intake.js.
+const coachChoices={experience:{beginner:'Principiante',intermediate:'Intermedio',experienced:'Avanzado'}};
 function coachCurrent(epoch,owner){return epoch===simpleCoach.epoch&&owner===user?.id&&simpleCoach.pageActive&&$('coachDialog')?.open;}
 function coachDialog(){
  let d=$('coachDialog');if(!d){d=document.createElement('dialog');d.id='coachDialog';d.className='coach-dialog';d.setAttribute('aria-labelledby','coachTitle');document.body.append(d);d.addEventListener('close',()=>{simpleCoach.epoch++;simpleCoach.busy=false;});}return d;
@@ -61,18 +85,18 @@ function coachBusy(value,label='Procesando…'){
 }
 async function openSimpleCoach(){
  if(!coachEnabled()||profile?.role!=='client')return;
- const owner=user.id,epoch=++simpleCoach.epoch;simpleCoach.intake=null;simpleCoach.operation=null;coachShell('<p>Cargando tu acceso…</p>');
+ const owner=user.id,epoch=++simpleCoach.epoch;simpleCoach.intake=null;simpleCoach.operation=null;simpleCoach.wizard=null;coachShell('<p>Cargando tu acceso…</p>');
  try{const access=await coachCall('get_my_coach_access',{});if(!coachCurrent(epoch,owner))return;simpleCoach.accepted=!!access.routine_id;
  if(access.routine_id){coachShell('<p>Ya tienes tu primera rutina Basic.</p><div class="buttons"><button data-keep-enabled="true" class="btn primary" id="coachOpen">Abrir rutina</button><button data-keep-enabled="true" class="btn" id="coachContext">Anamnesis y permisos</button>'+(access.can_feedback?'<button data-keep-enabled="true" class="btn" id="coachFeedback">'+(access.has_feedback?'Ver o actualizar valoración':'Valorar rutina')+'</button>':'')+'</div>');$('coachOpen').onclick=()=>{coachDialog().close();openCoachRoutine(access.routine_id)};$('coachContext').onclick=()=>coachLoadIntake(true);if($('coachFeedback'))$('coachFeedback').onclick=()=>coachFeedback(access.routine_id);return;}
  if(!access.authorized){coachShell('<p>Esta cuenta todavía no está autorizada para el piloto.</p>');return;}
- coachShell('<h3>Basic · piloto</h3><p>Indica tus preferencias de entrenamiento, revisa la propuesta y acepta tu primera rutina cuando esté aprobada.</p><button data-keep-enabled="true" class="btn primary" id="coachBegin">Elegir Basic</button>');$('coachBegin').onclick=()=>coachLoadIntake();
+ coachShell('<h3>Basic · piloto</h3><p>Describe tu contexto de entrenamiento, revisa la propuesta y acepta tu primera rutina cuando esté aprobada.</p><button data-keep-enabled="true" class="btn primary" id="coachBegin">Elegir Basic</button>');$('coachBegin').onclick=()=>coachLoadIntake();
  }catch(e){if(coachCurrent(epoch,owner))$('coachError').textContent=coachMessage(e.message);}
 }
 async function coachLoadIntake(permissions=false){
  const owner=user.id,epoch=++simpleCoach.epoch;coachShell('<p>Cargando tu anamnesis…</p>');
  try{
  const [ir,gr,or]=await Promise.all([
- db.from('training_intakes').select('id,revision,row_version,state,training').order('revision',{ascending:false}).limit(1).maybeSingle(),
+ db.from('training_intakes').select('id,revision,schema_version,row_version,state,training').order('revision',{ascending:false}).limit(1).maybeSingle(),
  db.from('context_grants').select('scope').eq('notice_version','pilot-supervised-v2').is('revoked_at',null),
  db.from('coach_operations').select('*').order('created_at',{ascending:false}).limit(1).maybeSingle()]);
  if(ir.error||gr.error||or.error)throw Error('load');if(!coachCurrent(epoch,owner))return;
@@ -84,7 +108,7 @@ async function coachLoadIntake(permissions=false){
  coachShowConsent();
  }catch(e){if(coachCurrent(epoch,owner))$('coachError').textContent=coachMessage(e.message);}
 }
-function coachConsentNotice(){return '<aside class="coach-notice"><strong>Piloto supervisado · versión pendiente de revisión legal final</strong><p>SIMPLE Coach Basic utiliza inteligencia artificial de OpenAI para crear una propuesta inicial de entrenamiento.</p><p>Utilizaremos únicamente tu objetivo, experiencia, disponibilidad, material y preferencias de ejercicios. OpenAI procesa esa información mediante su API. Antes de que puedas aceptar la propuesta, una persona autorizada la revisará.</p><p>No enviamos automáticamente tu nombre, correo, UUID, historial de entrenamientos, notas personales, información de otras personas ni datos administrativos. En este piloto no utilizaremos molestias, limitaciones ni información médica.</p><p>No incluyas información identificativa o médica en campos libres. SIMPLE Coach no diagnostica ni trata lesiones y no sustituye a un profesional sanitario.</p><p>Puedes retirar este permiso para impedir nuevas generaciones e invalidar propuestas pendientes. La rutina ya aceptada seguirá disponible. Retirar el permiso no deshace un procesamiento que ya haya ocurrido ni elimina automáticamente los registros de trazabilidad.</p><small>Versión pilot-supervised-v2. Este aviso del piloto no sustituye a la información legal definitiva.</small></aside>';}
+function coachConsentNotice(){return '<aside class="coach-notice"><strong>Piloto supervisado · versión pendiente de revisión legal final</strong><p>SIMPLE Coach Basic utiliza inteligencia artificial de OpenAI para crear una propuesta inicial de entrenamiento.</p><p>Utilizaremos únicamente tu objetivo, experiencia, disponibilidad, estimación del esfuerzo, material, ejercicios excluidos y otras actividades. OpenAI procesa esa información mediante su API. Antes de que puedas aceptar la propuesta, una persona autorizada la revisará.</p><p>No enviamos automáticamente tu nombre, correo, UUID, historial de entrenamientos, notas personales, información de otras personas ni datos administrativos. En este piloto no utilizaremos molestias, limitaciones ni información médica.</p><p>No incluyas información identificativa o médica en campos libres. SIMPLE Coach no diagnostica ni trata lesiones y no sustituye a un profesional sanitario.</p><p>Puedes retirar este permiso para impedir nuevas generaciones e invalidar propuestas pendientes. La rutina ya aceptada seguirá disponible. Retirar el permiso no deshace un procesamiento que ya haya ocurrido ni elimina automáticamente los registros de trazabilidad.</p><small>Versión pilot-supervised-v2. Este aviso del piloto no sustituye a la información legal definitiva.</small></aside>';}
 function coachShowConsent(){
  const owner=user.id,epoch=simpleCoach.epoch;
  coachShell('<h3>Información y permiso</h3>'+coachConsentNotice()+'<form id="coachConsentForm"><label class="coach-consent"><input type="checkbox" id="coachGrantTraining" '+(simpleCoach.granted?'checked':'')+'>Consiento el tratamiento del contexto de entrenamiento indicado para generar y revisar mi propuesta de SIMPLE Coach.</label><div class="buttons"><button data-keep-enabled="true" class="btn primary" type="submit">Continuar</button></div></form>');
@@ -94,58 +118,30 @@ function coachShowConsent(){
  finally{if(coachCurrent(epoch,owner)){coachBusy(false);if(!allow&&!simpleCoach.granted)$('coachStatus').textContent='Permiso retirado. Tu rutina aceptada se conserva.';}}};
  $('coachConsentForm').onsubmit=e=>{e.preventDefault();if(simpleCoach.busy)return;if(!simpleCoach.granted){$('coachError').textContent=coachMessage('coach_context_required');$('coachGrantTraining').focus();return;}coachShowIntake();};
 }
-function coachSelected(id){return [...$(id).querySelectorAll('input:checked')].map(x=>x.value);}
-function coachExerciseGroup(equipment){const groups=new Set(['body']);if(equipment.includes('Gimnasio'))['gym','dumbbells','bands','barbell'].forEach(x=>groups.add(x));if(equipment.includes('Mancuernas'))groups.add('dumbbells');if(equipment.includes('Bandas'))groups.add('bands');if(equipment.includes('Barra'))groups.add('barbell');return groups;}
-function coachShowIntake(){
- const raw=simpleCoach.intake?.training,valid=raw&&coachChoices.goal.includes(raw.goal)&&Object.hasOwn(coachChoices.experience,raw.experience)&&Number.isInteger(raw.days)&&raw.days>=1&&raw.days<=5&&coachChoices.minutes.includes(raw.minutes)&&Array.isArray(raw.equipment)&&raw.equipment.length&&raw.equipment.every(x=>coachChoices.equipment.includes(x))&&raw.preferences===''&&[raw.preferred,raw.avoided].every(v=>typeof v==='string'&&(!v||v.split(', ').every(x=>coachChoices.exercises.some(([n])=>n===x))));
- const t=valid?raw:{goal:'',experience:'beginner',days:3,minutes:45,equipment:['Gimnasio'],preferred:'',avoided:'',preferences:''};
- const options=(list,value,placeholder='')=>(placeholder?'<option value="">'+placeholder+'</option>':'')+list.map(x=>'<option value="'+esc(String(x))+'" '+(x===value?'selected':'')+'>'+esc(String(x))+'</option>').join('');
- const checklist=(id,list,selected)=>'<fieldset id="'+id+'" class="coach-options">'+list.map((value,n)=>'<label class="coach-choice"><input type="checkbox" value="'+esc(value)+'" '+(selected.includes(value)?'checked':'')+'>'+esc(value)+'</label>').join('')+'</fieldset>';
- coachShell('<h3>Anamnesis de entrenamiento</h3>'+(raw&&!valid?'<p role="status">El formulario anterior contiene opciones de otra versión. Elige de nuevo las opciones del piloto; no se reenviará aquel texto.</p>':'')+'<form id="coachForm"><label>Objetivo principal<select id="coachGoal" required>'+options(coachChoices.goal,t.goal,'Elige tu objetivo')+'</select></label><label>Experiencia<select id="coachExperience">'+Object.entries(coachChoices.experience).map(([k,v])=>'<option value="'+k+'" '+(k===t.experience?'selected':'')+'>'+v+'</option>').join('')+'</select></label><div class="coach-grid"><label>Días disponibles<select id="coachDays">'+options([1,2,3,4,5],t.days)+'</select></label><label>Minutos por sesión<select id="coachMinutes">'+options(coachChoices.minutes,t.minutes)+'</select></label></div><h4 id="coachEquipmentLabel">Material disponible</h4>'+checklist('coachEquipment',coachChoices.equipment,t.equipment)+'<p class="muted" id="coachPrivacyHint">No incluyas nombres, correos, teléfonos, direcciones, información de otras personas ni información médica. Describe únicamente tus preferencias de entrenamiento.</p><p class="muted">En este piloto las preferencias se eligen entre opciones; no hay un campo de texto libre.</p><details id="coachPreferredDetails"><summary>Ejercicios preferidos <span id="coachPreferredCount"></span></summary>'+checklist('coachPreferred',coachChoices.exercises.map(([n])=>n),t.preferred?t.preferred.split(', '):[])+'</details><details><summary>Ejercicios que quieres evitar <span id="coachAvoidedCount"></span></summary>'+checklist('coachAvoided',coachChoices.exercises.map(([n])=>n),t.avoided?t.avoided.split(', '):[])+'</details><div class="buttons"><button data-keep-enabled="true" class="btn" type="button" id="coachDraft">Guardar borrador</button>'+(simpleCoach.accepted?'':'<button data-keep-enabled="true" class="btn primary" type="submit">Revisar antes de enviar</button>')+'</div>'+(simpleCoach.accepted?'<p class="muted">Estos datos no modifican la estructura de tu rutina aceptada.</p>':'')+'</form><div class="buttons"><button data-coach-action data-keep-enabled="true" class="btn" id="coachPermissions">Ver o retirar permiso</button>'+(simpleCoach.intake?.state==='draft'?'<button data-coach-action data-keep-enabled="true" class="btn" id="coachDeleteDraft">Borrar borrador</button>':'')+'</div><div id="coachDeleteConfirm"></div><div id="coachProposal"></div>');
- $('coachEquipment').setAttribute('aria-labelledby','coachEquipmentLabel');$('coachPreferred').setAttribute('aria-label','Ejercicios preferidos');$('coachAvoided').setAttribute('aria-label','Ejercicios que quieres evitar');
- $('coachPermissions').onclick=coachShowConsent;$('coachDraft').onclick=()=>coachSave(false);$('coachForm').onsubmit=e=>{e.preventDefault();coachReviewIntake();};
- $('coachForm').oninput=()=>{simpleCoach.reviewed=false;coachUpdateChoices();};coachUpdateChoices();
- if($('coachDeleteDraft'))$('coachDeleteDraft').onclick=coachDeleteDraft;
-}
-function coachUpdateChoices(){
- const equipment=coachSelected('coachEquipment'),groups=coachExerciseGroup(equipment),preferred=coachSelected('coachPreferred'),avoided=coachSelected('coachAvoided');
- for(const input of $('coachPreferred').querySelectorAll('input')){const group=coachChoices.exercises.find(([n])=>n===input.value)?.[1];input.disabled=!groups.has(group)||avoided.includes(input.value);if(input.disabled)input.checked=false;input.closest('label').hidden=!groups.has(group);}
- for(const input of $('coachAvoided').querySelectorAll('input'))input.disabled=coachSelected('coachPreferred').includes(input.value);
- for(const id of ['coachPreferred','coachAvoided'])$(id+'Count').textContent='('+coachSelected(id).length+')';
-}
-function coachTraining(){
- const t={goal:$('coachGoal').value,experience:$('coachExperience').value,days:Number($('coachDays').value),minutes:Number($('coachMinutes').value),equipment:coachSelected('coachEquipment'),preferred:coachSelected('coachPreferred').join(', '),avoided:coachSelected('coachAvoided').join(', '),preferences:''};
- if(!coachChoices.goal.includes(t.goal)||!Object.hasOwn(coachChoices.experience,t.experience)||!Number.isInteger(t.days)||t.days<1||t.days>5||!coachChoices.minutes.includes(t.minutes)||!t.equipment.length||t.equipment.some(x=>!coachChoices.equipment.includes(x))||t.preferred.length>600||t.avoided.length>600||[t.preferred,t.avoided].some(s=>s&&s.split(', ').some(x=>!coachChoices.exercises.some(([n])=>n===x)))||coachSelected('coachPreferred').some(x=>coachSelected('coachAvoided').includes(x)))throw Error('coach_invalid_training');return t;
-}
-function coachTrainingMarkup(t){const fields=[['Objetivo',t.goal],['Experiencia',coachChoices.experience[t.experience]||t.experience],['Días',t.days],['Minutos por sesión',t.minutes],['Material',t.equipment.join(', ')],['Preferidos',t.preferred||'Sin preferencia'],['Evitar',t.avoided||'Ninguno seleccionado']];return '<dl class="coach-context">'+fields.map(([k,v])=>'<dt>'+esc(k)+'</dt><dd>'+esc(String(v))+'</dd>').join('')+'</dl>';}
-function coachReviewIntake(){
- if(simpleCoach.busy||!$('coachForm').reportValidity())return;$('coachError').textContent='';
- try{if(!simpleCoach.granted)throw Error('coach_context_required');const t=coachTraining();simpleCoach.reviewed=true;$('coachForm').hidden=true;
- $('coachProposal').innerHTML='<h3 tabindex="-1" id="coachReviewHeading">Revisa antes de enviar</h3>'+coachTrainingMarkup(t)+'<p>Se enviará únicamente esta información de entrenamiento a OpenAI. No se enviará información de salud. La propuesta pasará por revisión humana.</p><div class="buttons"><button data-coach-action data-keep-enabled="true" class="btn" id="coachReviewBack">Volver y editar</button><button data-coach-action data-keep-enabled="true" class="btn primary" id="coachConfirmSend">Enviar y generar propuesta</button></div>';
- $('coachReviewBack').onclick=()=>{simpleCoach.reviewed=false;$('coachForm').hidden=false;$('coachProposal').replaceChildren();$('coachGoal').focus();};$('coachConfirmSend').onclick=()=>coachSave(true);$('coachReviewHeading').focus();
- }catch(e){$('coachError').textContent=coachMessage(e.message);}
-}
+function coachShowIntake(){if(simpleCoach.wizard?.owner===user?.id&&!simpleCoach.wizard.premium)return coachRenderQuestionnaire();coachStartQuestionnaire(simpleCoach.intake?.training||null);}
+function coachTraining(complete=true){return coachWizardTraining(complete);}
+function coachTrainingMarkup(t){t=t||{};if(t?.schema_version==='basic-intake-v2')return coachWizardMarkup(t);const fields=[['Objetivo',t.goal],['Experiencia',coachChoices.experience[t?.experience]||t?.experience||'No indicado'],['Días',t.days],['Minutos por sesión',t.minutes],['Material',(Array.isArray(t?.equipment)?t.equipment:[]).join(', ')||'No indicado'],['Preferidos',t.preferred||'Sin preferencia'],['Evitar',t.avoided||'Ninguno seleccionado']];return '<dl class="coach-context">'+fields.map(([k,v])=>'<dt>'+esc(k)+'</dt><dd>'+esc(String(v??'No indicado'))+'</dd>').join('')+'</dl>';}
 async function coachSave(generate){
  if(simpleCoach.busy||(generate&&(!simpleCoach.reviewed||simpleCoach.accepted))||!$('coachForm').reportValidity())return;
  const owner=user.id,epoch=simpleCoach.epoch;let training;
- try{if(!simpleCoach.granted)throw Error('coach_context_required');training=coachTraining();}catch(e){$('coachError').textContent=coachMessage(e.message);return;}
+ try{if(!simpleCoach.granted)throw Error('coach_context_required');training=coachTraining(generate);}catch(e){$('coachError').textContent=coachMessage(e.message);return;}
  coachBusy(true,generate?'Estamos preparando tu rutina…':'Guardando borrador…');$('coachError').textContent='';
  try{const i=simpleCoach.intake;
  const intake=await coachCall('save_my_training_intake',{p_id:i?.id||null,p_expected:i?.row_version||null,p_training:training,p_submit:generate});
  if(!coachCurrent(epoch,owner))return;simpleCoach.intake=intake;
- if(!generate){coachShowIntake();$('coachStatus').textContent='Borrador guardado.';return;}
+ if(!generate){coachRenderQuestionnaire();$('coachStatus').textContent='Borrador guardado.';return;}
  // Closing/signing out while saving must never dispatch the provider request afterward.
  const result=await db.functions.invoke('simple-coach-mock',{body:{intake_id:intake.id,key:crypto.randomUUID()}});
  if(!coachCurrent(epoch,owner))return;if(result.error||result.data?.error)throw Error(result.data?.error||'coach_request_failed');
  const op=result.data.operation;simpleCoach.operation=op;if(op.state==='failed')throw Error(op.error_code);
  if(op.state==='reserved'){await coachPollOperation(op.id,epoch,owner);return;}coachRenderOperation(op);
  }catch(e){if(coachCurrent(epoch,owner))$('coachError').textContent=coachMessage(e.message);}
- finally{if(coachCurrent(epoch,owner)){const status=$('coachStatus')?.textContent;coachBusy(false);if($('coachForm'))coachUpdateChoices();if(!generate&&status==='Borrador guardado.')$('coachStatus').textContent=status;}}
+ finally{if(coachCurrent(epoch,owner)){const status=$('coachStatus')?.textContent;coachBusy(false);if(!generate&&status==='Borrador guardado.')$('coachStatus').textContent=status;}}
 }
 function coachDeleteDraft(){
  if(simpleCoach.busy||simpleCoach.intake?.state!=='draft')return;
  $('coachDeleteConfirm').innerHTML='<p id="coachDeleteTitle">¿Borrar este borrador no enviado? Esta acción no elimina rutinas aceptadas ni entrenamientos.</p><div class="buttons"><button data-coach-action data-keep-enabled="true" class="btn" id="coachCancelDelete">Conservar borrador</button><button data-coach-action data-keep-enabled="true" class="btn danger" id="coachConfirmDelete">Borrar borrador</button></div>';$('coachCancelDelete').focus();$('coachCancelDelete').onclick=()=>$('coachDeleteConfirm').replaceChildren();
- $('coachConfirmDelete').onclick=async()=>{if(simpleCoach.busy)return;const owner=user.id,epoch=simpleCoach.epoch,i=simpleCoach.intake;coachBusy(true,'Borrando borrador…');try{await coachCall('delete_my_training_intake',{p_id:i.id,p_expected:i.row_version});if(!coachCurrent(epoch,owner))return;simpleCoach.intake=null;coachShowIntake();$('coachStatus').textContent='Borrador borrado.';}catch(e){if(coachCurrent(epoch,owner))$('coachError').textContent=coachMessage(e.message);}finally{if(coachCurrent(epoch,owner)){const deleted=$('coachStatus')?.textContent==='Borrador borrado.';coachBusy(false);if(deleted)$('coachStatus').textContent='Borrador borrado.';}}};
+ $('coachConfirmDelete').onclick=async()=>{if(simpleCoach.busy)return;const owner=user.id,epoch=simpleCoach.epoch,i=simpleCoach.intake;coachBusy(true,'Borrando borrador…');try{await coachCall('delete_my_training_intake',{p_id:i.id,p_expected:i.row_version});if(!coachCurrent(epoch,owner))return;simpleCoach.intake=null;simpleCoach.wizard=null;coachShowIntake();$('coachStatus').textContent='Borrador borrado.';}catch(e){if(coachCurrent(epoch,owner))$('coachError').textContent=coachMessage(e.message);}finally{if(coachCurrent(epoch,owner)){const deleted=$('coachStatus')?.textContent==='Borrador borrado.';coachBusy(false);if(deleted)$('coachStatus').textContent='Borrador borrado.';}}};
 }
 async function coachPollOperation(id,epoch,owner){
  for(let n=0;n<60;n++){if(!coachCurrent(epoch,owner))return;const r=await db.from('coach_operations').select('*').eq('id',id).single();if(!coachCurrent(epoch,owner))return;if(r.error)throw Error('coach_request_failed');
@@ -161,12 +157,14 @@ function coachRenderOperation(op){
  else if(['rejected','athlete_declined','failed','stale'].includes(op.state))p.innerHTML='<h3>Propuesta no disponible</h3><p>'+esc(op.review_reason||op.athlete_comment||coachMessage(op.error_code||'coach_context_changed'))+'</p><p>Un nuevo intento requiere autorización del reviewer.</p>'+(op.retry_authorized_at?'<button data-coach-action data-keep-enabled="true" class="btn" id="coachRetry">Revisar formulario para el nuevo intento</button>':'');
  if($('coachRefresh'))$('coachRefresh').onclick=()=>coachLoadIntake();if($('coachRetry'))$('coachRetry').onclick=()=>coachLoadIntake(true);$('coachOperationHeading')?.focus();
 }
-function coachProposalMarkup(p){
- return '<h3>'+esc(p.name)+'</h3><p>'+p.days.length+' días · duración orientativa, no medida</p>'+p.days.map(d=>{const minutes=Math.ceil((300+d.exercises.reduce((n,e)=>n+120+e.sets*(e.reps_max*4+e.rest_seconds),0))/60);return '<section class="coach-day"><h4>'+esc(d.name)+' · ≈ '+minutes+' min</h4>'+d.exercises.map(e=>'<p><b>'+esc(e.name)+'</b><br>'+e.sets+' series · '+e.reps_min+'–'+e.reps_max+' reps · RIR '+e.rir+' · '+e.rest_seconds+' s de descanso</p>').join('')+'</section>';}).join('');
+function coachProposalMarkup(p,promptVersion){
+ if(promptVersion==='basic-initial-v5')return coachV5ProposalMarkup(p);
+ const v4=promptVersion==='basic-initial-v4',q=globalThis.SimpleCoachProgrammingV4;
+ return '<h3>'+esc(p.name)+'</h3>'+(p.description?'<p>'+esc(p.description)+'</p>':'')+'<p>'+p.days.length+' días · duración orientativa, no medida</p>'+p.days.map(d=>{const minutes=Math.ceil((300+d.exercises.reduce((n,e)=>n+(v4?q.seconds(e):120+e.sets*(e.reps_max*4+e.rest_seconds)),0))/60);return '<section class="coach-day"><h4>'+esc(d.name)+' · ≈ '+minutes+' min</h4>'+d.exercises.map(e=>'<p><b>'+esc(e.name)+'</b><br>'+e.sets+' series · '+e.reps_min+'–'+e.reps_max+' reps'+(v4&&q.byName.get(e.name)?.unilateral?' por lado':'')+' · RIR '+e.rir+' · '+SimpleCoachProgrammingV5.minutes(e.rest_seconds)+' de descanso</p>').join('')+'</section>';}).join('');
 }
 function coachRenderProposal(op){
  simpleCoach.operation=op;if($('coachForm'))$('coachForm').hidden=true;
- $('coachProposal').innerHTML='<h3 id="coachReadyHeading" tabindex="-1">Tu rutina está lista</h3><p class="muted">Revisada y aprobada. Puedes leerla completa antes de aceptarla.</p>'+coachProposalMarkup(op.proposal)+'<div class="buttons"><button data-coach-action data-keep-enabled="true" class="btn primary" id="coachAccept">Aceptar rutina</button><button data-coach-action data-keep-enabled="true" class="btn" id="coachDecline">No me convence</button></div><div id="coachDeclineForm"></div>';
+ $('coachProposal').innerHTML='<h3 id="coachReadyHeading" tabindex="-1">Tu rutina está lista</h3><p class="muted">Revisada y aprobada. Puedes leerla completa antes de aceptarla.</p>'+coachProposalMarkup(op.proposal,op.prompt_version)+'<div class="buttons"><button data-coach-action data-keep-enabled="true" class="btn primary" id="coachAccept">Aceptar rutina</button><button data-coach-action data-keep-enabled="true" class="btn" id="coachDecline">No me convence</button></div><div id="coachDeclineForm"></div>';
  $('coachAccept').onclick=coachAccept;$('coachDecline').onclick=()=>{$('coachDeclineForm').innerHTML='<form id="coachDeclineReason"><label>Indica qué no te convence<textarea id="coachComment" required maxlength="1000" aria-describedby="coachCommentHint"></textarea></label><p id="coachCommentHint" class="muted">Describe la propuesta de entrenamiento, sin información personal ni médica.</p><button data-keep-enabled="true" class="btn" type="submit">Enviar comentario y rechazar</button></form>';$('coachComment').focus();$('coachDeclineReason').onsubmit=async e=>{e.preventDefault();if(simpleCoach.busy)return;const epoch=simpleCoach.epoch,owner=user.id;coachBusy(true);try{await coachCall('decline_my_coach_proposal',{p_operation:op.id,p_comment:$('coachComment').value});if(coachCurrent(epoch,owner))await coachLoadIntake();}catch(e){if(coachCurrent(epoch,owner))$('coachError').textContent=coachMessage(e.message);}finally{if(coachCurrent(epoch,owner))coachBusy(false);}};};$('coachReadyHeading').focus();
 }
 async function coachFeedback(routine){
@@ -181,4 +179,4 @@ async function coachAccept(){
  try{const id=await coachCall('accept_basic_plan',{p_operation:simpleCoach.operation.id});if(!coachCurrent(epoch,owner))return;await reload();if(!coachCurrent(epoch,owner))return;await renderShared();if(!coachCurrent(epoch,owner))return;simpleCoach.accepted=true;coachShell('<h3>Rutina creada</h3><p>Ya puedes abrir las sesiones. La estructura queda fija durante el piloto.</p><button data-keep-enabled="true" class="btn primary" id="coachOpen">Abrir rutina</button>');$('coachOpen').onclick=()=>{coachDialog().close();openCoachRoutine(id);};}
  catch(e){if(coachCurrent(epoch,owner))$('coachError').textContent=coachMessage(e.message);}finally{if(coachCurrent(epoch,owner))coachBusy(false);}
 }
-if(coachEnabled())db.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT'){simpleCoach.epoch++;simpleCoach.intake=null;simpleCoach.operation=null;simpleCoach.accepted=false;simpleCoach.granted=false;const d=$('coachDialog');if(d){d.close();d.replaceChildren();}}});
+if(coachEnabled())db.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT'){simpleCoach.hintsEpoch=(simpleCoach.hintsEpoch||0)+1;simpleCoach.routineHints=null;simpleCoach.epoch++;simpleCoach.intake=null;simpleCoach.operation=null;simpleCoach.wizard=null;simpleCoach.accepted=false;simpleCoach.granted=false;const d=$('coachDialog');if(d){d.close();d.replaceChildren();}}});

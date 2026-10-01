@@ -1,4 +1,4 @@
-import {MODELS,requestBody,reviewProposal,safetyGate} from './contract.mjs';
+import {MODELS,requestBody,reviewProposal,safetyGate,decodeOutput} from './contract.mjs';
 
 // All dependency injection is server/test-side. No endpoint, model, key or retry option comes from HTTP input.
 export async function generate(ctx,{key,model,fetcher=fetch,now=Date.now,timeoutMs=90000}){
@@ -49,9 +49,9 @@ export async function generate(ctx,{key,model,fetcher=fetch,now=Date.now,timeout
   if(content.some(x=>x.type==='refusal')){a.error_code='provider_refusal';return outcome(a.error_code);}
   const texts=content.filter(x=>x.type==='output_text');
   if(texts.length!==1||content.length!==1){a.error_code='invalid_output';return outcome(a.error_code);}
-  let proposal;try{proposal=JSON.parse(texts[0].text);}catch{a.error_code='invalid_output';return outcome(a.error_code);}
+  let proposal;try{proposal=decodeOutput(JSON.parse(texts[0].text),ctx);}catch{a.error_code='invalid_output';return outcome(a.error_code);}
   const review=reviewProposal(proposal,ctx);
-  if(!review.ok){a.error_code=review.failures.includes('schema_invalid')?'invalid_output':'quality_rejected';return outcome(a.error_code);}
+  if(!review.ok){a.error_code=review.failures.includes('schema_invalid')?'invalid_output':'quality_rejected';return {...outcome(a.error_code),rejected_proposal:proposal,quality:review};}
   return outcome(null,proposal);
  }
  return outcome('provider_unavailable');
