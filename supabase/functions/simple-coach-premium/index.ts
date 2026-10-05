@@ -1,5 +1,6 @@
 import * as Series from './series-contract.mjs';
 import * as Weekly from './weekly-contract.mjs';
+import * as Distribution from './distribution-contract.mjs';
 const URL=Deno.env.get('SUPABASE_URL')!,ANON=Deno.env.get('SUPABASE_ANON_KEY')!,SERVICE=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const allowed=new Set(['http://127.0.0.1:4233','http://localhost:4233','http://127.0.0.1:4241','http://localhost:4241','http://127.0.0.1:4251','http://localhost:4251']);
 Deno.serve(async(req:Request)=>{
@@ -19,9 +20,9 @@ Deno.serve(async(req:Request)=>{
   if(!body||!(shape==='key,mesocycle_id'||requestedWeekly)||![body.key,body.mesocycle_id].every(x=>typeof x==='string'&&uuid.test(x)))return reply({error:'invalid_request'},400);
   const key=Deno.env.get('OPENAI_API_KEY');if(!key)return reply({error:'configuration_error'},503);
   const r=await rpc(requestedWeekly?'premium_weekly_reserve_analysis':'premium_reserve_analysis',{p_mesocycle:body.mesocycle_id,p_key:body.key});if(r.state!=='analyzing')return reply({recommendation:visible(r)});
-  const ctx=r.analysis_bundle.provider,actualWeekly=ctx?.schema_version===Weekly.PROVIDER_VERSION,contract=actualWeekly?Weekly:Series;
+  const ctx=r.analysis_bundle.provider,actualWeekly=ctx?.schema_version===Weekly.PROVIDER_VERSION,weeklyContract=ctx?.session_distribution_version===Distribution.VERSION?Distribution:Weekly,contract=actualWeekly?weeklyContract:Series;
   // A malformed/minimization-failing weekly context must not consume a provider call.
-  if(requestedWeekly&&!actualWeekly||actualWeekly&&!Weekly.contextQuality(ctx).ok){
+  if(requestedWeekly&&!actualWeekly||actualWeekly&&!weeklyContract.contextQuality(ctx).ok){
    const claim=await rpc('premium_analysis_claim',{p_user:user.id,p_id:r.id,p_input_bound:100,p_mode:'mock'},true);if(!claim.claimed)return reply({recommendation:visible(r)},202);
    const final=await rpc('premium_analysis_finish',{p_user:user.id,p_id:r.id,p_output:null,p_error:'invalid_weekly_context',p_receipt:{transport:'no_provider_dispatch'},p_warnings:[]},true);
    return reply({recommendation:visible(final)});

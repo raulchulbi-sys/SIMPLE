@@ -5,7 +5,7 @@ const shared=['supabase/functions/simple-coach-premium/series-contract.mjs','sup
 const sha=s=>crypto.createHash('sha256').update(s).digest('hex');
 function pack(name){
  const entry='supabase/functions/'+name+'/index.ts',contract='supabase/functions/'+name+'/'+(name==='simple-coach-chat'?'chat-contract.mjs':'weekly-contract.mjs');
- const names=[entry,contract,...shared];const files=names.map(name=>({name,content:fs.readFileSync(path.join(root,name),'utf8')}));
+ const names=[entry,contract,...(name==='simple-coach-premium'?['supabase/functions/simple-coach-premium/distribution-contract.mjs']:[]),...shared];const files=names.map(name=>({name,content:fs.readFileSync(path.join(root,name),'utf8')}));
  const f=files[0],before=f.content;
  assert.equal(before.split("URL!=='https://dmqjexigdnfzobarhnib.supabase.co'").length,2,'One explicit target guard');
  f.content=before.replace("URL!=='https://dmqjexigdnfzobarhnib.supabase.co'","URL!=='https://yvguatdqncadkwewlepe.supabase.co'");
