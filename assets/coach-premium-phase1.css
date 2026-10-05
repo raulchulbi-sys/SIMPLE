@@ -1,0 +1,9 @@
+/* Internal preview only; approved SIMPLE palette and existing button system. */
+.premium-nav{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 20px}
+.premium-nav .btn{min-height:44px;font-size:13px;padding:8px 12px}
+.premium-row{padding:14px 0;border-top:1px solid var(--border,#dedbd5)}
+.premium-row h4{margin:0 0 8px}.premium-row p{margin:6px 0;line-height:1.5;overflow-wrap:anywhere}
+.premium-row pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}
+.premium-weeks{padding-left:22px}.premium-weeks li{padding:9px 0}.premium-weeks span{margin-left:20px;color:var(--muted,#73716d)}
+.premium-nav button:focus-visible{outline:2px solid currentColor;outline-offset:3px}
+@media(max-width:360px){.premium-nav .btn{flex:1 1 44%;padding:7px 8px}}

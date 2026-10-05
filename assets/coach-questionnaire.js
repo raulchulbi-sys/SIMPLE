@@ -14,6 +14,13 @@ function coachStartQuestionnaire(training=null,premium=false){
 }
 function coachWizardSteps(){const w=simpleCoach.wizard;return [...(w.premium?coachIntake.premiumSteps(w.data):coachBasicSteps),'inventory'];}
 function coachOptionList(key,options,value,multi=false){return '<fieldset class="coach-answer-list" data-field="'+key+'"><legend class="sr-only">'+esc(coachQuestionTitle(key,simpleCoach.wizard.premium)||key)+'</legend>'+options.map(o=>'<label class="coach-answer"><input type="'+(multi?'checkbox':'radio')+'" name="'+key+'" value="'+esc(String(o.id))+'" '+((multi?value.includes(o.id):value===o.id)?'checked':'')+'><span>'+esc(o.label)+'</span></label>').join('')+'</fieldset>';}
+function coachEquipmentCatalogue(){return simpleCoach.wizard.premium?globalThis.SimpleCoachIntake.equipment:coachIntake.equipment;}
+function coachSyncAllEquipment(){
+ const all=$('coachAllEquipment');if(!all)return;
+ const selected=simpleCoach.wizard.data.inventory.equipment;
+ const equipment=coachEquipmentCatalogue(),count=equipment.filter(e=>selected.includes(e.id)).length;
+ all.checked=count===equipment.length;all.indeterminate=count>0&&!all.checked;
+}
 function coachQuestionBody(key){
  const w=simpleCoach.wizard,t=w.data,I=w.premium?globalThis.SimpleCoachIntake:coachIntake,p=w.premium,num=values=>values.map(id=>({id,label:id===90?'90 minutos o más':String(id)+(key==='days'?' días':' minutos')}));
  if(key==='experience')return coachOptionList(key,I.experience,t.experience);
@@ -36,6 +43,13 @@ function coachRenderQuestionnaire(){
  const steps=coachWizardSteps();w.step=Math.min(w.step,steps.length-1);const key=steps[w.step],count=steps.length-1;
  coachShell('<section class="coach-questionnaire"><p class="coach-step" id="coachStep">'+(key==='inventory'?'Tu equipamiento':(w.step+1)+' de '+count)+'</p><h3 id="coachQuestion" tabindex="-1">'+esc(coachQuestionTitle(key,w.premium))+'</h3><form id="coachForm" novalidate>'+coachQuestionBody(key)+'<div class="coach-step-actions"><button class="btn" type="button" id="coachBack" data-keep-enabled="true">Atrás</button><button class="btn primary" type="submit" id="coachNext" data-keep-enabled="true">'+(key==='inventory'?'Revisar respuestas':'Continuar')+'</button></div><button class="coach-draft-link" type="button" id="coachDraft" data-keep-enabled="true">Guardar borrador</button></form><div id="coachProposal"></div><div class="buttons"><button class="coach-draft-link" type="button" id="coachPermissions" data-keep-enabled="true">Ver o retirar permiso</button>'+(simpleCoach.intake?.state==='draft'&&!w.premium?'<button class="coach-draft-link" id="coachDeleteDraft" data-keep-enabled="true">Borrar borrador</button>':'')+'</div><div id="coachDeleteConfirm"></div></section>');
  if(w.premium){$('coachDialog').querySelector('.coach-heading + p').textContent='Premium · preview sintética. No se guarda en Supabase ni se envía a OpenAI.';$('coachPermissions').hidden=true;}
+ if(w.premium){
+  $('coachDialog').querySelector('.coach-questionnaire').classList.add('coach-premium-questionnaire');
+  if(key==='inventory'){
+   $('coachSearch').previousElementSibling.insertAdjacentHTML('beforebegin','<label class="coach-answer coach-all-equipment"><input type="checkbox" id="coachAllEquipment" aria-describedby="coachAllEquipmentHint"><span>Tengo todo el equipamiento</span></label><p class="muted" id="coachAllEquipmentHint">Marca todo el catálogo de abajo. Si falta algún equipo, puedes desmarcarlo después. No modifica tus exclusiones.</p>');
+   coachSyncAllEquipment();
+  }
+ }
  $('coachQuestion').focus();$('coachPermissions').onclick=coachShowConsent;
  $('coachBack').onclick=()=>{if(simpleCoach.busy)return;if(w.step){w.step--;coachRenderQuestionnaire();}else if(w.premium)coachDialog().close();else coachShowConsent();};
  $('coachForm').onchange=e=>coachQuestionChange(e);
@@ -49,7 +63,12 @@ function coachRenderQuestionnaire(){
 function coachQuestionChange(e){
  const w=simpleCoach.wizard,t=w.data,input=e.target,f=input.closest('[data-field]')?.dataset.field;
  simpleCoach.reviewed=false;$('coachError').textContent='';
- if(input.dataset.dayMinutes){if(input.value)t.minutes_by_day[input.dataset.dayMinutes]=Number(input.value);else delete t.minutes_by_day[input.dataset.dayMinutes];}
+ if(w.premium&&input.id==='coachAllEquipment'){
+  t.inventory.equipment=input.checked?coachEquipmentCatalogue().map(e=>e.id):[];
+  $('coachSearchResults').querySelectorAll('input[name="equipment"]').forEach(x=>x.checked=t.inventory.equipment.includes(x.value));
+  $('coachSelectedCount').textContent=t.inventory.equipment.length+' equipos del catálogo disponibles';coachSyncAllEquipment();
+ }
+ else if(input.dataset.dayMinutes){if(input.value)t.minutes_by_day[input.dataset.dayMinutes]=Number(input.value);else delete t.minutes_by_day[input.dataset.dayMinutes];}
  else if(input.id==='coachActivityMinutes')t.activity.minutes=input.value?Number(input.value):null;
  else if(f){
   const selected=[...input.closest('[data-field]').querySelectorAll('input:checked')].map(x=>x.value);
@@ -66,6 +85,7 @@ function coachQuestionChange(e){
   else t[f]=input.value;
  }
  if(w.premium)coachIntake.normalizePremium(t);
+ if(f==='equipment')coachSyncAllEquipment();
 }
 function coachQuestionErrors(key){
  const w=simpleCoach.wizard,t=w.data,errors=w.premium?coachIntake.premiumErrors(t):coachIntake.basicErrors(t);

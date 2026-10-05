@@ -1,0 +1,278 @@
+{
+  "date": "2026-10-04",
+  "base": "7af766f",
+  "branch": "codex/premium-chat",
+  "phase3": "CLOSED",
+  "phase4": "READY FOR REVIEW",
+  "pilot": "NOT READY: production has no Premium infrastructure; staging-only Edge and host integration require explicit future promotion",
+  "total": 1611,
+  "failed": 0,
+  "suites": [
+    {
+      "name": "phase3-review",
+      "total": 39,
+      "mode": "actual JWT and local validator"
+    },
+    {
+      "name": "compatibility-local",
+      "total": 159,
+      "mode": "offline"
+    },
+    {
+      "name": "compatibility-sql",
+      "total": 128,
+      "mode": "staging rollback transactions"
+    },
+    {
+      "name": "chat-contract-gateway",
+      "total": 72,
+      "mode": "intercepted transport"
+    },
+    {
+      "name": "chat-backend",
+      "total": 72,
+      "mode": "final staging migration rollback transaction"
+    },
+    {
+      "name": "chat-live",
+      "total": 125,
+      "actual_jwt_assertions": 118,
+      "local_assertions": 7,
+      "provider_output": "mock"
+    },
+    {
+      "name": "chat-ui",
+      "total": 1014,
+      "mode": "offline Chromium/WebKit"
+    },
+    {
+      "name": "deployed-edge-scope",
+      "total": 2,
+      "mode": "staging endpoint; no provider"
+    }
+  ],
+  "provider": {
+    "model": "gpt-5.4-2026-03-05",
+    "real_calls": 8,
+    "accepted_answers": 7,
+    "discarded_outputs": 1,
+    "budget_rejected_before_dispatch": 1,
+    "new_usd": 0.1948175,
+    "premium_prior_calls": 20,
+    "premium_prior_usd": 0.3549945,
+    "premium_accumulated_calls": 28,
+    "premium_accumulated_usd": 0.549812,
+    "reserved_usd": 0,
+    "enabled": false,
+    "max_calls": 10,
+    "max_usd": 0.3
+  },
+  "artifacts": {
+    "private_and_results_ignored": true,
+    "jwt_session_file_removed": true,
+    "screenshots_not_versioned": true
+  },
+  "staging": {
+    "budget": {
+      "enabled": false,
+      "max_usd": 0.544317,
+      "max_calls": 24,
+      "dispatched": 20,
+      "charged_usd": 0.3549945,
+      "chat_config": {
+        "version": "premium-chat-limits-v1",
+        "daily_turns": 24,
+        "input_chars": 4000,
+        "ttl_seconds": 120,
+        "history_turns": 8,
+        "output_tokens": 1000
+      },
+      "chat_enabled": false,
+      "chat_max_usd": 0.3,
+      "reserved_usd": 0,
+      "chat_max_calls": 10,
+      "history_config": {
+        "sets": 12,
+        "version": "premium-history-context-v1",
+        "sessions": 112,
+        "exercises": 40,
+        "exposures": 4,
+        "window_days": 56
+      },
+      "chat_dispatched": 8,
+      "chat_charged_usd": 0.1948175,
+      "chat_reserved_usd": 0
+    },
+    "grants": 0,
+    "checkins": 0,
+    "messages": 0,
+    "revisions": 0,
+    "mesocycles": 0,
+    "conversations": 0,
+    "recommendations": 0,
+    "whitelist_total": 0,
+    "whitelist_enabled": 0
+  },
+  "production": {
+    "writes": false,
+    "main": "b15968c73ab1b075c70f5456e6531733696c3bf5",
+    "tree": "adca265df680845f1ac119bdded6b0a69e034e2b",
+    "central": [
+      {
+        "name": "profiles",
+        "n": 6,
+        "hash": "637df9a833b8a381132f9236a0aa663d"
+      },
+      {
+        "name": "routines",
+        "n": 5,
+        "hash": "c92a36bfe1c1ee9b533d92b36ff91192"
+      },
+      {
+        "name": "routine_days",
+        "n": 15,
+        "hash": "ca0a10c5d5458d894edf4a17bce7aa01"
+      },
+      {
+        "name": "routine_exercises",
+        "n": 84,
+        "hash": "96ba8463bfb04d48d4a346d798f5440c"
+      },
+      {
+        "name": "workouts",
+        "n": 69,
+        "hash": "edb4c27f8d1ef9f8635ee4beba21103a"
+      },
+      {
+        "name": "routine_assignments",
+        "n": 3,
+        "hash": "ea13114353b6cd55aa4444d25ea40b8f"
+      },
+      {
+        "name": "routine_user_notes",
+        "n": 248,
+        "hash": "d9ae06d4c6c190ef7336f23765d41f2c"
+      },
+      {
+        "name": "auth_stable",
+        "n": 6,
+        "hash": "87911c530181a134372f7dd032cd1d36"
+      },
+      {
+        "name": "auth_identities",
+        "n": 9,
+        "hash": "35b8dd7205dd9ad226fe7fe71f95ad70"
+      }
+    ],
+    "definitions_count": 52,
+    "definitions_and_security_exact_baseline": true,
+    "security": [
+      {
+        "name": "policies",
+        "hash": "1726682c53f5a80d82f9fffaeb7faaea"
+      },
+      {
+        "name": "triggers",
+        "hash": "5e4c6e73785e52be0cee1e4f13e7dbc2"
+      },
+      {
+        "name": "rls",
+        "hash": "367982ba9c944f119b2c68d266a0018f"
+      }
+    ],
+    "cycle_hash": "88c3564c3c49cf9c53fccba89a1e71b5",
+    "patata": {
+      "profile": {
+        "id": "284d6bb6-e798-44a9-b72c-f31d3e27deef",
+        "role": "client"
+      },
+      "routines": 1,
+      "workouts": 1,
+      "cycle_hash": "88c3564c3c49cf9c53fccba89a1e71b5",
+      "whitelist_entry": {
+        "enabled": true,
+        "expires_at": "2026-10-13T06:58:37.981054+00:00",
+        "activated_at": "2026-09-29T06:58:37.981054+00:00",
+        "adult_confirmed": true,
+        "generation_limit": 2
+      },
+      "premium_infrastructure": false,
+      "managed_routines": 1,
+      "originated_from_basic_operation": 1
+    }
+  },
+  "rollback": {
+    "guard_refusal_with_data": true,
+    "phase3_102_definitions_security_exact": true,
+    "final_migration_reapplied": true,
+    "independent_accounting_retained_disabled": true
+  },
+  "staging_central": [
+    {
+      "name": "profiles",
+      "n": 5,
+      "hash": "800fdd39d10ad1533800db3fc351e05e"
+    },
+    {
+      "name": "routines",
+      "n": 15,
+      "hash": "f3d7ec34f8f285888b35103efb4a71a7"
+    },
+    {
+      "name": "routine_days",
+      "n": 17,
+      "hash": "f1ffab308dd85514df51033e27bc8735"
+    },
+    {
+      "name": "routine_exercises",
+      "n": 23,
+      "hash": "b66548eb1f53f3e8c4558e448fc7069a"
+    },
+    {
+      "name": "workouts",
+      "n": 22,
+      "hash": "04ef2c75b1078399e35b5d474a12f83e"
+    },
+    {
+      "name": "routine_assignments",
+      "n": 12,
+      "hash": "2c1ccfa43723609b3ed2d9431b5822b9"
+    },
+    {
+      "name": "routine_user_notes",
+      "n": 4,
+      "hash": "101e53237a08353d8a2261278156bcfe"
+    },
+    {
+      "name": "auth_stable",
+      "n": 5,
+      "hash": "bb20a1ac1b70431de72221cc025f7024"
+    },
+    {
+      "name": "auth_identities",
+      "n": 5,
+      "hash": "843b85f4f0f8e49e28ad365eefa0ad91"
+    }
+  ],
+  "edge": {
+    "version": 6,
+    "verify_jwt": true,
+    "seven_files_exact_candidate": true
+  },
+  "migration_sha256": "E971C36523CE421EB6078579A251406FB8032A962C9C5FD08251E6BA258CC15D",
+  "limitations": [
+    "Seven complete actual turns, not eight; ten-turn offline test separate.",
+    "Candidate/reviewer/N+1 tested with actual JWT and mock output, not real-model candidate.",
+    "Lexical sensitive-data filter not comprehensive; fact IDs do not prove every narrative sentence.",
+    "Keyboard simulated by viewport, not physical device.",
+    "First discarded answer literal cause unrecoverable; no rejected text retained.",
+    "No production Premium pilot or publication."
+  ],
+  "pilot_blockers": [
+    "Production Premium infrastructure not promoted",
+    "Staging-only Edge project/origin guard",
+    "Authenticated host integration not published",
+    "Patata sole existing routine is managed Basic: premium_already_managed; no automatic conversion",
+    "Pilot access/consent/reviewer and provider budget require explicit authorization"
+  ]
+}

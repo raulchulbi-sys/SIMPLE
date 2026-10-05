@@ -2482,6 +2482,8 @@ button.client-overview-card{display:flex;flex-direction:column;align-items:stret
 <link rel="stylesheet" href="assets/interior.css">
 <link rel="stylesheet" href="assets/settings.css">
 <link rel="stylesheet" href="assets/coach.css?v=basic-initial-v5">
+<link rel="stylesheet" href="assets/coach-premium-app.css?v=premium-upgrade-v1">
+<link rel="stylesheet" href="assets/coach-premium-chat.css?v=premium-chat-v1">
 </head>
 <body>
 <div class="modal" id="sessionActionModal" role="dialog" aria-modal="true" aria-labelledby="sessionActionTitle">
@@ -7640,6 +7642,8 @@ async function saveWorkoutSession(){
       })
     };
 
+    const deliveredRevision=window.PremiumPrescription?.workoutRevision(simpleCoach.routineHints,user.id,workoutRoutine.id);
+    if(deliveredRevision)sessionData.routine_revision_id=deliveredRevision;
     const payload={
       user_id:user.id,
       variant:activeWorkout.day.name||'',
@@ -8553,7 +8557,12 @@ window.updateClientTrashVisual=function(full){
 <script src="assets/coach-programming-v4.js?v=basic-initial-v4"></script>
 <script src="assets/coach-programming-v5.js?v=basic-v5-rest-20261001"></script>
 <script src="assets/coach-questionnaire.js?v=basic-initial-v5"></script>
-<script src="assets/coach.js?v=basic-generations-v1"></script>
+<script src="assets/coach.js?v=premium-upgrade-v1"></script>
+<script src="assets/coach-premium-prescription.js?v=premium-upgrade-v1"></script>
+<script src="assets/coach-premium-weekly.js?v=premium-weekly-v1"></script>
+<script src="assets/coach-premium-chat.js?v=premium-chat-v1"></script>
+<script src="assets/coach-premium-adapter.js?v=premium-upgrade-v1"></script>
+<script src="assets/coach-premium-app.js?v=premium-upgrade-v1"></script>
 <script src="assets/coach-prescription.js?v=basic-v5-rest-20261001"></script>
-<script src="assets/coach-reviewer.js?v=basic-initial-v5"></script>
+<script src="assets/coach-reviewer.js?v=premium-upgrade-v1"></script>
 </body></html>

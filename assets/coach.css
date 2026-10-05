@@ -32,6 +32,17 @@
 .coach-questionnaire .coach-custom-list li{display:flex;justify-content:space-between;align-items:center;gap:8px;overflow-wrap:anywhere;margin:8px 0}
 .coach-questionnaire .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 @media(max-width:360px){.coach-questionnaire h3{font-size:20px}.coach-questionnaire .coach-answer{padding:10px 0}.coach-questionnaire #coachSearchResults{max-height:280px}}
+/* Premium intake: one native scroll area, also for long inventories. */
+.coach-dialog:has(.coach-premium-questionnaire){scrollbar-width:auto;scrollbar-color:var(--muted) var(--card2);scrollbar-gutter:stable;touch-action:pan-y pinch-zoom}
+.coach-dialog:has(.coach-premium-questionnaire)::-webkit-scrollbar{width:14px}
+.coach-dialog:has(.coach-premium-questionnaire)::-webkit-scrollbar-track{background:var(--card2);border-radius:99px}
+.coach-dialog:has(.coach-premium-questionnaire)::-webkit-scrollbar-thumb{background:var(--muted);border:3px solid var(--card2);border-radius:99px}
+.coach-dialog:has(.coach-premium-questionnaire)::-webkit-scrollbar-thumb:hover{background:var(--text)}
+@supports selector(::-webkit-scrollbar){.coach-dialog:has(.coach-premium-questionnaire){scrollbar-color:auto}}
+.coach-premium-questionnaire #coachSearchResults{max-height:none;overflow:visible;padding-inline:0}
+.coach-premium-questionnaire .coach-all-equipment{margin-top:16px}
+.coach-premium-questionnaire #coachAllEquipmentHint{font-size:14px;line-height:1.5;margin:8px 0 20px}
+.coach-premium-questionnaire .coach-equipment-category summary{min-height:44px;display:list-item;align-content:center;cursor:pointer}
 /* v5 per-set targets share the existing input row; no nested cards or sticky action. */
 .coach-set-target{font-size:.76rem;color:var(--muted);line-height:1.4;margin:10px 0 4px;overflow-wrap:anywhere}
 .coach-prescription{padding:10px 0;border-bottom:1px solid var(--line)}

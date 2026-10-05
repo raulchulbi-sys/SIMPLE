@@ -16,10 +16,15 @@ async function renderCoachHome(isCurrent=()=>true){
  if(!isCurrent()||!coachEnabled())return;
  const access=await db.rpc('get_my_coach_access',{});
  if(!isCurrent()||!coachEnabled())return;
- if(!access.data?.authorized&&!(result.data||[]).length)return;
- if(!result.error&&(assignments||[]).length&&!(result.data||[]).length)return;
+ const owner=user?.id;let premium;try{premium=await db.rpc('premium_my_access',{});}catch{premium={error:true};}
+ if(!isCurrent()||!coachEnabled()||user?.id!==owner)return;
+ const premiumEnabled=!premium.error&&premium.data?.enabled===true;
+ const basicVisible=(access.data?.authorized||(result.data||[]).length)&&!(!result.error&&(assignments||[]).length&&!(result.data||[]).length);
+ if(!basicVisible&&!premiumEnabled)return;
  const host=document.createElement('div');host.id='coachHome';$('shared').append(host);
- host.innerHTML='<div class="card"><h2>¿Cómo quieres entrenar?</h2><div class="buttons"><button data-keep-enabled="true" class="btn" onclick="openRedeemRoutine()">Vincularme con un entrenador</button><button data-keep-enabled="true" class="btn primary" onclick="openSimpleCoach()">Entrenar con SIMPLE Coach</button></div></div>';
+ if(basicVisible)host.innerHTML='<div class="card"><h2>¿Cómo quieres entrenar?</h2><div class="buttons"><button data-keep-enabled="true" class="btn" onclick="openRedeemRoutine()">Vincularme con un entrenador</button><button data-keep-enabled="true" class="btn primary" onclick="openSimpleCoach()">Entrenar con SIMPLE Coach</button></div></div>';
+ // A missing RPC (including pre-Premium deployments) or an error grants no UI access.
+ if(premiumEnabled){const card=document.createElement('div');card.className='card';const title=document.createElement('h3');title.textContent='Seguimiento Premium';const action=document.createElement('button');action.type='button';action.className='btn';action.dataset.keepEnabled='true';action.textContent='Abrir seguimiento Premium';action.onclick=()=>openPremiumCoach();card.append(title,action);host.append(card);}
  if(result.error){host.insertAdjacentHTML('beforeend','<p role="status">No se pudo cargar SIMPLE Coach. Vuelve a abrir Inicio para reintentar.</p>');return;}
  for(const item of result.data||[]){
   const r=routines.find(x=>x.id===item.routine_id);if(!r)continue;
@@ -28,6 +33,27 @@ async function renderCoachHome(isCurrent=()=>true){
   const p=cycle.get(r.id)||{done:0,total:0};
   host.insertAdjacentHTML('beforeend','<div class="card"><h3>'+esc(r.name)+'</h3><p class="muted">SIMPLE Coach · piloto</p>'+renderWeeklyRoutineProgress(p.total,p.done,user.id+'|'+r.id)+'<div class="buttons"><button data-keep-enabled="true" class="btn primary" onclick="openCoachRoutine(\''+r.id+'\')">Entrenar</button><button data-keep-enabled="true" class="btn" onclick="openRoutineProgress(\''+r.id+'\')">Progreso</button></div></div>');
  }
+}
+// Premium uses the existing SDK/session. Its dialog owns no Auth or Basic state.
+const simpleCoachPremium={epoch:0,controller:null};
+function premiumCoachDialog(){
+ let d=$('premiumCoachDialog');if(d)return d;
+ d=document.createElement('dialog');d.id='premiumCoachDialog';d.className='premium-coach-dialog';d.setAttribute('aria-label','SIMPLE Coach Premium');document.body.append(d);
+ d.addEventListener('close',()=>{if(d.open)return;simpleCoachPremium.epoch++;simpleCoachPremium.controller?.destroy();simpleCoachPremium.controller=null;d.replaceChildren();});return d;
+}
+async function openPremiumCoach(options={}){
+ const mesocycleId=profile?.role==='trainer'?options.mesocycleId:null;
+ if(!coachEnabled()||!window.PremiumApp||profile?.role!=='client'&&!(profile?.role==='trainer'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(mesocycleId||'')))return;
+ const owner=user?.id,epoch=++simpleCoachPremium.epoch,d=premiumCoachDialog();simpleCoachPremium.controller?.destroy();simpleCoachPremium.controller=null;
+ const host=document.createElement('div');host.id='premiumCoachHost';const loading=document.createElement('p');loading.textContent='Cargando seguimiento…';loading.setAttribute('role','status');const close=document.createElement('button');close.type='button';close.textContent='← Volver';close.onclick=()=>d.close();host.append(loading,close);d.replaceChildren(host);if(!d.open)d.showModal();
+ const current=()=>d.open&&epoch===simpleCoachPremium.epoch&&owner===user?.id;
+ try{
+  if(mesocycleId){const assigned=await db.from('coach_mesocycles').select('id').eq('id',mesocycleId).eq('reviewer_id',owner).maybeSingle();if(!current())return;if(assigned.error||!assigned.data)throw Error('premium_not_authorized');}
+  const controller=await PremiumApp.attach(host,{db,mesocycleId,onNavigate:(to,data)=>{if(!d.open||epoch!==simpleCoachPremium.epoch)return;d.close();if(to==='train'&&profile?.role==='client'&&owner===user?.id&&data?.routine_id)openCoachRoutine(data.routine_id);}});
+  if(!current()){controller.destroy();if(d.open&&epoch===simpleCoachPremium.epoch)d.close();return;}
+  if(!controller.enabled){controller.destroy();loading.textContent='El seguimiento Premium no está disponible para esta cuenta.';return;}
+  simpleCoachPremium.controller=controller;host.querySelector('h1')?.setAttribute('tabindex','-1');host.querySelector('h1')?.focus({preventScroll:true});
+ }catch(e){if(!current())return;loading.textContent=PremiumApp.errorText(e);loading.setAttribute('role','alert');const retry=document.createElement('button');retry.type='button';retry.textContent='Reintentar';retry.onclick=()=>openPremiumCoach(options);host.className='';host.replaceChildren(loading,close,retry);}
 }
 async function openCoachRoutine(id){
  const owner=user?.id,epoch=(simpleCoach.hintsEpoch||0)+1;simpleCoach.hintsEpoch=epoch;simpleCoach.routineHints=null;
@@ -50,6 +76,7 @@ function coachRevisionHints(revision,operation,routine,owner){
  }}return hints;
 }
 async function coachReadRoutineHints(routine,owner){
+ if(globalThis.PremiumPrescription){const premium=await PremiumPrescription.read(db,routine,owner);if(premium.handled)return premium.hints;}
  const m=await db.from('routine_management').select('routine_id,operation_id,current_revision_id').eq('routine_id',routine).maybeSingle();if(m.error)throw m.error;if(!m.data)return new Map();
  const o=await db.from('coach_operations').select('id,user_id,routine_id,state,prompt_version').eq('id',m.data.operation_id).single();if(o.error)throw o.error;
  if(!['basic-initial-v4','basic-initial-v5'].includes(o.data.prompt_version))return new Map();

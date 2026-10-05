@@ -1,0 +1,693 @@
+{
+  "intake": {
+    "days": 2,
+    "goal": "balanced",
+    "pause": false,
+    "sleep": "h7_8",
+    "effort": "confident",
+    "stress": "medium",
+    "minutes": null,
+    "activity": {
+      "type": "none",
+      "minutes": null,
+      "weekdays": [],
+      "intensity": null
+    },
+    "excluded": [],
+    "recovery": "mostly",
+    "weekdays": [
+      "mon",
+      "thu"
+    ],
+    "inventory": {
+      "custom": [],
+      "equipment": [
+        "dumbbells",
+        "bench",
+        "bands"
+      ]
+    },
+    "confidence": "medium",
+    "experience": "y2_4",
+    "weak_points": [
+      "unsure"
+    ],
+    "distribution": "coach",
+    "minutes_by_day": {
+      "mon": 60,
+      "thu": 60
+    },
+    "schema_version": "premium-intake-v1",
+    "sleep_stability": null
+  },
+  "limits": {
+    "sets": 12,
+    "sessions": 112,
+    "exercises": 40,
+    "exposures": 4,
+    "window_days": 56
+  },
+  "routine": {
+    "days": [
+      {
+        "ref": "day_1",
+        "order": 0
+      },
+      {
+        "ref": "day_2",
+        "order": 1
+      }
+    ],
+    "exercises": [
+      {
+        "ref": "exercise_1",
+        "day_ref": "day_1",
+        "metrics": {
+          "trend": "reps_increasing_comparable",
+          "method": "Last three exposures: same set count, same per-set load and RIR; compare total reps only. Descriptive, no causal inference.",
+          "exposures": 4,
+          "recorded_sets": 12
+        },
+        "exposures": [
+          {
+            "date": "2026-10-03",
+            "sets": [
+              {
+                "kg": 20,
+                "rir": 2,
+                "reps": 11
+              },
+              {
+                "kg": 20,
+                "rir": 2,
+                "reps": 11
+              },
+              {
+                "kg": 20,
+                "rir": 2,
+                "reps": 11
+              }
+            ]
+          },
+          {
+            "date": "2026-09-26",
+            "sets": [
+              {
+                "kg": 20,
+                "rir": 2,
+                "reps": 10
+              },
+              {
+                "kg": 20,
+                "rir": 2,
+                "reps": 10
+              },
+              {
+                "kg": 20,
+                "rir": 2,
+                "reps": 10
+              }
+            ]
+          },
+          {
+            "date": "2026-09-19",
+            "sets": [
+              {
+                "kg": 20,
+                "rir": 2,
+                "reps": 9
+              },
+              {
+                "kg": 20,
+                "rir": 2,
+                "reps": 9
+              },
+              {
+                "kg": 20,
+                "rir": 2,
+                "reps": 9
+              }
+            ]
+          },
+          {
+            "date": "2026-09-12",
+            "sets": [
+              {
+                "kg": 20,
+                "rir": 2,
+                "reps": 8
+              },
+              {
+                "kg": 20,
+                "rir": 2,
+                "reps": 8
+              },
+              {
+                "kg": 20,
+                "rir": 2,
+                "reps": 8
+              }
+            ]
+          }
+        ],
+        "catalogue_id": "db_row",
+        "planned_sets": [
+          {
+            "rir": "2",
+            "reps": "8-12",
+            "set_number": 1,
+            "rest_seconds": 180
+          },
+          {
+            "rir": "2",
+            "reps": "8-12",
+            "set_number": 2,
+            "rest_seconds": 180
+          },
+          {
+            "rir": "2",
+            "reps": "8-12",
+            "set_number": 3,
+            "rest_seconds": 180
+          }
+        ],
+        "prescription": {
+          "rir": "2",
+          "reps": "8-12",
+          "sets": 3,
+          "rest_seconds": 180
+        },
+        "prescription_format": "legacy_uniform_projection"
+      },
+      {
+        "ref": "exercise_2",
+        "day_ref": "day_1",
+        "metrics": {
+          "trend": "reps_increasing_comparable",
+          "method": "Last three exposures: same set count, same per-set load and RIR; compare total reps only. Descriptive, no causal inference.",
+          "exposures": 4,
+          "recorded_sets": 12
+        },
+        "exposures": [
+          {
+            "date": "2026-10-03",
+            "sets": [
+              {
+                "kg": 20,
+                "rir": 2,
+                "reps": 11
+              },
+              {
+                "kg": 20,
+                "rir": 2,
+                "reps": 11
+              },
+              {
+                "kg": 20,
+                "rir": 2,
+                "reps": 11
+              }
+            ]
+          },
+          {
+            "date": "2026-09-26",
+            "sets": [
+              {
+                "kg": 20,
+                "rir": 2,
+                "reps": 10
+              },
+              {
+                "kg": 20,
+                "rir": 2,
+                "reps": 10
+              },
+              {
+                "kg": 20,
+                "rir": 2,
+                "reps": 10
+              }
+            ]
+          },
+          {
+            "date": "2026-09-19",
+            "sets": [
+              {
+                "kg": 20,
+                "rir": 2,
+                "reps": 9
+              },
+              {
+                "kg": 20,
+                "rir": 2,
+                "reps": 9
+              },
+              {
+                "kg": 20,
+                "rir": 2,
+                "reps": 9
+              }
+            ]
+          },
+          {
+            "date": "2026-09-12",
+            "sets": [
+              {
+                "kg": 20,
+                "rir": 2,
+                "reps": 8
+              },
+              {
+                "kg": 20,
+                "rir": 2,
+                "reps": 8
+              },
+              {
+                "kg": 20,
+                "rir": 2,
+                "reps": 8
+              }
+            ]
+          }
+        ],
+        "catalogue_id": "floor_press",
+        "planned_sets": [
+          {
+            "rir": "2",
+            "reps": "8-12",
+            "set_number": 1,
+            "rest_seconds": 180
+          },
+          {
+            "rir": "2",
+            "reps": "8-12",
+            "set_number": 2,
+            "rest_seconds": 180
+          },
+          {
+            "rir": "2",
+            "reps": "8-12",
+            "set_number": 3,
+            "rest_seconds": 180
+          }
+        ],
+        "prescription": {
+          "rir": "2",
+          "reps": "8-12",
+          "sets": 3,
+          "rest_seconds": 180
+        },
+        "prescription_format": "legacy_uniform_projection"
+      },
+      {
+        "ref": "exercise_3",
+        "day_ref": "day_2",
+        "metrics": {
+          "trend": "reps_increasing_comparable",
+          "method": "Last three exposures: same set count, same per-set load and RIR; compare total reps only. Descriptive, no causal inference.",
+          "exposures": 4,
+          "recorded_sets": 12
+        },
+        "exposures": [
+          {
+            "date": "2026-10-03",
+            "sets": [
+              {
+                "kg": 20,
+                "rir": 2,
+                "reps": 11
+              },
+              {
+                "kg": 20,
+                "rir": 2,
+                "reps": 11
+              },
+              {
+                "kg": 20,
+                "rir": 2,
+                "reps": 11
+              }
+            ]
+          },
+          {
+            "date": "2026-09-26",
+            "sets": [
+              {
+                "kg": 20,
+                "rir": 2,
+                "reps": 10
+              },
+              {
+                "kg": 20,
+                "rir": 2,
+                "reps": 10
+              },
+              {
+                "kg": 20,
+                "rir": 2,
+                "reps": 10
+              }
+            ]
+          },
+          {
+            "date": "2026-09-19",
+            "sets": [
+              {
+                "kg": 20,
+                "rir": 2,
+                "reps": 9
+              },
+              {
+                "kg": 20,
+                "rir": 2,
+                "reps": 9
+              },
+              {
+                "kg": 20,
+                "rir": 2,
+                "reps": 9
+              }
+            ]
+          },
+          {
+            "date": "2026-09-12",
+            "sets": [
+              {
+                "kg": 20,
+                "rir": 2,
+                "reps": 8
+              },
+              {
+                "kg": 20,
+                "rir": 2,
+                "reps": 8
+              },
+              {
+                "kg": 20,
+                "rir": 2,
+                "reps": 8
+              }
+            ]
+          }
+        ],
+        "catalogue_id": "goblet",
+        "planned_sets": [
+          {
+            "rir": "2",
+            "reps": "8-12",
+            "set_number": 1,
+            "rest_seconds": 240
+          },
+          {
+            "rir": "2",
+            "reps": "8-12",
+            "set_number": 2,
+            "rest_seconds": 240
+          },
+          {
+            "rir": "2",
+            "reps": "8-12",
+            "set_number": 3,
+            "rest_seconds": 240
+          }
+        ],
+        "prescription": {
+          "rir": "2",
+          "reps": "8-12",
+          "sets": 3,
+          "rest_seconds": 240
+        },
+        "prescription_format": "legacy_uniform_projection"
+      },
+      {
+        "ref": "exercise_4",
+        "day_ref": "day_2",
+        "metrics": {
+          "trend": "reps_increasing_comparable",
+          "method": "Last three exposures: same set count, same per-set load and RIR; compare total reps only. Descriptive, no causal inference.",
+          "exposures": 4,
+          "recorded_sets": 12
+        },
+        "exposures": [
+          {
+            "date": "2026-10-03",
+            "sets": [
+              {
+                "kg": 20,
+                "rir": 2,
+                "reps": 11
+              },
+              {
+                "kg": 20,
+                "rir": 2,
+                "reps": 11
+              },
+              {
+                "kg": 20,
+                "rir": 2,
+                "reps": 11
+              }
+            ]
+          },
+          {
+            "date": "2026-09-26",
+            "sets": [
+              {
+                "kg": 20,
+                "rir": 2,
+                "reps": 10
+              },
+              {
+                "kg": 20,
+                "rir": 2,
+                "reps": 10
+              },
+              {
+                "kg": 20,
+                "rir": 2,
+                "reps": 10
+              }
+            ]
+          },
+          {
+            "date": "2026-09-19",
+            "sets": [
+              {
+                "kg": 20,
+                "rir": 2,
+                "reps": 9
+              },
+              {
+                "kg": 20,
+                "rir": 2,
+                "reps": 9
+              },
+              {
+                "kg": 20,
+                "rir": 2,
+                "reps": 9
+              }
+            ]
+          },
+          {
+            "date": "2026-09-12",
+            "sets": [
+              {
+                "kg": 20,
+                "rir": 2,
+                "reps": 8
+              },
+              {
+                "kg": 20,
+                "rir": 2,
+                "reps": 8
+              },
+              {
+                "kg": 20,
+                "rir": 2,
+                "reps": 8
+              }
+            ]
+          }
+        ],
+        "catalogue_id": "db_curl",
+        "planned_sets": [
+          {
+            "rir": "2",
+            "reps": "8-12",
+            "set_number": 1,
+            "rest_seconds": 180
+          },
+          {
+            "rir": "2",
+            "reps": "8-12",
+            "set_number": 2,
+            "rest_seconds": 180
+          },
+          {
+            "rir": "2",
+            "reps": "8-12",
+            "set_number": 3,
+            "rest_seconds": 180
+          }
+        ],
+        "prescription": {
+          "rir": "2",
+          "reps": "8-12",
+          "sets": 3,
+          "rest_seconds": 180
+        },
+        "prescription_format": "legacy_uniform_projection"
+      }
+    ]
+  },
+  "mesocycle": {
+    "week": 1,
+    "number": 1,
+    "objective": "balanced",
+    "planned_weeks": 6,
+    "current_revision": 1
+  },
+  "schema_version": "premium-provider-v1",
+  "weekly_summary": [
+    {
+      "week": "2026-09-07",
+      "recorded_sessions": 2
+    },
+    {
+      "week": "2026-09-14",
+      "recorded_sessions": 2
+    },
+    {
+      "week": "2026-09-21",
+      "recorded_sessions": 2
+    },
+    {
+      "week": "2026-09-28",
+      "recorded_sessions": 2
+    }
+  ],
+  "allowed_replacements": [
+    {
+      "id": "body_squat",
+      "name": "Sentadilla con peso corporal",
+      "group": "knee",
+      "requires": []
+    },
+    {
+      "id": "reverse_lunge",
+      "name": "Zancada atrás",
+      "group": "knee",
+      "requires": []
+    },
+    {
+      "id": "glute_bridge",
+      "name": "Puente de glúteos",
+      "group": "hip",
+      "requires": []
+    },
+    {
+      "id": "pushup",
+      "name": "Flexiones",
+      "group": "push",
+      "requires": []
+    },
+    {
+      "id": "knee_pushup",
+      "name": "Flexiones de rodillas",
+      "group": "push",
+      "requires": []
+    },
+    {
+      "id": "dead_bug",
+      "name": "Dead bug",
+      "group": "core",
+      "requires": []
+    },
+    {
+      "id": "bird_dog",
+      "name": "Bird dog",
+      "group": "core",
+      "requires": []
+    },
+    {
+      "id": "calf_raise",
+      "name": "Elevación de talones",
+      "group": "calf",
+      "requires": []
+    },
+    {
+      "id": "goblet",
+      "name": "Sentadilla goblet",
+      "group": "knee",
+      "requires": [
+        "dumbbells"
+      ]
+    },
+    {
+      "id": "db_rdl",
+      "name": "Peso muerto rumano con mancuernas",
+      "group": "hip",
+      "requires": [
+        "dumbbells"
+      ]
+    },
+    {
+      "id": "db_row",
+      "name": "Remo con mancuerna",
+      "group": "pull",
+      "requires": [
+        "dumbbells"
+      ]
+    },
+    {
+      "id": "floor_press",
+      "name": "Press de suelo con mancuernas",
+      "group": "push",
+      "requires": [
+        "dumbbells"
+      ]
+    },
+    {
+      "id": "db_shoulder",
+      "name": "Press de hombros con mancuernas",
+      "group": "push",
+      "requires": [
+        "dumbbells"
+      ]
+    },
+    {
+      "id": "db_lateral",
+      "name": "Elevaciones laterales",
+      "group": "shoulder",
+      "requires": [
+        "dumbbells"
+      ]
+    },
+    {
+      "id": "db_curl",
+      "name": "Curl con mancuernas",
+      "group": "arms",
+      "requires": [
+        "dumbbells"
+      ]
+    },
+    {
+      "id": "band_row",
+      "name": "Remo con banda",
+      "group": "pull",
+      "requires": [
+        "bands"
+      ]
+    },
+    {
+      "id": "band_curl",
+      "name": "Curl con banda",
+      "group": "arms",
+      "requires": [
+        "bands"
+      ]
+    }
+  ],
+  "history_context_version": "premium-history-context-v1"
+}

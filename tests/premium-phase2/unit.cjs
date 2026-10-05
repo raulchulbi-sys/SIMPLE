@@ -1,0 +1,36 @@
+const assert=require('assert/strict'),fs=require('fs'),path=require('path');
+let rows=[];function test(name,f){f();rows.push({name,pass:true});}
+(async()=>{const C=await import('../../supabase/functions/simple-coach-premium/contract.mjs');
+ const ctx={schema_version:'premium-provider-v1',intake:{experience:'gt4'},routine:{days:[{ref:'day_1'},{ref:'day_2'}],exercises:[{ref:'exercise_1',day_ref:'day_1',catalogue_id:'db_row',prescription:{sets:3,reps:'8-12',rir:'2',rest_seconds:180},metrics:{trend:'stable_comparable'}}]},allowed_replacements:[{id:'db_curl'}]};
+ const valid={schema_version:C.SCHEMA_VERSION,kind:'KEEP',facts:[{exercise_ref:'exercise_1',claim:'stable_comparable'}],interpretation:'Rendimiento estable.',reason:'Mantener sin forzar cambios.',confidence:'medium',changes:[]};
+ const mutate=f=>{const v=structuredClone(valid);f(v);return v;};
+ test('KEEP valid and no empty changes',()=>assert(C.semantic(valid,ctx).ok));
+ test('strict extra field',()=>assert(!C.validate({...valid,user_id:'x'})));
+ test('unsupported factual claim',()=>assert(!C.semantic(mutate(v=>v.facts[0].claim='reps_increasing_comparable'),ctx).ok));
+ test('foreign target',()=>assert(!C.semantic(mutate(v=>v.facts[0].exercise_ref='other'),ctx).ok));
+ const modification=(action,from,to)=>mutate(v=>{v.kind='MODIFY';v.changes=[{action,exercise_ref:'exercise_1',from,to}];});
+ test('small set reduction',()=>assert(C.semantic(modification('change_sets',3,2),ctx).ok));
+ test('stale from',()=>assert(!C.semantic(modification('change_sets',4,3),ctx).ok));
+ test('large volume rejected',()=>assert(!C.semantic(modification('change_sets',3,6),ctx).ok));
+ test('unknown action rejected',()=>assert(!C.semantic(modification('sql_update',3,2),ctx).ok));
+ test('reversed rep range',()=>assert(!C.semantic(modification('change_reps','8-12','15-8'),ctx).ok));
+ test('duplicate patches rejected',()=>{const v=modification('change_sets',3,2);v.changes.push(v.changes[0]);assert(!C.semantic(v,ctx).ok);});
+ test('unmapped current UUID is descriptive only',()=>{const c=structuredClone(ctx);c.routine.exercises[0].catalogue_id=null;assert(!C.semantic(modification('change_sets',3,2),c).ok);});
+ test('beginner failure rejected',()=>assert(!C.semantic(modification('change_rir','2','0'),{...ctx,intake:{experience:'lt6'}}).ok));
+ test('rest warning does not block',()=>{const q=C.semantic(modification('change_rest',180,30),ctx);assert(q.ok&&q.warnings.some(w=>w.startsWith('rest_below_demand')));});
+ test('REVIEW cannot contain changes',()=>assert(!C.semantic({...modification('change_sets',3,2),kind:'REVIEW'},ctx).ok));
+ test('replacement equipment allowlist',()=>{const v=mutate(v=>{v.kind='MODIFY';v.changes=[{action:'replace_exercise',exercise_ref:'exercise_1',from_catalogue_id:'db_row',to_catalogue_id:'bar_squat'}];});assert(!C.semantic(v,ctx).ok);});
+ test('replacement safe catalogue',()=>{const v=mutate(v=>{v.kind='MODIFY';v.changes=[{action:'replace_exercise',exercise_ref:'exercise_1',from_catalogue_id:'db_row',to_catalogue_id:'db_curl'}];});assert(C.semantic(v,ctx).ok);});
+ test('distribution own days',()=>{const v=mutate(v=>{v.kind='MODIFY';v.changes=[{action:'change_distribution',exercise_ref:'exercise_1',from_day_ref:'day_1',to_day_ref:'day_other'}];});assert(!C.semantic(v,ctx).ok);});
+ test('no diagnosis',()=>assert(!C.semantic({...valid,interpretation:'Diagnóstico de enfermedad.'},ctx).ok));
+ test('weak point is not automatic growth rule',()=>assert(C.PROMPT.includes('No convertir puntos débiles')));
+ test('KEEP first class explicit prompt',()=>assert(C.PROMPT.includes('KEEP es una decisión de primera clase')));
+ test('strict Responses request',()=>{const b=C.requestBody(ctx);assert.equal(b.model,'gpt-5.4-2026-03-05');assert.equal(b.store,false);assert(b.text.format.strict);assert.equal(b.max_output_tokens,1800);});
+ test('documented usage cost',()=>assert.equal(C.cost({input_tokens:1000,output_tokens:100,input_tokens_details:{cached_tokens:0}}),.004));
+ for(const status of [429,500,400]){let n=0;const r=await C.analyze(ctx,'TEST_KEY',async()=>{n++;return new Response('{}',{status});});test('one dispatch no retry '+status,()=>assert(n===1&&r.error));}
+ const completed={status:'completed',usage:{input_tokens:1000,output_tokens:100,input_tokens_details:{cached_tokens:0}},output:[{type:'message',content:[{type:'output_text',text:JSON.stringify(valid)}]}]};
+ const good=await C.analyze(ctx,'TEST_KEY',async()=>new Response(JSON.stringify(completed)));test('mock provider validates and meters',()=>assert(!good.error&&good.receipt.cost_usd===.004));
+ const bad=await C.analyze(ctx,'TEST_KEY',async()=>new Response(JSON.stringify({...completed,status:'incomplete'})));test('incomplete not persisted as valid',()=>assert.equal(bad.error,'provider_incomplete'));
+ const refused=await C.analyze(ctx,'TEST_KEY',async()=>new Response(JSON.stringify({...completed,output:[{type:'message',content:[{type:'refusal'}]}]})));test('refusal safe',()=>assert(refused.error));
+ const out=path.join(__dirname,'results');fs.mkdirSync(out,{recursive:true});fs.writeFileSync(path.join(out,'unit.json'),JSON.stringify({passed:rows.length,total:rows.length,rows},null,2));console.log(rows.length+'/'+rows.length+' Phase 2 unit checks');
+})().catch(e=>{console.error(e.message);process.exitCode=1;});

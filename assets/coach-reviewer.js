@@ -2,12 +2,24 @@
 async function renderCoachReviewerEntry(){
  if(!coachEnabled()||!user)return;
  const owner=user.id,old=$('coachReviewerEntry');if(old)old.remove();
+ await renderPremiumCoachReviewerEntry(owner);if(owner!==user?.id)return;
  try{const allowed=await coachCall('get_coach_reviewer_access',{});if(!allowed||owner!==user?.id)return;
  $('coachReviewerEntry')?.remove();
  const host=document.createElement('div');host.id='coachReviewerEntry';host.className='card';host.innerHTML='<button data-keep-enabled="true" class="btn" type="button">SIMPLE Coach · Revisiones</button>';
  host.querySelector('button').onclick=openCoachReviewer;
  (profile?.role==='client'?$('shared'):$('app')).append(host);
  }catch(_){/* A capability failure never grants reviewer access. */}
+}
+async function renderPremiumCoachReviewerEntry(owner){
+ $('premiumCoachReviewerEntry')?.remove();if(!coachEnabled()||profile?.role!=='trainer'||owner!==user?.id)return;
+ try{
+  const result=await db.from('coach_mesocycles').select('id,number,state').eq('reviewer_id',owner).in('state',['draft','active']).order('created_at',{ascending:false});
+  if(result.error||owner!==user?.id||!coachEnabled()||!(result.data||[]).length)return;
+  const host=document.createElement('div');host.id='premiumCoachReviewerEntry';host.className='card';
+  const title=document.createElement('h3');title.textContent='Seguimiento Premium · Revisiones';host.append(title);
+  for(const item of result.data){const row=document.createElement('div'),reference=document.createElement('p'),button=document.createElement('button');reference.className='muted';reference.textContent='Mesociclo '+item.id;button.type='button';button.className='btn';button.dataset.keepEnabled='true';button.dataset.premiumMesocycle=item.id;button.textContent='Revisar seguimiento Premium';button.setAttribute('aria-label','Revisar seguimiento Premium · mesociclo '+item.id);button.onclick=()=>openPremiumCoach({mesocycleId:item.id});row.append(reference,button);host.append(row);}
+  $('premiumCoachReviewerEntry')?.remove();$('app').append(host);
+ }catch(_){/* Read failures and absent pre-Premium schema never grant access. */}
 }
 async function openCoachReviewer(){
  if(!coachEnabled())return;const owner=user?.id,epoch=++simpleCoach.epoch;

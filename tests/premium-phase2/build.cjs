@@ -1,0 +1,12 @@
+const fs=require('fs'),path=require('path');
+const base=fs.readFileSync(path.join(__dirname,'../premium-phase1/template.sql'),'utf8').replaceAll('\r\n','\n');
+const extract=name=>{const at=base.indexOf('create function '+name+'('),end=base.indexOf('end $$;',at);if(at<0||end<0)throw Error(name);return base.slice(at,end+7);};
+let h=extract('coach_private.premium_history').replace('premium_history(','premium_history_context(').replace('ex jsonb;summary jsonb;','ex jsonb;summary jsonb;cfg jsonb:=(select history_config from coach_private.premium_analysis_budget where id);');
+for(const [a,b]of [['current_date-56',"current_date-(cfg->>'window_days')::int"],['limit 112',"limit (cfg->>'sessions')::int"],['limit 40',"limit (cfg->>'exercises')::int"],['limit 4',"limit (cfg->>'exposures')::int"],['n<=12',"n<=(cfg->>'sets')::int"],['\'schema_version\',\'premium-history-v1\'',"'schema_version','premium-history-v1','history_context_version',cfg->'version'"],["jsonb_build_object('exposures',4,'window_days',56,'sessions',112,'exercises',40,'sets',12)","cfg-'version'"]])h=h.replaceAll(a,b);
+const accept=extract('public.premium_accept_recommendation').replace('public.premium_accept_recommendation','coach_private.premium_accept_phase1').replace(",md5(s::text),'mock',u",",md5(s::text),case when c.analysis_trace->>'model'='gpt-5.4-2026-03-05' then 'model' else 'mock' end,u").replace('and planned_date+6>=current_date;','and planned_date+6>=current_date and c.analysis_week is null;');
+let sql=fs.readFileSync(path.join(__dirname,'template.sql'),'utf8').replaceAll('\r\n','\n').replace('__HISTORY__',()=>h).replace('__ACCEPT_ORIGINAL__',()=>accept);
+fs.mkdirSync(path.join(__dirname,'private'),{recursive:true});fs.writeFileSync(path.join(__dirname,'private/candidate.sql'),sql);
+const dest=path.join(__dirname,'../../supabase/migrations/20261003081835_coach_premium_analysis.sql');fs.writeFileSync(dest,sql);console.log('Generated Phase 2 migration from Phase 1 implementations.');
+let rollback=fs.readFileSync(path.join(__dirname,'rollback-template.sql'),'utf8').replaceAll('\r\n','\n');
+for(const [key,name]of [['__RESTORE_PROVIDER__','public.premium_provider_context'],['__RESTORE_ACCEPT__','public.premium_accept_recommendation']])rollback=rollback.replace(key,()=>extract(name).replace('create function','create or replace function'));
+fs.writeFileSync(path.join(__dirname,'rollback.sql'),rollback);
