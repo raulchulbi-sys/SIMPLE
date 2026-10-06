@@ -10,7 +10,7 @@ let checks=0;const check=(name,ok)=>{assert(ok,name);checks++;};
  check('unknown previous withheld',api.previous(rows,'a','r').length===0);
  let state=stage,calls=[];const db={rpc:async(name,args)=>{calls.push({name,args});return {data:state,error:null};}};
  await api.read(db,'a','r');check('previous excludes old',api.previous(rows,'a','r').length===1);check('another client isolated',api.previous(rows,'b','r').length===0);check('another routine isolated',api.previous(rows,'a','other').length===0);
- await api.cycle(db,'a','r');check('reset routes to new cycle RPC',calls.at(-1).name==='get_client_routine_stage_cycle_progress');state=empty;await api.cycle(db,'a','r');check('no reset uses original cycle RPC',calls.at(-1).name==='get_client_routine_cycle_progress');
+ await api.cycle(db,'a','r');check('reset uses assignment-aware cycle RPC',calls.at(-1).name==='get_client_custom_routine_cycle_progress');state=empty;await api.cycle(db,'a','r');check('no reset uses same assignment-aware cycle RPC',calls.at(-1).name==='get_client_custom_routine_cycle_progress');
  await api.read(db,'a','r',()=>false);check('stale read returns null',await api.read(db,'a','r',()=>false)===null);
  for(const value of [null,[],{}, {id:stage.id,started_at:null},{id:stage.id,started_at:'invalid'}]){try{api.filter(rows,value);throw Error('expected invalid');}catch(e){check('invalid stage fails closed',e.message==='statistics_invalid_stage');}}
  try{await api.read({rpc:async()=>({error:Error('network')})},'a','r');throw Error('expected network');}catch(e){check('network errors propagate',e.message==='network');}

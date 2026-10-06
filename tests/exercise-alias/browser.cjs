@@ -11,6 +11,7 @@ const results=[];
  const browser=await(engine==='webkit'?webkit:chromium).launch({headless:true,...(engine==='chromium'?{channel:'msedge'}:{})});
  try{
   const p=await browser.newPage({viewport:{width,height:844}}),errors=[];
+  await p.clock.install({time:new Date('2026-09-07T12:00:00Z')});
   p.on('pageerror',e=>errors.push(e.message));
   await p.route('**/*',r=>r.request().url()==='http://simple.test/'?r.fulfill({body:html,contentType:'text/html'}):r.request().url().includes('cdn.jsdelivr')?r.fulfill({body:stub,contentType:'application/javascript'}):r.abort());
   await p.goto('http://simple.test/');
@@ -30,7 +31,7 @@ const results=[];
     activeWorkout={day:structuredClone(D),historyDays:structuredClone(f.days),exercises:structuredClone(f.exercises),sets:{}};
     window.workoutHistory=[structuredClone(f.session)];simpleLocalDateKey=()=> '2026-09-07';
    };
-   reset();
+   reset();await simpleStatisticsStage.read(db,U,R);
    for(const [oldId,id] of pairs){
     const expected=f.session.data.exercises.find(e=>e.exercise_id===oldId),prev=getPreviousExerciseSession(id);
     test(id+': only confirmed historical UUID',prev?.exercise.exercise_id,oldId);

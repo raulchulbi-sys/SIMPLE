@@ -1,0 +1,58 @@
+const fs=require('fs'),path=require('path'),assert=require('assert/strict');
+process.env.PLAYWRIGHT_BROWSERS_PATH='C:/Users/raulc/Documents/Codex/2026-09-07/quiero-que-realices-una-auditor-a/work/pw-browsers';
+const {chromium,webkit}=require('C:/Users/raulc/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const base='http://127.0.0.1:4260/',out=path.join(__dirname,'results'),results=[],id=n=>'00000000-0000-4000-8000-'+String(n).padStart(12,'0');fs.mkdirSync(out,{recursive:true});
+(async()=>{for(const [engine,type] of [['chromium',chromium],['webkit',webkit]]){
+ const browser=await type.launch({headless:true,...(engine==='chromium'?{channel:'msedge'}:{})});try{for(const width of [390,1280]){
+ const context=await browser.newContext({viewport:{width,height:844}}),page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.route('**/*',r=>r.request().url().startsWith(base)?r.continue():r.abort());
+ const check=(name,ok)=>{assert(ok,engine+' '+width+' '+name);results.push({engine,width,name,pass:true});};
+ const go=async role=>{await page.goto(base+'?role='+role);await page.waitForFunction(()=>window.previewReady);};
+ const open=async p=>{await p.evaluate(([c,r])=>editClientAssignedRoutine(c,r,'Original'),[id(2),id(10)]);await p.getByRole('button',{name:'Editar sesión',exact:true}).first().click();};
+ const save=async()=>{await page.getByRole('button',{name:'Guardar cambios',exact:true}).click();await page.waitForFunction(()=>!window.__routineSaving);};
+ const persisted=()=>page.evaluate(([c,r])=>JSON.parse(localStorage.getItem('synthetic-client-structure:'+c+':'+r)),[id(2),id(10)]);
+ await go('trainer');
+ const original=await page.evaluate(()=>JSON.stringify([mock.tables.routines,mock.tables.routine_days,mock.tables.routine_exercises,mock.tables.workouts,mock.tables.routine_user_notes]));
+ const other=await page.evaluate(([c,r])=>simpleClientRoutine.read(db,c,r),[id(4),id(10)]);
+ await open(page);
+ check('client editor uses assignment read',await page.evaluate(()=>mock.calls.some(c=>c.rpc==='get_client_routine_structure')));
+ await page.locator('#daysEditor input[onchange*="\'target\'"]').first().fill('17-19');
+ await page.locator('#daysEditor input[onchange*="\'sets\'"]').first().fill('5');
+ await page.locator('#daysEditor input[onchange*="\'rir\'"]').first().fill('0');
+ await page.locator('#daysEditor input[onchange*="\'rest_seconds\'"]').first().fill('3.5');
+ await page.evaluate(()=>{mock.clientDelay=80;const b=[...document.querySelectorAll('#editModal button')].find(b=>b.textContent==='Guardar cambios');b.click();b.click();});
+ await page.waitForFunction(()=>!window.__routineSaving);
+ let s=await persisted(),e=s.days[0].exercises[0];
+ check('edited values persist after readback',e.target==='17-19'&&e.sets===5&&e.rir==='0'&&e.rest_seconds===210);
+ check('double click submits once',await page.evaluate(()=>mock.calls.filter(c=>c.rpc==='save_client_routine_structure').length===1));
+ check('client editor never calls template save',await page.evaluate(()=>!mock.calls.some(c=>c.rpc==='save_routine_atomic')));
+ check('template history and notes remain exact',await page.evaluate(()=>JSON.stringify([mock.tables.routines,mock.tables.routine_days,mock.tables.routine_exercises,mock.tables.workouts,mock.tables.routine_user_notes]))===original);
+ check('other client remains exact',JSON.stringify(await page.evaluate(([c,r])=>simpleClientRoutine.read(db,c,r),[id(4),id(10)]))===JSON.stringify(other));
+ await go('trainer');await open(page);check('reload and reopen read client values',await page.locator('#daysEditor input[onchange*="\'target\'"]').first().inputValue()==='17-19');
+ await page.locator('#daysEditor input[onchange*="\'target\'"]').first().fill('21-23');
+ await page.evaluate(()=>moveEditorExercise(0,0,0,2));await page.waitForFunction(()=>!__editorOrderSaving);
+ check('reorder advances client version without losing pending field',await page.evaluate(()=>editDays[0].exercises[1].id===mock.tables.routine_exercises[0].id&&editDays[0].exercises[1].target==='21-23'));
+ await save();s=await persisted();check('save after reorder remains field patch',s.days[0].exercises[1].target==='21-23'&&await page.evaluate(()=>mock.calls.filter(c=>c.rpc==='save_client_routine_structure').at(-1).args.p_days.mode==='field_patch_v1'));
+ await open(page);await page.evaluate(()=>{editDays[0].exercises.push({id:null,name:'Client-only added exercise',sets:2,target:'11-13',rir:null,rest_seconds:0,notes:''});renderClientRoutineDayEditor(0);});await save();s=await persisted();
+ const added=s.days[0].exercises[2];check('added exercise has persistent UUID and exact null empty zero',!!added.id&&added.rir===null&&added.notes===''&&added.rest_seconds===0);
+ await open(page);await page.evaluate(()=>{editDays[0].exercises.splice(0,1);renderClientRoutineDayEditor(0);});await save();s=await persisted();check('client-only deletion preserves template count',s.days[0].exercises.length===2&&await page.evaluate(()=>mock.tables.routine_exercises.filter(e=>e.day_id===mock.tables.routine_days[0].id).length===2));
+ // Two actual browser tabs over the same synthetic persistence; SQL suite checks real storage/CAS separately.
+ await open(page);const tab=await context.newPage();await tab.goto(base+'?role=trainer');await tab.waitForFunction(()=>window.previewReady);await open(tab);
+ await page.locator('#daysEditor input[onchange*="\'target\'"]').first().fill('31-33');await save();
+ await tab.locator('#daysEditor input[onchange*="\'target\'"]').first().fill('99-100');await tab.getByRole('button',{name:'Guardar cambios',exact:true}).click();await tab.waitForFunction(()=>!window.__routineSaving);
+ check('stale tab cannot overwrite newer prescription',(await persisted()).days[0].exercises[0].target==='31-33'&&await tab.locator('#editModal').evaluate(e=>e.classList.contains('show')));await tab.close();
+ await open(page);await page.evaluate(()=>mock.clientDelay=180);const pending=page.evaluate(()=>openRoutineEditor('00000000-0000-4000-8000-000000000010',{clientId:'00000000-0000-4000-8000-000000000002'}));
+ await new Promise(r=>setTimeout(r,30));await page.evaluate(()=>closeM('editModal'));await pending;
+ check('closed editor ignores late read',await page.locator('#editModal').evaluate(e=>!e.classList.contains('show')));
+ await go('client');await page.evaluate(r=>openSharedRoutine(r),id(10));await page.getByRole('button',{name:'Ver sesión',exact:true}).first().click();
+ check('athlete session overview loads customized values',await page.locator('.session-overview').innerText().then(t=>t.includes('31-33')&&t.includes('Client-only added exercise')));
+ await page.screenshot({path:path.join(out,engine+'-'+width+'-client-overview.png')});
+ await page.getByRole('button',{name:'Entrenar',exact:true}).click();
+ check('athlete training uses customized UUID prescription',await page.evaluate(()=>activeWorkout.exercises[0].target==='31-33'&&activeWorkout.exercises.length===2&&activeWorkout.exercises[1].name==='Client-only added exercise'));
+ check('training preserves routine and exercise identity',await page.evaluate(([r,e])=>workoutRoutine.id===r&&activeWorkout.exercises[0].id===e,[id(10),id(160)]));
+ await page.evaluate(()=>closeM('trainModal'));await page.evaluate(()=>mock.clientReadError=true);await page.evaluate(r=>openSharedRoutine(r),id(10));
+ check('failed client read never falls back to template',await page.locator('#trainModal').evaluate(e=>!e.classList.contains('show')));
+ check('no unexpected browser errors',errors.length===0);await context.close();
+ }}finally{await browser.close();}}
+ fs.writeFileSync(path.join(out,'browser.json'),JSON.stringify(results,null,2));console.log(results.length+'/'+results.length+' browser checks');
+})().catch(e=>{console.error(e);fs.writeFileSync(path.join(out,'browser.json'),JSON.stringify(results,null,2));process.exitCode=1;});

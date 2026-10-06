@@ -25,7 +25,7 @@
   return (rows||[]).filter(row=>{const at=instant(row.created_at);return at!==null&&at>=start;});
  }
  function previous(rows,client,routine){const stage=stages.get(key(client,routine));return stage?filter(rows,stage):[];}
- async function cycle(db,client,routine){const stage=await read(db,client,routine);return db.rpc(stage.id?'get_client_routine_stage_cycle_progress':'get_client_routine_cycle_progress',{p_client_id:String(client),p_routine_id:String(routine)});}
+ async function cycle(db,client,routine){await read(db,client,routine);return db.rpc('get_client_custom_routine_cycle_progress',{p_client_id:String(client),p_routine_id:String(routine)});}
  let busy=false;
  async function reset(db,client,routine,stage,requestId){
   if(busy)throw Error('statistics_reset_busy');validate(stage);busy=true;

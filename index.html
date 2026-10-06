@@ -5,6 +5,7 @@
 <title>SIMPLE</title>
 <script src="assets/theme.js"></script>
 <script src="assets/statistics-stage.js"></script>
+<script src="assets/client-routine.js"></script>
 <style>
 @layer simple-legacy {
 
@@ -3732,10 +3733,10 @@ async function openRoutineEditor(routineId,{clientId=null,routineName='',clientN
     assignmentId=a.data.id;
     }
 
-    const [routineResult,daysResult]=await Promise.all([
-      clientId&&routines.find(x=>String(x.id)===String(routineId))
-        ? Promise.resolve({data:routines.find(x=>String(x.id)===String(routineId)),error:null})
-        : db.from('routines').select('id,name,description').eq('id',routineId).eq('owner_id',ownerId).is('deleted_at',null).maybeSingle(),
+    const clientStructure=clientId?await simpleClientRoutine.read(db,clientId,routineId):null;
+    if(!isCurrent())return;
+    const [routineResult,daysResult]=clientStructure?[{data:clientStructure},clientStructure.days]:await Promise.all([
+      db.from('routines').select('id,name,description').eq('id',routineId).eq('owner_id',ownerId).is('deleted_at',null).maybeSingle(),
       days(routineId)
     ]);
     if(!isCurrent())return;
@@ -3745,7 +3746,7 @@ async function openRoutineEditor(routineId,{clientId=null,routineName='',clientN
 
     editDays=daysResult;
     editorDragCleanup();
-    window.__clientRoutineEdit={clientId,routineId,assignmentId,context:clientId?'client':'library',reorder:false,dayIndex:null,originalRoutine:{name:r.name,description:r.description},
+    window.__clientRoutineEdit={clientId,routineId,assignmentId,clientVersion:clientStructure?.version,context:clientId?'client':'library',reorder:false,dayIndex:null,originalRoutine:{name:r.name,description:r.description},
       initialSnapshot:JSON.stringify([r.name||routineName||'Rutina',r.description||'',editDays])};
 
     $('editor').innerHTML=`
@@ -4127,8 +4128,7 @@ function backToClientRoutineSessions(){
 async function saveClientRoutineEditor(){
   if(!window.__clientRoutineEdit?.routineId)return;
   const state=window.__clientRoutineEdit;
-  // saveEditor() is the single persistence path, so both trainer-owned
-  // routines and client-assigned routines use identical database semantics.
+  // The same editor routes library and client edits to separate persistence scopes.
   await saveEditor(state.routineId);
 }
 
@@ -4186,7 +4186,7 @@ async function openClientRoutineProgress(clientId,routineId,routineName){
 
     subtitle.textContent=`${sessions.length} sesión${sessions.length===1?'':'es'} registrada${sessions.length===1?'':'s'}`;
     let orderedRoutineDays=[];
-    try{ orderedRoutineDays=await days(routineId); }
+    try{ orderedRoutineDays=await days(routineId,clientId); }
     catch(e){ console.warn('No se pudo cargar el orden de los días:',e); }
 
     if(!isCurrent())return;
@@ -4313,6 +4313,10 @@ function clientLastSessionLabel(dateKey){
 async function loadClientRoutineOverview(clientId,item){
   const unavailable=clientRoutineAvailability(item);
   if(unavailable)return {unavailable};
+  if(!item.assignment?.client_routine_id){
+    try{const structure=await simpleClientRoutine.read(db,clientId,item.routine.id);item.routine={...item.routine,name:structure.name,description:structure.description};}
+    catch(_){return {unavailable:'No se pudo cargar la rutina del cliente.'};}
+  }
   const args={p_client_id:String(clientId),p_routine_id:String(item.routine.id)};
   const [cycle,last]=await Promise.allSettled([
     readRoutineCycleProgress(clientId,item.routine.id),
@@ -4855,7 +4859,9 @@ async function createRoutine(){
   }catch(e){console.error('createRoutine:',e);toast('No se pudo guardar la rutina')}
   finally{window.__routineSaving=false}
 }
-async function days(id){
+async function days(id,clientId=null){
+  const assignedClient=clientId||(profile?.role==='client'&&(assignments||[]).some(a=>String(a.trainer_routine_id)===String(id)&&!a.client_routine_id&&!a.client_deleted_at)?user.id:null);
+  if(assignedClient)return (await simpleClientRoutine.read(db,assignedClient,id)).days;
   const d=await db.from('routine_days').select('id,name,day_order').eq('routine_id',id).order('day_order');
   if(d.error)throw d.error;
   const rows=d.data||[];
@@ -5009,25 +5015,8 @@ function dropDayAt(e,targetIndex){
 }
 
 async function persistClientSessionOrder(){
-  const state=window.__clientRoutineEdit;
-  if(!state?.routineId||profile?.role!=='trainer')return false;
-  try{
-    const ids=editDays.filter(d=>d.id).map(d=>String(d.id));
-    if(!ids.length)throw new Error('No hay sesiones guardables.');
-    const saved=await db.rpc('reorder_my_routine_days_atomic',{p_routine_id:String(state.routineId),p_day_ids:ids});
-    if(saved.error)throw saved.error;
-    const verify=await db.from('routine_days').select('id,day_order').eq('routine_id',state.routineId).order('day_order',{ascending:true});
-    if(verify.error)throw verify.error;
-    const actual=(verify.data||[]).map(x=>String(x.id));
-    if(actual.join('|')!==ids.join('|'))throw new Error('El orden de sesiones no coincide con la base de datos.');
-    editDays=editDays.map((d,i)=>({...d,day_order:i}));
-    toast('Orden de sesiones guardado automáticamente');
-    return true;
-  }catch(err){
-    console.error('persistClientSessionOrder:',err);
-    toast('No se pudo guardar el orden de las sesiones');
-    return false;
-  }
+  if(!window.__clientRoutineEdit?.routineId||profile?.role!=='trainer')return false;
+  return persistEditorOrder(JSON.parse(JSON.stringify(editDays)),'day');
 }
 
 function dragEndItem(){
@@ -5252,7 +5241,7 @@ async function saveEditor(id){
         notes:e.notes??null
       }))
     }));
-    const q=await db.rpc('save_routine_atomic',{
+    const saveArgs={
       p_routine_id:id,
       p_name:context&&$('en').value===JSON.parse(context.initialSnapshot)[0]?(context.originalRoutine?.name??name):name,
       p_description:context&&$('ed').value===JSON.parse(context.initialSnapshot)[1]?(context.originalRoutine?.description??null):description,
@@ -5261,16 +5250,22 @@ async function saveEditor(id){
         description:context.originalRoutine?.description??null,
         days:JSON.parse(context.initialSnapshot)[2]
       },days:daysPayload}:daysPayload)
-    });
+    };
+    const clientEdit=context?.context==='client';
+    const q=clientEdit?{data:await simpleClientRoutine.save(db,context,saveArgs)}:
+      await db.rpc('save_routine_atomic',{...saveArgs,p_days:{...saveArgs.p_days,scope:'library'}});
     if(!isCurrent())return;
     if(q.error)throw q.error;
     if(context){
-      const [verified,verifiedDays]=await Promise.all([
+      const clientVerify=clientEdit?await simpleClientRoutine.read(db,context.clientId,id):null;
+      if(!isCurrent())return;
+      const [verified,verifiedDays]=clientVerify?[{data:clientVerify},clientVerify.days]:await Promise.all([
         db.from('routines').select('id,name,description').eq('id',id).eq('owner_id',ownerId).is('deleted_at',null).single(),days(id)
       ]);
       if(!isCurrent())return;
       if(verified.error)throw verified.error;
       if(!verified.data)throw Error('No se pudo volver a leer la rutina guardada.');
+      if(clientEdit&&q.data.version!==verified.data.version)throw Error('La rutina cambió durante la confirmación del guardado. Vuelve a abrirla.');
       if(fieldPatch){
         for(const change of fieldPatch.changes){
           const actual=change.entity==='routine'?verified.data:change.entity==='day'?verifiedDays.find(d=>String(d.id)===String(change.id)):
@@ -5291,7 +5286,8 @@ async function saveEditor(id){
       editDays=verifiedDays;
       context.initialSnapshot=JSON.stringify([verified.data.name,verified.data.description??'',verifiedDays]);
       context.originalRoutine={name:verified.data.name,description:verified.data.description};
-      routines=routines.map(r=>String(r.id)===String(id)?{...r,...verified.data}:r);
+      if(clientEdit)context.clientVersion=verified.data.version;
+      else routines=routines.map(r=>String(r.id)===String(id)?{...r,...verified.data}:r);
       closeM('editModal');
       toast('Rutina guardada');
       if(context.context==='client')await openClientProfile(context.clientId);
@@ -5456,7 +5452,10 @@ async function viewRoutineSession(dayId){
   $('trainBody').innerHTML='<div class="muted" role="status">Cargando sesión…</div>';openM('trainModal');
   try{
     await window.coachPrepareTargets?.(routine.id,owner.id);if(!current())return;
-    const [day,exercises]=await Promise.all([
+    const structure=routine.client_structure?await simpleClientRoutine.read(db,owner.id,routine.id):null;
+    if(!current())return;
+    const selected=structure?.days.find(d=>String(d.id)===String(dayId));
+    const [day,exercises]=structure?[{data:selected},{data:selected?.exercises}]:await Promise.all([
       db.from('routine_days').select('id,name').eq('id',dayId).eq('routine_id',routine.id).single(),
       db.from('routine_exercises').select('id,name,sets,target,rir,rest_seconds,exercise_order,notes').eq('day_id',dayId).order('exercise_order')
     ]);
@@ -5791,7 +5790,7 @@ async function reorderOpenDay(routineId,from,targetIndex){
     at=Math.max(0,Math.min(at,copy.length));
     if(at===from)return;
     copy.splice(at,0,item);
-    const saved=await db.rpc('reorder_my_routine_days_atomic',{p_routine_id:String(routineId),p_day_ids:copy.map(d=>String(d.id))});
+    const saved=await simpleClientRoutine.templateOrder(db,routineId,'day',copy.map(d=>String(d.id)));
     if(saved.error)throw saved.error;
     const verify=await days(routineId);
     if((verify||[]).map(x=>String(x.id)).join('|')!==copy.map(x=>String(x.id)).join('|'))
@@ -5981,7 +5980,8 @@ function moveEditorExercise(fd,fi,td,ti){
   }else renderEditor();
 }
 async function persistEditorOrder(previous,type,fd,td){
-  const state=window.__clientRoutineEdit,current=editDays;
+  const state=window.__clientRoutineEdit,current=editDays,owner=user;
+  const isCurrent=()=>window.__clientRoutineEdit===state&&user===owner&&editDays===current;
   __editorOrderSaving=true;
   try{
     // Unsaved additions/deletions/moves are saved by Guardar cambios, never
@@ -5994,19 +5994,28 @@ async function persistEditorOrder(previous,type,fd,td){
     if(ids.some(x=>!x)||!parent||type==='exercise'&&fd!==td){
       toast('Orden preparado. Pulsa Guardar cambios para guardar la estructura.');return false;
     }
-    const before=await db.from(table).select('id').eq(key,parent);
+    const clientEdit=state.context==='client';
+    const structure=clientEdit?await simpleClientRoutine.read(db,state.clientId,state.routineId):null;
+    if(!isCurrent())return false;
+    const before=structure?{data:type==='day'?structure.days:structure.days.find(d=>String(d.id)===String(parent))?.exercises}:
+      await db.from(table).select('id').eq(key,parent);
+    if(!isCurrent())return false;
     if(before.error)throw before.error;
     const actual=(before.data||[]).map(x=>String(x.id));
     if(actual.length!==ids.length||actual.some(id=>!ids.includes(id))){
       toast('Hay cambios de estructura pendientes. Pulsa Guardar cambios.');return false;
     }
-    const saved=await db.rpc(type==='day'?'reorder_my_routine_days_atomic':'reorder_my_routine_exercises_atomic',
-      type==='day'?{p_routine_id:String(parent),p_day_ids:ids}:{p_day_id:String(parent),p_exercise_ids:ids});
+    const saved=clientEdit?{data:await simpleClientRoutine.reorder(db,state,{kind:type,ids,...(type==='exercise'?{day_id:String(parent)}:{})})}:
+      await simpleClientRoutine.templateOrder(db,state.routineId,type,ids,type==='exercise'?parent:null);
+    if(!isCurrent())return false;
     if(saved.error)throw saved.error;
-    const verify=await db.from(table).select('id').eq(key,parent).order(type==='day'?'day_order':'exercise_order',{ascending:true});
+    const verify=clientEdit?{data:type==='day'?saved.data.days:saved.data.days.find(d=>String(d.id)===String(parent))?.exercises}:
+      await db.from(table).select('id').eq(key,parent).order(type==='day'?'day_order':'exercise_order',{ascending:true});
+    if(!isCurrent())return false;
     if(verify.error)throw verify.error;
     if((verify.data||[]).map(x=>String(x.id)).join('|')!==ids.join('|'))throw Error('Orden no verificado');
     if(window.__clientRoutineEdit===state&&state.initialSnapshot){
+      if(clientEdit)state.clientVersion=saved.data.version;
       // Only advance the order baseline; preserve original field values for CAS.
       const baseline=JSON.parse(state.initialSnapshot),oldDays=baseline[2];
       if(type==='day'){
@@ -6030,29 +6039,8 @@ async function persistEditorOrder(previous,type,fd,td){
 }
 
 async function persistClientExerciseOrder(fd,td){
-  const state=window.__clientRoutineEdit;
-  if(!state?.routineId||profile?.role!=='trainer')return false;
-  const dayIndexes=[...new Set([Number(fd),Number(td)])];
-  try{
-    for(const di of dayIndexes){
-      const d=editDays[di];
-      if(!d?.id)continue;
-      const ids=d.exercises.filter(e=>e.id).map(e=>String(e.id));
-      if(!ids.length)continue;
-      const saved=await db.rpc('reorder_my_routine_exercises_atomic',{p_day_id:String(d.id),p_exercise_ids:ids});
-      if(saved.error)throw saved.error;
-      const verify=await db.from('routine_exercises').select('id').eq('day_id',d.id).order('exercise_order',{ascending:true});
-      if(verify.error)throw verify.error;
-      const actual=(verify.data||[]).map(e=>String(e.id));
-      if(actual.join('|')!==ids.join('|'))throw new Error('Orden de ejercicios no verificado');
-    }
-    toast('Orden de ejercicios guardado automáticamente');
-    return true;
-  }catch(err){
-    console.error('persistClientExerciseOrder:',err);
-    toast('No se pudo guardar el orden de los ejercicios');
-    return false;
-  }
+  if(!window.__clientRoutineEdit?.routineId||profile?.role!=='trainer')return false;
+  return persistEditorOrder(JSON.parse(JSON.stringify(editDays)),'exercise',Number(fd),Number(td));
 }
 
 let activeWorkout={day:null,exercises:[],sets:{}};
@@ -6708,7 +6696,11 @@ async function startWorkoutDay(dayId){
     // El día y sus ejercicios son lecturas independientes: cargarlos en
     // paralelo reduce el tiempo de apertura del entrenamiento sin cambiar
     // permisos ni la fuente de verdad.
-    const [d,x,dayList]=await Promise.all([
+    const structure=openingRoutine.client_structure?await simpleClientRoutine.read(db,openingUserId,openingRoutineId):null;
+    if(!isCurrent())return;
+    const selected=structure?.days.find(d=>String(d.id)===String(dayId));
+    if(structure&&!selected)throw Error('client_routine_day_missing');
+    const [d,x,dayList]=structure?[{data:selected},{data:selected.exercises},{data:structure.days}]:await Promise.all([
       db.from('routine_days')
         .select('id,name,day_order')
         .eq('id',dayId)
@@ -6782,6 +6774,8 @@ async function startWorkoutDay(dayId){
     for(const e of activeWorkout.exercises){
       activeWorkout.sets[e.id].note=resolveExerciseNote(statisticsStage.training_reset_id?{...e,notes:''}:e,persistentByKey,localNotes,currentExercises,noteHistory);
     }
+    // Notes loaded above are our own synchronous update, not a stale-tab edit.
+    expectedState=stateKey();
     const latestStage=await simpleStatisticsStage.read(db,openingUserId,openingRoutineId,isCurrent);
     if(!isCurrent())return;
     if(latestStage.training_reset_id!==statisticsStage.training_reset_id)throw Error('statistics_stage_conflict');
@@ -7402,7 +7396,7 @@ async function workoutReorderCommit(from,to){
     const [item]=next.splice(from,1);
     const at=Math.max(0,Math.min(from<to?to-1:to,next.length));
     next.splice(at,0,item);
-    const saved=await db.rpc('reorder_my_routine_exercises_atomic',{p_day_id:String(workout.day.id),p_exercise_ids:next.map(x=>String(x.id))});
+    const saved=await simpleClientRoutine.templateOrder(db,workoutRoutine.id,'exercise',next.map(x=>String(x.id)),workout.day.id);
     if(saved.error)throw saved.error;
     const verify=await db.from('routine_exercises').select('id').eq('day_id',workout.day.id).order('exercise_order',{ascending:true});
     if(verify.error)throw verify.error;
@@ -8271,11 +8265,12 @@ async function renderShared(parentCurrent=()=>true){
   for(const a of rows){
     if(a.trainer_routine_id&&a.client_routine_id) weeklyAliases[String(a.trainer_routine_id)]=String(a.client_routine_id);
   }
-  const [routineResult,weeklyAll]=await Promise.all([
+  const [routineResult,weeklyAll,customResults]=await Promise.all([
     trainerRoutineIds.length
       ? db.from('routines').select('id,name,description').in('id',trainerRoutineIds)
       : Promise.resolve({data:[],error:null}),
-    getWeeklyRoutineProgressForUser(user.id,weeklyRoutineIds,weeklyAliases)
+    getWeeklyRoutineProgressForUser(user.id,weeklyRoutineIds,weeklyAliases),
+    Promise.all(rows.map(async a=>a.client_routine_id?null:await simpleClientRoutine.read(db,owner.id,a.trainer_routine_id).catch(()=>null)))
   ]);
   if(!isCurrent())return;
   if(!routineResult.error){
@@ -8285,12 +8280,14 @@ async function renderShared(parentCurrent=()=>true){
     }
   }
 
-  for(const a of rows){
+  for(const [index,a] of rows.entries()){
     const trainerRoutineId=String(a.trainer_routine_id||'');
-    const routine=routineById.get(trainerRoutineId)||null;
+    const routine=a.client_routine_id?routineById.get(trainerRoutineId)||null:customResults[index];
     const cached=mm[trainerRoutineId]||{};
-    const name=routine?.name||cached.name||'Rutina asignada';
-    const description=routine?.description||cached.description||'';
+    const unavailable=!a.client_routine_id&&!routine;
+    const name=routine?.name||(a.client_routine_id?cached.name:null)||'Rutina asignada';
+    const description=unavailable?'No se pudo cargar la rutina del cliente.':routine?.description||(a.client_routine_id?cached.description:'')||'';
+    if(!unavailable)mm[trainerRoutineId]={name,description};
     const routineId=String(a.client_routine_id||a.trainer_routine_id);
     const weekly=weeklyAll.get(routineId)||weeklyAll.get(trainerRoutineId)||{total:0,done:0};
 
@@ -8301,7 +8298,7 @@ async function renderShared(parentCurrent=()=>true){
         ${renderWeeklyRoutineProgress(weekly.total,weekly.done,String(user.id)+'|'+String(trainerRoutineId))}
       </div>
       <div class="buttons">
-        <button class="btn primary" onclick="openSharedRoutine('${trainerRoutineId}')">Abrir</button>
+        <button class="btn primary" ${unavailable?'disabled':''} onclick="openSharedRoutine('${trainerRoutineId}')">Abrir</button>
         <button class="btn danger" onclick="removeSharedRoutine(${esc(JSON.stringify(a.id))},${esc(JSON.stringify(name))})">Eliminar</button>
       </div>
     </div>`;
@@ -8322,21 +8319,18 @@ async function openSharedRoutine(id){
     assignment=(assignments||[]).find(a=>String(a.trainer_routine_id)===routineId && String(a.client_id||user.id)===String(user.id));
     if(assignment?.client_routine_id) routineId=String(assignment.client_routine_id);
   }catch(_){}
+  if(profile?.role==='client'&&!assignment)return toast('No se encontró una asignación activa de esta rutina.');
 
-  let r=await db.from('routines')
+  let structure=null;
+  if(assignment&&!assignment.client_routine_id){
+    try{structure=await simpleClientRoutine.read(db,owner.id,routineId);}
+    catch(_){if(isCurrent())toast('No se pudo cargar la rutina del cliente.');return;}
+    if(!isCurrent())return;
+  }
+  let r=structure?{data:{id:routineId,name:structure.name,description:structure.description}}:await db.from('routines')
     .select('id,name,description,share_code,source_routine_id,owner_id,created_at')
     .eq('id',routineId).maybeSingle();
   if(!isCurrent())return;
-
-  // If the assignment has a client copy but it is unavailable, fall back to
-  // the trainer routine. This is the normal path for existing assignments.
-  if((r.error||!r.data) && routineId!==String(id)){
-    routineId=String(id);
-    r=await db.from('routines')
-      .select('id,name,description,share_code,source_routine_id,owner_id,created_at')
-      .eq('id',routineId).maybeSingle();
-    if(!isCurrent())return;
-  }
 
   if(r.error||!r.data)return toast('No se pudo abrir la rutina restaurada. La asignación sí se ha conservado.');
   const original=r.data;
@@ -8344,11 +8338,12 @@ async function openSharedRoutine(id){
   // private client copy. Personal notes are stored against the trainer
   // routine so they survive weekly sessions and routine copies.
   workoutRoutine=Object.assign({},original,{
+    client_structure:!!structure,
     trainer_routine_id: assignment?.trainer_routine_id ? String(assignment.trainer_routine_id) : String(id),
     source_routine_id: original?.source_routine_id ? String(original.source_routine_id) : null
   });
   try{
-    const d=await days(routineId);
+    const d=structure?structure.days:await days(routineId);
     if(!isCurrent())return;
     $('trainTitle').textContent=original.name;
     $('trainSubtitle').textContent='Rutina compartida por tu entrenador.';

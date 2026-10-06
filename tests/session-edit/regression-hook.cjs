@@ -13,14 +13,15 @@ const aliasStart=source.indexOf('function confirmedHistoricalExerciseIds('),alia
 const helpers=(helperStart>=0?source.slice(helperStart,helperEnd):'')+'\n'+(aliasStart>=0?source.slice(aliasStart,aliasEnd):'');
 const extract=require('../integration/function-source.cjs'),auth=read(path.join(root,'assets/auth.js'),'utf8');
 const statistics=read(path.join(root,'assets/statistics-stage.js'),'utf8');
+const clientRoutine=read(path.join(root,'assets/client-routine.js'),'utf8');
 vm.runInContext=function(code,...args){
- let dependencies=helpers+'\nif(typeof simpleStatisticsStage===\"undefined\"){'+statistics+'}\n';
+ let dependencies=helpers+'\nif(typeof simpleStatisticsStage===\"undefined\"){'+statistics+'}\nif(typeof simpleClientRoutine===\"undefined\"){'+clientRoutine+'}\n';
  // Archived fixtures predate the statistics-stage RPC. Add its empty-stage
  // response; the real module still validates and reads it normally.
  const context=args[0];
  if(context.db&&context.db!==context.__statisticsFixtureDb){
   const original=context.db.rpc?.bind(context.db);
-  context.db.rpc=(name,...rpcArgs)=>name==='get_client_routine_statistics_stage'?Promise.resolve({data:{id:null,started_at:null},error:null}):original?.(name,...rpcArgs);
+  context.db.rpc=(name,...rpcArgs)=>name==='get_client_routine_statistics_stage'?Promise.resolve({data:{id:null,started_at:null},error:null}):original?.(name==='get_client_custom_routine_cycle_progress'?'get_client_routine_cycle_progress':name,...rpcArgs);
   context.__statisticsFixtureDb=context.db;
  }
  // The current frontend delegates date boundaries and save notifications to
@@ -43,6 +44,9 @@ fs.readFileSync=function(p,...args){
  else if(name==='C:/Users/raulc/OneDrive/Escritorio/index.html')p=path.join(root,'index_cliente_editor_final_v25.html');
  else if(name.startsWith('work/')||name.startsWith('outputs/'))p=legacy+'/'+name;
  let value=read.call(this,p,...args);
+ if(typeof value==='string'&&(name==='index.html'||name==='outputs/index.html'||name==='outputs/26-release/index.html'||name.endsWith('/index.html'))&&value.includes('simpleClientRoutine')){
+  value=value.replace('const db=window.supabase.createClient','('+require('../client-routine/legacy-sdk.cjs').toString()+')();\nconst db=window.supabase.createClient');
+ }
  if(typeof value==='string'&&name.endsWith('.cjs')&&(name.startsWith('work/')||name.includes(legacy+'/work/'))){
   // Supply only the added metadata RPC to archived SDK doubles; preserve
   // all their history/write responses and concurrency assertions.
