@@ -49,11 +49,13 @@ fs.readFileSync=function(p,...args){
   value=value.replaceAll('db.rpc=async()=>({data:[]})',"db.rpc=async name=>({data:name==='get_client_routine_statistics_stage'?{id:null,started_at:null}:[]})");
   value=value.replaceAll('db.rpc=async(name,args)=>{',"db.rpc=async(name,args)=>{if(name==='get_client_routine_statistics_stage')return {data:{id:null,started_at:null},error:null};");
   value=value.replaceAll('db.rpc=async(n,args)=>{',"db.rpc=async(n,args)=>{if(n==='get_client_routine_statistics_stage')return {data:{id:null,started_at:null},error:null};");
-  if(name.endsWith('test-navigation-history.cjs'))value=value.replace("await p.getByRole('button',{name:'Editar sesión',exact:true}).first().click();","await p.getByRole('button',{name:'Ver sesión',exact:true}).first().click();await p.getByRole('button',{name:'Editar',exact:true}).click();");
-  if(['test-training-modes.cjs','26-test-unified-editor.cjs'].some(file=>name.endsWith(file))){
+  const directSessionEdit=source.includes('onclick="openClientRoutineDayEditor(${i})">Editar sesión');
+  if(!directSessionEdit&&name.endsWith('test-navigation-history.cjs'))value=value.replace("await p.getByRole('button',{name:'Editar sesión',exact:true}).first().click();","await p.getByRole('button',{name:'Ver sesión',exact:true}).first().click();await p.getByRole('button',{name:'Editar',exact:true}).click();");
+  if(!directSessionEdit&&['test-training-modes.cjs','26-test-unified-editor.cjs'].some(file=>name.endsWith(file))){
    value=value.replaceAll("await p.getByRole('button',{name:'Editar sesión',exact:true}).click();","await p.getByRole('button',{name:'Ver sesión',exact:true}).click();await p.getByRole('button',{name:'Editar',exact:true}).click();");
    value=value.replaceAll("getByRole('button',{name:'Editar sesión',exact:true}).count()","getByRole('button',{name:'Ver sesión',exact:true}).count()");
   }
+  if(name.endsWith('test-training-modes.cjs')&&source.includes('onclick="renameClientSession(${i})">Renombrar'))value=value.replace("'⋯ Cambiar nombre'","'Renombrar'");
  }
  if(name.endsWith('23-test-features-browser.cjs')&&typeof value==='string')value=value.replace("p.some(x=>x.session.id==='S')","p.some(x=>x.date.getTime()===simpleDateFromKey('2026-09-08').getTime())");
  if(name.endsWith('test-ux-robustness.cjs')&&typeof value==='string')value=value.replace('toast:s=>messages.push(s),','toast:s=>messages.push(s),$:()=>null,showWorkoutSaveError:s=>messages.push(s),confirm:()=>true,').replace("cut('function markWorkoutStarted(){'","cut('function workoutHasExecutionData(){','function showWorkoutSaveError')+cut('function markWorkoutStarted(){'");

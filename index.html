@@ -2590,7 +2590,7 @@ button.client-overview-card{display:flex;flex-direction:column;align-items:stret
     </div>
   </div>
 </div>
-<div id="editModal" class="modal center"><div class="sheet"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h2 style="margin:0">Editar rutina</h2><div class="buttons" style="margin:0"><button id="legacyEditorBack" class="btn" type="button" onclick="closeM('editModal')">← Volver</button></div></div><div id="editor"></div></div></div>
+<div id="editModal" class="modal center"><div class="sheet"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h2 id="routineEditorTitle" style="margin:0">Editar rutina</h2><div class="buttons" style="margin:0"><button id="legacyEditorBack" class="btn" type="button" onclick="closeM('editModal')">← Volver</button></div></div><div id="editor"></div></div></div>
 <div id="clientProgressModal" class="modal center">
   <div class="sheet">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
@@ -3761,6 +3761,7 @@ async function openRoutineEditor(routineId,{clientId=null,routineName='',clientN
         </div>
       </div>
       <div id="clientRoutineEditor"></div>`;
+    $('routineEditorTitle').textContent=clientId?'Ver rutina':'Editar rutina';
     renderClientRoutineSessions();
     closeM('clientModal');
     openM('editModal');
@@ -3837,7 +3838,7 @@ function renderClientRoutineSessions(){
       <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap">
         <div>
           <h3 style="margin:0">Sesiones de entrenamiento</h3>
-          <div class="muted">Consulta una sesión y entra en Editar para modificar sus ejercicios.</div>
+          <div class="muted">Consulta una sesión o pulsa Editar sesión para modificar sus ejercicios.</div>
         </div>
         <div class="buttons">
           <button class="btn" onclick="toggleClientSessionReorder()">${state.reorder?'Listo':'↕ Reordenar sesiones'}</button>
@@ -3887,8 +3888,9 @@ function renderClientRoutineSessions(){
             </div>
           </div>
           <div class="buttons" style="justify-content:flex-end">
-            <button class="btn" type="button" onclick="renameClientSession(${i})" title="Cambiar nombre">⋯</button>
+            <button class="btn" type="button" onclick="renameClientSession(${i})">Renombrar</button>
             <button class="btn primary" type="button" onclick="openClientRoutineDayView(${i})">Ver sesión</button>
+            <button class="btn" type="button" onclick="openClientRoutineDayEditor(${i})">Editar sesión</button>
             ${state.context==='library'&&d.id?`<button class="btn" type="button" onclick="openRoutineEditorHistory('${esc(d.id)}')">Historial</button>`:''}
             <button class="btn danger" type="button" onclick="removeClientEditorDay(${i})">Eliminar</button>
           </div>
@@ -4018,7 +4020,7 @@ function renderClientRoutineDayEditor(i){
         </div>
         <div class="buttons">
           <button class="btn" onclick="backToClientRoutineSessions()">← Sesiones</button>
-          <button class="btn" onclick="renameClientSession(${i})">⋯ Cambiar nombre</button>
+          <button class="btn" onclick="renameClientSession(${i})">Renombrar</button>
           <button class="btn primary" onclick="toggleClientExerciseReorder(${i})">
             ${window.__clientRoutineEdit?.exerciseReorder?'Listo':'↕ Reordenar ejercicios'}
           </button>
@@ -4435,7 +4437,7 @@ async function openClientProfile(clientId){
             </div>
             <div class="client-profile-actions">
               <button class="btn" onclick="openClientRoutineProgress(${esc(JSON.stringify(cid))},${esc(JSON.stringify(x.routine.id))},${esc(JSON.stringify(x.routine.name||'Rutina'))})">Ver progreso</button>
-              <button class="btn primary" onclick="editClientAssignedRoutine(${esc(JSON.stringify(cid))},${esc(JSON.stringify(x.routine.id))},${esc(JSON.stringify(x.routine.name||'Rutina'))})">Editar rutina</button>
+              <button class="btn primary" onclick="editClientAssignedRoutine(${esc(JSON.stringify(cid))},${esc(JSON.stringify(x.routine.id))},${esc(JSON.stringify(x.routine.name||'Rutina'))})">Ver rutina</button>
               <button class="btn danger" onclick="revokeFromClientProfile('${x.assignment.id}')">Revocar</button>
             </div>
           </div>
