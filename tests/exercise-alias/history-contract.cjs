@@ -5,13 +5,18 @@ const fixture=JSON.parse(fs.readFileSync('work/history-fixture.json','utf8'));
 const original=fs.readFileSync('C:/Users/raulc/OneDrive/Escritorio/index.html','utf8');
 const fixed=fs.readFileSync('outputs/index.html','utf8');
 const results=[];
-function build(html){
+async function build(html){
  const start=html.indexOf('function getPreviousExerciseSession('),end=html.indexOf('\nfunction renderPreviousSession(',start);
  const c={user:{id:fixture.session.user_id},workoutRoutine:{id:fixture.session.data.routine_id},activeWorkout:{day:fixture.days.find(x=>x.name==='LUNES / PUSH'),historyDays:fixture.days,exercises:fixture.exercises},window:{workoutHistory:[structuredClone(fixture.session)]},today:'2026-09-07',simpleLocalDateKey(){return c.today},simpleDateFromKey:s=>s};
- vm.createContext(c);vm.runInContext(html.slice(start,end),c);return c;
+ vm.createContext(c);vm.runInContext(html.slice(start,end),c);
+ // The actual historical resolver now reads a scoped statistical stage.
+ // This fixture predates resets: load its real empty-stage contract first.
+ await c.simpleStatisticsStage.read({rpc:async()=>({data:{id:null,started_at:null},error:null})},c.user.id,c.workoutRoutine.id);
+ return c;
 }
 function test(name,fn){try{fn();results.push({name,pass:true})}catch(e){results.push({name,pass:false,error:e.message})}}
-const old=build(original),c=build(fixed),id=fixture.exercises[0].id;
+(async()=>{
+const old=await build(original),c=await build(fixed),id=fixture.exercises[0].id;
 const reset=()=>{c.user.id=fixture.session.user_id;c.workoutRoutine.id=fixture.session.data.routine_id;c.window.workoutHistory=[structuredClone(fixture.session)];c.activeWorkout.historyDays=structuredClone(fixture.days);c.activeWorkout.exercises=structuredClone(fixture.exercises);c.today='2026-09-07'};
 test('Baseline reproduces missing previous session with actual IDs',()=>assert.equal(old.getPreviousExerciseSession(id),null));
 // These three formerly failing expectations are identical to the archived suite.
@@ -36,3 +41,4 @@ test('Unchanged day/exercise UUID still works',()=>{reset();c.activeWorkout.day=
 test('Auth callback returns before any async handler runs',()=>{const auth=fs.readFileSync(require('path').join(__dirname,'../../assets/auth.js'),'utf8'),a=auth.indexOf('db.auth.onAuthStateChange('),b=auth.indexOf('\nbootstrapAuthSession();',a);let cb,scheduled=0,handled=0,reloads=0;vm.runInNewContext(auth.slice(a,b),{simpleAuth:{epoch:0},resetAuthSession:()=>{},window:{},db:{auth:{onAuthStateChange:f=>cb=f}},user:null,location:{reload:()=>reloads++},setTimeout:f=>{scheduled++;},handleAuthStateChange:()=>handled++});assert.equal(cb('SIGNED_IN',{user:{id:'x'}}),undefined);assert.equal(scheduled,1);assert.equal(handled,0);for(let i=0;i<10;i++)cb('SIGNED_OUT',null);assert.equal(reloads,0)});
 fs.writeFileSync('outputs/pruebas-historial-alias.json',JSON.stringify({passed:results.filter(x=>x.pass).length,results},null,2));
 console.log(JSON.stringify({passed:results.filter(x=>x.pass).length,failed:results.filter(x=>!x.pass)},null,2));if(results.some(x=>!x.pass))process.exitCode=1;
+})().catch(e=>{console.error(e);process.exitCode=1});

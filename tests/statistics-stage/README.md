@@ -1,5 +1,7 @@
 # Reinicio de estadísticas por cliente y rutina
 
+Este documento describe la primera implementación y su RPC legacy no destructivo. El botón actual del nuevo candidato se describe en ../training-reset/README.md: requiere confirmación explícita y borra historial/notas personales. Las garantías de conservación siguientes corresponden exclusivamente al RPC legacy y a sus resultados históricos.
+
 Una nueva etapa conserva UUID, rutina, asignación, notas y workouts. Solo gráficas, conteo de sesiones, Última sesión y ciclo toman registros guardados desde el instante del reinicio (workouts.created_at). El historial completo sigue disponible. La comparación temporal mantiene los microsegundos de Postgres y normaliza offsets, evitando incluir por redondeo una sesión anterior al reinicio. No se reescriben ni borran sesiones, no se mezclan clientes y no se modifican aliases.
 
 El entrenador asignado puede iniciar una etapa desde Mis clientes → Ver progreso → Reiniciar estadísticas. Una confirmación explica el alcance. El timestamp se fija en servidor, no en el navegador. La operación usa request_id para idempotencia, expected_stage para rechazar pestañas antiguas y advisory lock por cliente/rutina. Una respuesta de escritura se relee antes de mostrar éxito. La reanudación tras un fallo requiere volver a abrir progreso; no hay reintento automático.

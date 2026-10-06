@@ -12,8 +12,17 @@ const helperStart=source.indexOf('function exerciseNoteKey('),helperEnd=source.i
 const aliasStart=source.indexOf('function confirmedHistoricalExerciseIds('),aliasEnd=source.indexOf('function getPreviousExerciseSession(',aliasStart);
 const helpers=(helperStart>=0?source.slice(helperStart,helperEnd):'')+'\n'+(aliasStart>=0?source.slice(aliasStart,aliasEnd):'');
 const extract=require('../integration/function-source.cjs'),auth=read(path.join(root,'assets/auth.js'),'utf8');
+const statistics=read(path.join(root,'assets/statistics-stage.js'),'utf8');
 vm.runInContext=function(code,...args){
- let dependencies=helpers;
+ let dependencies=helpers+'\nif(typeof simpleStatisticsStage===\"undefined\"){'+statistics+'}\n';
+ // Archived fixtures predate the statistics-stage RPC. Add its empty-stage
+ // response; the real module still validates and reads it normally.
+ const context=args[0];
+ if(context.db&&context.db!==context.__statisticsFixtureDb){
+  const original=context.db.rpc?.bind(context.db);
+  context.db.rpc=(name,...rpcArgs)=>name==='get_client_routine_statistics_stage'?Promise.resolve({data:{id:null,started_at:null},error:null}):original?.(name,...rpcArgs);
+  context.__statisticsFixtureDb=context.db;
+ }
  // The current frontend delegates date boundaries and save notifications to
  // shared helpers. Isolated historical harnesses must load those real helpers.
  for(const name of ['simpleCycleDateKey','announceCycleChange'])if(!code.includes('function '+name+'('))dependencies+='\n'+extract(source,name);
@@ -34,6 +43,18 @@ fs.readFileSync=function(p,...args){
  else if(name==='C:/Users/raulc/OneDrive/Escritorio/index.html')p=path.join(root,'index_cliente_editor_final_v25.html');
  else if(name.startsWith('work/')||name.startsWith('outputs/'))p=legacy+'/'+name;
  let value=read.call(this,p,...args);
+ if(typeof value==='string'&&name.endsWith('.cjs')&&(name.startsWith('work/')||name.includes(legacy+'/work/'))){
+  // Supply only the added metadata RPC to archived SDK doubles; preserve
+  // all their history/write responses and concurrency assertions.
+  value=value.replaceAll('db.rpc=async()=>({data:[]})',"db.rpc=async name=>({data:name==='get_client_routine_statistics_stage'?{id:null,started_at:null}:[]})");
+  value=value.replaceAll('db.rpc=async(name,args)=>{',"db.rpc=async(name,args)=>{if(name==='get_client_routine_statistics_stage')return {data:{id:null,started_at:null},error:null};");
+  value=value.replaceAll('db.rpc=async(n,args)=>{',"db.rpc=async(n,args)=>{if(n==='get_client_routine_statistics_stage')return {data:{id:null,started_at:null},error:null};");
+  if(name.endsWith('test-navigation-history.cjs'))value=value.replace("await p.getByRole('button',{name:'Editar sesión',exact:true}).first().click();","await p.getByRole('button',{name:'Ver sesión',exact:true}).first().click();await p.getByRole('button',{name:'Editar',exact:true}).click();");
+  if(['test-training-modes.cjs','26-test-unified-editor.cjs'].some(file=>name.endsWith(file))){
+   value=value.replaceAll("await p.getByRole('button',{name:'Editar sesión',exact:true}).click();","await p.getByRole('button',{name:'Ver sesión',exact:true}).click();await p.getByRole('button',{name:'Editar',exact:true}).click();");
+   value=value.replaceAll("getByRole('button',{name:'Editar sesión',exact:true}).count()","getByRole('button',{name:'Ver sesión',exact:true}).count()");
+  }
+ }
  if(name.endsWith('23-test-features-browser.cjs')&&typeof value==='string')value=value.replace("p.some(x=>x.session.id==='S')","p.some(x=>x.date.getTime()===simpleDateFromKey('2026-09-08').getTime())");
  if(name.endsWith('test-ux-robustness.cjs')&&typeof value==='string')value=value.replace('toast:s=>messages.push(s),','toast:s=>messages.push(s),$:()=>null,showWorkoutSaveError:s=>messages.push(s),confirm:()=>true,').replace("cut('function markWorkoutStarted(){'","cut('function workoutHasExecutionData(){','function showWorkoutSaveError')+cut('function markWorkoutStarted(){'");
  return value;

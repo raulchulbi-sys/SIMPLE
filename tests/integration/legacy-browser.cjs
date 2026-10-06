@@ -7,7 +7,7 @@ fs.readFileSync=function(file,...args){
  if(typeof value!=='string')return value;
  const name=String(file).replaceAll('\\','/');
  if(name.endsWith('/index.html')||name==='index.html'){
-  for(const file of ['theme.js','settings.js'])value=value.replace('<script src="assets/'+file+'"></script>',()=>'<script>'+read(path.join(root,'assets',file),'utf8')+'</script>');
+  for(const file of ['theme.js','settings.js','statistics-stage.js'])value=value.replace('<script src="assets/'+file+'"></script>',()=>'<script>'+read(path.join(root,'assets',file),'utf8')+'</script>');
   for(const file of ['theme.css','settings.css'])value=value.replace('<link rel="stylesheet" href="assets/'+file+'">',()=>'<style>'+read(path.join(root,'assets',file),'utf8')+'</style>');
   value=value.replace('<link rel="stylesheet" href="assets/auth.css">',()=>'<style>'+read(path.join(root,'assets/auth.css'),'utf8')+'</style>');
   value=value.replace('<link rel="stylesheet" href="assets/interior.css">',()=>'<style>'+read(path.join(root,'assets/interior.css'),'utf8')+'</style>');

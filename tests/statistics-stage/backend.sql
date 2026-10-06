@@ -12,7 +12,7 @@ begin
  select md5(string_agg(to_jsonb(w)::text,'' order by w.id)) into baseline from public.workouts w where user_id=c and data->>'routine_id'=rid::text;
  perform set_config('request.jwt.claim.sub',t::text,true);
  stage:=public.get_client_routine_statistics_stage(c,rid);
- insert into stage_checks values('no previous stage',stage=jsonb_build_object('id',null,'started_at',null));
+ insert into stage_checks values('no previous stage',stage-'training_reset_id'=jsonb_build_object('id',null,'started_at',null));
  select total_days,completed_days into n,done from public.get_client_routine_stage_cycle_progress(c,rid);
  insert into stage_checks values('no stage original cycle',n=2 and done=1);
  stage:=public.reset_client_routine_statistics(c,rid,null,req);
@@ -27,9 +27,9 @@ begin
  select md5(string_agg(to_jsonb(w)::text,'' order by w.id)) into h from public.workouts w where user_id=c and data->>'routine_id'=rid::text;
  insert into stage_checks values('historical workout exact',h=baseline);
  insert into stage_checks values('exercise prescription and notes exact',exists(select 1 from public.routine_exercises where id=eid and sets=2 and target='8-12' and rir='2' and rest_seconds=120 and notes='preserved'));
- insert into stage_checks values('other client no stage',public.get_client_routine_statistics_stage(other,rid)=jsonb_build_object('id',null,'started_at',null));
+ insert into stage_checks values('other client no stage',public.get_client_routine_statistics_stage(other,rid)-'training_reset_id'=jsonb_build_object('id',null,'started_at',null));
  perform set_config('request.jwt.claim.sub',c::text,true);
- insert into stage_checks values('athlete sees same stage',public.get_client_routine_statistics_stage(c,rid)=stage);
+ insert into stage_checks values('athlete sees same stage',public.get_client_routine_statistics_stage(c,rid)-'training_reset_id'=stage);
  begin perform public.reset_client_routine_statistics(c,rid,(stage->>'id')::uuid,gen_random_uuid());raise exception 'test expected athlete denial';exception when insufficient_privilege then insert into stage_checks values('athlete cannot reset',true);end;
  perform set_config('request.jwt.claim.sub',other::text,true);
  begin perform public.get_client_routine_statistics_stage(c,rid);raise exception 'test expected other denial';exception when insufficient_privilege then insert into stage_checks values('other client cannot read',true);end;

@@ -14,6 +14,16 @@ let checks=0;const check=(name,ok)=>{assert(ok,name);checks++;};
  await api.read(db,'a','r',()=>false);check('stale read returns null',await api.read(db,'a','r',()=>false)===null);
  for(const value of [null,[],{}, {id:stage.id,started_at:null},{id:stage.id,started_at:'invalid'}]){try{api.filter(rows,value);throw Error('expected invalid');}catch(e){check('invalid stage fails closed',e.message==='statistics_invalid_stage');}}
  try{await api.read({rpc:async()=>({error:Error('network')})},'a','r');throw Error('expected network');}catch(e){check('network errors propagate',e.message==='network');}
- let release;const slow={rpc:name=>name==='reset_client_routine_statistics'?new Promise(r=>release=r):Promise.resolve({data:stage,error:null})};const first=api.reset(slow,'a','r',empty,stage.id);try{await api.reset(slow,'a','r',empty,stage.id);throw Error('expected busy');}catch(e){check('double submit prevented',e.message==='statistics_reset_busy');}release({data:stage,error:null});check('reset verified by server read',(await first).id===stage.id);
+ const cleared={...stage,training_reset_id:stage.id};let release;const slow={rpc:name=>name==='reset_client_routine_training_history'?new Promise(r=>release=r):Promise.resolve({data:cleared,error:null})};const first=api.reset(slow,'a','r',empty,stage.id);try{await api.reset(slow,'a','r',empty,stage.id);throw Error('expected busy');}catch(e){check('double submit prevented',e.message==='statistics_reset_busy');}release({data:cleared,error:null});check('reset verified by server read',(await first).id===stage.id);
+
+ const cache=new Map([['simple_routine_notes_v3:a:r:day','old note'],['simple_workout_draft_v2:a:r:day','old draft'],['simple_workout_completed_v1:a:r:day','old completion'],['simple_routine_notes_v3:a:r:day:reset:'+stage.id,'new note'],['simple_workout_draft_v2:a:other:day','other routine'],['simple_workout_draft_v2:b:r:day','other client']]);
+ const storage={get length(){return cache.size},key:i=>[...cache.keys()][i],removeItem:k=>cache.delete(k)};
+ api.clearLocal(storage,'a','r',cleared);
+ check('old cache and drafts removed',!cache.has('simple_routine_notes_v3:a:r:day')&&!cache.has('simple_workout_draft_v2:a:r:day')&&!cache.has('simple_workout_completed_v1:a:r:day'));
+ check('current-stage note retained',cache.has('simple_routine_notes_v3:a:r:day:reset:'+stage.id));
+ check('other routine cache retained',cache.has('simple_workout_draft_v2:a:other:day'));
+ check('other client cache retained',cache.has('simple_workout_draft_v2:b:r:day'));
+ api.clearLocal(storage,'a','other',empty);check('metadata-only stage does not clear cache',cache.has('simple_workout_draft_v2:a:other:day'));
+ try{await api.reset({rpc:async()=>({data:stage,error:null})},'a','r',empty,stage.id);throw Error('expected unverified');}catch(e){check('accepted RPC without reset token is not success',e.message==='statistics_reset_not_verified');}
  console.log(checks+'/'+checks+' module checks');
 })().catch(e=>{console.error(e);process.exitCode=1;});

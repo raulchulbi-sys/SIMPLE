@@ -1,0 +1,71 @@
+BEGIN;
+CREATE TEMPORARY TABLE reset_checks(name text PRIMARY KEY,pass boolean);
+DO $$
+DECLARE t uuid:='6b47ae02-6574-46db-acdb-f00925efdd74';c uuid:='c7bbe50b-d349-4f7e-8fdc-476f17c22674';other uuid:='c14a2a6d-9853-431d-856c-4d742002187e';tb uuid:='0b6fb9c1-3a62-4fbb-93d9-b3993a8fffb8';
+ rid uuid:=gen_random_uuid();rid2 uuid:=gen_random_uuid();day uuid:=gen_random_uuid();day2 uuid:=gen_random_uuid();eid uuid:=gen_random_uuid();req uuid:=gen_random_uuid();s jsonb;again jsonb;legacy jsonb;payload jsonb;before_structure text;before_others text;h text;n bigint;done bigint;cycle_hash text;
+BEGIN
+ SELECT md5(pg_get_functiondef('public.get_client_routine_cycle_progress(uuid,uuid)'::regprocedure)) INTO cycle_hash;
+ INSERT INTO public.routines(id,owner_id,name) VALUES(rid,t,'Synthetic destructive reset'),(rid2,t,'Synthetic untouched routine');
+ INSERT INTO public.routine_days(id,routine_id,name,day_order) VALUES(day,rid,'A',0),(day2,rid2,'B',0);
+ INSERT INTO public.routine_exercises(id,day_id,name,sets,target,rir,rest_seconds,exercise_order,notes) VALUES(eid,day,'Exercise with original UUID',3,'8-12','0',150,0,'Shared instruction');
+ INSERT INTO public.routine_assignments(trainer_id,client_id,trainer_routine_id) VALUES(t,c,rid),(t,other,rid),(t,c,rid2);
+ payload:=jsonb_build_object('routine_id',rid,'routine_day_id',day,'exercises',jsonb_build_array(jsonb_build_object('exercise_id',eid,'notes','old personal','sets',jsonb_build_array(jsonb_build_object('kg',0,'reps',8,'rir',0)))));
+ PERFORM set_config('request.jwt.claim.sub',c::text,true);
+ INSERT INTO public.workouts(user_id,variant,day,workout_date,data) VALUES(c,'synthetic','A',current_date-1,payload),(c,'synthetic','B',current_date-1,jsonb_build_object('routine_id',rid2,'routine_day_id',day2,'exercises','[]'::jsonb));
+ INSERT INTO public.routine_user_notes(user_id,routine_id,exercise_key,note) VALUES(c,rid,'exercise:'||eid,'old personal'),(c,rid2,'exercise:other','other routine note');
+ PERFORM set_config('request.jwt.claim.sub',other::text,true);
+ INSERT INTO public.workouts(user_id,variant,day,workout_date,data) VALUES(other,'synthetic','A',current_date-1,payload);
+ INSERT INTO public.routine_user_notes(user_id,routine_id,exercise_key,note) VALUES(other,rid,'exercise:'||eid,'other client note');
+ SELECT md5(to_jsonb(e)::text) INTO before_structure FROM public.routine_exercises e WHERE id=eid;
+ SELECT md5(string_agg(x.j::text,'' ORDER BY x.j::text)) INTO before_others FROM (
+ SELECT to_jsonb(w) j FROM public.workouts w WHERE (user_id=other AND data->>'routine_id'=rid::text) OR (user_id=c AND data->>'routine_id'=rid2::text)
+ UNION ALL SELECT to_jsonb(note) FROM public.routine_user_notes note WHERE (user_id=other AND routine_id=rid) OR (user_id=c AND routine_id=rid2)) x;
+ PERFORM set_config('request.jwt.claim.sub',t::text,true);
+ s:=public.reset_client_routine_training_history(c,rid,null,req);
+ INSERT INTO reset_checks VALUES('trainer reset returns reset identity',s->>'training_reset_id'=s->>'id');
+ INSERT INTO reset_checks VALUES('only target workout history deleted',NOT EXISTS(SELECT 1 FROM public.workouts WHERE user_id=c AND data->>'routine_id'=rid::text));
+ INSERT INTO reset_checks VALUES('only target personal notes deleted',NOT EXISTS(SELECT 1 FROM public.routine_user_notes WHERE user_id=c AND routine_id=rid));
+ INSERT INTO reset_checks VALUES('embedded notes deleted with workouts',NOT EXISTS(SELECT 1 FROM public.workouts WHERE user_id=c AND data->>'routine_id'=rid::text AND data::text LIKE '%old personal%'));
+ INSERT INTO reset_checks VALUES('exercise identity and full prescription exact',before_structure=(SELECT md5(to_jsonb(e)::text) FROM public.routine_exercises e WHERE id=eid));
+ INSERT INTO reset_checks VALUES('routine days remain',EXISTS(SELECT 1 FROM public.routine_days WHERE id=day AND routine_id=rid));
+ INSERT INTO reset_checks VALUES('routine and assignment remain',EXISTS(SELECT 1 FROM public.routines WHERE id=rid) AND EXISTS(SELECT 1 FROM public.routine_assignments WHERE trainer_routine_id=rid AND client_id=c));
+ SELECT md5(string_agg(x.j::text,'' ORDER BY x.j::text)) INTO h FROM (
+ SELECT to_jsonb(w) j FROM public.workouts w WHERE (user_id=other AND data->>'routine_id'=rid::text) OR (user_id=c AND data->>'routine_id'=rid2::text)
+ UNION ALL SELECT to_jsonb(note) FROM public.routine_user_notes note WHERE (user_id=other AND routine_id=rid) OR (user_id=c AND routine_id=rid2)) x;
+ INSERT INTO reset_checks VALUES('other clients and other routines byte exact',h=before_others);
+ SELECT total_days,completed_days INTO n,done FROM public.get_client_routine_stage_cycle_progress(c,rid);
+ INSERT INTO reset_checks VALUES('cycle zero after deletion',n=1 AND done=0);
+ BEGIN PERFORM public.reset_client_routine_training_history(c,rid,null,gen_random_uuid());RAISE EXCEPTION 'expected conflict';EXCEPTION WHEN serialization_failure THEN INSERT INTO reset_checks VALUES('stale trainer tab rejected',true);END;
+ PERFORM set_config('request.jwt.claim.sub',c::text,true);
+ INSERT INTO reset_checks VALUES('athlete reads same reset',public.get_client_routine_statistics_stage(c,rid)=s);
+ BEGIN PERFORM public.reset_client_routine_training_history(c,rid,(s->>'id')::uuid,gen_random_uuid());RAISE EXCEPTION 'expected denial';EXCEPTION WHEN insufficient_privilege THEN INSERT INTO reset_checks VALUES('athlete cannot reset',true);END;
+ BEGIN INSERT INTO public.workouts(user_id,variant,day,workout_date,data) VALUES(c,'synthetic','A',current_date,payload);RAISE EXCEPTION 'expected conflict';EXCEPTION WHEN serialization_failure THEN INSERT INTO reset_checks VALUES('old tab cannot recreate deleted workout',true);END;
+ BEGIN INSERT INTO public.routine_user_notes(user_id,routine_id,exercise_key,note) VALUES(c,rid,'exercise:'||eid,'stale note');RAISE EXCEPTION 'expected conflict';EXCEPTION WHEN serialization_failure THEN INSERT INTO reset_checks VALUES('old tab cannot recreate deleted note',true);END;
+ INSERT INTO public.workouts(user_id,variant,day,workout_date,created_at,data) VALUES(c,'synthetic','A',current_date,clock_timestamp(),payload||jsonb_build_object('statistics_stage_id',s->>'id'));
+ INSERT INTO public.routine_user_notes(user_id,routine_id,exercise_key,note,statistics_stage_id) VALUES(c,rid,'exercise:'||eid,'new note',(s->>'id')::uuid);
+ INSERT INTO reset_checks VALUES('new workout allowed with reset identity',EXISTS(SELECT 1 FROM public.workouts WHERE user_id=c AND data->>'statistics_stage_id'=s->>'id'));
+ INSERT INTO reset_checks VALUES('new note allowed with reset identity',EXISTS(SELECT 1 FROM public.routine_user_notes WHERE user_id=c AND routine_id=rid AND note='new note'));
+ BEGIN UPDATE public.routine_user_notes SET note='late stale update',statistics_stage_id=null WHERE user_id=c AND routine_id=rid;RAISE EXCEPTION 'expected conflict';EXCEPTION WHEN serialization_failure THEN INSERT INTO reset_checks VALUES('late note update rejected',true);END;
+ BEGIN UPDATE public.workouts SET data=payload WHERE user_id=c AND data->>'routine_id'=rid::text;RAISE EXCEPTION 'expected conflict';EXCEPTION WHEN serialization_failure THEN INSERT INTO reset_checks VALUES('late workout update rejected',true);END;
+ PERFORM set_config('request.jwt.claim.sub',t::text,true);
+ again:=public.reset_client_routine_training_history(c,rid,null,req);
+ INSERT INTO reset_checks VALUES('same request idempotent',again=s);
+ INSERT INTO reset_checks VALUES('retry retains subsequent workout and note',(SELECT count(*)=1 FROM public.workouts WHERE user_id=c AND data->>'routine_id'=rid::text) AND EXISTS(SELECT 1 FROM public.routine_user_notes WHERE user_id=c AND routine_id=rid AND note='new note'));
+ legacy:=public.reset_client_routine_statistics(c,rid,(s->>'id')::uuid,gen_random_uuid());
+ INSERT INTO reset_checks VALUES('legacy reset still preserves history',EXISTS(SELECT 1 FROM public.workouts WHERE user_id=c AND data->>'routine_id'=rid::text));
+ INSERT INTO reset_checks VALUES('legacy reset cannot weaken stale write protection',public.get_client_routine_statistics_stage(c,rid)->>'training_reset_id'=s->>'id');
+ PERFORM set_config('request.jwt.claim.sub',other::text,true);
+ BEGIN PERFORM public.reset_client_routine_training_history(c,rid,(legacy->>'id')::uuid,gen_random_uuid());RAISE EXCEPTION 'expected denial';EXCEPTION WHEN insufficient_privilege THEN INSERT INTO reset_checks VALUES('other client cannot reset',true);END;
+ BEGIN PERFORM public.get_client_routine_statistics_stage(c,rid);RAISE EXCEPTION 'expected denial';EXCEPTION WHEN insufficient_privilege THEN INSERT INTO reset_checks VALUES('other client cannot read reset',true);END;
+ PERFORM set_config('request.jwt.claim.sub',tb::text,true);
+ BEGIN PERFORM public.reset_client_routine_training_history(c,rid,(legacy->>'id')::uuid,gen_random_uuid());RAISE EXCEPTION 'expected denial';EXCEPTION WHEN insufficient_privilege THEN INSERT INTO reset_checks VALUES('unassigned trainer denied',true);END;
+ PERFORM set_config('request.jwt.claim.sub','',true);
+ BEGIN PERFORM public.reset_client_routine_training_history(c,rid,(legacy->>'id')::uuid,gen_random_uuid());RAISE EXCEPTION 'expected denial';EXCEPTION WHEN insufficient_privilege THEN INSERT INTO reset_checks VALUES('unauthenticated denied',true);END;
+ INSERT INTO reset_checks VALUES('anon has no reset RPC grant',NOT has_function_privilege('anon','public.reset_client_routine_training_history(uuid,uuid,uuid,uuid)','execute'));
+ INSERT INTO reset_checks VALUES('internal trigger not directly executable',NOT has_function_privilege('authenticated','public.simple_guard_statistics_stage_write()','execute'));
+ INSERT INTO reset_checks VALUES('statistics table stays inaccessible',NOT has_table_privilege('authenticated','public.client_routine_statistics_stages','insert'));
+ INSERT INTO reset_checks VALUES('original cycle RPC hash unchanged',cycle_hash=md5(pg_get_functiondef('public.get_client_routine_cycle_progress(uuid,uuid)'::regprocedure)));
+ IF EXISTS(SELECT 1 FROM reset_checks WHERE NOT coalesce(pass,false)) THEN RAISE EXCEPTION 'training reset test failed';END IF;
+END $$;
+SELECT jsonb_agg(to_jsonb(t) ORDER BY name) checks FROM reset_checks t;
+ROLLBACK;
