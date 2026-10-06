@@ -18,10 +18,15 @@ begin
  -- Isolate this controlled actor inside the ROLLBACK transaction, even after live JWT tests.
  -- This changes no Auth rows and restores every existing grant automatically on rollback.
  update public.context_grants set revoked_at=clock_timestamp() where user_id=u and scope in ('premium_training_history','premium_weekly_checkin','premium_chat') and revoked_at is null;
- update coach_private.premium_analysis_budget set chat_enabled=true where id;
+ -- SQL-only dispatch/expiry path needs the current shared admission gate; rolls back.
+ update coach_private.premium_analysis_budget set chat_enabled=true,shared_enabled=true where id;
  insert into public.routines(id,owner_id,name)values(r,u,'SYNTHETIC Premium Chat transaction');
  insert into public.routine_days(id,routine_id,name,day_order)values(d,r,'Synthetic training day',0);
  insert into public.routine_exercises(id,day_id,name,sets,target,rir,rest_seconds,exercise_order,notes)values(eid,d,'Synthetic band curl',3,'8-12','2',180,0,'PRIVATE CANARY Chat');
+ -- Current admission/entitlement gates apply to controlled fixtures too.
+ perform public.premium_set_entitlement(u,true,clock_timestamp()+interval '14 days',array['tracking','weekly','analysis','chat','upgrade'],0,8,8);
+ perform set_config('request.jwt.claim.sub',u::text,true);perform public.premium_admission_permission(true,'premium-followup-v1');
+ perform set_config('request.jwt.claim.sub','',true);
  m:=public.premium_provision(u,r,current_date,6,now()+interval '1 day');select current_revision_id into rev from public.coach_mesocycles where id=m;
  update public.coach_mesocycles set state='active',intake_submitted_at=now(),reviewer_id=reviewer,intake='{"experience":"gt4","excluded":[],"inventory":{"equipment":["bands"],"custom":[]},"weekdays":["mon"],"minutes_by_day":{"mon":60}}',catalogue_bindings=jsonb_build_object(eid::text,'band_curl') where id=m;
  ss:='[{"set_number":1,"reps_min":8,"reps_max":12,"rir":2,"rest_seconds":180},{"set_number":2,"reps_min":10,"reps_max":12,"rir":1,"rest_seconds":180},{"set_number":3,"reps_min":12,"reps_max":15,"rir":1,"rest_seconds":180}]';

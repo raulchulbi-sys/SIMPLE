@@ -1,0 +1,132 @@
+-- STAGING ONLY. Real database projection and RPC tests; synthetic data always rolled back. No HTTP/OpenAI.
+begin;
+set local timezone='Europe/Madrid';
+create function pg_temp.fixture() returns jsonb language plpgsql as $test$
+declare u uuid:='495fa022-d51b-4bdd-a2f8-e031409b69f5';reviewer uuid;rid uuid:=gen_random_uuid();did uuid;eid uuid;m uuid;rev uuid;i int;j int;cats text[]:=array['leg_press','chest_press','pulldown','db_curl','db_rdl','goblet','cable_row','db_shoulder','seated_curl','db_row','floor_press','db_lateral'];mapping jsonb:='{}';c jsonb;workout uuid;
+begin
+ if not exists(select 1 from public.profiles where id=u and role='client') then raise exception 'controlled_owner_missing';end if;
+ select id into reviewer from public.profiles where role='trainer' order by id limit 1;
+ perform set_config('request.jwt.claim.sub','',true);
+ perform public.premium_set_entitlement(u,true,clock_timestamp()+interval '14 days',array['tracking','weekly','analysis','chat','upgrade'],0,8,8);
+ insert into public.routines(id,owner_id,name)values(rid,u,'SYNTHETIC distribution rollback');
+ for i in 0..2 loop
+  did:=gen_random_uuid();insert into public.routine_days(id,routine_id,name,day_order)values(did,rid,'Sesión '||(i+1),i);
+  for j in 0..3 loop
+   eid:=gen_random_uuid();select x into c from jsonb_array_elements(coach_private.premium_catalogue())x where x->>'id'=cats[i*4+j+1];
+   insert into public.routine_exercises(id,day_id,name,sets,target,rir,rest_seconds,exercise_order,notes)values(eid,did,c->>'name',2,'8-12','2',180,j,'PRIVATE CANARY note');
+   mapping:=mapping||jsonb_build_object(eid,c->>'id');
+  end loop;
+ end loop;
+ insert into public.workouts(user_id,variant,day,workout_date,data) values(u,'SYNTHETIC retained','Sesión 1',current_date,jsonb_build_object('routine_id',rid,'routine_day_id',(select id from public.routine_days where routine_id=rid order by day_order limit 1),'exercises','[]'::jsonb))returning id into workout;
+ perform set_config('request.jwt.claim.sub',u::text,true);perform public.premium_admission_permission(true,'premium-followup-v1');
+ m:=public.premium_start_followup(rid,gen_random_uuid(),current_date,6);
+ perform set_config('request.jwt.claim.sub','',true);
+ update public.coach_mesocycles set state='active',intake_submitted_at=now(),intake='{"experience":"gt4","goal":"maximize_mass","days":4,"weekdays":["mon","tue","thu","fri"],"minutes_by_day":{"mon":75,"tue":75,"thu":75,"fri":75},"activity":{"type":"none","weekdays":[]},"excluded":[],"inventory":{"equipment":["dumbbells","press45","chest_press","pulldown","seated_curl","cables"],"custom":[]}}'::jsonb where id=m;
+ select current_revision_id into rev from public.coach_mesocycles where id=m;
+ perform public.premium_bind_catalogue(m,rev,mapping);perform public.premium_assign_reviewer(m,reviewer);
+ perform set_config('request.jwt.claim.sub',u::text,true);perform public.premium_permission(m,true);perform public.premium_weekly_permission(m,true);
+ select current_revision_id into rev from public.coach_mesocycles where id=m;
+ return jsonb_build_object('user',u,'reviewer',reviewer,'routine',rid,'mesocycle',m,'revision',rev,'workout',workout);
+end $test$;
+create function pg_temp.proposal(f jsonb) returns public.coach_recommendations language plpgsql as $test$
+declare b jsonb;rec public.coach_recommendations;
+begin
+ perform set_config('request.jwt.claim.sub',f->>'user',true);
+ b:=coach_private.premium_weekly_bundle((f->>'mesocycle')::uuid,(f->>'user')::uuid);
+ update public.coach_recommendations set state='superseded' where mesocycle_id=(f->>'mesocycle')::uuid and state in ('analyzing','pending_review','ready');
+ insert into public.coach_recommendations(mesocycle_id,routine_id,user_id,base_revision_id,kind,state,facts,interpretation,context_snapshot,analysis_key,analysis_week,analysis_bundle,analysis_trace,provider_state)
+ values((f->>'mesocycle')::uuid,(f->>'routine')::uuid,(f->>'user')::uuid,(select current_revision_id from public.coach_mesocycles where id=(f->>'mesocycle')::uuid),'REVIEW','pending_review','[]','Synthetic structured proposal',b,gen_random_uuid(),(select tracking_week from public.coach_mesocycles where id=(f->>'mesocycle')::uuid),b,b->'weekly_metadata'||jsonb_build_object('model','mock'),'finished') returning * into rec;
+ return rec;
+end $test$;
+
+create temporary table context_checks(name text primary key, pass boolean not null check(pass)) on commit drop;
+create temporary table context_samples(name text primary key, context jsonb) on commit drop;
+create function pg_temp.check_it(n text,ok boolean) returns void language plpgsql as $t$
+begin if ok is distinct from true then raise exception 'check failed: %',n;end if;insert into context_checks values(n,true);end $t$;
+do $t$
+declare f jsonb; rec public.coach_recommendations; ctx jsonb; co uuid; m uuid;u uuid;rv uuid;original jsonb;out jsonb; denied boolean;
+begin
+ f:=pg_temp.fixture();m:=(f->>'mesocycle')::uuid;u:=(f->>'user')::uuid;rv:=(f->>'revision')::uuid;
+ perform public.premium_chat_permission(m,true);
+ insert into public.coach_conversations(user_id,routine_id,mesocycle_id) values(u,(f->>'routine')::uuid,m) returning id into co;
+ select snapshot into original from public.routine_revisions where id=rv;
+ rec:=pg_temp.proposal(f);
+ out:='{"schema_version":"premium-weekly-distribution-v1","kind":"KEEP","reason":"La evidencia disponible no justifica cambios esta semana.","interpretation":"El rendimiento registrado es estable y el contexto declarado es compatible.","facts":[],"checkin_signals":[],"changes":[],"confidence":"medium"}';
+ update public.coach_recommendations set kind='KEEP',state='ready',provider_state='finished',analysis_trace=rec.analysis_trace||jsonb_build_object('output',out,'error',null),review_reason='PRIVATE CANARY reviewer',reviewed_at=clock_timestamp(),interpretation=out->>'interpretation' where id=rec.id;
+ ctx:=coach_private.premium_chat_bundle(m,u,co,'¿Qué decidió SIMPLE Coach?')->'chat_provider';
+ perform pg_temp.check_it('A KEEP reason and interpretation preserved exactly',ctx#>>'{recent_decisions,0,reason}'=out->>'reason' and ctx#>>'{recent_decisions,0,interpretation}'=out->>'interpretation' and ctx#>>'{recent_decisions,0,kind}'='KEEP');
+ insert into context_samples values('KEEP',ctx);
+ out:=out||'{"kind":"MODIFY","reason":"Se propone ajustar una serie, pendiente de aceptación.","interpretation":"La propuesta se basa en los datos registrados."}';
+ update public.coach_recommendations set kind='MODIFY',analysis_trace=rec.analysis_trace||jsonb_build_object('output',out,'error',null),patches=jsonb_build_array(jsonb_build_object('field','rir','target_id',(select id from public.routine_exercises where day_id in(select id from public.routine_days where routine_id=(f->>'routine')::uuid) order by id limit 1),'from','2','to','1')) where id=rec.id;
+ ctx:=coach_private.premium_chat_bundle(m,u,co,'¿Qué decidió SIMPLE Coach?')->'chat_provider';
+ perform pg_temp.check_it('B MODIFY ready is not accepted and retains closed patch',ctx#>>'{recent_decisions,0,kind}'='MODIFY' and ctx#>>'{recent_decisions,0,state}'='ready' and ctx#>>'{recent_decisions,0,changes,0,field}'='rir' and ctx#>>'{recent_decisions,0,reason}'=out->>'reason');
+ insert into context_samples values('MODIFY ready',ctx);
+ update public.coach_recommendations set state='accepted',accepted_at=clock_timestamp() where id=rec.id;
+ ctx:=coach_private.premium_chat_bundle(m,u,co,'¿Qué decidió SIMPLE Coach?')->'chat_provider';
+ perform pg_temp.check_it('accepted is explicitly distinguished from ready',ctx#>>'{recent_decisions,0,state}'='accepted');
+ insert into context_samples values('MODIFY accepted',ctx);
+ out:=out||'{"kind":"REVIEW","reason":"Faltan datos suficientes y hay ejercicios excluidos en la programación heredada.","interpretation":"La evidencia es insuficiente; la contradicción requiere revisión humana.","changes":[]}';
+ update public.coach_recommendations set kind='REVIEW',state='pending_review',patches='[]',accepted_at=null,analysis_trace=rec.analysis_trace||jsonb_build_object('output',out,'reason',out->'reason','error',null),interpretation=out->>'interpretation' where id=rec.id;
+ ctx:=coach_private.premium_chat_bundle(m,u,co,'¿Por qué está mi semana en revisión?')->'chat_provider';
+ perform pg_temp.check_it('C pending REVIEW uses stored public reason and interpretation',ctx#>>'{recent_decisions,0,reason}'=out->>'reason' and ctx#>>'{recent_decisions,0,interpretation}'=out->>'interpretation');
+ perform pg_temp.check_it('C REVIEW empty changes and active R1',ctx#>'{recent_decisions,0,changes}'='[]' and ctx#>>'{mesocycle,current_revision}'='1' and ctx#>>'{recent_decisions,0,state}'='pending_review');
+ insert into context_samples values('REVIEW pending',ctx);
+ perform set_config('request.jwt.claim.sub',f->>'reviewer',true);
+ perform public.premium_resolve_review(rec.id,'KEEP','[]','PRIVATE CANARY resolution');
+ perform set_config('request.jwt.claim.sub',u::text,true);
+ ctx:=coach_private.premium_chat_bundle(m,u,co,'¿Qué decidió SIMPLE Coach?')->'chat_provider';
+ perform pg_temp.check_it('D resolved REVIEW keeps original_kind separately from current KEEP ready',ctx#>>'{recent_decisions,0,original_kind}'='REVIEW' and ctx#>>'{recent_decisions,0,kind}'='KEEP' and ctx#>>'{recent_decisions,0,state}'='ready');
+ perform pg_temp.check_it('D resolved REVIEW keeps original explanation without private resolution',ctx#>>'{recent_decisions,0,reason}'=out->>'reason' and position('PRIVATE CANARY' in ctx::text)=0);
+ insert into context_samples values('REVIEW resolved',ctx);
+ update public.coach_recommendations set state='rejected' where id=rec.id;
+ ctx:=coach_private.premium_chat_bundle(m,u,co,'¿Qué decidió SIMPLE Coach?')->'chat_provider';
+ perform pg_temp.check_it('rejected state is explicit and is never accepted',ctx#>>'{recent_decisions,0,state}'='rejected');
+ insert into context_samples values('REVIEW rejected',ctx);
+ update public.coach_recommendations set analysis_trace=rec.analysis_trace||jsonb_build_object('output',out-'interpretation','error',null) where id=rec.id;
+ ctx:=coach_private.premium_chat_bundle(m,u,co,'¿Qué decidió SIMPLE Coach?')->'chat_provider';
+ perform pg_temp.check_it('E legacy absent interpretation stays null without inventing',ctx#>'{recent_decisions,0,interpretation}'='null' and ctx#>>'{recent_decisions,0,reason}'=out->>'reason');
+ insert into context_samples values('legacy missing interpretation',ctx);
+ update public.coach_recommendations set state='superseded',analysis_trace=rec.analysis_trace||jsonb_build_object('output',out,'error',null) where id=rec.id;
+ ctx:=coach_private.premium_chat_bundle(m,u,co,'¿Qué decidió SIMPLE Coach?')->'chat_provider';
+ perform pg_temp.check_it('H superseded history is explicitly superseded, not ready or pending',ctx#>>'{recent_decisions,0,state}'='superseded');
+ insert into context_samples values('superseded',ctx);
+ perform pg_temp.check_it('G projection has no private reviewer comments trace notes identity or IDs',ctx::text!~'PRIVATE CANARY|review_reason|analysis_trace|reviewer_id|user_id|routine_id|exercise_id|day_id|base_revision_id');
+ update public.coach_recommendations set analysis_trace=rec.analysis_trace||jsonb_build_object('output',out||jsonb_build_object('reason',repeat('r',800),'interpretation',repeat('i',800)),'error',null) where id=rec.id;
+ ctx:=coach_private.premium_chat_bundle(m,u,co,'¿Qué decidió SIMPLE Coach?')->'chat_provider';
+ perform pg_temp.check_it('800 character limits keep full meaning without truncation',char_length(ctx#>>'{recent_decisions,0,reason}')=800 and char_length(ctx#>>'{recent_decisions,0,interpretation}')=800);
+ update public.coach_recommendations set analysis_trace=rec.analysis_trace||jsonb_build_object('output',out||jsonb_build_object('reason',repeat('r',801),'interpretation',repeat('i',801)),'error',null) where id=rec.id;
+ ctx:=coach_private.premium_chat_bundle(m,u,co,'¿Qué decidió SIMPLE Coach?')->'chat_provider';
+ perform pg_temp.check_it('oversized legacy explanation omitted not truncated',ctx#>'{recent_decisions,0,reason}'='null' and ctx#>'{recent_decisions,0,interpretation}'='null');
+ update public.coach_recommendations set analysis_trace=rec.analysis_trace||jsonb_build_object('output',out||'{"reason":"persona@example.test","interpretation":"<script>unsafe</script>"}','error',null) where id=rec.id;
+ ctx:=coach_private.premium_chat_bundle(m,u,co,'¿Qué decidió SIMPLE Coach?')->'chat_provider';
+ perform pg_temp.check_it('PII and markup sanitized server side',ctx#>'{recent_decisions,0,reason}'='null' and ctx#>'{recent_decisions,0,interpretation}'='null');
+ update public.coach_recommendations set analysis_trace=rec.analysis_trace||jsonb_build_object('output',out||'{"reason":[],"interpretation":123}','error',null) where id=rec.id;
+ ctx:=coach_private.premium_chat_bundle(m,u,co,'¿Qué decidió SIMPLE Coach?')->'chat_provider';
+ perform pg_temp.check_it('non string explanations omitted',ctx#>'{recent_decisions,0,reason}'='null' and ctx#>'{recent_decisions,0,interpretation}'='null');
+ update public.coach_recommendations set analysis_trace=rec.analysis_trace||jsonb_build_object('output',out,'error','semantic_invalid') where id=rec.id;
+ ctx:=coach_private.premium_chat_bundle(m,u,co,'¿Qué decidió SIMPLE Coach?')->'chat_provider';
+ perform pg_temp.check_it('rejected invalid provider output never exposed as explanation',ctx#>'{recent_decisions,0,reason}'='null' and ctx#>'{recent_decisions,0,interpretation}'='null' and ctx#>'{recent_decisions,0,original_kind}'='null');
+ update public.coach_recommendations set analysis_trace=rec.analysis_trace||jsonb_build_object('output',out,'error',null),provider_state='dispatched' where id=rec.id;
+ ctx:=coach_private.premium_chat_bundle(m,u,co,'¿Qué decidió SIMPLE Coach?')->'chat_provider';
+ perform pg_temp.check_it('unfinished provider output never exposed',ctx#>'{recent_decisions,0,reason}'='null');
+ update public.coach_recommendations set provider_state='finished',analysis_trace='{}' where id=rec.id;
+ ctx:=coach_private.premium_chat_bundle(m,u,co,'¿Qué decidió SIMPLE Coach?')->'chat_provider';
+ perform pg_temp.check_it('legacy no output remains compatible',ctx#>'{recent_decisions,0,reason}'='null' and ctx#>'{recent_decisions,0,interpretation}'='null');
+ perform set_config('request.jwt.claim.sub','c14a2a6d-9853-431d-856c-4d742002187e',true);
+ perform set_config('role','authenticated',true);
+ denied:=false;begin perform public.premium_chat_load(m);exception when others then denied:=sqlerrm='premium_chat_not_authorized';end;
+ perform set_config('role','none',true);
+ perform pg_temp.check_it('F other client denied by public Chat load',denied);
+ perform set_config('role','authenticated',true);
+ denied:=false;begin perform coach_private.premium_chat_bundle(m,u,co,'¿Qué decidió SIMPLE Coach?');exception when insufficient_privilege then denied:=true;end;
+ perform set_config('role','none',true);
+ perform pg_temp.check_it('F authenticated cannot invoke private projection directly',denied);
+ perform set_config('role','none',true);perform set_config('request.jwt.claim.sub',u::text,true);
+ update public.coach_recommendations set state='pending_review',kind='REVIEW',analysis_trace=rec.analysis_trace||jsonb_build_object('output',out,'error',null),analysis_bundle=jsonb_set(analysis_bundle,'{provider,schema_version}','"premium-weekly-provider-v1"') where id=rec.id;
+ update public.context_grants set revoked_at=clock_timestamp() where user_id=u and scope='premium_weekly_checkin' and revoked_at is null;
+ ctx:=coach_private.premium_chat_bundle(m,u,co,'¿Qué decidió SIMPLE Coach?')->'chat_provider';
+ perform pg_temp.check_it('weekly consent revocation still hides weekly decision explanation',ctx->'recent_decisions'='[]');
+ perform pg_temp.check_it('R1 snapshot and revision count unchanged by explanation and resolution',original=(select snapshot from public.routine_revisions where id=rv) and (select count(*) from public.routine_revisions where routine_id=(f->>'routine')::uuid)=1);
+end $t$;
+select jsonb_build_object('checks',(select jsonb_object_agg(name,pass) from context_checks),'count',(select count(*) from context_checks),'failed',0,'provider_calls',0,'samples',(select jsonb_object_agg(name,context) from context_samples)) result;
+rollback;
