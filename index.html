@@ -8319,7 +8319,6 @@ async function openSharedRoutine(id){
     assignment=(assignments||[]).find(a=>String(a.trainer_routine_id)===routineId && String(a.client_id||user.id)===String(user.id));
     if(assignment?.client_routine_id) routineId=String(assignment.client_routine_id);
   }catch(_){}
-  if(profile?.role==='client'&&!assignment)return toast('No se encontró una asignación activa de esta rutina.');
 
   let structure=null;
   if(assignment&&!assignment.client_routine_id){
@@ -8333,6 +8332,7 @@ async function openSharedRoutine(id){
   if(!isCurrent())return;
 
   if(r.error||!r.data)return toast('No se pudo abrir la rutina restaurada. La asignación sí se ha conservado.');
+  if(profile?.role==='client'&&!assignment&&String(r.data.owner_id)!==String(owner.id))return toast('No se encontró una asignación activa de esta rutina.');
   const original=r.data;
   // Keep the trainer routine id available even when the client is using a
   // private client copy. Personal notes are stored against the trainer

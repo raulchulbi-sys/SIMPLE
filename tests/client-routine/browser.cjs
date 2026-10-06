@@ -52,6 +52,20 @@ const base='http://127.0.0.1:4260/',out=path.join(__dirname,'results'),results=[
  check('training preserves routine and exercise identity',await page.evaluate(([r,e])=>workoutRoutine.id===r&&activeWorkout.exercises[0].id===e,[id(10),id(160)]));
  await page.evaluate(()=>closeM('trainModal'));await page.evaluate(()=>mock.clientReadError=true);await page.evaluate(r=>openSharedRoutine(r),id(10));
  check('failed client read never falls back to template',await page.locator('#trainModal').evaluate(e=>!e.classList.contains('show')));
+ // Coach routines belong to the athlete and intentionally have no trainer assignment.
+ await go('client');
+ await page.evaluate(r=>{assignments=[];mock.clientReadError=false;mock.tables.routines.find(x=>x.id===r).owner_id=user.id;mock.calls=[];coachReadRoutineHints=async()=>new Map();},id(10));
+ await page.evaluate(r=>openCoachRoutine(r),id(10));
+ check('Coach opens owned routine without trainer assignment',await page.locator('#trainModal').evaluate(e=>e.classList.contains('show')));
+ check('owned routine bypasses assignment RPC',await page.evaluate(()=>!mock.calls.some(c=>c.rpc==='get_client_routine_structure')));
+ await page.getByRole('button',{name:'Ver sesión',exact:true}).first().click();
+ const ownExercise=await page.evaluate(()=>mock.tables.routine_exercises[0]);
+ check('owned session keeps physical exercise prescription',await page.locator('.session-overview').innerText().then(t=>t.includes(ownExercise.name)&&t.includes(ownExercise.target)&&!t.includes('Client-only added exercise')));
+ await page.evaluate(()=>closeM('trainModal'));
+ await page.evaluate(([r,t])=>{workoutRoutine=null;mock.tables.routines.find(x=>x.id===r).owner_id=t;mock.calls=[];},[id(10),id(1)]);
+ await page.evaluate(r=>openSharedRoutine(r),id(10));
+ check('foreign routine without assignment stays closed',await page.locator('#trainModal').evaluate(e=>!e.classList.contains('show')));
+ check('foreign routine does not become workout context',await page.evaluate(()=>workoutRoutine===null));
  check('no unexpected browser errors',errors.length===0);await context.close();
  }}finally{await browser.close();}}
  fs.writeFileSync(path.join(out,'browser.json'),JSON.stringify(results,null,2));console.log(results.length+'/'+results.length+' browser checks');

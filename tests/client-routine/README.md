@@ -17,7 +17,7 @@ The frontend uses the assignment snapshot for metadata, editing, reordering, ses
 
 A reopening regression also exposed the workout state guard treating its own note-loading update as an external edit. Refreshing the expected state immediately after that synchronous update restores reopening while retaining all late-response guards. No note or alias logic changes.
 
-## Verification — final distinct checks
+## Verification — initial candidate f82723d
 
 | Suite | Result |
 |---|---:|
@@ -49,7 +49,11 @@ The alias harness now initializes the statistics-stage read and fixes its fixtur
 
 Staging: all 16 original central-table count/hash pairs match their pre-test values. The 12 candidate snapshots equal the initial prescriptions of their 12 assignments. Transaction fixtures were rolled back. The sole committed concurrency fixture was deleted by exact UUIDs after verifying its synthetic label and owner; zero residue remains. No Auth user/session changes, no OAuth/config changes, no OpenAI calls.
 
-Production: no writes and no publication during this task. Main remains bfe228cc. Original save/reorder hashes and original cycle hash match the initial read. The new table does not exist in production. Patatasimple and Coach are untouched.
+Initial preparation: production was read-only and main remained bfe228cc. After explicit authorization the exact migration was applied once: three snapshots matched their source prescriptions, all 16 original central-table count/hash pairs remained unchanged, existing policies and the original cycle hash remained unchanged. No Auth/OAuth, Coach, workout or note changes were made.
+
+Authenticated postdeploy verification found a frontend regression omitted by the initial suite: the assignment requirement also rejected athlete-owned Coach routines. The guard now checks the server-returned owner UUID before allowing a routine without an assignment. It still rejects foreign routines, and assigned routines still require their private snapshot with no template fallback. No backend change was needed.
+
+Final affected regression runs: 92/92 assignment browser checks (the original 72 plus 20 own/foreign Coach-entry checks), 18/18 response validation, 16/16 training modes and 26/26 history navigation: 152/152. These reruns are not added to the historical 1,101 count. Public checks are reported separately in ignored results; no authenticated production save is used as a test.
 
 ## Existing template recovery
 
