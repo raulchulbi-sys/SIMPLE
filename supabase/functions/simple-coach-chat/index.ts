@@ -1,4 +1,4 @@
-import * as Chat from './chat-policy-v1_1.mjs';
+import * as Chat from './chat-policy-v1_2.mjs';
 const URL=Deno.env.get('SUPABASE_URL')!,ANON=Deno.env.get('SUPABASE_ANON_KEY')!,SERVICE=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const origins=new Set(['http://127.0.0.1:4245','http://localhost:4245','http://127.0.0.1:4251','http://localhost:4251']);
 Deno.serve(async(req:Request)=>{
