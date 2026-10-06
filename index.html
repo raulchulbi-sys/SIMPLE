@@ -4,6 +4,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>SIMPLE</title>
 <script src="assets/theme.js"></script>
+<script src="assets/statistics-stage.js"></script>
 <style>
 @layer simple-legacy {
 
@@ -3607,11 +3608,14 @@ async function openRoutineProgress(routineId){
     const [r,orderedRoutineDaysResult]=await Promise.all([workoutsPromise,daysPromise.catch(e=>({error:e,data:[]}))]);
     if(!isCurrent())return;
     if(r.error)throw r.error;
-    const sessions=(r.data||[]).filter(session=>{
+    const stage=await simpleStatisticsStage.read(db,user.id,routineId,isCurrent);
+    if(!isCurrent())return;
+    const historySessions=(r.data||[]).filter(session=>{
       const d=session?.data||{};
       const rid=d.routine_id ?? d.routineId ?? null;
       return rid!=null && String(rid)===requestedRoutineId;
     });
+    const sessions=simpleStatisticsStage.filter(historySessions,stage);
     if(!isCurrent())return;
     subtitle.textContent=`${sessions.length} sesión${sessions.length===1?'':'es'} registrada${sessions.length===1?'':'s'}`;
     const orderedRoutineDays=orderedRoutineDaysResult.error?[]:(orderedRoutineDaysResult.data||orderedRoutineDaysResult);
@@ -3623,6 +3627,7 @@ async function openRoutineProgress(routineId){
           <div><div class="muted">Última sesión</div><b>${sessions.length?simpleFormatDateKey(sessions[0].workout_date):'Sin sesiones'}</b></div>
         </div>
       </div>
+      ${stage.started_at?`<p class="muted">Estadísticas desde ${esc(new Date(stage.started_at).toLocaleString('es-ES'))}. El historial anterior se conserva.</p>`:''}
       <div class="card client-progress-chart">
         <div style="margin-bottom:10px"><b style="font-size:18px">Evolución del ejercicio</b>
         <div class="muted">Selecciona el día/sesión y el ejercicio para comparar tus sesiones equivalentes.</div></div>
@@ -3649,7 +3654,8 @@ async function openRoutineProgress(routineId){
         <div id="clientProgressPointDetail" class="progress-chart-stat progress-point-detail"></div>
         <div id="clientProgressChartSummary" class="progress-chart-summary"></div>
       </div>
-      ${sessions.map((s,idx)=>{
+      <h3>Historial completo</h3>
+      ${historySessions.map((s,idx)=>{
         const d=s.data||{}, exercises=Array.isArray(d.exercises)?d.exercises:[];
         return `<details class="history-session card" ${idx===0?'open':''}>
           <summary class="history-summary"><div><b class="history-title">${esc(d.day_name||s.day||'Entrenamiento')}</b>
@@ -3677,6 +3683,25 @@ async function openRoutineProgress(routineId){
   }
 }
 
+function mountStatisticsStageControls(clientId,routineId,routineName,stage){
+  const box=$('statisticsStageControls');if(!box)return;
+  const text=document.createElement('p');text.className='muted';text.textContent=stage.started_at?'Estadísticas desde '+new Date(stage.started_at).toLocaleString('es-ES')+'. El historial anterior se conserva.':'El reinicio comienza una nueva etapa y conserva todo el historial.';box.append(text);
+  if(profile?.role!=='trainer')return;
+  const button=document.createElement('button');button.type='button';button.className='btn';button.style.minHeight='44px';button.textContent='Reiniciar estadísticas';box.append(button);
+  const feedback=document.createElement('p');feedback.setAttribute('role','status');box.append(feedback);
+  button.onclick=async()=>{
+    if(button.disabled)return;
+    if(!confirm('¿Reiniciar las estadísticas de este cliente en '+routineName+'? Gráficas, Última sesión y ciclo empezarán de cero. Se conservarán entrenamientos, notas, rutina y asignación.'))return;
+    const owner=user,isCurrent=beginModalRequest('clientProgressModal');button.disabled=true;button.textContent='Reiniciando…';feedback.textContent='';
+    try{
+      await simpleStatisticsStage.reset(db,clientId,routineId,stage,crypto.randomUUID());
+      if(user!==owner||!isCurrent())return;
+      await openClientRoutineProgress(clientId,routineId,routineName);
+      toast('Nueva etapa iniciada. El historial se conserva.');
+    }catch(e){if(user!==owner||!isCurrent())return;feedback.textContent=String(e.message||'').includes('statistics_stage_conflict')?'Otro reinicio se ha realizado. Cierra y vuelve a abrir el progreso antes de intentarlo.':'No se pudo confirmar el reinicio. Vuelve a abrir el progreso para comprobar su estado.';}
+    finally{if(button.isConnected){button.disabled=false;button.textContent='Reiniciar estadísticas';}}
+  };
+}
 async function editClientAssignedRoutine(clientId,routineId,routineName){
   const title=$('clientModalTitle');
   const clientName=title?.dataset.clientId===String(clientId)?title.textContent:'Cliente';
@@ -4102,12 +4127,15 @@ async function openClientRoutineProgress(clientId,routineId,routineName){
     // no permitimos que la respuesta antigua pinte datos sobre la nueva.
     if(String(title.dataset.routineId)!==requestedRoutineId)return;
 
-    const sessions=(r.data||[]).filter(session=>{
+    const stage=await simpleStatisticsStage.read(db,clientId,routineId,isCurrent);
+    if(!isCurrent())return;
+    const historySessions=(r.data||[]).filter(session=>{
       const data=session?.data||{};
       const sessionRoutineId=data.routine_id ?? data.routineId ?? null;
       return sessionRoutineId!=null && String(sessionRoutineId)===requestedRoutineId;
     });
 
+    const sessions=simpleStatisticsStage.filter(historySessions,stage);
     // Exercise notes are stored separately from workout sessions so they persist
     // across devices. Trainers must read them through the authorized RPC.
     let clientRoutineNotes=[];
@@ -4141,6 +4169,7 @@ async function openClientRoutineProgress(clientId,routineId,routineName){
         </div>
       </div>
 
+      <div id="statisticsStageControls"></div>
       <div class="card client-progress-chart">
         <div style="margin-bottom:10px">
           <b style="font-size:18px">Evolución del ejercicio</b>
@@ -4178,7 +4207,8 @@ async function openClientRoutineProgress(clientId,routineId,routineName){
         <div id="clientProgressChartSummary" class="progress-chart-summary"></div>
       </div>
 
-      ${sessions.map((s,idx)=>{
+      <h3>Historial completo</h3>
+      ${historySessions.map((s,idx)=>{
         const d=s.data||{};
         const date=simpleDateFromKey(s.workout_date);
         const dateLabel=date?date.toLocaleDateString('es-ES'):'Fecha no disponible';
@@ -4225,6 +4255,7 @@ async function openClientRoutineProgress(clientId,routineId,routineName){
     clientProgressChartState.identityContext=progressIdentityContext(clientId,routineId,orderedRoutineDays);
     clientProgressChartState.currentExerciseNamesById=Object.fromEntries((orderedRoutineDays||[]).flatMap(d=>(d.exercises||[]).map(e=>[String(e.id),String(e.name||'').trim()]).filter(([id,name])=>id&&name)));
     setupClientProgressChart(sessions);
+    mountStatisticsStageControls(clientId,routineId,routineName,stage);
   }catch(e){
     if(!isCurrent())return;
     console.error('openClientRoutineProgress:',e);
@@ -4255,7 +4286,7 @@ async function loadClientRoutineOverview(clientId,item){
   const args={p_client_id:String(clientId),p_routine_id:String(item.routine.id)};
   const [cycle,last]=await Promise.allSettled([
     readRoutineCycleProgress(clientId,item.routine.id),
-    db.rpc('get_client_routine_history',args).select('workout_date').order('workout_date',{ascending:false}).limit(1)
+    (async()=>{const stage=await simpleStatisticsStage.read(db,clientId,item.routine.id);let q=db.rpc('get_client_routine_history',args).select('workout_date,created_at').order('workout_date',{ascending:false});if(stage.started_at)q=q.gte('created_at',stage.started_at);return q.limit(1);})()
   ]);
   const progress=cycle.status==='fulfilled'&&!cycle.value.error?(cycle.value.data||[])[0]:null;
   const latest=last.status==='fulfilled'&&!last.value.error?last.value.data:null;
@@ -5960,7 +5991,7 @@ let activeWorkout={day:null,exercises:[],sets:{}};
 
 async function loadHistory(routineId=null,isCurrent=()=>true){
   let query=db.from('workouts')
-    .select('id,user_id,variant,day,workout_date,data')
+    .select('id,user_id,variant,day,workout_date,created_at,data')
     .eq('user_id',user.id)
     .order('workout_date',{ascending:false});
 
@@ -5970,7 +6001,7 @@ async function loadHistory(routineId=null,isCurrent=()=>true){
     query=query.eq('data->>routine_id',String(routineId));
   }
 
-  const r=await query;
+  const [r]=await Promise.all([query,routineId?simpleStatisticsStage.read(db,user.id,routineId,isCurrent):Promise.resolve(null)]);
   if(!isCurrent())return;
   if(r.error){
     // No ocultamos errores de red/RLS como si el historial estuviera vacío.
@@ -6500,7 +6531,7 @@ function getPreviousExerciseSession(exerciseId){
   if(!user?.id || !workoutRoutine?.id || !activeWorkout?.day?.id)return null;
   if((activeWorkout.exercises||[]).filter(e=>String(e.id)===String(exerciseId)).length!==1)return null;
   const today=simpleLocalDateKey();
-  const candidates=(window.workoutHistory||[]).filter(s=>
+  const candidates=simpleStatisticsStage.previous(window.workoutHistory||[],user.id,workoutRoutine.id).filter(s=>
     String(s.user_id||'')===String(user.id) && String(s.data?.routine_id||'')===String(workoutRoutine.id)
   ).sort((a,b)=>String(b.workout_date||'').localeCompare(String(a.workout_date||'')) ||
     String(b.data?.completed_at||'').localeCompare(String(a.data?.completed_at||'')));
@@ -8004,7 +8035,7 @@ function simpleWeeklyProgressFromSessions(sessions,total,weekStart,aliases,routi
 async function readRoutineCycleProgress(clientId,routineId){
   for(let attempt=0;attempt<2;attempt++){
     const date=simpleCycleDateKey();
-    const result=await db.rpc('get_client_routine_cycle_progress',{p_client_id:String(clientId),p_routine_id:String(routineId)});
+    const result=await simpleStatisticsStage.cycle(db,clientId,routineId);
     if(date===simpleCycleDateKey())return result;
   }
   throw Error('La fecha cambió durante la lectura del ciclo.');
