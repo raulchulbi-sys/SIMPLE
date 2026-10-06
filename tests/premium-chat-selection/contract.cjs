@@ -1,0 +1,33 @@
+const fs=require('fs'),path=require('path'),assert=require('assert/strict');
+const root=path.resolve(__dirname,'../..'),rows=[],copy=x=>structuredClone(x),check=(name,ok)=>{assert(ok,name);rows.push({name,pass:true});};
+(async()=>{
+ const C=await import('../../supabase/functions/simple-coach-chat/chat-policy-v1_1.mjs'),L=await import('../../supabase/functions/simple-coach-chat/chat-contract.mjs');
+ const samples=JSON.parse(fs.readFileSync(path.join(__dirname,'results/backend.json'),'utf8')).samples;
+ for(const s of samples){const q=C.semantic(s.output,s.context);check(s.name+' validates',q.ok);}
+ const s=samples.find(x=>x.name==='top backoff two replacements'),bad=(name,mutate)=>{const out=copy(s.output),ctx=copy(s.context);mutate(out,ctx);check(name,!C.semantic(out,ctx).ok);};
+ bad('D excluded',o=>o.recommendation_candidate.changes[0].to_catalogue_id='bird_dog');
+ bad('E unavailable equipment',o=>o.recommendation_candidate.changes[0].to_catalogue_id='machine_crunch');
+ bad('F foreign ref',o=>o.recommendation_candidate.changes[0].exercise_ref='exercise_999');
+ bad('stale catalogue',o=>o.recommendation_candidate.changes[0].from_catalogue_id='db_curl');
+ bad('different function',o=>o.recommendation_candidate.changes[0].to_catalogue_id='db_curl');
+ bad('duplicate same target',o=>o.recommendation_candidate.changes[1]=copy(o.recommendation_candidate.changes[0]));
+ bad('missing target evidence',o=>o.recommendation_candidate.facts=[]);
+ bad('unknown output property',o=>o.recommendation_candidate.changes[0].extra=true);
+ bad('unresolved prescription',(_,c)=>c.training.routine.exercises[0].planned_sets=[]);
+ bad('replacement incompatible reps',(_,c)=>c.training.routine.exercises[0].planned_sets[0].reps_min=5);
+ bad('historical context cannot use expanded mapper',(_,c)=>delete c.training.chat_selection_version);
+ bad('identity leak',o=>o.answer='Usuario 284d6bb6-e798-44a9-b72c-f31d3e27deef');
+ bad('sensitive answer',o=>o.answer='Tu lesión necesita tratamiento');
+ bad('unregistered evidence',o=>o.facts_used=['private']);
+ check('historical prompt retains original policy',L.PROMPT_VERSION==='premium-chat-v1'&&!L.PROMPT.includes('Política premium-chat-v1.1'));
+ check('new policy explicitly allows selection without preference',C.PROMPT.includes('ausencia de preferencia')&&C.PROMPT.includes('NO justifican REVIEW'));
+ check('no fixed source/destination equivalence',!C.PROMPT.includes('Dead bug')&&!C.PROMPT.includes('Bird dog'));
+ const request=C.requestBody(s.context);check('strict schema/storefalse/fixed model',request.store===false&&request.text.format.strict&&request.model===L.MODEL);
+ let calls=0;const result=await C.analyze(s.context,'CONTROLLED_NON_SECRET',async()=>{calls++;return new Response(JSON.stringify({status:'completed',usage:{input_tokens:200,output_tokens:150},output:[{type:'message',content:[{type:'output_text',text:JSON.stringify(s.output)}]}]}));});
+ check('actual new analyzer accepts six-ID schema',!result.error&&result.output.recommendation_candidate.kind==='MODIFY');check('receipt version v1.1',result.receipt.prompt_version===C.PROMPT_VERSION);check('one dispatch no retries',calls===1);check('safe output fingerprint',/^[0-9a-f]{64}$/.test(result.receipt.response_fingerprint));
+ const A=require('../../assets/coach-premium-adapter.js');
+ const adapted=A.recommendation({kind:'MODIFY',patches:s.patches.map((p,i)=>({...p,exercise_name:i?'Bird dog':'Dead bug'}))});
+ check('reviewer names without UUID or raw JSON',adapted.changes[0].before.name==='Dead bug'&&adapted.changes[0].after.name==='Crunch en suelo');check('reviewer complete before/after sets identical',JSON.stringify(adapted.changes[0].before.planned_sets)===JSON.stringify(adapted.changes[0].after.planned_sets));check('reviewer keeps top backoff',adapted.changes[0].after.scheme==='top_backoff');
+ fs.writeFileSync(path.join(__dirname,'results/contract.json'),JSON.stringify(rows,null,2));
+ console.log(rows.length+'/'+rows.length+' selection checks; request bound '+(new TextEncoder().encode(JSON.stringify(request)).length+512)+' bytes; no real provider');
+})().catch(e=>{console.error(e.message);process.exitCode=1;});

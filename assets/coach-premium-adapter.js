@@ -8,7 +8,14 @@ function failure(value){const code=[value?.code,value?.error,value?.message].fin
 function recommendation(row,days=[]){
  if(!row)return null;
  const exercise=id=>days.flatMap(d=>d.exercises||[]).find(e=>e.id===id);
- const changes=(row.patches||[]).map(p=>({action:p.field,exercise_name:p.exercise_name||exercise(p.target_id)?.name||'Programación actual',before:clone(p.from),after:clone(p.to)}));
+ const changes=(row.patches||[]).map(p=>{
+  const name=p.exercise_name||exercise(p.target_id)?.name||'Programación actual',change={action:p.field,exercise_name:name,before:clone(p.from),after:clone(p.to)};
+  if(p.field==='replace_exercise'&&Array.isArray(p.to?.planned_sets)&&p.to.source_catalogue_id){
+   change.before={name,scheme:p.to.scheme,planned_sets:clone(p.to.planned_sets)};
+   change.after={name:scope.SimpleCoachProgrammingV5?.byId.get(p.to.catalogue_id)?.name||'Sustituto del catálogo',scheme:p.to.scheme,planned_sets:clone(p.to.planned_sets)};
+  }
+  return change;
+ });
  return {id:row.id,kind:row.kind,state:row.state,revision_id:row.base_revision_id,analysis_week:row.analysis_week,reason:row.review_reason||row.interpretation||'',facts:clone(row.facts||[]),changes,quality_warnings:clone(row.quality_warnings||[])};
 }
 function create(db,options={}){

@@ -95,9 +95,9 @@ function outputTextSafe(value){
  if(typeof value==='string')return !pii.test(value)&&!health.test(fold(value))&&!biometric.test(fold(value))&&!/[<>\p{Cf}\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/u.test(value);
  if(Array.isArray(value))return value.every(outputTextSafe);if(value&&typeof value==='object')return Object.values(value).every(outputTextSafe);return true;
 }
-export async function safeFingerprint(output,ctx){
+export async function safeFingerprint(output,ctx,check=semantic){
  // A hash of rejected medical/PII text can still enable a dictionary attack. It is never generated.
- if(!semantic(output,ctx).ok||!outputTextSafe(output))return null;
+ if(!check(output,ctx).ok||!outputTextSafe(output))return null;
  const canonical=value=>Array.isArray(value)?value.map(canonical):value&&typeof value==='object'?Object.fromEntries(Object.keys(value).sort().map(key=>[key,canonical(value[key])])):value;
  try{const bytes=new TextEncoder().encode(JSON.stringify(canonical(output))),digest=await globalThis.crypto.subtle.digest('SHA-256',bytes);return Array.from(new Uint8Array(digest),b=>b.toString(16).padStart(2,'0')).join('');}catch{return null;}
 }
@@ -108,8 +108,9 @@ function semanticDiagnostic(quality,output){
  if(quality.failures.includes('action_candidate_mismatch'))return{category:'candidate',path:'$.suggested_action',index:null,error:'action_mismatch'};
  return{category:'candidate',path:'$.recommendation_candidate',index:null,error:'candidate'};
 }
-export async function analyze(ctx,key,fetcher=fetch,outputTokens=MAX_OUTPUT){
- const started=Date.now(),receipt={model:MODEL,prompt_version:PROMPT_VERSION,provider_context_version:CONTEXT_VERSION,response_schema_version:SCHEMA_VERSION,timestamp:new Date(started).toISOString(),status:0,failure_category:'none',schema_path:null,schema_index:null,schema_error:'none',response_fingerprint:null,input_tokens:null,output_tokens:null,cached_input_tokens:null,cost_usd:null,latency_ms:0};
+export async function analyze(ctx,key,fetcher=fetch,outputTokens=MAX_OUTPUT,policy={}){
+ const body=policy.requestBody||requestBody,check=policy.semantic||semantic;
+ const started=Date.now(),receipt={model:MODEL,prompt_version:policy.promptVersion||PROMPT_VERSION,provider_context_version:CONTEXT_VERSION,response_schema_version:SCHEMA_VERSION,timestamp:new Date(started).toISOString(),status:0,failure_category:'none',schema_path:null,schema_index:null,schema_error:'none',response_fingerprint:null,input_tokens:null,output_tokens:null,cached_input_tokens:null,cost_usd:null,latency_ms:0};
  const result=(output,error,quality,diagnostic={})=>{
   receipt.failure_category=FAILURE_CATEGORIES.includes(diagnostic.category)?diagnostic.category:error?'unknown':'none';
   receipt.schema_path=SCHEMA_PATHS.includes(diagnostic.path)?diagnostic.path:null;receipt.schema_index=Number.isInteger(diagnostic.index)&&diagnostic.index>=0&&diagnostic.index<=7?diagnostic.index:null;
@@ -118,7 +119,7 @@ export async function analyze(ctx,key,fetcher=fetch,outputTokens=MAX_OUTPUT){
  };
  const cq=contextQuality(ctx);if(!cq.ok)return result(null,'invalid_chat_context',cq,{category:'context',error:'context'});if(!key||!Number.isInteger(outputTokens)||outputTokens<100||outputTokens>MAX_OUTPUT)return result(null,'configuration_error',undefined,{category:'configuration',error:'configuration'});
  let response,p;
- try{response=await fetcher('https://api.openai.com/v1/responses',{method:'POST',headers:{Authorization:'Bearer '+key,'Content-Type':'application/json'},body:JSON.stringify(requestBody(ctx,outputTokens)),signal:AbortSignal.timeout(55000)});receipt.status=response.status;
+ try{response=await fetcher('https://api.openai.com/v1/responses',{method:'POST',headers:{Authorization:'Bearer '+key,'Content-Type':'application/json'},body:JSON.stringify(body(ctx,outputTokens)),signal:AbortSignal.timeout(55000)});receipt.status=response.status;
   if(!response.ok){await response.body?.cancel();return result(null,response.status===429?'provider_rate_limit':'provider_rejected',undefined,{category:response.status===429?'rate_limit':'http',error:'protocol'});}
  }catch(error){return result(null,'provider_network_or_timeout',undefined,{category:error?.name==='TimeoutError'||error?.name==='AbortError'?'transport_timeout':'transport_network',error:'transport'});}
  try{const raw=await response.text();if(raw.length>100000)return result(null,'oversized_output',undefined,{category:'size',error:'protocol'});p=JSON.parse(raw);}catch(error){return result(null,error instanceof SyntaxError?'provider_protocol':'provider_network_or_timeout',undefined,{category:error instanceof SyntaxError?'protocol':error?.name==='TimeoutError'||error?.name==='AbortError'?'transport_timeout':'transport_network',error:error instanceof SyntaxError?'json':'transport'});}
@@ -129,7 +130,7 @@ export async function analyze(ctx,key,fetcher=fetch,outputTokens=MAX_OUTPUT){
  const messages=p.output.filter(x=>x&&x.type==='message');if(messages.some(x=>!Array.isArray(x.content)))return result(null,'provider_refusal_or_invalid',undefined,{category:'protocol',error:'protocol'});
  const content=messages.flatMap(x=>x.content);if(content.length!==1||content[0]?.type!=='output_text'||typeof content[0].text!=='string')return result(null,'provider_refusal_or_invalid',undefined,{category:content.some(x=>x?.type==='refusal')?'refusal':'protocol',error:content.some(x=>x?.type==='refusal')?'refusal':'protocol'});
  let output;try{output=JSON.parse(content[0].text);}catch{return result(null,'invalid_json',undefined,{category:'json',error:'json'});}
- const quality=semantic(output,ctx);if(!quality.ok)return result(null,'semantic_invalid',quality,semanticDiagnostic(quality,output));
- receipt.response_fingerprint=await safeFingerprint(output,ctx);
+ const quality=check(output,ctx);if(!quality.ok)return result(null,'semantic_invalid',quality,semanticDiagnostic(quality,output));
+ receipt.response_fingerprint=await safeFingerprint(output,ctx,check);
  return result(output,null,quality);
 }
