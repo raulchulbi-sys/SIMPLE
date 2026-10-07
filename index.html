@@ -3890,7 +3890,7 @@ function renderClientRoutineSessions(){
           </div>
           <div class="buttons" style="justify-content:flex-end">
             <button class="btn" type="button" onclick="renameClientSession(${i})">Renombrar</button>
-            <button class="btn primary" type="button" onclick="openClientRoutineDayView(${i})">Ver sesión</button>
+            ${state.context==='client'?`<button class="btn primary" type="button" onclick="openClientRoutineDayView(${i})">Ver sesión</button>`:''}
             <button class="btn" type="button" onclick="openClientRoutineDayEditor(${i})">Editar sesión</button>
             ${state.context==='library'&&d.id?`<button class="btn" type="button" onclick="openRoutineEditorHistory('${esc(d.id)}')">Historial</button>`:''}
             <button class="btn danger" type="button" onclick="removeClientEditorDay(${i})">Eliminar</button>
@@ -5550,7 +5550,6 @@ async function openRoutine(id,trainingDay=false){
                 style="flex:1;text-align:left" onclick="startWorkoutDay('${x.id}')">
                 <b>${esc(x.name)}</b><span class="muted" style="float:right">${x.exercises.length} ejercicios</span>
               </button>
-              <button class="btn" type="button" onclick="viewRoutineSession('${x.id}')">Ver sesión</button>
               <button class="btn open-day-menu" type="button" draggable="false"
                 title="Opciones de sesión" aria-label="Opciones de sesión"
                 onclick="event.preventDefault();event.stopPropagation();renameOpenDay('${x.id}')">⋯</button>
