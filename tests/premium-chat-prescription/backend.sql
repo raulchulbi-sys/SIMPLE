@@ -86,6 +86,15 @@ begin
  update public.coach_recommendations set kind='MODIFY',patches=p,analysis_bundle=b,context_snapshot=b,facts=v->'facts',analysis_trace=analysis_trace||jsonb_build_object('output',v) where id=r.id;
  denied:=false;begin perform public.premium_accept_recommendation(r.id);exception when others then denied:=sqlerrm='premium_not_ready';end;perform pg_temp.ck('pending review cannot accept',denied);
  perform set_config('request.jwt.claim.sub',f->>'reviewer',true);bad:=public.premium_recommendation_view(r.id);perform pg_temp.ck('reviewer receives new per-set prescriptions',bad#>>'{patches,0,to,planned_sets,0,rest_seconds}'='120');
+ perform pg_temp.ck('reviewer before uses exact base series, not replacement',bad#>'{patches,0,before_prescription,planned_sets}'=coach_private.premium_revision_sets((f->>'revision')::uuid,first_id) and bad#>>'{patches,0,before_prescription,planned_sets,0,rest_seconds}'='180');
+ perform pg_temp.ck('reviewer before preserves source name and UUID patch',bad#>>'{patches,0,before_prescription,name}'='Dead bug' and bad#>>'{patches,0,from}'=first_id::text);
+ perform pg_temp.ck('reviewer second target before also exact',bad#>'{patches,1,before_prescription,planned_sets}'=coach_private.premium_revision_sets((f->>'revision')::uuid,second_id));
+ perform pg_temp.ck('safe projection never exposes notes, private context or full revision',not (bad::text like '%PRIVATE CANARY%' or bad ? 'analysis_bundle' or bad ? 'context_snapshot' or bad ? 'snapshot'));
+ perform set_config('request.jwt.claim.sub',f->>'user',true);accepted:=public.premium_recommendation_view(r.id);
+ perform pg_temp.ck('owner and reviewer see identical source prescriptions',accepted->'patches'=bad->'patches');
+ perform set_config('request.jwt.claim.sub',gen_random_uuid()::text,true);denied:=false;begin perform public.premium_recommendation_view(r.id);exception when others then denied:=sqlerrm='premium_not_authorized';end;perform pg_temp.ck('unassigned identity cannot read before projection',denied);
+ perform set_config('request.jwt.claim.sub','',true);denied:=false;begin perform public.premium_recommendation_view(r.id);exception when others then denied:=sqlerrm='premium_not_authorized';end;perform pg_temp.ck('anonymous cannot read before projection',denied);
+ perform set_config('request.jwt.claim.sub',f->>'reviewer',true);
  perform public.premium_review_recommendation(r.id,true,'Synthetic rollback-only review');perform set_config('request.jwt.claim.sub',f->>'user',true);
  new_rev:=public.premium_accept_recommendation(r.id);
  perform pg_temp.ck('acceptance uses validated new prescription',coach_private.premium_revision_sets(new_rev,(p#>>'{0,to,id}')::uuid)=p#>'{0,to,planned_sets}');

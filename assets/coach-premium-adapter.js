@@ -11,7 +11,9 @@ function recommendation(row,days=[]){
  const changes=(row.patches||[]).map(p=>{
   const name=p.exercise_name||exercise(p.target_id)?.name||'Programación actual',change={action:p.field,exercise_name:name,before:clone(p.from),after:clone(p.to)};
   if(p.field==='replace_exercise'&&Array.isArray(p.to?.planned_sets)&&p.to.source_catalogue_id){
-   change.before={name,scheme:p.to.scheme,planned_sets:clone(p.to.planned_sets)};
+   // Only the authorized base-revision projection describes the old series.
+   // Never copy the replacement or infer historical series from current days.
+   change.before=Array.isArray(p.before_prescription?.planned_sets)?clone(p.before_prescription):'Prescripción anterior no disponible en esta proyección';
    change.after={name:scope.SimpleCoachProgrammingV5?.byId.get(p.to.catalogue_id)?.name||'Sustituto del catálogo',scheme:p.to.scheme,planned_sets:clone(p.to.planned_sets)};
   }
   return change;
