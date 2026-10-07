@@ -1,7 +1,7 @@
 const fs=require('fs'),path=require('path'),assert=require('assert/strict');
 process.env.PLAYWRIGHT_BROWSERS_PATH='C:/Users/raulc/Documents/Codex/2026-09-07/quiero-que-realices-una-auditor-a/work/pw-browsers';
 const {chromium,webkit}=require('C:/Users/raulc/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
-const base='http://127.0.0.1:4260/',out=path.join(__dirname,'results'),results=[],id=n=>'00000000-0000-4000-8000-'+String(n).padStart(12,'0');fs.mkdirSync(out,{recursive:true});
+const base=process.env.SIMPLE_PREVIEW_URL||'http://127.0.0.1:4260/',out=path.join(__dirname,'results'),results=[],id=n=>'00000000-0000-4000-8000-'+String(n).padStart(12,'0');fs.mkdirSync(out,{recursive:true});
 (async()=>{for(const [engine,type] of [['chromium',chromium],['webkit',webkit]]){
  const browser=await type.launch({headless:true,...(engine==='chromium'?{channel:'msedge'}:{})});try{for(const width of [390,1280]){
  const context=await browser.newContext({viewport:{width,height:844}}),page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
@@ -12,6 +12,11 @@ const base='http://127.0.0.1:4260/',out=path.join(__dirname,'results'),results=[
  const save=async()=>{await page.getByRole('button',{name:'Guardar cambios',exact:true}).click();await page.waitForFunction(()=>!window.__routineSaving);};
  const persisted=()=>page.evaluate(([c,r])=>JSON.parse(localStorage.getItem('synthetic-client-structure:'+c+':'+r)),[id(2),id(10)]);
  await go('trainer');
+ await page.evaluate(r=>openRoutine(r),id(10));
+ check('trainer retains session overview action',await page.getByRole('button',{name:'Ver sesión',exact:true}).count()>0);
+ await page.getByRole('button',{name:'Ver sesión',exact:true}).first().click();
+ check('trainer overview retains training and editing',await page.getByRole('button',{name:'Entrenar',exact:true}).count()===1&&await page.locator('button[onclick="editViewedRoutineSession()"]').count()===1);
+ await page.evaluate(()=>closeM('trainModal'));
  const original=await page.evaluate(()=>JSON.stringify([mock.tables.routines,mock.tables.routine_days,mock.tables.routine_exercises,mock.tables.workouts,mock.tables.routine_user_notes]));
  const other=await page.evaluate(([c,r])=>simpleClientRoutine.read(db,c,r),[id(4),id(10)]);
  await open(page);
@@ -44,10 +49,10 @@ const base='http://127.0.0.1:4260/',out=path.join(__dirname,'results'),results=[
  await open(page);await page.evaluate(()=>mock.clientDelay=180);const pending=page.evaluate(()=>openRoutineEditor('00000000-0000-4000-8000-000000000010',{clientId:'00000000-0000-4000-8000-000000000002'}));
  await new Promise(r=>setTimeout(r,30));await page.evaluate(()=>closeM('editModal'));await pending;
  check('closed editor ignores late read',await page.locator('#editModal').evaluate(e=>!e.classList.contains('show')));
- await go('client');await page.evaluate(r=>openSharedRoutine(r),id(10));await page.getByRole('button',{name:'Ver sesión',exact:true}).first().click();
- check('athlete session overview loads customized values',await page.locator('.session-overview').innerText().then(t=>t.includes('31-33')&&t.includes('Client-only added exercise')));
- await page.screenshot({path:path.join(out,engine+'-'+width+'-client-overview.png')});
- await page.getByRole('button',{name:'Entrenar',exact:true}).click();
+ await go('client');await page.evaluate(r=>openSharedRoutine(r),id(10));
+ check('assigned athlete has no session overview action',await page.getByRole('button',{name:'Ver sesión',exact:true}).count()===0);
+ await page.screenshot({path:path.join(out,engine+'-'+width+'-client-sessions.png')});
+ await page.locator('#trainBody button[onclick^="startWorkoutDay("]').first().click();
  check('athlete training uses customized UUID prescription',await page.evaluate(()=>activeWorkout.exercises[0].target==='31-33'&&activeWorkout.exercises.length===2&&activeWorkout.exercises[1].name==='Client-only added exercise'));
  check('training preserves routine and exercise identity',await page.evaluate(([r,e])=>workoutRoutine.id===r&&activeWorkout.exercises[0].id===e,[id(10),id(160)]));
  await page.evaluate(()=>closeM('trainModal'));await page.evaluate(()=>mock.clientReadError=true);await page.evaluate(r=>openSharedRoutine(r),id(10));
@@ -58,9 +63,10 @@ const base='http://127.0.0.1:4260/',out=path.join(__dirname,'results'),results=[
  await page.evaluate(r=>openCoachRoutine(r),id(10));
  check('Coach opens owned routine without trainer assignment',await page.locator('#trainModal').evaluate(e=>e.classList.contains('show')));
  check('owned routine bypasses assignment RPC',await page.evaluate(()=>!mock.calls.some(c=>c.rpc==='get_client_routine_structure')));
- await page.getByRole('button',{name:'Ver sesión',exact:true}).first().click();
+ check('owned Coach athlete has no session overview action',await page.getByRole('button',{name:'Ver sesión',exact:true}).count()===0);
+ await page.locator('#trainBody button[onclick^="startWorkoutDay("]').first().click();
  const ownExercise=await page.evaluate(()=>mock.tables.routine_exercises[0]);
- check('owned session keeps physical exercise prescription',await page.locator('.session-overview').innerText().then(t=>t.includes(ownExercise.name)&&t.includes(ownExercise.target)&&!t.includes('Client-only added exercise')));
+ check('owned session keeps physical exercise prescription',await page.evaluate(e=>activeWorkout.exercises[0].id===e.id&&activeWorkout.exercises[0].name===e.name&&activeWorkout.exercises[0].target===e.target&&!activeWorkout.exercises.some(x=>x.name==='Client-only added exercise'),ownExercise));
  await page.evaluate(()=>closeM('trainModal'));
  await page.evaluate(([r,t])=>{workoutRoutine=null;mock.tables.routines.find(x=>x.id===r).owner_id=t;mock.calls=[];},[id(10),id(1)]);
  await page.evaluate(r=>openSharedRoutine(r),id(10));
