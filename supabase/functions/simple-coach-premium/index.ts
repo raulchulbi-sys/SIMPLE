@@ -31,7 +31,7 @@ Deno.serve(async(req:Request)=>{
   // UTF-8 bytes plus overhead is a conservative token upper bound, including schema.
   const claim=await rpc('premium_analysis_claim',{p_user:user.id,p_id:r.id,p_input_bound:bytes+2048,p_mode:'openai'},true);if(!claim.claimed)return reply({recommendation:visible(r)},202);
   const result=await contract.analyze(claim.provider,key,fetch);
-  const final=await rpc('premium_analysis_finish',{p_user:user.id,p_id:r.id,p_output:result.output,p_error:result.error,p_receipt:result.receipt,p_warnings:result.quality?.warnings||[]},true);
+  const final=await rpc('premium_analysis_finish',{p_user:user.id,p_id:r.id,p_output:result.output,p_error:result.error,p_receipt:{...result.receipt,dispatch_id:r.id},p_warnings:result.quality?.warnings||[]},true);
   return reply({recommendation:visible(final)});
  }catch(e){const message=e instanceof Error?e.message:'';return reply({error:/^premium_[a-z_]+$/.test(message)?message:'premium_request_failed'},message==='premium_budget_exhausted'?429:400);}
 });

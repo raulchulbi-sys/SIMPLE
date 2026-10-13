@@ -1,3 +1,4 @@
+import {providerReceipt} from './provider-receipt.mjs';
 import '../../../assets/coach-intake.js';
 import '../../../assets/coach-programming-v4.js';
 import '../../../assets/coach-programming-v5.js';
@@ -67,7 +68,7 @@ export function semantic(v,ctx){
  if(/\b(causado|debido a|porque duerme|est[aá] fatigado)\b/iu.test(v.interpretation))warnings.push('causal_language_requires_review');
  return{ok:failures.length===0,failures:[...new Set(failures)],warnings:[...new Set(warnings)]};
 }
-export function requestBody(ctx){return {model:MODEL,store:false,instructions:PROMPT,input:[{role:'user',content:JSON.stringify(ctx)}],reasoning:{effort:'low'},max_output_tokens:MAX_OUTPUT,text:{format:{type:'json_schema',name:'premium_recommendation_v1',strict:true,schema:SCHEMA}}};}
+export function requestBody(ctx){return {model:MODEL,service_tier:'default',store:false,instructions:PROMPT,input:[{role:'user',content:JSON.stringify(ctx)}],reasoning:{effort:'low'},max_output_tokens:MAX_OUTPUT,text:{format:{type:'json_schema',name:'premium_recommendation_v1',strict:true,schema:SCHEMA}}};}
 export const cost=usage=>((usage.input_tokens-(usage.input_tokens_details?.cached_tokens||0))*2.5+(usage.input_tokens_details?.cached_tokens||0)*.25+usage.output_tokens*15)/1e6;
 export async function analyze(ctx,key,fetcher=fetch){
  const started=Date.now(),receipt={model:MODEL,prompt_version:PROMPT_VERSION,response_schema_version:SCHEMA_VERSION,status:0,input_tokens:null,output_tokens:null,cached_input_tokens:null,cost_usd:null,latency_ms:0};
@@ -78,6 +79,7 @@ export async function analyze(ctx,key,fetcher=fetch){
   if(!response.ok){await response.body?.cancel();return result(null,response.status===429?'provider_rate_limit':'provider_rejected');}
   const raw=await response.text();if(raw.length>160000)return result(null,'oversized_output');p=JSON.parse(raw);
  }catch{return result(null,'provider_network_or_timeout');}
+ Object.assign(receipt,providerReceipt(p));
  if(p?.usage&&[p.usage.input_tokens,p.usage.output_tokens].every(n=>Number.isSafeInteger(n)&&n>=0)){
   receipt.input_tokens=p.usage.input_tokens;receipt.output_tokens=p.usage.output_tokens;receipt.cached_input_tokens=p.usage.input_tokens_details?.cached_tokens||0;receipt.cost_usd=cost(p.usage);
  }

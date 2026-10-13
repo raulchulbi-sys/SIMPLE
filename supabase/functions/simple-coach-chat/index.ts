@@ -31,7 +31,7 @@ Deno.serve(async(req:Request)=>{
   const bound=new TextEncoder().encode(JSON.stringify(Chat.requestBody(ctx,claim.output_tokens))).length+2048;
   const taken=await rpc('premium_chat_claim',{p_user:user.id,p_id:turn.id,p_input_bound:bound,p_mode:'openai'},true);if(!taken.claimed)return reply({message:taken.message||turn},taken.message?.state==='dispatched'?202:200);
   const result=await Chat.analyze(taken.provider,key,fetch,taken.output_tokens??Chat.MAX_OUTPUT);
-  const final=await rpc('premium_chat_finish',{p_user:user.id,p_id:turn.id,p_output:result.output,p_error:result.error,p_receipt:result.receipt,p_warnings:result.quality?.warnings||[]},true);
+  const final=await rpc('premium_chat_finish',{p_user:user.id,p_id:turn.id,p_output:result.output,p_error:result.error,p_receipt:{...result.receipt,dispatch_id:turn.id},p_warnings:result.quality?.warnings||[]},true);
   return reply({message:final});
  }catch(e){const code=e instanceof Error?e.message:'';return reply({error:/^premium_[a-z_]+$/.test(code)?code:'premium_chat_request_failed'},/budget|allowance|rate/.test(code)?429:400);}
 });
