@@ -5,3 +5,6 @@ verify_jwt = true
 
 [functions.simple-coach-premium]
 verify_jwt = true
+
+[functions.simple-coach-initial-premium]
+verify_jwt = true

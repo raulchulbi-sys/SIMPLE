@@ -20,7 +20,7 @@ export function contextQuality(ctx){
  const failures=[];
  if(!ctx||ctx.schema_version!==PROVIDER_VERSION||!Array.isArray(ctx.routine?.days)||!Array.isArray(ctx.routine?.exercises)||!Array.isArray(ctx.allowed_replacements)||typeof ctx.checkin_missing!=='boolean'||!Array.isArray(ctx.recent_weeks)||ctx.recent_weeks.length>4||!Array.isArray(ctx.week_schedule)||typeof ctx.week_schedule_source!=='string')failures.push('weekly_context_shape');
  if(failures.length)return {ok:false,failures};
- if(ctx.baseline_origin!==undefined&&!['inherited_basic','existing_owned_routine'].includes(ctx.baseline_origin)||ctx.history_origin!==undefined&&ctx.history_origin!=='shared_existing_training')failures.push('weekly_context_provenance_shape');
+ if(ctx.baseline_origin!==undefined&&!['inherited_basic','existing_owned_routine','premium_initial'].includes(ctx.baseline_origin)||ctx.history_origin!==undefined&&ctx.history_origin!=='shared_existing_training')failures.push('weekly_context_provenance_shape');
  if(ctx.routine.days.some(d=>!/^day_[1-9][0-9]*$/.test(d?.ref||''))||ctx.routine.exercises.some(e=>!/^exercise_[1-9][0-9]*$/.test(e?.ref||'')||!ctx.routine.days.some(d=>d.ref===e.day_ref)||!CLAIMS.includes(e.metrics?.trend)))failures.push('weekly_context_reference_shape');
  const text=JSON.stringify(ctx);if(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b|PRIVATE CANARY/iu.test(text))failures.push('weekly_context_not_minimized');
  const c=ctx.checkin;

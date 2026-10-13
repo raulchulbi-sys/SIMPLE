@@ -1,0 +1,9 @@
+/* Only the new staging dialog; approved questionnaire tokens and single native scroll. */
+.premium-initial-dialog .coach-quality{border-left:2px solid var(--line);padding-left:14px;margin:22px 0;font-size:14px;line-height:1.5}
+.premium-initial-dialog .coach-quality h3{font-size:16px;margin:0 0 10px}
+.premium-initial-dialog .coach-quality li{margin:8px 0;overflow-wrap:anywhere}
+.premium-initial-dialog #premiumInitialConfirm{margin-top:20px}
+.premium-initial-dialog .coach-context{min-width:0}
+.premium-initial-dialog #premiumInitialQueue>section{padding-bottom:24px}
+.premium-initial-dialog .coach-heading>h2{min-width:0}
+.premium-initial-dialog .coach-heading>.btn{flex:0 0 auto;min-width:72px;white-space:nowrap}

@@ -19,12 +19,16 @@ async function renderCoachHome(isCurrent=()=>true){
  const owner=user?.id;let premium;try{premium=await db.rpc('premium_my_access',{});}catch{premium={error:true};}
  if(!isCurrent()||!coachEnabled()||user?.id!==owner)return;
  const premiumEnabled=!premium.error&&premium.data?.enabled===true;
+ // The independent initial switch and entitlement are enforced by the server.
+ let initial=null;if(globalThis.PremiumInitial){try{const r=await db.rpc('premium_initial_my_state',{});if(!r.error&&r.data?.enabled===true)initial=r.data;}catch{}}
+ if(!isCurrent()||!coachEnabled()||user?.id!==owner)return;
  const basicVisible=(access.data?.authorized||(result.data||[]).length)&&!(!result.error&&(assignments||[]).length&&!(result.data||[]).length);
- if(!basicVisible&&!premiumEnabled)return;
+ if(!basicVisible&&!premiumEnabled&&!initial)return;
  const host=document.createElement('div');host.id='coachHome';$('shared').append(host);
  if(basicVisible)host.innerHTML='<div class="card"><h2>¿Cómo quieres entrenar?</h2><div class="buttons"><button data-keep-enabled="true" class="btn" onclick="openRedeemRoutine()">Vincularme con un entrenador</button><button data-keep-enabled="true" class="btn primary" onclick="openSimpleCoach()">Entrenar con SIMPLE Coach</button></div></div>';
  // A missing RPC (including pre-Premium deployments) or an error grants no UI access.
  if(premiumEnabled){const card=document.createElement('div');card.className='card';const title=document.createElement('h3');title.textContent='Seguimiento Premium';const action=document.createElement('button');action.type='button';action.className='btn';action.dataset.keepEnabled='true';action.textContent='Abrir seguimiento Premium';action.onclick=()=>openPremiumCoach();card.append(title,action);host.append(card);}
+ if(initial&&!initial.routine_id){const card=document.createElement('div');card.className='card';const title=document.createElement('h3');title.textContent='SIMPLE Coach Premium';const action=document.createElement('button');action.type='button';action.className='btn';action.dataset.keepEnabled='true';action.textContent=initial.operation?'Ver primera programación':'Preparar mi entrenamiento';action.onclick=()=>globalThis.PremiumInitial.open();card.append(title,action);host.append(card);}
  if(result.error){host.insertAdjacentHTML('beforeend','<p role="status">No se pudo cargar SIMPLE Coach. Vuelve a abrir Inicio para reintentar.</p>');return;}
  for(const item of result.data||[]){
   const r=routines.find(x=>x.id===item.routine_id);if(!r)continue;

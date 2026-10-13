@@ -2,12 +2,12 @@ import * as Series from './series-contract.mjs';
 import * as Weekly from './weekly-contract.mjs';
 import * as Distribution from './distribution-contract.mjs';
 const URL=Deno.env.get('SUPABASE_URL')!,ANON=Deno.env.get('SUPABASE_ANON_KEY')!,SERVICE=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-const allowed=new Set(['http://127.0.0.1:4233','http://localhost:4233','http://127.0.0.1:4241','http://localhost:4241','http://127.0.0.1:4251','http://localhost:4251']);
+const allowed=new Set(['https://raulchulbi-sys.github.io']);
 Deno.serve(async(req:Request)=>{
  const origin=req.headers.get('origin')||'',auth=req.headers.get('authorization')||'';
  const headers={'Content-Type':'application/json','Cache-Control':'no-store','Access-Control-Allow-Origin':allowed.has(origin)?origin:'','Access-Control-Allow-Headers':'authorization,apikey,content-type,x-client-info','Access-Control-Allow-Methods':'POST,OPTIONS',Vary:'Origin'};
  const reply=(body:unknown,status=200)=>new Response(JSON.stringify(body),{headers,status});
- if(URL!=='https://dmqjexigdnfzobarhnib.supabase.co')return reply({error:'staging_only'},403);
+ if(URL!=='https://yvguatdqncadkwewlepe.supabase.co')return reply({error:'staging_only'},403);
  if(origin&&!allowed.has(origin))return reply({error:'origin_denied'},403);
  if(req.method==='OPTIONS')return new Response(null,{status:204,headers});if(req.method!=='POST')return reply({error:'method_not_allowed'},405);
  async function rpc(name:string,body:unknown,service=false){const r=await fetch(URL+'/rest/v1/rpc/'+name,{method:'POST',headers:{apikey:service?SERVICE:ANON,Authorization:service?'Bearer '+SERVICE:auth,'Content-Type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(15000)});const v=await r.json();if(!r.ok)throw Error(/^premium_[a-z_]+$/.test(v.message||'')?v.message:'premium_request_failed');return v;}

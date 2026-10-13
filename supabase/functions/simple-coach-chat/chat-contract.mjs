@@ -65,7 +65,7 @@ export function contextQuality(ctx){
  const failures=[];
  if(!ctx||ctx.schema_version!==CONTEXT_VERSION||!ctx.training||!ctx.training.intake||!Array.isArray(ctx.training.routine?.exercises)||!Array.isArray(ctx.training.routine?.days)||!ctx.mesocycle||!Number.isInteger(ctx.mesocycle.current_revision)||!Number.isInteger(ctx.mesocycle.week)||!Array.isArray(ctx.evidence)||!Array.isArray(ctx.last_messages)||ctx.last_messages.length>8||!ctx.summary||!Array.isArray(ctx.recent_decisions)||ctx.recent_decisions.length>4||typeof ctx.checkin_missing!=='boolean')return{ok:false,failures:['chat_context_shape']};
  const text=JSON.stringify(ctx);
- if(ctx.training.baseline_origin!==undefined&&!['inherited_basic','existing_owned_routine'].includes(ctx.training.baseline_origin)||ctx.training.history_origin!==undefined&&ctx.training.history_origin!=='shared_existing_training')failures.push('context_provenance_shape');
+ if(ctx.training.baseline_origin!==undefined&&!['inherited_basic','existing_owned_routine','premium_initial'].includes(ctx.training.baseline_origin)||ctx.training.history_origin!==undefined&&ctx.training.history_origin!=='shared_existing_training')failures.push('context_provenance_shape');
  if(pii.test(text)||/PRIVATE CANARY|access_token|refresh_token|service_role|OPENAI_API_KEY|password|workout_id|user_id|reviewer_id|routine_id|exercise_id|day_id|base_revision_id/iu.test(text))failures.push('context_not_minimized');
  if(!inputQuality(ctx.message).ok)failures.push('invalid_context_message');
  if(ctx.checkin_missing&&ctx.checkin!==null||!ctx.checkin_missing&&(!ctx.checkin||!ctx.evidence.some(e=>e.id==='checkin')))failures.push('checkin_binding');

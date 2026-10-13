@@ -3,12 +3,17 @@ async function renderCoachReviewerEntry(){
  if(!coachEnabled()||!user)return;
  const owner=user.id,old=$('coachReviewerEntry');if(old)old.remove();
  await renderPremiumCoachReviewerEntry(owner);if(owner!==user?.id)return;
+ await renderPremiumInitialReviewerEntry(owner);if(owner!==user?.id)return;
  try{const allowed=await coachCall('get_coach_reviewer_access',{});if(!allowed||owner!==user?.id)return;
  $('coachReviewerEntry')?.remove();
  const host=document.createElement('div');host.id='coachReviewerEntry';host.className='card';host.innerHTML='<button data-keep-enabled="true" class="btn" type="button">SIMPLE Coach · Revisiones</button>';
  host.querySelector('button').onclick=openCoachReviewer;
  (profile?.role==='client'?$('shared'):$('app')).append(host);
  }catch(_){/* A capability failure never grants reviewer access. */}
+}
+async function renderPremiumInitialReviewerEntry(owner){
+ $('premiumInitialReviewerEntry')?.remove();if(!['https://dmqjexigdnfzobarhnib.supabase.co','https://yvguatdqncadkwewlepe.supabase.co'].includes(SUPABASE_URL)||!globalThis.PremiumInitial||owner!==user?.id)return;
+ try{const r=await db.rpc('premium_initial_review_queue',{});if(r.error||!r.data?.length||owner!==user?.id)return;const host=document.createElement('div');host.id='premiumInitialReviewerEntry';host.className='card';const b=document.createElement('button');b.type='button';b.className='btn';b.dataset.keepEnabled='true';b.textContent='Revisar primeras programaciones Premium';b.onclick=()=>globalThis.PremiumInitial.open({reviewer:true});host.append(b);(profile?.role==='client'?$('shared'):$('app')).append(host);}catch{}
 }
 async function renderPremiumCoachReviewerEntry(owner){
  $('premiumCoachReviewerEntry')?.remove();if(!coachEnabled()||profile?.role!=='trainer'||owner!==user?.id)return;

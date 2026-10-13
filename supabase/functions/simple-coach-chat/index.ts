@@ -1,11 +1,11 @@
 import * as Chat from './chat-policy-v1_2.mjs';
 const URL=Deno.env.get('SUPABASE_URL')!,ANON=Deno.env.get('SUPABASE_ANON_KEY')!,SERVICE=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-const origins=new Set(['http://127.0.0.1:4245','http://localhost:4245','http://127.0.0.1:4251','http://localhost:4251']);
+const origins=new Set(['https://raulchulbi-sys.github.io']);
 Deno.serve(async(req:Request)=>{
  const origin=req.headers.get('origin')||'',auth=req.headers.get('authorization')||'';
  const headers={'Content-Type':'application/json','Cache-Control':'no-store','Access-Control-Allow-Origin':origins.has(origin)?origin:'','Access-Control-Allow-Headers':'authorization,apikey,content-type,x-client-info','Access-Control-Allow-Methods':'POST,OPTIONS',Vary:'Origin'};
  const reply=(body:unknown,status=200)=>new Response(JSON.stringify(body),{headers,status});
- if(URL!=='https://dmqjexigdnfzobarhnib.supabase.co')return reply({error:'staging_only'},403);
+ if(URL!=='https://yvguatdqncadkwewlepe.supabase.co')return reply({error:'staging_only'},403);
  if(origin&&!origins.has(origin))return reply({error:'origin_denied'},403);
  if(req.method==='OPTIONS')return new Response(null,{status:204,headers});if(req.method!=='POST')return reply({error:'method_not_allowed'},405);
  async function rpc(name:string,body:unknown,service=false){const r=await fetch(URL+'/rest/v1/rpc/'+name,{method:'POST',headers:{apikey:service?SERVICE:ANON,Authorization:service?'Bearer '+SERVICE:auth,'Content-Type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(15000)});const v=await r.json();if(!r.ok)throw Error(/^premium_[a-z_]+$/.test(v.message||'')?v.message:'premium_chat_request_failed');return v;}
