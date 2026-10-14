@@ -1,101 +1,108 @@
-# Checkpoint de la migración — 14/10/2026
+# Checkpoint de Cloudflare — 14/10/2026
 
-**CLOUDFLARE: LOCALLY READY — ACCOUNT CONNECTION REQUIRED**
+**CLOUDFLARE: PREVIEW DEPLOYED — FINAL CONFIGURATION PENDING**
 
-Rama: `codex/cloudflare-migration`. Base exacta: `c818e35fcb0cfeddb61e8232aaaffba222ea8f4d`; árbol base `980b5d0203c5606facb66e3f4b7ad18fecd98675`. La promoción de esta rama a main no está autorizada. El SHA final de la rama se obtiene con `git rev-parse HEAD` y se registra en el informe de entrega, evitando un hash autorreferente en este documento.
+Rama: `codex/cloudflare-migration`. Main inicial y final verificado: `c818e35fcb0cfeddb61e8232aaaffba222ea8f4d`. No merge, cutover, DNS ni publicación productiva. El checkout histórico y su trabajo previo se conservan. El SHA final de la rama se registra en la entrega; este documento evita un hash autorreferente.
 
-## Estado de hosting
+## Despliegue real
 
-- GitHub Pages sigue siendo producción: `https://raulchulbi-sys.github.io/SIMPLE/`.
-- Main remoto volvió a comprobarse y conserva el SHA base.
-- Cloudflare está conectado a la cuenta del propietario. Se comprobó Workers & Pages: «No projects found». La integración oficial está ahora en el login vacío de GitHub; no se instaló la GitHub App ni se crearon proyectos. El agente no aceptó condiciones ni activó facturación.
-- No hay URL Cloudflare, HTTPS, DNS, dominio o Git integration desplegados que se puedan declarar probados.
-- No hay wrangler, token o account ID configurados para este trabajo. No se buscaron secretos en otros proyectos.
-- Se prepara una rama remota y PR draft; no merge ni corte.
-
-## Build validado
-
-`node scripts/hosting-build.cjs --target local`, con destino explícito `http://127.0.0.1:4280/`, produce staging únicamente.
-
-| Propiedad | Resultado |
+| Propiedad | Valor verificado |
 |---|---|
-| Archivos de dist | 36 |
-| Árbol SHA-256 del artefacto | `24423fbbd4e2e7609c6deaada0b9a6b13da87f6cb31861032ddebf0a31a21f4f` |
-| HTML SHA-256 | `3f5dbbb5e4a5b5b987db3c5bafd51b4713243b0a7675c37ad261ec4273e50fa1` |
-| Runtime SHA-256 | `202f61a9655692982c33b095c15ae1675b321b3c768e7328fd6de71d6db7a60f` |
-| Assets anteriores | 31/31 idénticos a sus blobs Git |
-| Texto / binarios | CRLF→LF únicamente / binarios intactos |
+| Cuenta Cloudflare | `4efcd67b8630069e6844153f166781c7`, cuenta del propietario |
+| Proyecto dedicado a staging | `simple-staging-raulchulbi` |
+| URL estable | https://simple-staging-raulchulbi.pages.dev/ |
+| URL inmutable comprobada | https://4a8636ab.simple-staging-raulchulbi.pages.dev/ |
+| Deployment ID | `4a8636ab-ec94-42db-b57e-cf43d01230b9` |
+| Fuente remota desplegada | `0aa1d6b6dc6fe0165534b8c7610c1e8a56521709` |
+| Candidato local equivalente | `1369022d637815cd6b6d7af827d7f325208cc22a` |
+| Árbol idéntico local/remoto | `b65f145876784388d3b3f05e9f094019a15eb58d` |
+| Rama predeterminada del proyecto | `codex/cloudflare-migration`; builds automáticos ON |
+| Otras ramas de preview | None / desactivadas |
+| Watch paths | incluir `*`; excluir `tests/**` y `docs/**` |
+| Build | `node scripts/hosting-build.cjs --target preview` |
+| Salida | `dist`, 36 archivos permitidos |
+| Variables públicas | target=preview, project=simple-staging-raulchulbi, APP_URL=URL estable anterior |
+| Backend | SOLO `dmqjexigdnfzobarhnib` |
+| GitHub App | instalación 171372329 limitada a `raulchulbi-sys/SIMPLE` |
+| PR | https://github.com/raulchulbi-sys/SIMPLE/pull/1 — draft, sin merge |
 
-No se publica dist en Git; se reconstruye. El único cambio en lógica del HTML es obtener las tres constantes de configuración del runtime cargado antes del SDK. Auth, OAuth, temas, lógica y assets existentes no se reescriben.
+El propietario había conectado la App a todos los repositorios; se redujo el alcance a SIMPLE y se reabrió la configuración para confirmar su persistencia. No se concedió acceso administrativo a otros repositorios. Los repositorios públicos continúan siendo públicamente legibles.
 
-## Pruebas nuevas finales
+Cloudflare denomina «Production» a la rama predeterminada de este proyecto aislado. No significa Supabase productivo. Este proyecto y sus callbacks deben permanecer en staging; una futura producción utilizará otro proyecto/origen estable aprobado. No se configuraron Workers, proxy, facturación, dominios ni DNS. La preview es pública, sin Cloudflare Access: sólo sirve frontend/configuración pública y accede a staging mediante Auth/RLS; noindex no es control de acceso.
 
-Cada caso se cuenta una vez; las reejecuciones sustituyen resultados y no se suman. Total **425/425**:
+## Artefacto e integridad pública
 
-| Suite / evidencia | Casos | Naturaleza |
+HTML Cloudflare SHA-256: `3f5dbbb5e4a5b5b987db3c5bafd51b4713243b0a7675c37ad261ec4273e50fa1`. Runtime HTTPS SHA-256: `b555f1c712be3b657bb675b6b5dcc7e75c4cb947c0f9825431fdf95e427cbd73`. Los dos hosts sirven los mismos bytes. Los 31 assets existentes siguen idénticos a sus blobs Git; sólo se normalizan pares CRLF en texto. Dist, private, capturas e informes generados están ignorados y no entran en Git ni en los assets.
+
+El runtime valida explícitamente origen/proyecto/rama/backend y falla cerrado antes del SDK. Local/preview no pueden seleccionar producción; no copia sesiones entre dominios. El único cambio de integración del HTML es leer las tres constantes públicas del runtime anterior al SDK. Las actualizaciones posteriores al despliegue 0aa son exclusivamente tests/documentación; no cambian la aplicación servida.
+
+GitHub Pages sigue disponible en https://raulchulbi-sys.github.io/SIMPLE/ y sirve el HTML aprobado de main, SHA-256 `ec3ab5f1af7d75b1db71110bc9b520737382d503ad5dc3d2dc39cf189e16b946`.
+
+## Auth: pendiente concreto
+
+El panel de URL Configuration de SIMPLE Security Test pide iniciar sesión y aceptar sus condiciones. Se dejó abierto y se solicitó al propietario completar ese acceso; no se aceptaron términos ni se introdujeron credenciales por él. No se ha leído la lista completa actual ni se ha guardado ninguna URL.
+
+Tras el acceso, añadir sin retirar entradas ni cambiar Site URL:
+
+1. `https://simple-staging-raulchulbi.pages.dev/`
+2. `https://simple-staging-raulchulbi.pages.dev/\?reset=1` — escapar el signo literal en la allowlist glob; el frontend envía la query normal.
+
+Los probes previos prueban que ambos retornos nuevos aún caen en `http://localhost:3000`. Google staging está desactivado; email está habilitado. Login email con fixtures sintéticas sí pasó. Google real desde Cloudflare, recepción/confirmación de email y recuperación completa con cambio de contraseña NO están probados. No se enviaron correos ni se cambiaron contraseñas, SMTP, Google Cloud, proveedores o configuración Auth productiva. El callback del proveedor sigue siendo el endpoint de Supabase, no Pages.
+
+## Pruebas, sin sumar reejecuciones
+
+La fase local inicial pasó **425/425** casos. Evidencia y métodos están en VALIDATION/README/AUTH-CORS: runtime24, build17, AuthVM18, CORSrepo20, patchstage54, SDK con HTTP interceptado84, matriz visual/funcional simulada48, comparaciónvisual4, HTTPlocal16, helper8, runtime7, cleanup4, probeproducción20, probestaging4280=20, OPTIONS retenidos30, CORSnativo local24, API JWT sintética7 y navegador local20.
+
+La fase HTTPS añade **202 casos únicos**, para **627 casos superados de la misión**, sin sumar las repeticiones de unidades, el setup API repetido, intentos fallidos de harness ni diagnósticos previos de Auth:
+
+| Suite nueva | Casos únicos | Naturaleza |
 |---|---:|---|
-| runtime.cjs | 24 | Configuración explícita, mezcla de entornos, origen/base y claves |
-| build.cjs | 17 | Inventario, rutas, secretos, enlaces, limpieza acotada, LF/CRLF |
-| auth-contract.cjs | 18 | Contratos de handlers, retorno, error, reset y sesión |
-| auth-cors.cjs | 20 | Prefijos CORS del código versionado, sin negocio |
-| auth-stage-cors-test.cjs | 54 | Patch exacto de bundles LIVE y rollback |
-| auth-browser.cjs | 84 | SDK 2.115.0 real; HTTP de Auth interceptado |
-| browser.cjs | 48 | Ambas bases, motores, temas, tamaños y roles; datos simulados |
-| browser-visual.cjs | 4 | 24 parejas PNG idénticas; no se cuentan como 24 tests extra |
-| preview-http.cjs | 16 | GET/HEAD/405/404, MIME, query, ETag, headers locales |
-| staging-helper-unit.cjs | 8 | Guards y limpieza exclusiva de fixtures |
-| staging-runtime-unit.cjs | 7 | Compartición normal y denegaciones exactas |
-| staging-cleanup-unit.cjs | 4 | Limpieza acotada y logout de sesión ya revocada |
-| auth-probe.cjs: producción | 20 | HTTP real de lectura, callback inválido, configuración pública |
-| auth-probe.cjs: staging 4280 | 20 | HTTP real de lectura y gateway JWT inválido |
-| Orígenes staging anteriores + nuevo localhost | 30 | OPTIONS reales |
-| auth-live-cors-browser.cjs | 24 | CORS nativo Chromium/WebKit, sin interceptación |
-| staging-runtime.cjs: API | 7 | JWT reales de dos fixtures nuevas, compartir y leer/aislar |
-| staging-browser.cjs | 20 | Login email real, workout UI, readback, persistencia y logout |
+| auth-https-config | 19 | configuración exacta estable/despliegue/backend |
+| cloudflare-cors-unit | 9 | plan acotado y fail-closed |
+| cloudflare-cors-test | 62 | bundles LIVE, 34 entradas locales conservadas, JWT/guards/rollback |
+| live-hosting | 42 | 34 HTTP + 8 navegaciones, ambos hosts/motores/temas y 320/1280 |
+| auth-live-cors-browser HTTPS | 24 | 16 respuestas 401 legibles + 8 bloqueos de origen ajeno |
+| staging-runtime-unit, incremento | 9 | 16 actuales menos 7 ya contadas en fase local |
+| staging-cloudflare-browser + resume | 37 | 29 conservadas + 8 pendientes completadas; no 29+37 |
 
-Chromium y WebKit; 320/360/390/430/768/1280; claro/oscuro; raíz y `/SIMPLE/`. La matriz amplia usa datos simulados; el recorrido remoto usa dos identidades sintéticas de staging. Se comprobó un único workout desde UI, con series 10 kg/8 reps/RIR 3 y 12 kg/9 reps/RIR 2, y nota sintética. Readback directo, historial, inputs y ciclo 1/1 coinciden tras recargar. WebKit vuelve a leer el mismo workout sin crear otro.
+Los 70 cotejos de assets, 64 PNG y 24 mediciones reales de rendimiento son evidencia adicional, no casos extra. Las 24 parejas PNG de la comparación local tampoco inflan el contador. No se reejecutaron las cientos de pruebas históricas de producto ni se suman los 1.025 casos de otra promoción.
 
-No son pruebas nuevas de Google real, confirmación de registro por SMTP, recepción de recuperación, contraseña cambiada ni login productivo. Se conservan como evidencia histórica las pruebas previas del producto al no cambiar sus fuentes; no se suman los 1.025 casos de la promoción anterior. El probe con token inválido acredita ruta/allowlist, no entrega ni consumo de un enlace válido.
+### Recorrido autenticado real de staging
 
-## Integridad remota
+SDK 2.115.0 descargado de su CDN, sin routes/interceptación, mocks, SDK offline, siembra de sesión o servidor local. Dos cuentas nuevas con email reservado example.com, cliente/entrenador. Login desde formulario en Chromium y WebKit; rutina compartida mediante el flujo autorizado de RPC. Un único workout UI: dos series 10 kg/8 reps/RIR3 y 12 kg/9 reps/RIR2, nota sintética. El readback nativo y el coordinador compararon UUID y JSON persistido. Recarga, Última sesión, historial, nota y ciclo 1/1 coincidieron. WebKit volvió a leer el mismo workout. El entrenador sólo vio su cliente, rutina, historial y gráfica; logout real comprobado.
 
-Snapshot de lectura: `tests/cloudflare/database-snapshot.sql`. Antes/después coinciden las 32 tablas públicas/privadas y dos agregados de identidad estable Auth: **34/34 huellas y recuentos**. La comparación Auth excluye timestamps de último acceso y otros campos mutables normales; no modifica Auth para hacer coincidir hashes.
+El test original leyó el body al actualizarse el contador, antes del await de días y del render: se corrigió sólo su espera, exigiendo historial/controles/SVG visibles. Se reanudaron únicamente lecturas del entrenador con las credenciales ya en RAM; no hubo un segundo guardado. Los informes original e intento 1 se conservaron, y el informe final registra 37 checks únicos.
 
-| Producción | Antes = después |
-|---|---:|
-| Usuarios / identidades / perfiles | 7 / 10 / 7 |
-| Rutinas / días / ejercicios | 5 / 15 / 86 |
-| Asignaciones / notas / workouts | 2 / 218 / 63 |
-| Funciones SQL: definición, owner, ACL, security, search_path | 214 idénticas |
-| Políticas / RLS y ACL / triggers | Huellas idénticas |
-| Ciclo | `88c3564c3c49cf9c53fccba89a1e71b5` |
+Límite de observación: cuatro requestfailed iniciales no capturaron el código y cuatro rechazos iniciales de la cola protegida no capturaron el body; siguen sin clasificación retrospectiva. El check de finalización de red de la reanudación cubre sólo ese nuevo recorrido del entrenador. Allí se observaron cancelaciones exactas ERR_ABORTED con otra respuesta 200/204 equivalente y rechazo 403/42501/premium_initial_reviewer_required de la cola a un no-reviewer. No se ignoraron globalmente 403 ni se declara consola/red totalmente vacía. Los errores iniciales no invalidan los readbacks y resultados funcionales observados, pero tampoco se convierten en éxitos inventados.
 
-Patatasimple, R1/R2, workouts, notas, otras rutinas y asignaciones no se tocaron. Financial P1 y presupuestos/reservas/consumos coinciden exactamente. Chat y análisis mantienen sus flags independientes. Premium directo conserva OFF, 0 llamadas/capacidad, 0 USD, 0 elegibles, 0 operaciones y 0 intakes.
+Evidencias ignoradas: live-hosting-final.json, live-performance.json, auth-live-cors-cloudflare-final.json, staging-cloudflare-browser.json, staging-cloudflare-trainer-resume-attempt1.json y staging-cloudflare-trainer-resume.json.
 
-Las cinco funciones Edge de producción conservan metadata, versión y ezbr_sha256: helper v15, Basic v3, Premium v4, Chat v5, Premium inicial v1. Los bundles actuales descargados conservan su contenido. No se desplegó producción, ni cambió Auth/OAuth/SMTP/URLs/RLS/SQL/DNS.
+## Cambios remotos de staging y limpieza
 
-Staging vuelve a 9 usuarios, 9 perfiles, 19 rutinas, 33 días, 98 ejercicios, 12 asignaciones, 4 notas y 22 workouts; sus 34 huellas, 219 funciones y políticas coinciden con el baseline. Cero usuarios/rutinas de esta misión, cero reservas, cero incidencias nuevas y cero entitlements Premium activos. Las cuatro muestras iniciales históricas A–D y 225 filas de auditoría anteriores se conservan. Los presupuestos existentes no cambian; generación inicial OFF, 4 consumidas y 0,197165 USD ya registrados.
+1. Se conservan los CORS locales de la fase anterior (4280). La fase HTTPS añadió exactamente los orígenes estable y de deployment de este proyecto, sin comodines. Basic v31, Premium v15, Chat v15 e inicial v4. Los 41 archivos descargados coinciden byte a byte con el payload previsto; se conservan guards de staging, JWT, negocio y 34 entradas locales.
+2. Helper QA exclusivamente staging reabierto con caducidad breve para esas dos fixtures, luego retirado de nuevo: v4, HTTP410 qa_retired comprobado. Sin cliente admin/ruta privilegiada en su versión final. El registro Edge retirado permanece; no es un helper operativo.
+3. Se eliminaron exclusivamente los dos usuarios sintéticos nuevos y su estructura/asignación/workout/nota. SQL independiente: task_users=0, task_routines=0, task_workouts=0, task_notes=0. El coordinador cerró sesiones, borró las referencias RAM y terminó. Ningún access/refresh token nuevo se guardó en archivos, HAR, trazas, storageState, resultados o Git; sólo storage efímero del SDK para comprobar recarga. No se copió ni borró el archivo histórico de credenciales sintéticas que ya existía.
 
-## Únicas escrituras staging
+Staging final: 9 usuarios/perfiles, 19 rutinas, 33 días, 98 ejercicios, 12 asignaciones, 4 notas, 22 workouts. **34/34 huellas/recuentos iguales** al baseline de esta reanudación; 219 funciones SQL y huellas de RLS/ACL/políticas/triggers iguales. Presupuestos, consumos, reservas y muestras históricas anteriores iguales. Sin migraciones, SQL RPC o tablas de negocio nuevos; sin llamadas OpenAI.
 
-1. Cuatro bundles LIVE, sin tocar guards/negocio/permisos, añaden exclusivamente `http://127.0.0.1:4280` y `http://localhost:4280` a CORS. Versiones finales: Basic 30, Premium 14, Chat 14, Premium inicial 3; JWT obligatorio. Los 41 archivos coinciden con el plan esperado.
-2. Un helper de QA staging, restringido a un reviewer sintético ya autorizado y a fixtures nuevas identificadas por metadata. Al terminar se retiró: versión 2, HTTP 410 `qa_retired`, sin cliente admin, rutas de creación o lectura de secrets. Se verificó su respuesta real. El registro de esa función retirada permanece; no es un helper operativo ni una fixture de datos.
-3. Cuentas/estructura sintéticas exclusivamente de esta tarea, eliminadas al concluir. No se crearon tablas, esquemas, SQL RPC o migraciones de negocio.
+## Producción: comparación read-only
 
-No quedó un access/refresh token nuevo materializado en archivos, logs, storageState, HAR, trazas, snapshots, resultados o Git. El SDK usó solo contextos efímeros para verificar recarga; se cerraron. Los procesos de sesión se cerraron, las credenciales nuevas se mantuvieron en RAM y se borraron con las fixtures. No se copió ni borró el archivo histórico de credenciales sintéticas previamente existente.
+Baseline de esta reanudación 13:35:43Z → final 14:33:30Z: **34/34 huellas/recuentos iguales**, 214 funciones SQL iguales, RLS/ACL/políticas/triggers iguales, cinco Edge con idénticas versiones y hashes. 7 usuarios, 10 identidades, 7 perfiles, 5 rutinas, 15 días, 86 ejercicios, 2 asignaciones, 218 notas y 64 workouts. Auth compara únicamente identidad/campos estables y no exige igualdad de updated_at/last_sign_in_at.
 
-## Hallazgos y límites
+Entre el checkpoint local anterior y esta reanudación ya se había observado 63→64 workouts y cambios agregados de notas/ejercicios con igual recuento. No existe aquí evidencia suficiente para atribuir esos cambios previos a una edición concreta. No se reescribieron ni restauraron datos para hacer coincidir esa huella antigua; la comparación final conserva exactamente el estado actual capturado antes de esta fase.
 
-- Corregido un bypass local de metadatos Cloudflare: local rechaza `CF_PAGES_URL/BRANCH/PROJECT` y no hereda un origen ajeno.
-- Corregida reproducibilidad de LF/CRLF en el builder, sin cambio de fuentes del producto.
-- Fallos iniciales de harness: INSERT directo de asignación no autorizado (sustituido por RPC normal de compartir); error de contexto de workout HTTP 400/P0001 (se valida ese rechazo real); dos lecturas legítimas omitidas del guard de red; logout de sesión revocada. Ninguno exigió ampliar RLS o cambiar producto.
-- Las primeras pruebas CORS con interceptación de documento no eran evidencia nativa; se sustituyeron por las 24 pruebas sin interceptación.
-- CSP permanece report-only, por eventos/scripts inline existentes. No demuestra ausencia de XSS. SDK externo fijado y Tenor existente no se sustituyeron.
-- No existe medición de rendimiento Cloudflare. Los 24 ensayos de laboratorio comparan empaquetado local; no prueban una ventaja de CDN.
-- Privacidad/legal siguen pendientes para clientes externos; no se activa comercialización.
+Ciclo conserva `88c3564c3c49cf9c53fccba89a1e71b5`. Financial P1 sin cambios: análisis consumidas1/cargo0,0307175 USD; Chat consumidas10/cargo0,243427 USD; reservas0, límites y flags existentes iguales. Premium inicial directo OFF, cap0, USD0, elegibles/operaciones/intakes0. Patatasimple R1/R2 y sus datos permanecen en las mismas huellas. No hubo escritura productiva.
 
-## Continuación segura
+## Rendimiento y seguridad
 
-Primero completar el login de GitHub en el panel abierto y la autorización concreta de la App solo a SIMPLE. Ya se revisó la cuenta Cloudflare y no hay proyectos; volver a comprobarlo antes de crear uno si se retoma tras un corte. Después desplegar esta rama con backend staging y dist. Solo cuando exista la URL real, añadir/probar redirects y CORS exactos; el panel Supabase también solicita login para leer su configuración completa. Mantener Site URL y GitHub Pages intactos. El corte, dominio, DNS y merge a main requieren decisión posterior.
+24 navegaciones reales (tres pares por tamaño/origen, CPU4x) muestran menos transferencia HTML en Cloudflare con Brotli, pero GitHub más rápido en caliente por caché600s. No hay mejora universal demostrada. Los datos completos y límites de medición están en VALIDATION.
 
-Rollback completo de los cuatro bundles staging: sección `rollback` de `tests/cloudflare/private/staging-local-cors-plan.json` (ignorado). Antes de usarlo, comprobar que no haya cambios posteriores; no sobrescribirlos. Ver [OPERATIONS.md](OPERATIONS.md) para reversión de hosting/Auth sin SQL de datos.
+HTML revalidado, assets con ETag/304, rutas privadas 404/no-store y traversal codificado cerrado con400. CSP sigue report-only por los scripts/eventos inline existentes; no demuestra ausencia de XSS. SDK externo fijado y Tenor existente conservados. No se añadieron analytics, logging de tokens ni secretos Cloudflare. Una revisión de siete informes sanitizados no encontró credenciales/JWT privados/tokens en query.
+
+La revisión automática rechazó una salida que habría volcado payloads privados de despliegue completos. Se abandonó esa salida; la alternativa aceptada comparó sólo hashes/metadatos y el delta CORS, enviando las fuentes exclusivamente a la API de despliegue del proyecto staging. No se eludió la protección.
+
+## Continuación y rollback
+
+Completar únicamente el acceso manual a Supabase para revisar/añadir los dos redirects stage; después comprobar retorno de registro/recuperación y el flujo Google con titular autorizado cuando corresponda. Elegir dominio/URL canónica y aprobar corte es una decisión posterior. GitHub Pages permanece disponible. Privacidad/legal no están listos para clientes externos; no activar comercialización.
+
+Rollback HTTPS exacto en `tests/cloudflare/private/cloudflare-https-cors-plan-4a8636ab.json` (ignorado), distinto del rollback local anterior. Verificar LIVE hashes antes de restaurar; no sobrescribir publicaciones posteriores. No borrar datos ni revertir Financial P1. Si falla este primer deployment, desactivar builds y conservar GitHub Pages; todavía no existe un deployment anterior del nuevo proyecto. Ver OPERATIONS para los pasos posteriores y rollback oficial cuando exista una segunda versión aprobada.

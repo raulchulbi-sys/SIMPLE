@@ -74,6 +74,7 @@ async function execute(command){
  if(command.op==='seed')return seed();
  if(command.op==='api')return apiChecks();
  if(command.op==='browser'){assert(fixture?.assignment);const result=await require('./staging-browser.cjs').run({fixture,account:accounts.get('client'),readback});return result;}
+ if(command.op==='browser-cloudflare'){assert(fixture?.assignment,'fixture_not_seeded');return require('./staging-cloudflare-browser.cjs').run({fixture,accounts:{client:accounts.get('client'),trainer:accounts.get('trainer')},readback,hosting:command.hosting});}
  if(command.op==='cleanup'){
   for(const slot of ['client','trainer'])await logout(slot);
   const ids=[...accounts.values()].map(u=>u.id);assert(ids.length>=1&&ids.length<=2);

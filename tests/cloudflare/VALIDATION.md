@@ -35,7 +35,7 @@ El laboratorio usa esos archivos descargados y `dist`, con el mismo SDK 2.115.0 
 | 1280, frío | 252 ms | 248 ms | 398 ms | 426 ms |
 | 1280, repetido | 176 ms | 212 ms | 189 ms | 246 ms |
 
-El tamaño es esencialmente el mismo. La dispersión, el orden de ejecución y el servidor loopback impiden atribuir las diferencias a una mejora de hosting. **No existe todavía URL Cloudflare desplegada verificada**, por lo que no se afirma una mejora de TTFB, Core Web Vitals ni rendimiento real de esa red.
+El tamaño es esencialmente el mismo. La dispersión, el orden de ejecución y el servidor loopback impiden atribuir las diferencias a una mejora de hosting. En esta fase local todavía no había una URL Cloudflare verificada; esos números no miden su CDN. La fase HTTPS real posterior figura a continuación y no sustituye ese límite metodológico.
 
 ## Evidencia y repetición
 
@@ -52,3 +52,30 @@ node tests/cloudflare/browser-performance.cjs --lab
 ```
 
 La comparación visual y el laboratorio requieren primero `--snapshot`. Los arneses de navegador siguen las rutas del runtime de Node/Playwright y el cache de navegadores usados en las pruebas históricas del proyecto. El laboratorio cambia únicamente la URL del SDK en una copia separada de sus archivos de entrada.
+
+## Despliegue HTTPS real posterior
+
+Proyecto de staging `simple-staging-raulchulbi`; fuente remota `0aa1d6b6dc6fe0165534b8c7610c1e8a56521709`, árbol idéntico al commit local `1369022d637815cd6b6d7af827d7f325208cc22a`. Deployment `4a8636ab-ec94-42db-b57e-cf43d01230b9`:
+
+- Estable: `https://simple-staging-raulchulbi.pages.dev/`.
+- Exacto: `https://4a8636ab.simple-staging-raulchulbi.pages.dev/`.
+- Runtime servido SHA-256 `b555f1c712be3b657bb675b6b5dcc7e75c4cb947c0f9825431fdf95e427cbd73`, exclusivamente Supabase staging; el HTML conserva el hash de esta validación.
+
+`live-hosting.cjs`: **42/42 casos nuevos**, 34 HTTP y ocho navegaciones nativas (Chromium/WebKit × 320/1280 × claro/oscuro). Comprueban ambos hosts. Se compararon 70 archivos públicos byte a byte y se guardaron 64 capturas; esas comparaciones y PNG no son casos adicionales. No hay routes/interceptación, mocks, SDK offline, siembra de sesión, envíos Auth, llamadas de generación ni escrituras. Los 20 accesos normales a rutas privadas devolvieron 404/no-store; dos intentos de traversal codificado devolvieron 400 del edge, igualmente cerrados. `_headers` es configuración de Pages, no un asset servido.
+
+Se verificaron MIME, HTTPS, headers efectivos, ETag/304 de assets, revalidación del documento, query de callback y ausencia de peticiones a producción/OpenAI. Chromium emitió un 404 de favicon y WebKit advirtió que CSP report-only no tiene destino de reportes; no se presentan como consola completamente vacía ni como CSP enforced. No hubo excepciones JavaScript ni tráfico backend no autorizado. Evidencia: `results/live-hosting-final.json`; el diagnóstico inicial se conserva separado.
+
+`live-performance.cjs`: **24 navegaciones medidas**, separadas del contador funcional. URLs reales, SDK/CDN reales, Chromium a 390/1280, CPU 4x y tres pares frío/caliente por sitio. Son muestras pequeñas en la misma máquina, sin aislamiento de DNS/sockets/CDN ni afirmación de Core Web Vitals de campo.
+
+| Escenario real (mediana) | GitHub Pages | Cloudflare |
+|---|---:|---:|
+| 390 frío: TTFB / FCP / load | 24,4 / 680 / 526,2 ms | 60,7 / 312 / 488,1 ms |
+| 1280 frío: TTFB / FCP / load | 19,1 / 340 / 490 ms | 66 / 336 / 475,7 ms |
+| 390 caliente: load | 181,1 ms | 294,6 ms |
+| 1280 caliente: load | 217,1 ms | 292,2 ms |
+
+Cloudflare transfirió aproximadamente 203 KB del HTML con Brotli frente a 318,7 KB gzip de GitHub. GitHub fue más rápido en caliente con su caché de 600 s; el candidato revalida HTML y usa 304 para assets. No hay una mejora universal de velocidad demostrada. Evidencia: `results/live-performance.json`.
+
+CORS HTTPS nativo: **24/24 casos** nuevos, 16 POST sin JWT válido con 401 legible y ocho bloqueos desde un origen ajeno en ambos motores. Configuración HTTPS: **19/19** casos; plan de CORS: **9/9** unidades y **62/62** verificaciones offline sobre los bundles LIVE, conservando sus 34 orígenes locales. Los errores de redirects de la medición previa al ajuste Auth son diagnósticos pendientes, no éxitos.
+
+Los 425 casos de la fase local son la base de esta misión, no pruebas repetidas de esta fase HTTPS. Los siete checks API se reutilizaron para preparar dos nuevas fixtures nativas y no se suman de nuevo. El cierre autenticado y la limpieza final se registran en CHECKPOINT. Las respuestas Auth simuladas de las suites locales no prueban Google real, recepción de email o cambio real de contraseña.

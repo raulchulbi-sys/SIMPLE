@@ -22,8 +22,31 @@ function validate(config) {
   }
   return app;
 }
-async function probe(config, transport = fetch, { invalidAuth = false } = {}) {
-  const app = validate(config), results = [];
+function validateCorsOrigins(config, selected) {
+  const app = validate(config);
+  const declared = config.allowedOrigins || config.corsOrigins || [app.origin];
+  const origins = selected === undefined ? declared : selected;
+  assert(Array.isArray(declared) && declared.length > 0 && declared.length <= 2, 'One stable/build origin pair required');
+  assert(Array.isArray(origins) && origins.length > 0 && origins.length <= 2, 'Explicit CORS origin array required');
+  assert.equal(new Set(declared).size, declared.length, 'Duplicate declared origins rejected');
+  assert.equal(new Set(origins).size, origins.length, 'Duplicate CORS origins rejected');
+  const projectHost = app.hostname.endsWith('.pages.dev') ? app.hostname.split('.').slice(-3).join('.') : null;
+  for (const raw of new Set([...declared, ...origins])) {
+    const origin = new URL(raw);
+    assert(raw === origin.origin, 'CORS values must be exact origins, without path/query/fragment/trailing slash');
+    assert(!origin.username && !origin.password && !/[*?\\]/.test(raw), 'Unsafe CORS origin');
+    assert(origin.protocol === 'https:' || (origin.protocol === 'http:' && ['localhost', '127.0.0.1'].includes(origin.hostname)), 'HTTPS or loopback CORS origin required');
+    if (projectHost) {
+      const suffix = '.' + projectHost;
+      assert(origin.protocol === 'https:' && !origin.port && (origin.hostname === projectHost || (origin.hostname.endsWith(suffix) && /^[a-z0-9-]+$/.test(origin.hostname.slice(0, -suffix.length)))), 'CORS origin belongs to another Pages project');
+    }
+    assert(declared.includes(raw), 'CORS origin was not declared by this runtime/build');
+  }
+  assert(declared.includes(app.origin), 'Stable application origin must remain declared');
+  return Object.freeze([...origins]);
+}
+async function probe(config, transport = fetch, { invalidAuth = false, corsOrigins } = {}) {
+  const app = validate(config), origins = validateCorsOrigins(config, corsOrigins), results = [];
   async function check(name, operation) {
     try { const evidence = await operation(); results.push({ name, pass: true, ...evidence }); }
     catch (error) { results.push({ name, pass: false, error: error.message }); }
@@ -58,18 +81,28 @@ async function probe(config, transport = fetch, { invalidAuth = false } = {}) {
     return { status: response.status, googleEnabled: settings.external?.google === true, emailEnabled: settings.external?.email === true };
   });
   for (const name of ['simple-coach-mock', 'simple-coach-premium', 'simple-coach-chat', 'simple-coach-initial-premium']) {
-    await check(name + ': exact application-origin preflight', async () => {
+    for (const origin of origins) {
+    await check(name + ': exact application-origin preflight [' + origin + ']', async () => {
       const response = await request(new URL('/functions/v1/' + name, config.supabaseUrl), {
-        method: 'OPTIONS', headers: { Origin: app.origin, 'Access-Control-Request-Method': 'POST', 'Access-Control-Request-Headers': 'authorization,apikey,content-type,x-client-info' },
+        method: 'OPTIONS', headers: { Origin: origin, 'Access-Control-Request-Method': 'POST', 'Access-Control-Request-Headers': 'authorization,apikey,content-type,x-client-info' },
       });
       assert.equal(response.status, 204);
-      assert.equal(response.headers.get('Access-Control-Allow-Origin'), app.origin);
+      assert.equal(response.headers.get('Access-Control-Allow-Origin'), origin);
       assert((response.headers.get('Vary') || '').toLowerCase().split(',').map(h => h.trim()).includes('origin'), 'Response must vary by origin');
       const headers = (response.headers.get('Access-Control-Allow-Headers') || '').toLowerCase().split(',').map(h => h.trim());
       for (const header of ['authorization', 'apikey', 'content-type', 'x-client-info']) assert(headers.includes(header), 'Required request header denied: ' + header);
       assert((response.headers.get('Access-Control-Allow-Methods') || '').split(',').map(h => h.trim()).includes('POST'));
-      return { status: response.status, origin: app.origin };
+      return { status: response.status, origin };
     });
+    if (invalidAuth) for (const method of ['GET', 'POST']) await check(name + ': invalid-session ' + method + ' remains rejected [' + origin + ']', async () => {
+      const response = await request(new URL('/functions/v1/' + name, config.supabaseUrl), {
+        method, headers: { Origin: origin, apikey: config.supabasePublicKey, Authorization: 'Bearer deliberately-invalid-readonly-migration-token', 'Content-Type': 'application/json' },
+        ...(method === 'POST' ? { body: '{}' } : {}),
+      });
+      assert.equal(response.status, 401, 'Gateway must reject an invalid JWT before business dispatch');
+      return { status: response.status, origin, invalidSessionRejected: true };
+    });
+    }
     await check(name + ': foreign preflight rejected', async () => {
       const response = await request(new URL('/functions/v1/' + name, config.supabaseUrl), {
         method: 'OPTIONS', headers: { Origin: 'https://unapproved-simple-test.example.invalid', 'Access-Control-Request-Method': 'POST', 'Access-Control-Request-Headers': 'authorization,apikey,content-type,x-client-info' },
@@ -79,16 +112,8 @@ async function probe(config, transport = fetch, { invalidAuth = false } = {}) {
       assert(origin !== '*' && origin !== 'https://unapproved-simple-test.example.invalid');
       return { status: response.status, foreignOriginRejected: true };
     });
-    if (invalidAuth) for (const method of ['GET', 'POST']) await check(name + ': invalid-session ' + method + ' remains rejected', async () => {
-      const response = await request(new URL('/functions/v1/' + name, config.supabaseUrl), {
-        method, headers: { Origin: app.origin, apikey: config.supabasePublicKey, Authorization: 'Bearer deliberately-invalid-readonly-migration-token', 'Content-Type': 'application/json' },
-        ...(method === 'POST' ? { body: '{}' } : {}),
-      });
-      assert.equal(response.status, 401, 'Gateway must reject an invalid JWT before business dispatch');
-      return { status: response.status, invalidSessionRejected: true };
-    });
   }
-  return { kind: 'live invalid-token redirects, public settings and OPTIONS' + (invalidAuth ? ', plus GET/empty POST with invalid JWT' : ' only') + '; no mail, real login, data write, provider or redirect follow', project: new URL(config.supabaseUrl).hostname.split('.')[0], appOrigin: app.origin, passed: results.filter(r => r.pass).length, failed: results.filter(r => !r.pass).length, results };
+  return { kind: 'live invalid-token redirects, public settings and OPTIONS' + (invalidAuth ? ', plus GET/empty POST with invalid JWT' : ' only') + '; no mail, real login, data write, provider or redirect follow', project: new URL(config.supabaseUrl).hostname.split('.')[0], appOrigin: app.origin, corsOrigins: origins, passed: results.filter(r => r.pass).length, failed: results.filter(r => !r.pass).length, results };
 }
 if (require.main === module) (async () => {
   const args = process.argv.slice(2);
@@ -98,7 +123,7 @@ if (require.main === module) (async () => {
   const out = path.join(__dirname, 'results');
   fs.mkdirSync(out, { recursive: true });
   fs.writeFileSync(path.join(out, 'auth-probe-' + report.project + '.json'), JSON.stringify(report, null, 2));
-  console.log(JSON.stringify({ kind: report.kind, project: report.project, passed: report.passed, failed: report.failed, results: report.results }));
+  console.log(JSON.stringify({ kind: report.kind, project: report.project, appOrigin: report.appOrigin, corsOrigins: report.corsOrigins, passed: report.passed, failed: report.failed, results: report.results }));
   if (report.failed) process.exitCode = 1;
 })().catch(error => { console.error(error.message); process.exitCode = 1; });
-module.exports = { probe, validate };
+module.exports = { probe, validate, validateCorsOrigins };

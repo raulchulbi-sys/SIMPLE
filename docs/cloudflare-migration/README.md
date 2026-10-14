@@ -1,6 +1,21 @@
 # SIMPLE: migración del frontend a Cloudflare
 
-La migración está preparada en una rama independiente desde `c818e35fcb0cfeddb61e8232aaaffba222ea8f4d`. GitHub Pages sigue siendo producción. La cuenta Cloudflare ya está conectada, sin proyectos existentes; su integración Git está detenida en el login oficial de GitHub y todavía no hay URL de despliegue. No se ha cambiado `main`, DNS, Site URL, Google Cloud ni configuración productiva de Supabase.
+**CLOUDFLARE: PREVIEW DEPLOYED — FINAL CONFIGURATION PENDING**
+
+La preview real de staging está publicada en [simple-staging-raulchulbi.pages.dev](https://simple-staging-raulchulbi.pages.dev/). GitHub Pages sigue siendo producción y respaldo. Falta registrar y verificar los redirects exactos de Supabase Auth; el panel de Supabase sigue pendiente de inicio de sesión manual. Esta preview no está lista para el corte productivo. No se ha cambiado `main`, DNS, Site URL productiva, Google Cloud ni configuración productiva de Supabase.
+
+| Identidad verificada | Valor |
+|---|---|
+| Proyecto Pages | `simple-staging-raulchulbi`, dedicado exclusivamente a staging |
+| URL estable, `S` | `https://simple-staging-raulchulbi.pages.dev/` |
+| URL de este build, `D` | `https://4a8636ab.simple-staging-raulchulbi.pages.dev/` |
+| Deployment ID | `4a8636ab-ec94-42db-b57e-cf43d01230b9` |
+| Fuente desplegada | `0aa1d6b6dc6fe0165534b8c7610c1e8a56521709` |
+| Referencia local equivalente | `1369022d637815cd6b6d7af827d7f325208cc22a`, mismo árbol de archivos |
+| Rama de despliegue | `codex/cloudflare-migration` |
+| GitHub App | Instalación `171372329`, limitada a `raulchulbi-sys/SIMPLE` |
+
+La rama de migración parte de `c818e35fcb0cfeddb61e8232aaaffba222ea8f4d`; no se ha integrado en `main`. No convertir este proyecto de staging en producción: su URL estable recibe los callbacks de staging. La futura producción necesita otro proyecto/origen estable y un corte expresamente autorizado.
 
 ## Arquitectura elegida
 
@@ -20,7 +35,7 @@ El cambio del producto consiste en cargar `assets/runtime-config.js` antes del S
 |---|---|---|
 | `local` | SIMPLE Security Test, `dmqjexigdnfzobarhnib` | HTTP loopback con puerto explícito; `/` o `/SIMPLE/` |
 | `preview` | SIMPLE Security Test | Proyecto Pages verificado; rama `codex/cloudflare-migration` |
-| `production` | `yvguatdqncadkwewlepe` | Proyecto Pages verificado y rama `main`; requiere decisión posterior de corte |
+| `production` | `yvguatdqncadkwewlepe` | Otro proyecto/origen estable verificado y rama `main`; requiere decisión posterior de corte |
 
 Una configuración desconocida falla antes de crear el cliente Supabase. No hay fallback a producción, parámetros de URL para cambiar backend ni selección a partir de localStorage. La configuración valida claves públicas y rechaza claves privadas, JWT de usuario, service role y mezclas de proyecto.
 
@@ -50,15 +65,13 @@ node tests/cloudflare/auth-cors.cjs
 
 La salida informa inventario, SHA-256 por archivo y huella del paquete. El mismo origen/base/configuración produce los mismos bytes; no se incluyen fechas ni identificadores de usuario. Los hashes de dos entornos diferentes pueden diferir por el runtime y los headers esperados.
 
-## Primera conexión Cloudflare
+## Proyecto Cloudflare y publicación futura
 
-Abrir [Cloudflare Dashboard](https://dash.cloudflare.com/). El propietario debe iniciar sesión y completar por sí mismo cualquier aceptación contractual o verificación requerida. No se han leído ni solicitado credenciales de Cloudflare.
+La conexión GitHub ya se completó manualmente. La instalación `171372329` autoriza solamente SIMPLE. El proyecto existente es `simple-staging-raulchulbi`; abrirlo en [Cloudflare Dashboard](https://dash.cloudflare.com/) y no crear otro equivalente.
 
-Estado actual: ya se pudo consultar la cuenta del propietario y Workers & Pages confirma «No projects found». La conexión oficial de GitHub presenta un formulario vacío de login. El propietario debe completar ese acceso; la concesión nueva de la App se revisará y confirmará en el paso concreto, limitada al repositorio SIMPLE.
+Configuración aplicada: plan gratuito, preset None, raíz del repositorio y salida `dist`. La rama predeterminada de despliegue es `codex/cloudflare-migration`; las demás preview branches están en **None**. Los build watch paths excluyen `tests/**` y `docs/**`, por lo que un cambio solo de pruebas/documentación no debe lanzar otro build.
 
-Después: Workers & Pages → Create application → Pages → Import an existing Git repository. Comprobar primero proyectos existentes para no duplicar. Conectar únicamente `raulchulbi-sys/SIMPLE`; cualquier instalación de GitHub que amplíe acceso exige aprobación en ese punto. Usar plan gratuito, preset None, raíz del repositorio y salida `dist`.
-
-Para el primer proyecto aislado, seleccionar la rama `codex/cloudflare-migration`; configurar **ambos entornos de Pages para staging**, aunque Pages llame a uno de ellos “Production”. No activar todavía el backend productivo.
+**Ambos entornos de Pages utilizan staging**, aunque Pages llame a uno de ellos “Production”. Ese nombre de la interfaz no convierte SIMPLE en producción. El backend sigue siendo `dmqjexigdnfzobarhnib`.
 
 Build command:
 
@@ -71,22 +84,26 @@ Variables públicas, que no contienen secretos:
 | Variable | Valor |
 |---|---|
 | `SIMPLE_DEPLOY_TARGET` | `preview` |
-| `SIMPLE_PAGES_PROJECT` | Nombre real del proyecto elegido/verificado en Cloudflare |
-| `SIMPLE_APP_URL` | URL HTTPS estable real de ese proyecto, terminada en `/` |
+| `SIMPLE_PAGES_PROJECT` | `simple-staging-raulchulbi` |
+| `SIMPLE_APP_URL` | `https://simple-staging-raulchulbi.pages.dev/` |
 | `CF_PAGES_URL` | Variable automática de Cloudflare; no inventar ni sobrescribir |
 | `CF_PAGES_BRANCH` | Variable automática; debe ser `codex/cloudflare-migration` |
 
-No guardar `OPENAI_API_KEY`, service role, secretos OAuth ni tokens en Cloudflare para este frontend. Limitar previews a la rama aprobada y deshabilitar ramas ajenas. El destino staging no contiene usuarios productivos. Si se necesita control de acceso adicional, utilizar el mecanismo oficial de preview Access tras verificar permisos y condiciones del plan; no confundir `noindex` con protección de acceso.
+Para publicar una modificación futura aprobada, comprobar el build, subirla a la rama autorizada y revisar el nuevo deployment de Pages. Contrastar su SHA y los archivos servidos; el mensaje “Deployment successful” no sustituye la verificación. La URL estable es la entrada preferida para QA funcional. Cada build tiene otra URL `D`: si se quiere utilizar su flujo Edge completo, su origen exacto necesita una adición CORS verificada. El retorno Auth permanece en `S`; no se registra un redirect Auth nuevo por cada hash.
+
+No guardar `OPENAI_API_KEY`, service role, secretos OAuth ni tokens en Cloudflare para este frontend. El destino staging no contiene usuarios productivos. Si se necesita control de acceso adicional, utilizar el mecanismo oficial de preview Access tras verificar permisos y condiciones del plan; no confundir `noindex` con protección de acceso.
 
 El runtime preparado admite únicamente el proyecto `pages.dev` verificado. Un dominio propio aún no elegido exige registrar expresamente ese dominio en la validación y repetir las pruebas afectadas antes del corte; no se acepta automáticamente cualquier hostname ni se configura DNS en esta fase.
 
 ## Auth y CORS
 
-La configuración definitiva depende de la URL **real** de Cloudflare. El detalle está en [AUTH-CORS.md](AUTH-CORS.md). Site URL productiva y entradas antiguas permanecen intactas. No se crean clientes Google nuevos; el callback Google sigue siendo el endpoint de Supabase del entorno correspondiente.
+El detalle está en [AUTH-CORS.md](AUTH-CORS.md). Site URL productiva y entradas antiguas permanecen intactas. No se crean clientes Google nuevos; el callback Google sigue siendo el endpoint de Supabase del entorno correspondiente.
 
-Se deben probar primero en staging las dos entradas exactas de Auth para la URL base y recuperación `?reset=1`, y el origen exacto en los cuatro Edge. No añadir `https://**.pages.dev/**`. El retorno con un token inválido prueba enrutamiento/allowlist, no recepción de correo, login Google ni cambio real de contraseña.
+Las entradas pendientes de staging son `https://simple-staging-raulchulbi.pages.dev/` y el patrón literal `https://simple-staging-raulchulbi.pages.dev/\?reset=1`. El panel de Supabase, pestaña 8, continúa en login manual; la solicitud al propietario sigue pendiente. No se han guardado estas URLs. El único probe previo devolvió HTTP 303 hacia `http://localhost:3000`: es el diagnóstico esperado de falta de configuración, no un bug del frontend. Repetir ese probe únicamente después de guardar las entradas. No añadir `https://**.pages.dev/**` ni cambiar Site URL para eludir el problema.
 
-Único ajuste remoto de esta misión: staging conserva sus cuatro bundles LIVE y sus guards, añadiendo los orígenes exactos `http://127.0.0.1:4280` y `http://localhost:4280`. No se añadieron URLs Auth ni orígenes Cloudflare inexistentes. El helper sintético terminó retirado con HTTP 410; las fixtures se eliminaron y los datos vuelven a su baseline. El detalle y el rollback están en CHECKPOINT y OPERATIONS.
+CORS de staging sí está desplegado: Basic v31, Premium v15, Chat v15 e inicial v4, con JWT obligatorio. Se añadieron exclusivamente los orígenes exactos de `S` y `D`, conservando las 34 entradas locales anteriores entre las cuatro funciones, incluidos `localhost:4280` y `127.0.0.1:4280`. Los 41 archivos descargados después coinciden con el plan. Producción no recibió estos ajustes. Los paquetes anteriores y el rollback están preservados; ver [AUTH-CORS.md](AUTH-CORS.md) y [OPERATIONS.md](OPERATIONS.md).
+
+Google continúa OFF en staging. No se ha probado en Cloudflare registro con correo real, confirmación/SMTP, Google OAuth real ni recepción/cambio de contraseña por recovery. Los probes con tokens inválidos verifican enrutamiento o rechazo del gateway, nunca sustituyen esos recorridos. Las fixtures y su limpieza de esta fase se cierran y documentan en [CHECKPOINT.md](CHECKPOINT.md); no confundir el cierre de la fase local anterior con el de la nueva ejecución Cloudflare.
 
 Al cambiar de origen, el usuario inicia sesión normalmente. No se copian sesiones, borradores o tokens desde GitHub Pages. Los datos remotos siguen en Supabase.
 
@@ -94,7 +111,7 @@ Al cambiar de origen, el usuario inicia sesión normalmente. No se copian sesion
 
 HTML: `no-cache`. Assets de nombres mutables: `max-age=0, must-revalidate`; no `immutable`. `nosniff`, frame deny, referrer policy y permisos de cámara/micrófono/geolocalización restringidos. CSP inicialmente **report-only** porque existen scripts, estilos y eventos inline; se restringen orígenes al SDK fijado, backend del entorno y la imagen externa ya usada. Esta política no es una CSP de bloqueo ni prueba ausencia de XSS.
 
-No hay redirección SPA general: el `404.html` raíz evita que rutas de tests/SQL/archivos privados respondan con un falso HTML 200. `robots.txt` y `X-Robots-Tag` evitan indexación; no autentican ni sustituyen RLS. HTTPS y entrega de headers reales deben verificarse una vez exista despliegue; no se afirman como comprobados localmente.
+No hay redirección SPA general: el `404.html` raíz evita que rutas de tests/SQL/archivos privados respondan con un falso HTML 200. `robots.txt` y `X-Robots-Tag` evitan indexación; no autentican ni sustituyen RLS. HTTPS, headers, recursos, versión servida y exclusión de archivos internos ya tienen comprobaciones sobre las URLs reales de este deployment. Eso no acredita los flujos autenticados aún pendientes.
 
 Endurecimiento posterior: reemplazar progresivamente eventos inline y definir hashes/nonces reproducibles antes de activar CSP estricta. No se realiza ese refactor en esta migración.
 
@@ -104,10 +121,27 @@ Ver [OPERATIONS.md](OPERATIONS.md). La preparación y la PR no autorizan corte d
 
 El estado de pruebas está en [VALIDATION.md](../../tests/cloudflare/VALIDATION.md) y [CHECKPOINT.md](CHECKPOINT.md). Las evidencias privadas permanecen ignoradas y nunca entran en `dist`.
 
+## Evidencia de esta fase
+
+La fase local/staging anterior conserva **425/425** casos únicos. Son resultados previos a la publicación Cloudflare y no se vuelven a contar como pruebas nuevas de ese despliegue.
+
+Sobre las URLs Cloudflare reales: **42/42 comprobaciones de hosting nativo** y **24/24 CORS nativos** en Chromium/WebKit, sin interceptación. En CORS, 16 respuestas 401 del JWT deliberadamente inválido fueron legibles desde `S`/`D`; ocho pruebas desde un origen ajeno quedaron bloqueadas. No se generaron sesiones firmadas ni llamadas OpenAI para esa verificación. Los resultados están en `tests/cloudflare/results/live-hosting-final.json` y `auth-live-cors-cloudflare-final.json`.
+
+Las **24 mediciones de rendimiento** de `live-performance.json` comparan la portada HTTPS sin sesión de GitHub y Cloudflare: tres muestras por sitio/tamaño/caché, 390/1280 px y CPU 4x. Son mediciones, no 24 casos funcionales adicionales. Cada hosting conserva sus políticas reales de compresión/caché y cada backend sus ajustes públicos de Auth.
+
+| Mediana de carga | GitHub Pages | Cloudflare |
+|---|---:|---:|
+| 390 px, primera carga | 526 ms | 488 ms |
+| 390 px, repetida | 181 ms | 295 ms |
+| 1280 px, primera carga | 490 ms | 476 ms |
+| 1280 px, repetida | 217 ms | 292 ms |
+
+La muestra no demuestra una ventaja universal: Cloudflare cargó antes en las medianas frías, mientras GitHub reutilizó más contenido en las repetidas. No son métricas de usuarios reales ni una validación de INP o del rendimiento del interior autenticado.
+
 ## Costes y límites
 
 Para esta aplicación estática no se requieren Functions/Workers de pago. La documentación oficial de Pages Free, consultada el 14/10/2026, describe 500 builds/mes, un build simultáneo, timeout de 20 minutos, 20.000 archivos y máximo de 25 MiB por archivo. El paquete de 36 archivos está dentro de esos límites. No se ha contratado nada y cualquier servicio futuro facturable requiere autorización separada.
 
-No se promete disponibilidad, rendimiento de una URL inexistente ni condiciones comerciales más amplias que los términos aceptados por el propietario. Supabase y OpenAI conservan sus costes existentes; esta misión no los aumenta. Un dominio propio tendría coste aparte y no se ha comprado.
+No se promete disponibilidad ni una mejora universal de rendimiento. Supabase y OpenAI conservan sus costes existentes; no se activó un nuevo plan de pago ni se realizaron llamadas OpenAI para validar hosting/CORS. Un dominio propio tendría coste aparte y no se ha comprado. La privacidad y el corte comercial siguen pendientes.
 
 Fuentes oficiales: [Static HTML](https://developers.cloudflare.com/pages/framework-guides/deploy-anything/), [Git integration](https://developers.cloudflare.com/pages/configuration/git-integration/), [Limits](https://developers.cloudflare.com/pages/platform/limits/), [Previews](https://developers.cloudflare.com/pages/configuration/preview-deployments/), [Headers](https://developers.cloudflare.com/pages/configuration/headers/), [Serving Pages](https://developers.cloudflare.com/pages/configuration/serving-pages/).
