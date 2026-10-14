@@ -3,3 +3,6 @@ tests/coach/results/
 supabase/.temp/
 tests/**/private/
 tests/**/results/
+dist/
+results/
+private/
