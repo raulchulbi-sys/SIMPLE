@@ -11,7 +11,7 @@ const plan = require('../../config/cloudflare/production-plan.json');
 const manifest = require('../../config/static-public-manifest.json');
 const rows = [];
 const test = (name, fn) => { fn(); rows.push({name, pass:true}); };
-// The stable proposed URL is used as an OFFLINE fixture, not evidence it exists.
+// This is OFFLINE application packaging. The live hostname currently serves only a placeholder.
 // Real Pages supplies CF_PAGES_URL/CF_PAGES_BRANCH automatically; never set these manually there.
 const env = {...plan.variablesPublic, CF_PAGES_BRANCH:plan.productionBranch, CF_PAGES_URL:plan.appUrlProposed};
 const runtime = createRuntimeConfig({target:'production', env});
@@ -57,7 +57,7 @@ test('production headers target only production backend and retain revalidation 
   assert(!headers.includes('Access-Control-Allow-Origin: *'));
   assert(!first.files.some(f=>/\.(?:sql|md|toml|env)$/.test(f.path)));
 });
-const report = {kind:'offline only; proposed origin not provisioned, no network or deployment', passed:rows.length, total:rows.length, treeSha256:first.treeSha256, results:rows};
+const report = {kind:'offline application packaging only; live hostname serves placeholder, no network or application deployment', passed:rows.length, total:rows.length, treeSha256:first.treeSha256, results:rows};
 fs.mkdirSync(path.join(__dirname,'results'),{recursive:true});
 fs.writeFileSync(path.join(__dirname,'results','production-build.json'),JSON.stringify(report,null,2));
 console.log(JSON.stringify(report,null,2));

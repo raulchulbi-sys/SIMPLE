@@ -1,5 +1,13 @@
 # Validación de la migración estática
 
+## Preparación productiva posterior — 15/10/2026
+
+Ejecutados únicamente los casos afectados: runtime **31/31** (24 existentes y siete nuevos), placeholder **12/12**, propuesta CORS **7/7**, build productivo offline **4/4** y empaquetador compartido **17/17** (16 en sandbox; junction aislada fuera del sandbox tras EPERM). La entrega HTTPS del placeholder pasó **28/28** (ocho HTTP y veinte combinaciones de motor, ancho y tema); staging pasó **4/4** (dos runtime HTTP y dos navegaciones a 390 px). Total de esta fase: **103 comprobaciones únicas**; no sumar reintentos ni las 635/94 históricas. Los informes están ignorados por Git. Google/recovery reales no se repitieron; cero cuentas, correos o llamadas AI.
+
+Se corrigieron dos problemas del mecanismo de preparación: identidades proyecto/target intercambiables y un scanner que admitía enlaces activos o una CSP ampliada. Los archivos públicos desplegados fueron siempre inertes. La segunda revisión anticipó la canonicalización de 404.html a /404 y ajustó el arnés antes de ejecutarlo. Se conservan los diagnósticos de export previo al primer unit (cero casos), EPERM de junction, propagación DNS del alias y red del primer smoke. Sólo se cuentan las ejecuciones finales.
+
+La comparación de cierre es de sólo lectura: **34/34 entradas iguales en producción y 34/34 en staging**, funciones completas (214/219), metadatos Edge (5/10), políticas, permisos, triggers, presupuestos y reservas sin cambios. El ciclo conserva `88c3564c3c49cf9c53fccba89a1e71b5`. No se afirma ausencia total de mensajes de consola: el smoke recoge un recurso 404 sin ubicación en Chromium y el aviso de CSP report-only sin report-to en WebKit; no hubo pageErrors ni escrituras. Ver [PRODUCTION-PREPARATION](../../docs/cloudflare-migration/PRODUCTION-PREPARATION.md).
+
 ## Cierre real y perfil productivo — actualización 15/10/2026
 
 Posteriormente a los635 históricos: Google OAuth real (alta y retorno) y recuperación real con el titular han pasado en staging. Dos correos autorizados recibidos; primer formulario visto en iPhone, segundo abierto en Codex. Cambio manual confirmado, PUT/user200 y logout204, login password200, perfil client/UUID conservados y persistencia. La cuenta era Google-only: no contraseña previa que invalidar. No mocks presentados como pruebas reales.

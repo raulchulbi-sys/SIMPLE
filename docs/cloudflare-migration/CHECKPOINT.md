@@ -1,5 +1,9 @@
 # Checkpoint de Cloudflare — 15/10/2026
 
+## Infraestructura productiva — actualización vigente
+
+**PRODUCTION PROJECT CONFIGURED — DEPLOYMENT PENDING**. El proyecto independiente `simple-raulchulbi` sirve sólo el placeholder de cinco archivos, sin SDK, runtime ni backend. Fuente `8b2f526`; deployment `170fea3b-05ea-426b-b482-af7749bd0218`. Despliegues automáticos OFF y previews None, releídos tras guardar. Access no está configurado: su selección Free quedó detenida por revisión automática y la autorización está pendiente. Auth/CORS productivos no se han modificado. Main sigue en `c818e35` y la PR permanece en borrador, sin merge, corte ni DNS. Staging sirve `4eef94ba` (fuente `8b2f526`) contra Supabase staging; el smoke específico pasó 4/4 sin sesión. La comparación final pasó en las 34 entradas de cada backend, funciones, permisos, políticas, triggers y finanzas. Ver [PRODUCTION-PREPARATION](PRODUCTION-PREPARATION.md). Los siguientes apartados son checkpoints históricos de Auth y no describen el deployment vigente.
+
 ## Estado vigente: OAuth y recuperación reales cerrados en staging
 
 Google OAuth y PASSWORD RECOVERY: REAL PASS, con límites en [AUTH-CLOSURE](AUTH-CLOSURE.md). El titular cambió la contraseña manualmente; se verificaron confirmación, login password200, mismo client, recarga y logout. No contraseña previa: era Google-only. Fix de recarga desplegado como eb9eba59ca9589a94a6b09612b0acd4354e9bba7, deployment e829b4d6-2235-44e8-a7f4-a96d875d8946. Árbol exacto local ed4b32b:10a89b3e426a9c0fa995ba8741e7536a0f7d87b3. Google real también revalidado sobre ese frontend sin nueva alta.

@@ -1,6 +1,6 @@
 # Operación y rollback
 
-Estado actualizado el **15/10/2026**. Google real y recuperación completa: **REAL PASS** en staging; contraseña introducida/guardada manualmente por el titular, login posterior y cierre comprobados. Fix de recarga desplegado en eb9eba5; no reenviar emails ni reutilizar enlaces consumidos. Dos cuentas autorizadas conservadas, sesiones0. [AUTH-CLOSURE](AUTH-CLOSURE.md) contiene evidencia/límites; [CUTOVER](CUTOVER.md), configuración productiva pendiente, sin corte.
+Estado vigente del 15/10/2026: [PRODUCTION-PREPARATION](PRODUCTION-PREPARATION.md). El proyecto independiente `simple-raulchulbi` sirve un placeholder sin backend; despliegues automáticos OFF y previews None. Access está pendiente; la aplicación productiva no está desplegada y Auth/CORS productivos no se han modificado. Staging sirve la fuente `8b2f526` en `4eef94ba`, con cuatro comprobaciones específicas superadas. Google/recovery reales permanecen validados con su alcance histórico. [CUTOVER](CUTOVER.md) prepara el corte sin ejecutarlo. Las referencias posteriores a deployments anteriores son históricas; no restaurarlos a ciegas.
 
 ## Antes de cualquier escritura
 

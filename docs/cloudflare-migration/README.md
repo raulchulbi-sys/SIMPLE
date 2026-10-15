@@ -1,21 +1,21 @@
 # SIMPLE: migración del frontend a Cloudflare
 
-**CLOUDFLARE: PREVIEW DEPLOYED — FINAL CONFIGURATION PENDING**
+**PRODUCTION PROJECT CONFIGURED — DEPLOYMENT PENDING**
 
-Estado actualizado el **15/10/2026**, fecha del cliente. La preview permanece en https://simple-staging-raulchulbi.pages.dev/. **Google OAuth y password recovery: REAL PASS** en Chromium integrado, con participación manual del titular para la contraseña. Dos cuentas client de staging autorizadas conservadas, sin entrenamiento y con sesiones cerradas. Fix mínimo de recarga publicado y comprobado; 94 regresiones locales afectadas y 42/42 checks HTTPS de revalidación, sin sumar repeticiones a los 635 históricos. [Evidencia y límites](AUTH-CLOSURE.md). Producción Cloudflare: **CONFIGURATION PENDING**; [plan y rollback](CUTOVER.md). No merge, DNS, Site URL ni cambios productivos.
+Estado actualizado el **15/10/2026**. Proyecto independiente **simple-raulchulbi** creado y verificado con un placeholder público de cinco archivos, **sin backend**: https://simple-raulchulbi.pages.dev/. Autodeploy OFF y previews None; aplicación productiva no desplegada, Access pendiente. [Estado operativo y límites](PRODUCTION-PREPARATION.md). Staging sigue funcionando con Supabase staging; Google/recovery reales ya cerrados, sin nuevos correos o cuentas. Main/GitHub Pages y Supabase productivo permanecen intactos; no merge/corte/DNS. [Plan de corte](CUTOVER.md).
 
 | Identidad verificada | Valor |
 |---|---|
 | Proyecto Pages | `simple-staging-raulchulbi`, dedicado exclusivamente a staging |
 | URL estable, `S` | `https://simple-staging-raulchulbi.pages.dev/` |
-| URL de este build, `D` | `https://e829b4d6.simple-staging-raulchulbi.pages.dev/` |
-| Deployment ID | `e829b4d6-2235-44e8-a7f4-a96d875d8946` |
-| Fuente desplegada | `eb9eba59ca9589a94a6b09612b0acd4354e9bba7` |
-| Referencia local equivalente | `ed4b32be266ba6de3c4b0f70861f3430d2b3a0d4`, árbol `10a89b3e426a9c0fa995ba8741e7536a0f7d87b3` |
+| URL de este build, `D` | `https://4eef94ba.simple-staging-raulchulbi.pages.dev/` |
+| Deployment ID | `4eef94ba-b617-48b6-bf99-f1d6bb83a5ad` |
+| Fuente desplegada | `8b2f526edae136b43970dd9770f5b74db575e7e6` |
+| Referencia local equivalente | `4fbb82b5a4ccf9e65fdcd7dfd74bb3bff5db5705`, árbol `75edad496b1b8cbb3866548001e1e917281b8988` |
 | Rama de despliegue | `codex/cloudflare-migration` |
 | GitHub App | Instalación `171372329`, limitada a `raulchulbi-sys/SIMPLE` |
 
-La rama de migración parte de `c818e35fcb0cfeddb61e8232aaaffba222ea8f4d`; no se ha integrado en `main`. No convertir este proyecto de staging en producción: su URL estable recibe los callbacks de staging. La futura producción necesita otro proyecto/origen estable y un corte expresamente autorizado.
+La rama de migración parte de `c818e35fcb0cfeddb61e8232aaaffba222ea8f4d`; no se ha integrado en `main`. No convertir este proyecto de staging en producción: su URL estable recibe los callbacks de staging. El proyecto productivo independiente ya se ha creado y conserva un placeholder sin backend; el despliegue de la aplicación y el corte necesitan las puertas y autorizaciones descritas en PRODUCTION-PREPARATION.
 
 Nota histórica anterior al cierre Auth, superada por el deployment eb9eba5: el check de Cloudflare observado entonces, `65d96659-8aab-41a1-9bd7-a3ae876c232e`, figura cancelado y corresponde a la fuente remota `a39ec11f5c3476c20fedb6b4a21be6fe65ea0675`, con cambios de pruebas/documentación. No publicó assets: `S` y `D` siguen sirviendo la fuente `0aa1d6b…` indicada arriba. En el checkpoint Git previo a esta reanudación, local `cf76bdfd0af1a523e48d602b50010c03f1a2bf78` y ese remoto compartían el árbol `c78dae8c23d4444bc3e9b58de04ba06150de66a6`; el checkout estaba limpio entonces. Ese check cancelado no es un despliegue correcto ni prueba que el filtro de rutas haya omitido el build.
 

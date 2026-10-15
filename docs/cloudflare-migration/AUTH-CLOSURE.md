@@ -1,5 +1,7 @@
 # Autenticación real Cloudflare — cierre 15/10/2026
 
+Actualización de infraestructura posterior: este documento conserva los recorridos reales de Auth ejecutados en `eb9eba5`. La preparación productiva posterior endureció las identidades del builder/runtime, sin cambiar Auth. Staging sirve ahora `8b2f526` (deployment `4eef94ba`), revalidado con cuatro comprobaciones HTTP/nativas sin sesión. No se repitieron Google ni recovery. El proyecto productivo independiente ya existe, pero sólo expone un placeholder sin backend y Access sigue pendiente. El estado vigente está en [PRODUCTION-PREPARATION](PRODUCTION-PREPARATION.md). Los IDs siguientes son evidencia del cierre Auth, no los del deployment actual.
+
 ## Resultado
 
 - **GOOGLE OAUTH: REAL PASS**, en Chromium integrado. Alta y retorno reales; revalidación de acceso, recarga y logout sobre el frontend final. Sin mocks, interceptación o sesiones sembradas. No una nueva prueba Google en WebKit/Safari físico o producción.

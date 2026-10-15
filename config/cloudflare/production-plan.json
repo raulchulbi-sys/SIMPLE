@@ -1,5 +1,5 @@
 {
-  "status": "CONFIGURATION PENDING",
+  "status": "PRODUCTION PROJECT CONFIGURED — DEPLOYMENT PENDING",
   "deployed": false,
   "projectNameProposed": "simple-raulchulbi",
   "appUrlProposed": "https://simple-raulchulbi.pages.dev/",
@@ -47,6 +47,20 @@
       "SIMPLE_DEPLOY_TARGET": "placeholder",
       "SIMPLE_PAGES_PROJECT": "simple-raulchulbi",
       "SIMPLE_APP_URL": "https://simple-raulchulbi.pages.dev/"
-    }
-  }
+    },
+    "placeholderDeployed": true,
+    "sourceCommit": "8b2f526edae136b43970dd9770f5b74db575e7e6",
+    "deploymentId": "170fea3b-05ea-426b-b482-af7749bd0218",
+    "deploymentUrl": "https://170fea3b.simple-raulchulbi.pages.dev/",
+    "artifactTreeSha256": "47ba45ce844af2c62569d60c8d622f5e8c8b864c807f465cf3037cd74e662399",
+    "rootAndDeploymentContainOnlyPlaceholder": true,
+    "accessStatus": "NOT CONFIGURED; Free plan selection requires approval after automatic review rejection"
+  },
+  "projectCreated": true,
+  "projectNameVerified": "simple-raulchulbi",
+  "appUrlVerified": "https://simple-raulchulbi.pages.dev/",
+  "productionSupabaseChangesApplied": false,
+  "productionAuthBackup": "tests/cloudflare/private/production-auth-urls-before.json (ignored)",
+  "corsPlan": "tests/cloudflare/private/production-cors-plan-review.json (ignored; reviewOnly/applyAllowed=false)",
+  "deployedMeaning": "Production application only; preparation.placeholderDeployed records the inert public deployment."
 }
