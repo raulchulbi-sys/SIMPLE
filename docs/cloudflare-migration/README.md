@@ -2,7 +2,7 @@
 
 **CLOUDFLARE: PREVIEW DEPLOYED — FINAL CONFIGURATION PENDING**
 
-La preview real de staging está publicada en [simple-staging-raulchulbi.pages.dev](https://simple-staging-raulchulbi.pages.dev/). GitHub Pages sigue siendo producción y respaldo. Falta registrar y verificar los redirects exactos de Supabase Auth; el panel de Supabase sigue pendiente de inicio de sesión manual. Esta preview no está lista para el corte productivo. No se ha cambiado `main`, DNS, Site URL productiva, Google Cloud ni configuración productiva de Supabase.
+Estado actualizado el **15/10/2026**, fecha del cliente. La preview real de staging está publicada en [simple-staging-raulchulbi.pages.dev](https://simple-staging-raulchulbi.pages.dev/). GitHub Pages sigue siendo producción y respaldo. El panel de Supabase está conectado, las dos Redirect URLs exactas de staging están guardadas y pasaron seis comprobaciones nativas de retorno con enlaces inválidos. Google real, entrega de correo y recuperación válida siguen pendientes; esta preview no autoriza el corte productivo. No se ha cambiado `main`, DNS, Site URL productiva, Google Cloud ni configuración productiva de Supabase.
 
 | Identidad verificada | Valor |
 |---|---|
@@ -16,6 +16,8 @@ La preview real de staging está publicada en [simple-staging-raulchulbi.pages.d
 | GitHub App | Instalación `171372329`, limitada a `raulchulbi-sys/SIMPLE` |
 
 La rama de migración parte de `c818e35fcb0cfeddb61e8232aaaffba222ea8f4d`; no se ha integrado en `main`. No convertir este proyecto de staging en producción: su URL estable recibe los callbacks de staging. La futura producción necesita otro proyecto/origen estable y un corte expresamente autorizado.
+
+El último check de Cloudflare observado, `65d96659-8aab-41a1-9bd7-a3ae876c232e`, figura cancelado y corresponde a la fuente remota `a39ec11f5c3476c20fedb6b4a21be6fe65ea0675`, con cambios de pruebas/documentación. No publicó assets: `S` y `D` siguen sirviendo la fuente `0aa1d6b…` indicada arriba. En el checkpoint Git previo a esta reanudación, local `cf76bdfd0af1a523e48d602b50010c03f1a2bf78` y ese remoto compartían el árbol `c78dae8c23d4444bc3e9b58de04ba06150de66a6`; el checkout estaba limpio entonces. Ese check cancelado no es un despliegue correcto ni prueba que el filtro de rutas haya omitido el build.
 
 ## Arquitectura elegida
 
@@ -69,7 +71,7 @@ La salida informa inventario, SHA-256 por archivo y huella del paquete. El mismo
 
 La conexión GitHub ya se completó manualmente. La instalación `171372329` autoriza solamente SIMPLE. El proyecto existente es `simple-staging-raulchulbi`; abrirlo en [Cloudflare Dashboard](https://dash.cloudflare.com/) y no crear otro equivalente.
 
-Configuración aplicada: plan gratuito, preset None, raíz del repositorio y salida `dist`. La rama predeterminada de despliegue es `codex/cloudflare-migration`; las demás preview branches están en **None**. Los build watch paths excluyen `tests/**` y `docs/**`, por lo que un cambio solo de pruebas/documentación no debe lanzar otro build.
+Configuración aplicada: plan gratuito, preset None, raíz del repositorio y salida `dist`. La rama predeterminada de despliegue es `codex/cloudflare-migration`; las demás preview branches están en **None**. Los build watch paths excluyen `tests/**` y `docs/**`, pero el intento cancelado anterior no acredita que ese filtro funcionara. Para el siguiente commit limitado a evidencia/tests/docs se usará el prefijo oficial `[CF-Pages-Skip]`; ver [OPERATIONS.md](OPERATIONS.md).
 
 **Ambos entornos de Pages utilizan staging**, aunque Pages llame a uno de ellos “Production”. Ese nombre de la interfaz no convierte SIMPLE en producción. El backend sigue siendo `dmqjexigdnfzobarhnib`.
 
@@ -99,7 +101,9 @@ El runtime preparado admite únicamente el proyecto `pages.dev` verificado. Un d
 
 El detalle está en [AUTH-CORS.md](AUTH-CORS.md). Site URL productiva y entradas antiguas permanecen intactas. No se crean clientes Google nuevos; el callback Google sigue siendo el endpoint de Supabase del entorno correspondiente.
 
-Las entradas pendientes de staging son `https://simple-staging-raulchulbi.pages.dev/` y el patrón literal `https://simple-staging-raulchulbi.pages.dev/\?reset=1`. El panel de Supabase, pestaña 8, continúa en login manual; la solicitud al propietario sigue pendiente. No se han guardado estas URLs. El único probe previo devolvió HTTP 303 hacia `http://localhost:3000`: es el diagnóstico esperado de falta de configuración, no un bug del frontend. Repetir ese probe únicamente después de guardar las entradas. No añadir `https://**.pages.dev/**` ni cambiar Site URL para eludir el problema.
+El 15/10/2026 se guardaron, con autorización expresa del propietario y sólo en staging, `https://simple-staging-raulchulbi.pages.dev/` y el patrón literal `https://simple-staging-raulchulbi.pages.dev/\?reset=1`. La interfaz confirmó dos entradas; la lista anterior estaba vacía y Site URL permanece en `http://localhost:3000`. El panel ya está conectado. El HTTP 303 previo hacia localhost corresponde al baseline anterior a guardar las URLs. Después pasaron **6/6 comprobaciones nuevas**: dos GET de verify con token inválido devolvieron 303 a la base/query correctas con `otp_expired`; cuatro callbacks nativos, Chromium/WebKit, cargaron el frontend con error de enlace, URL limpia, recovery oculto y sin sesión. No añadir `https://**.pages.dev/**` ni cambiar Site URL.
+
+La página Emails muestra que se usan plantillas por defecto y que configurar SMTP propio habilita su edición. En recuperación se observó el asunto `Reset your password`, con Source deshabilitado: no se leyó ni verificó el HTML de la plantilla y no se cambió SMTP.
 
 CORS de staging sí está desplegado: Basic v31, Premium v15, Chat v15 e inicial v4, con JWT obligatorio. Se añadieron exclusivamente los orígenes exactos de `S` y `D`, conservando las 34 entradas locales anteriores entre las cuatro funciones, incluidos `localhost:4280` y `127.0.0.1:4280`. Los 41 archivos descargados después coinciden con el plan. Producción no recibió estos ajustes. Los paquetes anteriores y el rollback están preservados; ver [AUTH-CORS.md](AUTH-CORS.md) y [OPERATIONS.md](OPERATIONS.md).
 
@@ -111,7 +115,7 @@ Al cambiar de origen, el usuario inicia sesión normalmente. No se copian sesion
 
 HTML: `no-cache`. Assets de nombres mutables: `max-age=0, must-revalidate`; no `immutable`. `nosniff`, frame deny, referrer policy y permisos de cámara/micrófono/geolocalización restringidos. CSP inicialmente **report-only** porque existen scripts, estilos y eventos inline; se restringen orígenes al SDK fijado, backend del entorno y la imagen externa ya usada. Esta política no es una CSP de bloqueo ni prueba ausencia de XSS.
 
-No hay redirección SPA general: el `404.html` raíz evita que rutas de tests/SQL/archivos privados respondan con un falso HTML 200. `robots.txt` y `X-Robots-Tag` evitan indexación; no autentican ni sustituyen RLS. HTTPS, headers, recursos, versión servida y exclusión de archivos internos ya tienen comprobaciones sobre las URLs reales de este deployment. Eso no acredita los flujos autenticados aún pendientes.
+No hay redirección SPA general: el `404.html` raíz evita que rutas de tests/SQL/archivos privados respondan con un falso HTML 200. `robots.txt` y `X-Robots-Tag` evitan indexación; no autentican ni sustituyen RLS. HTTPS, headers, recursos, versión servida y exclusión de archivos internos ya tienen comprobaciones sobre las URLs reales de este deployment. Esas comprobaciones de hosting, por sí solas, no acreditan Google ni recuperación válidos.
 
 Endurecimiento posterior: reemplazar progresivamente eventos inline y definir hashes/nonces reproducibles antes de activar CSP estricta. No se realiza ese refactor en esta migración.
 
@@ -126,6 +130,8 @@ El estado de pruebas está en [VALIDATION.md](../../tests/cloudflare/VALIDATION.
 La fase local/staging anterior conserva **425/425** casos únicos. Son resultados previos a la publicación Cloudflare y no se vuelven a contar como pruebas nuevas de ese despliegue.
 
 Sobre las URLs Cloudflare reales: **42/42 comprobaciones de hosting nativo** y **24/24 CORS nativos** en Chromium/WebKit, sin interceptación. En CORS, 16 respuestas 401 del JWT deliberadamente inválido fueron legibles desde `S`/`D`; ocho pruebas desde un origen ajeno quedaron bloqueadas. No se generaron sesiones firmadas ni llamadas OpenAI para esa verificación. Los resultados están en `tests/cloudflare/results/live-hosting-final.json` y `auth-live-cors-cloudflare-final.json`.
+
+El consolidado de la misión es **635 casos únicos**: 425 de la fase local anterior, 202 de la fase HTTPS anterior y ocho del 15/10 (seis retornos inválidos nativos más dos guardas offline). No se reejecutaron hoy los 627 anteriores ni se suma otra vez la revalidación de los seis contra el script final. Evidencia nueva: `auth-return-native.json` y `auth-return-native-unit.json`, ignorados en `tests/cloudflare/results/`. No acreditan correo, Google ni recuperación válida.
 
 Las **24 mediciones de rendimiento** de `live-performance.json` comparan la portada HTTPS sin sesión de GitHub y Cloudflare: tres muestras por sitio/tamaño/caché, 390/1280 px y CPU 4x. Son mediciones, no 24 casos funcionales adicionales. Cada hosting conserva sus políticas reales de compresión/caché y cada backend sus ajustes públicos de Auth.
 

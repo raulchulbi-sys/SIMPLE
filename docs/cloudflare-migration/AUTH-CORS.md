@@ -2,7 +2,7 @@
 
 Este documento describe la adaptación de alojamiento y sus límites de prueba. Supabase conserva Auth, usuarios, perfiles, sesiones, permisos y Edge Functions. La migración no requiere cambiar `assets/auth.js` ni `assets/oauth.js`: sus tres destinos ya utilizan `APP_URL`, que ahora obtiene la configuración pública validada del entorno.
 
-Estado: **preview Cloudflare desplegada; configuración Auth pendiente**. Proyecto dedicado a staging `simple-staging-raulchulbi`, deployment `4a8636ab-ec94-42db-b57e-cf43d01230b9`, fuente `0aa1d6b6dc6fe0165534b8c7610c1e8a56521709` — mismo árbol que el candidato local `1369022d637815cd6b6d7af827d7f325208cc22a`.
+Estado al **15/10/2026**, fecha del cliente: **preview Cloudflare desplegada; Redirect URLs de staging guardadas y seis comprobaciones de retorno inválido superadas**. Panel Supabase conectado. Google real, entrega de correo y recuperación válida siguen pendientes. Proyecto dedicado a staging `simple-staging-raulchulbi`, deployment `4a8636ab-ec94-42db-b57e-cf43d01230b9`, fuente `0aa1d6b6dc6fe0165534b8c7610c1e8a56521709` — mismo árbol que el candidato local `1369022d637815cd6b6d7af827d7f325208cc22a`.
 
 | Destino real | URL |
 | --- | --- |
@@ -32,9 +32,9 @@ Los perfiles existentes siguen teniendo prioridad. Google no crea ni cambia el p
 
 La configuración productiva previa debe conservarse. En particular, no cambiar Site URL de `https://raulchulbi-sys.github.io/SIMPLE/` durante esta preparación ni retirar su Redirect URL.
 
-La URL `S` ya pertenece al proyecto verificado. Su configuración debe añadirse solamente en **Authentication → URL Configuration → Redirect URLs** del staging `dmqjexigdnfzobarhnib`, conservando las entradas anteriores y Site URL. No usar `https://**.pages.dev/**`.
+La URL `S` pertenece al proyecto verificado. El propietario autorizó guardar exactamente dos entradas en **Authentication → URL Configuration → Redirect URLs** del staging `dmqjexigdnfzobarhnib`. La interfaz confirmó las dos entradas el 15/10/2026. La lista anterior estaba vacía; Site URL se conserva en `http://localhost:3000`. No usar `https://**.pages.dev/**`.
 
-Las dos entradas pendientes son:
+Las dos entradas guardadas son:
 
 ```text
 https://simple-staging-raulchulbi.pages.dev/
@@ -43,13 +43,15 @@ https://simple-staging-raulchulbi.pages.dev/\?reset=1
 
 El carácter `?` se escapa como `\?` porque la allowlist usa patrones glob. El frontend continúa enviando la URL normal `https://simple-staging-raulchulbi.pages.dev/?reset=1`. `D` no necesita una Redirect URL de Auth: los tres flujos utilizan siempre `APP_URL = S`, independientemente del origen donde se abrió la aplicación.
 
-Estas entradas **todavía no se han guardado**. El panel de Supabase, pestaña 8, continúa en login manual y la solicitud al propietario sigue pendiente. En el único baseline Cloudflare, los dos GET con token deliberadamente inválido devolvieron HTTP 303 a `http://localhost:3000`; es un diagnóstico de allowlist pendiente, no un fallo nuevo del frontend. No repetirlo en bucle: verificar ambos destinos después de guardar las entradas y antes de plantear cualquier ajuste productivo.
+El panel de Supabase ya está conectado. Los dos GET con token deliberadamente inválido del baseline devolvieron HTTP 303 a `http://localhost:3000` **antes** de guardar las URLs. Después pasaron **6/6 casos nuevos**: dos GET de verify inválido devolvieron 303 a `S` y a `S?reset=1`, con `otp_expired`; los cuatro callbacks nativos, base/query en Chromium y WebKit, cargaron HTTP 200, mostraron el error de enlace en el login, ocultaron recovery y limpiaron la URL sin crear sesión. No hubo mocks, sesiones sembradas, correo, modificaciones de usuario ni llamadas AI; tampoco solicitudes prohibidas. Esto comprueba enrutamiento y manejo de un enlace inválido, no recuperación válida ni login Google real.
 
-El origen de Site URL tiene una excepción en Supabase Auth: permite otras rutas/queries del mismo esquema, host y puerto. En loopback, el código actual permite variar el puerto; esa excepción local no se aplica a un dominio Pages. Esto explica que la recuperación antigua funcionase con la URL base. La excepción de Site URL no cubre un origen Cloudflare diferente mientras Site URL sigue en GitHub Pages. La allowlist compara el destino completo, sin fragmento, por lo que autorizar solamente la base Cloudflare no acredita la recuperación con query. Esta conclusión se deriva del [código oficial actual de Supabase Auth](https://github.com/supabase/auth/blob/master/internal/utilities/request.go) y de la [sintaxis documentada de Redirect URLs](https://supabase.com/docs/guides/auth/redirect-urls).
+El origen de Site URL tiene una excepción en Supabase Auth: permite otras rutas/queries del mismo esquema, host y puerto. En loopback, el código actual permite variar el puerto; esa excepción local no se aplica a un dominio Pages. Esto explica que la recuperación antigua funcionase con la URL base. La excepción de Site URL no cubre otro origen Cloudflare: producción conserva GitHub Pages y staging conserva `http://localhost:3000`. La allowlist compara el destino completo, sin fragmento, por lo que autorizar solamente la base Cloudflare no acredita la recuperación con query. Esta conclusión se deriva del [código oficial actual de Supabase Auth](https://github.com/supabase/auth/blob/master/internal/utilities/request.go) y de la [sintaxis documentada de Redirect URLs](https://supabase.com/docs/guides/auth/redirect-urls).
 
 Una comprobación negativa segura consiste en hacer **un GET sin seguir redirects** a `/auth/v1/verify`, con `type=recovery`, un token deliberadamente inválido nuevo y `redirect_to` igual al destino exacto. Leer `Location` y comprobar origen, pathname y `reset=1`. El callback llevará un error de enlace caducado; no debe contener tokens válidos. Repetir con un dominio sintético `.invalid` no autorizado: no debe devolver allí. Esta prueba verifica la selección del destino y el caso negativo, no la entrega de correo ni el cambio de contraseña. No utilizar enlaces o tokens de usuarios reales.
 
 La plantilla estándar puede usar `{{ .ConfirmationURL }}`. Una plantilla personalizada que construya el destino con `{{ .SiteURL }}` puede ignorar `emailRedirectTo`/`redirectTo`; inspeccionarla sin revelar SMTP ni cambiarla automáticamente. No sustituirla por una ruta `/auth/confirm` nueva: SIMPLE procesa el callback en su página actual. [Guía oficial de redirects y plantillas](https://supabase.com/docs/guides/auth/redirect-urls#email-templates-when-using-redirectto).
+
+Lectura del panel de staging el 15/10/2026: Emails muestra «Emails will be sent using default templates» y «Set up custom SMTP to edit templates». Recuperación muestra el asunto `Reset your password` y el control Source deshabilitado. Sólo se comprobó ese estado visible: no se leyó el HTML ni se confirmó una variable concreta de la plantilla. No se configuró SMTP ni se editó la plantilla; no se envió correo.
 
 ## Google Cloud
 
@@ -133,7 +135,7 @@ El SDK actual puede incorporar headers opcionales en determinadas operaciones; c
 
 Las lecturas nuevas de esta misión obtuvieron los cuatro bundles productivos usados por el frontend: Basic v3, Premium v4, chat v5 e inicial v1, todos con `verify_jwt: true`. Sus 41 entradas de archivo coinciden con el repositorio después de normalizar CRLF y el final del archivo: 21 coinciden también byte a byte; las otras 20 difieren solamente en esa representación. La whitelist productiva de las cuatro sigue permitiendo exclusivamente el origen de GitHub Pages. El helper productivo adicional v15 se inventarió y no se modificó.
 
-El panel autenticado de URL Configuration no permitió leer la lista completa actual ni las plantillas por falta de login. La evidencia HTTP de la fase anterior fue:
+Antes de la conexión del panel del 15/10/2026 no se había podido leer la lista completa ni las plantillas por falta de login. Esa limitación histórica no describe el estado actual: ahora constan las dos Redirect URLs guardadas y la lectura visible de plantillas por defecto descrita arriba. La evidencia HTTP de la fase anterior fue:
 
 | Comprobación de lectura | Producción | Staging |
 | --- | --- | --- |
@@ -159,7 +161,7 @@ Después de publicar las versiones de staging 31/15/15/4, pasaron **24/24 casos 
 
 Evidencia: `tests/cloudflare/results/auth-live-cors-cloudflare-final.json`. El resultado local anterior se conserva por separado en `auth-live-cors-local-4280-final.json`. Los 34 orígenes locales se preservan en el plan Cloudflare y en sus 62/62 comprobaciones locales sobre los prefijos LIVE; no se vuelven a sumar los probes antiguos. Los 41 archivos descargados después del despliegue coinciden con el plan.
 
-El baseline Cloudflare anterior al ajuste fue 6/16, con diez resultados pendientes esperados: dos retornos Auth caían a `http://localhost:3000` y ocho OPTIONS de `S`/`D` aún devolvían 403. La publicación CORS y los 24 casos nativos posteriores resuelven la parte de orígenes; la parte Auth sigue pendiente del panel y no se ha repetido antes de guardar URLs. Este diagnóstico está en `auth-probe-cloudflare-before.json`; no debe presentarse como diez defectos activos.
+El baseline Cloudflare anterior al ajuste fue 6/16, con diez resultados pendientes esperados: dos retornos Auth caían a `http://localhost:3000` y ocho OPTIONS de `S`/`D` aún devolvían 403. La publicación CORS y los 24 casos nativos posteriores resolvieron la parte de orígenes; las dos URLs Auth ya están guardadas y pasaron las seis comprobaciones nuevas de retorno inválido. Este diagnóstico está en `auth-probe-cloudflare-before.json`; no debe presentarse como diez defectos activos ni sumarse como ejecución nueva.
 
 La verificación de hosting real es **42/42** y la comparación de portada tiene **24 mediciones de rendimiento** con red/caché reales; estas últimas no son casos funcionales ni demuestran una ventaja universal. La fase local/staging anterior conserva 425/425 casos, contados una vez. Ver [README.md](README.md) para identidad, límites y comparación. Ninguna de estas evidencias demuestra Google OAuth real, entrega SMTP o consumo/cambio real de contraseña en Cloudflare.
 
@@ -171,15 +173,18 @@ La verificación de hosting real es **42/42** y la comparación de portada tiene
 - `tests/cloudflare/auth-probe.cjs --config ARCHIVO_PUBLICO_JSON` mantiene Auth sobre `appUrl = S` y verifica CORS de los `allowedOrigins`/`corsOrigins` declarados por separado. Su JSON necesita también `supabaseUrl` y `supabasePublicKey`, nunca una clave privada. Con `--invalid-auth` añade GET/POST vacío con JWT deliberadamente inválido: el gateway debe rechazarlos con 401. No publica valores de claves ni tokens.
 - `tests/cloudflare/auth-live-cors-browser.cjs --config tests/cloudflare/private/auth-probe-cloudflare-runtime.json` verifica CORS del staging real desde `/404.html` de `S`/`D`, sin interceptar la red y usando exclusivamente el JWT inválido. Sin `--config` conserva el modo local anterior. No es una prueba de login ni de operaciones autenticadas.
 - `tests/cloudflare/auth-https-config.cjs` pasó 19 validaciones de configuración HTTPS sin red. Los helpers de CORS Cloudflare preparan payloads y rollback sobre hashes del bundle LIVE; no despliegan por sí mismos.
+- `tests/cloudflare/auth-return-native.cjs` pasó seis casos nativos el 15/10: dos verify inválidos y cuatro callbacks en Chromium/WebKit, sin sesión ni correo. Su fuente final rechaza userinfo y exige protocolo/puerto/origen/path exactos antes de navegar; dos unidades offline rechazaron Location con usuario y con usuario/contraseña, con cero llamadas de red. La revalidación final de los seis pasó sin sumar casos repetidos. Evidencias ignoradas: `auth-return-native.json` y `auth-return-native-unit.json`; el intento previo al endurecimiento se preserva como `auth-return-native-before-userinfo-guard.json`.
 - Las pruebas con SDK real y HTTP interceptado se identifican como tales. Nunca equivalen a Google OAuth real, entrega SMTP, JWT real, escritura staging o verificación autenticada productiva.
 - Los resultados actuales deben leerse en `tests/cloudflare/results/`; no reutilizar recuentos históricos de `CONTEXTO-CODEX.md` como ejecuciones nuevas.
-- Google permanece OFF en staging. Registro por correo real, confirmación por SMTP, Google real y recuperación válida/cambio de contraseña no se han probado en Cloudflare. Los estados de fixtures y su limpieza se cierran en el informe general; no declarar cerrado el nuevo recorrido por reutilizar el cierre de la fase local anterior.
+- Google permanece OFF en staging. Registro por correo real, confirmación por SMTP, Google real y recuperación válida/cambio de contraseña no se han probado en Cloudflare. Las fixtures del recorrido autenticado anterior quedaron limpias según CHECKPOINT; los callbacks inválidos del 15/10 no crearon cuentas ni sesiones y no necesitaron fixtures nuevas.
+
+Total consolidado de misión: 635 casos únicos, de los que ocho son nuevos el 15/10; no se reejecutaron ni se cuentan de nuevo los 627 anteriores. Ver CHECKPOINT para el desglose y los límites del recorrido autenticado previo.
 
 Se revisó la documentación oficial actual y el changelog. La URL Markdown de changelog no pudo leerse con la herramienta web; se utilizó [el changelog HTML oficial](https://supabase.com/changelog). Se revisaron los cambios sobre [plantillas de email en el plan Free](https://supabase.com/changelog/46599-changes-to-email-template-customisation-on-free-tier) y [estado HTTP del endpoint OAuth de la API de gestión](https://supabase.com/changelog/45468-breaking-change-oauth-token-endpoint-will-return-http-200-instead-of-201). Ninguno requiere sustituir Auth ni alterar el SMTP existente para este cambio de hosting.
 
 ## Reversión de ajustes aditivos
 
-Antes de añadir nada, registrar las entradas originales y la versión/hash del bundle Edge. Si el nuevo hosting se retira, eliminar únicamente las Redirect URLs que se hayan añadido para ese despliegue y retirar únicamente sus orígenes CORS. Actualmente las dos URLs Auth Cloudflare siguen pendientes: no hay una adición Auth de esta fase que revertir. Conservar Site URL y todos los destinos anteriores.
+Antes de añadir nada, registrar las entradas originales y la versión/hash del bundle Edge. Para revertir la adición Auth del 15/10/2026, eliminar **sólo** `https://simple-staging-raulchulbi.pages.dev/` y `https://simple-staging-raulchulbi.pages.dev/\?reset=1` en staging. Su lista previa estaba vacía; si se añadieron destinos después, conservarlos. Mantener Site URL `http://localhost:3000` y toda configuración productiva. Si el nuevo hosting se retira, retirar únicamente sus orígenes CORS siguiendo el rollback separado.
 
 Para revertir únicamente los dos orígenes Cloudflare de staging, usar el array `rollback` de `tests/cloudflare/private/cloudflare-https-cors-plan-4a8636ab.json`; restaura los cuatro bundles previos a Cloudflare conservando las entradas locales 4280 y JWT obligatorio. `staging-local-cors-plan.json` corresponde a una fase anterior y no debe confundirse con este rollback.
 

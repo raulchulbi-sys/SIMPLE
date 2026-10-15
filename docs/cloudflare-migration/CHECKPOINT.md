@@ -1,8 +1,8 @@
-# Checkpoint de Cloudflare — 14/10/2026
+# Checkpoint de Cloudflare — 15/10/2026
 
 **CLOUDFLARE: PREVIEW DEPLOYED — FINAL CONFIGURATION PENDING**
 
-Rama: `codex/cloudflare-migration`. Main inicial y final verificado: `c818e35fcb0cfeddb61e8232aaaffba222ea8f4d`. No merge, cutover, DNS ni publicación productiva. El checkout histórico y su trabajo previo se conservan. El SHA final de la rama se registra en la entrega; este documento evita un hash autorreferente.
+Fecha del cliente: 15/10/2026. Rama: `codex/cloudflare-migration`. Main inicial y final del cierre anterior verificado: `c818e35fcb0cfeddb61e8232aaaffba222ea8f4d`; esta actualización no escribe en main. No merge, cutover, DNS ni publicación productiva. El checkout histórico y su trabajo previo se conservan. El SHA final de la rama se registra en la entrega; este documento evita un hash autorreferente.
 
 ## Despliegue real
 
@@ -14,8 +14,12 @@ Rama: `codex/cloudflare-migration`. Main inicial y final verificado: `c818e35fcb
 | URL inmutable comprobada | https://4a8636ab.simple-staging-raulchulbi.pages.dev/ |
 | Deployment ID | `4a8636ab-ec94-42db-b57e-cf43d01230b9` |
 | Fuente remota desplegada | `0aa1d6b6dc6fe0165534b8c7610c1e8a56521709` |
-| Candidato local equivalente | `1369022d637815cd6b6d7af827d7f325208cc22a` |
-| Árbol idéntico local/remoto | `b65f145876784388d3b3f05e9f094019a15eb58d` |
+| Referencia local equivalente al artefacto servido | `1369022d637815cd6b6d7af827d7f325208cc22a` |
+| Árbol del artefacto servido | `b65f145876784388d3b3f05e9f094019a15eb58d` |
+| HEAD local del checkpoint Git previo | `cf76bdfd0af1a523e48d602b50010c03f1a2bf78` |
+| Rama remota del checkpoint Git previo | `a39ec11f5c3476c20fedb6b4a21be6fe65ea0675` |
+| Árbol idéntico de esas dos referencias | `c78dae8c23d4444bc3e9b58de04ba06150de66a6`; checkout limpio en ese checkpoint |
+| Último check/deployment de Pages observado | `65d96659-8aab-41a1-9bd7-a3ae876c232e`, cancelado; fuente `a39ec11…`, sin assets publicados |
 | Rama predeterminada del proyecto | `codex/cloudflare-migration`; builds automáticos ON |
 | Otras ramas de preview | None / desactivadas |
 | Watch paths | incluir `*`; excluir `tests/**` y `docs/**` |
@@ -34,26 +38,30 @@ Cloudflare denomina «Production» a la rama predeterminada de este proyecto ais
 
 HTML Cloudflare SHA-256: `3f5dbbb5e4a5b5b987db3c5bafd51b4713243b0a7675c37ad261ec4273e50fa1`. Runtime HTTPS SHA-256: `b555f1c712be3b657bb675b6b5dcc7e75c4cb947c0f9825431fdf95e427cbd73`. Los dos hosts sirven los mismos bytes. Los 31 assets existentes siguen idénticos a sus blobs Git; sólo se normalizan pares CRLF en texto. Dist, private, capturas e informes generados están ignorados y no entran en Git ni en los assets.
 
-El runtime valida explícitamente origen/proyecto/rama/backend y falla cerrado antes del SDK. Local/preview no pueden seleccionar producción; no copia sesiones entre dominios. El único cambio de integración del HTML es leer las tres constantes públicas del runtime anterior al SDK. Las actualizaciones posteriores al despliegue 0aa son exclusivamente tests/documentación; no cambian la aplicación servida.
+El runtime valida explícitamente origen/proyecto/rama/backend y falla cerrado antes del SDK. Local/preview no pueden seleccionar producción; no copia sesiones entre dominios. El único cambio de integración del HTML es leer las tres constantes públicas del runtime anterior al SDK. Las actualizaciones posteriores al despliegue 0aa son exclusivamente tests/documentación; no cambian la aplicación servida. El check cancelado 65 no se presenta como verde ni acredita que el filtro de rutas funcionara. Para el próximo commit limitado a evidencia/tests/docs se usará `[CF-Pages-Skip]`, sin desactivar las otras CI; ver OPERATIONS.
 
 GitHub Pages sigue disponible en https://raulchulbi-sys.github.io/SIMPLE/ y sirve el HTML aprobado de main, SHA-256 `ec3ab5f1af7d75b1db71110bc9b520737382d503ad5dc3d2dc39cf189e16b946`.
 
-## Auth: pendiente concreto
+## Auth: configuración guardada y alcance comprobado
 
-El panel de URL Configuration de SIMPLE Security Test pide iniciar sesión y aceptar sus condiciones. Se dejó abierto y se solicitó al propietario completar ese acceso; no se aceptaron términos ni se introdujeron credenciales por él. No se ha leído la lista completa actual ni se ha guardado ninguna URL.
+El panel de URL Configuration de SIMPLE Security Test ya está conectado. El 15/10/2026, tras la autorización expresa del propietario para esta acción exacta y sólo en staging `dmqjexigdnfzobarhnib`, se guardaron estas dos Redirect URLs. La interfaz confirmó ambas sobre una lista previamente vacía. Site URL sigue intacta en `http://localhost:3000`.
 
-Tras el acceso, añadir sin retirar entradas ni cambiar Site URL:
+Entradas guardadas:
 
 1. `https://simple-staging-raulchulbi.pages.dev/`
 2. `https://simple-staging-raulchulbi.pages.dev/\?reset=1` — escapar el signo literal en la allowlist glob; el frontend envía la query normal.
 
-Los probes previos prueban que ambos retornos nuevos aún caen en `http://localhost:3000`. Google staging está desactivado; email está habilitado. Login email con fixtures sintéticas sí pasó. Google real desde Cloudflare, recepción/confirmación de email y recuperación completa con cambio de contraseña NO están probados. No se enviaron correos ni se cambiaron contraseñas, SMTP, Google Cloud, proveedores o configuración Auth productiva. El callback del proveedor sigue siendo el endpoint de Supabase, no Pages.
+El retorno previo a localhost es un baseline anterior a guardar las URLs. Después pasaron seis casos nuevos: dos GET verify con token inválido devuelven 303 con `otp_expired` hacia la base/query esperadas; cuatro callbacks nativos, base/reset en Chromium y WebKit, cargan HTTP200, muestran login con error de enlace caducado, recovery oculto, URL limpia y sesión ausente. Sin mocks ni sesiones sembradas; sólo lectura pública de settings esperada en cada navegador, sin correo, formularios enviados, cambios de usuario, Google ni AI. El guard final añade rechazo estricto de userinfo antes de navegar; dos unidades offline pasaron sin red. La revalidación de los seis casos contra esa fuente final también pasó y no se suma como seis casos adicionales.
+
+Emails muestra «Emails will be sent using default templates» y «Set up custom SMTP to edit templates». Recuperación muestra el asunto `Reset your password` y Source deshabilitado. No se leyó el HTML de la plantilla ni se acreditó una variable interna concreta. No se cambió SMTP.
+
+Google staging está desactivado; email está habilitado. Login email con fixtures sintéticas sí pasó en la fase anterior. Google real desde Cloudflare, recepción/confirmación de email y recuperación completa con cambio de contraseña NO están probados. No se enviaron correos ni se cambiaron contraseñas, SMTP, Google Cloud, proveedores o configuración Auth productiva. El callback del proveedor sigue siendo el endpoint de Supabase, no Pages.
 
 ## Pruebas, sin sumar reejecuciones
 
 La fase local inicial pasó **425/425** casos. Evidencia y métodos están en VALIDATION/README/AUTH-CORS: runtime24, build17, AuthVM18, CORSrepo20, patchstage54, SDK con HTTP interceptado84, matriz visual/funcional simulada48, comparaciónvisual4, HTTPlocal16, helper8, runtime7, cleanup4, probeproducción20, probestaging4280=20, OPTIONS retenidos30, CORSnativo local24, API JWT sintética7 y navegador local20.
 
-La fase HTTPS añade **202 casos únicos**, para **627 casos superados de la misión**, sin sumar las repeticiones de unidades, el setup API repetido, intentos fallidos de harness ni diagnósticos previos de Auth:
+La fase HTTPS del cierre anterior añadió **202 casos únicos**, para **627 casos superados** hasta entonces. La actualización del 15/10 añade **8 únicos: seis retornos nativos y dos guardas offline**, para **635 casos de la misión**. No se reejecutaron hoy los 627 anteriores ni se suman repeticiones de unidades, setup API repetido, intentos fallidos de harness o diagnósticos previos de Auth:
 
 | Suite nueva | Casos únicos | Naturaleza |
 |---|---:|---|
@@ -64,6 +72,8 @@ La fase HTTPS añade **202 casos únicos**, para **627 casos superados de la mis
 | auth-live-cors-browser HTTPS | 24 | 16 respuestas 401 legibles + 8 bloqueos de origen ajeno |
 | staging-runtime-unit, incremento | 9 | 16 actuales menos 7 ya contadas en fase local |
 | staging-cloudflare-browser + resume | 37 | 29 conservadas + 8 pendientes completadas; no 29+37 |
+| auth-return-native, 15/10 | 6 | 2 GET verify inválidos + 4 callbacks reales, sin sesión ni correo |
+| auth-return-native-unit, 15/10 | 2 | rechazo de Location con usuario o usuario/contraseña antes de red; nuevas guardas offline |
 
 Los 70 cotejos de assets, 64 PNG y 24 mediciones reales de rendimiento son evidencia adicional, no casos extra. Las 24 parejas PNG de la comparación local tampoco inflan el contador. No se reejecutaron las cientos de pruebas históricas de producto ni se suman los 1.025 casos de otra promoción.
 
@@ -75,7 +85,7 @@ El test original leyó el body al actualizarse el contador, antes del await de d
 
 Límite de observación: cuatro requestfailed iniciales no capturaron el código y cuatro rechazos iniciales de la cola protegida no capturaron el body; siguen sin clasificación retrospectiva. El check de finalización de red de la reanudación cubre sólo ese nuevo recorrido del entrenador. Allí se observaron cancelaciones exactas ERR_ABORTED con otra respuesta 200/204 equivalente y rechazo 403/42501/premium_initial_reviewer_required de la cola a un no-reviewer. No se ignoraron globalmente 403 ni se declara consola/red totalmente vacía. Los errores iniciales no invalidan los readbacks y resultados funcionales observados, pero tampoco se convierten en éxitos inventados.
 
-Evidencias ignoradas: live-hosting-final.json, live-performance.json, auth-live-cors-cloudflare-final.json, staging-cloudflare-browser.json, staging-cloudflare-trainer-resume-attempt1.json y staging-cloudflare-trainer-resume.json.
+Evidencias ignoradas: live-hosting-final.json, live-performance.json, auth-live-cors-cloudflare-final.json, staging-cloudflare-browser.json, staging-cloudflare-trainer-resume-attempt1.json y staging-cloudflare-trainer-resume.json. La actualización Auth añade auth-return-native.json, auth-return-native-unit.json y cuatro capturas nativas del 15/10; las capturas son evidencia, no casos adicionales. La ejecución final `2026-10-15T06-24-11-242Z` corresponde al script SHA-256 `561f75984378c1f2f41a0b146831565aa3a42eaaadacb6e69726b9159222c435`; su JSON tiene SHA-256 `79ccf233f76921bb2e6ffa35f995c03d8b333b2062c02fb13fb71c4ebf44edef`. Las capturas preferidas llevan ese runId y sufijos chromium-base, chromium-reset, webkit-base y webkit-reset. El informe previo al guard se preserva byte a byte en auth-return-native-before-userinfo-guard.json.
 
 ## Cambios remotos de staging y limpieza
 
@@ -83,7 +93,7 @@ Evidencias ignoradas: live-hosting-final.json, live-performance.json, auth-live-
 2. Helper QA exclusivamente staging reabierto con caducidad breve para esas dos fixtures, luego retirado de nuevo: v4, HTTP410 qa_retired comprobado. Sin cliente admin/ruta privilegiada en su versión final. El registro Edge retirado permanece; no es un helper operativo.
 3. Se eliminaron exclusivamente los dos usuarios sintéticos nuevos y su estructura/asignación/workout/nota. SQL independiente: task_users=0, task_routines=0, task_workouts=0, task_notes=0. El coordinador cerró sesiones, borró las referencias RAM y terminó. Ningún access/refresh token nuevo se guardó en archivos, HAR, trazas, storageState, resultados o Git; sólo storage efímero del SDK para comprobar recarga. No se copió ni borró el archivo histórico de credenciales sintéticas que ya existía.
 
-Staging final: 9 usuarios/perfiles, 19 rutinas, 33 días, 98 ejercicios, 12 asignaciones, 4 notas, 22 workouts. **34/34 huellas/recuentos iguales** al baseline de esta reanudación; 219 funciones SQL y huellas de RLS/ACL/políticas/triggers iguales. Presupuestos, consumos, reservas y muestras históricas anteriores iguales. Sin migraciones, SQL RPC o tablas de negocio nuevos; sin llamadas OpenAI.
+Staging al cierre autenticado anterior: 9 usuarios/perfiles, 19 rutinas, 33 días, 98 ejercicios, 12 asignaciones, 4 notas, 22 workouts. **34/34 huellas/recuentos iguales** al baseline de aquella reanudación; 219 funciones SQL y huellas de RLS/ACL/políticas/triggers iguales. Presupuestos, consumos, reservas y muestras históricas anteriores iguales. Sin migraciones, SQL RPC o tablas de negocio nuevos; sin llamadas OpenAI. Guardar las dos URLs Auth del 15/10 no es una nueva ejecución de esa comparación SQL.
 
 ## Producción: comparación read-only
 
@@ -103,6 +113,6 @@ La revisión automática rechazó una salida que habría volcado payloads privad
 
 ## Continuación y rollback
 
-Completar únicamente el acceso manual a Supabase para revisar/añadir los dos redirects stage; después comprobar retorno de registro/recuperación y el flujo Google con titular autorizado cuando corresponda. Elegir dominio/URL canónica y aprobar corte es una decisión posterior. GitHub Pages permanece disponible. Privacidad/legal no están listos para clientes externos; no activar comercialización.
+El acceso al panel, las dos Redirect URLs de staging y los retornos inválidos contra el guard final están resueltos. Queda, con titular/buzón autorizado cuando corresponda, comprobar Google real y recuperación/confirmación válidas. Elegir dominio/URL canónica y aprobar corte es una decisión posterior. GitHub Pages permanece disponible. Privacidad/legal no están listos para clientes externos; no activar comercialización.
 
-Rollback HTTPS exacto en `tests/cloudflare/private/cloudflare-https-cors-plan-4a8636ab.json` (ignorado), distinto del rollback local anterior. Verificar LIVE hashes antes de restaurar; no sobrescribir publicaciones posteriores. No borrar datos ni revertir Financial P1. Si falla este primer deployment, desactivar builds y conservar GitHub Pages; todavía no existe un deployment anterior del nuevo proyecto. Ver OPERATIONS para los pasos posteriores y rollback oficial cuando exista una segunda versión aprobada.
+Para revertir Auth, eliminar sólo `https://simple-staging-raulchulbi.pages.dev/` y `https://simple-staging-raulchulbi.pages.dev/\?reset=1` añadidas el 15/10; conservar cualquier alta posterior y Site URL `http://localhost:3000`. Rollback HTTPS CORS exacto en `tests/cloudflare/private/cloudflare-https-cors-plan-4a8636ab.json` (ignorado), distinto del rollback local anterior. Verificar LIVE hashes antes de restaurar; no sobrescribir publicaciones posteriores. No borrar datos ni revertir Financial P1. Si falla este primer deployment, desactivar builds y conservar GitHub Pages; todavía no existe un deployment anterior del nuevo proyecto. Ver OPERATIONS para los pasos posteriores y rollback oficial cuando exista una segunda versión aprobada.

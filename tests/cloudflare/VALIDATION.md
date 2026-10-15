@@ -79,3 +79,18 @@ Cloudflare transfirió aproximadamente 203 KB del HTML con Brotli frente a 318,7
 CORS HTTPS nativo: **24/24 casos** nuevos, 16 POST sin JWT válido con 401 legible y ocho bloqueos desde un origen ajeno en ambos motores. Configuración HTTPS: **19/19** casos; plan de CORS: **9/9** unidades y **62/62** verificaciones offline sobre los bundles LIVE, conservando sus 34 orígenes locales. Los errores de redirects de la medición previa al ajuste Auth son diagnósticos pendientes, no éxitos.
 
 Los 425 casos de la fase local son la base de esta misión, no pruebas repetidas de esta fase HTTPS. Los siete checks API se reutilizaron para preparar dos nuevas fixtures nativas y no se suman de nuevo. El cierre autenticado y la limpieza final se registran en CHECKPOINT. Las respuestas Auth simuladas de las suites locales no prueban Google real, recepción de email o cambio real de contraseña.
+
+## Retornos Auth de staging — 15/10/2026
+
+Tras el acceso manual del propietario al panel se comprobó el proyecto exacto `dmqjexigdnfzobarhnib`: Site URL `http://localhost:3000`, lista de Redirect URLs vacía. Con confirmación explícita en el momento de guardar se añadieron únicamente `https://simple-staging-raulchulbi.pages.dev/` y `https://simple-staging-raulchulbi.pages.dev/\?reset=1`. La UI confirmó Total URLs=2 y Site URL intacta. No se tocaron producción, proveedores, SMTP ni usuarios.
+
+`auth-return-native.cjs`: **6/6 casos reales nuevos**, sin repetir las suites anteriores:
+
+- Dos GET a `/auth/v1/verify`, con token deliberadamente inválido y sin seguir automáticamente la redirección: HTTP303, `otp_expired`, origen estable correcto y query `reset=1` conservada sólo en el segundo caso.
+- Cuatro navegaciones a esas respuestas reales: Chromium/WebKit × base/reset, contextos nuevos sin sesiones ni interceptación. Documento HTTP200; login con error de enlace inválido/caducado; formulario reset oculto; URL final estable limpia; runtime de staging y ausencia de sesión. Ningún formulario enviado, token/refresh, proveedor, REST/RPC, Edge, correo o OpenAI. Cada contexto sólo leyó una vez los settings públicos de Auth.
+
+La revisión del arnés detectó que comparar sólo `URL.origin` no rechaza userinfo. Se añadió rechazo explícito de username/password antes de guardar/navegar Location, además de protocolo/puerto/path exactos. **2/2 unidades offline** rechazan usuario inventado y usuario/contraseña inventados, con sentinel que confirma cero red. No cambió código de producto.
+
+Los seis casos se reejecutaron una única vez tras endurecer esa guarda. El resultado final pertenece a la fuente SHA-256 `561f75984378c1f2f41a0b146831565aa3a42eaaadacb6e69726b9159222c435`; la repetición sustituye evidencia y no suma otros seis. Informe `results/auth-return-native.json`, runId `2026-10-15T06-24-11-242Z`, SHA-256 `79ccf233f76921bb2e6ffa35f995c03d8b333b2062c02fb13fb71c4ebf44edef`. Informe anterior y cuatro capturas vacías se conservan ignorados. No se materializaron tokens, claves privadas ni sesiones.
+
+La misión pasa de 627 a **635 casos únicos superados: ocho nuevos, seis nativos y dos offline**. Los 627 son evidencia de fases anteriores, no una nueva batería completa ejecutada hoy. Los retornos inválidos no prueban registro confirmado, Google real, recepción del email o cambio real de contraseña; esos recorridos siguen pendientes. El panel de Emails indica plantillas por defecto y Source deshabilitado sin SMTP personalizado; se leyó el asunto de recuperación, pero no su HTML exacto ni secretos SMTP. No se cambió esa configuración.

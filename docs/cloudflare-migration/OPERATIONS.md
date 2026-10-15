@@ -1,5 +1,7 @@
 # Operación y rollback
 
+Estado actualizado el **15/10/2026**, fecha del cliente. Preview preparada; Google real, entrega de correo, recuperación válida y corte productivo siguen pendientes.
+
 ## Antes de cualquier escritura
 
 1. Verificar `git status`, rama, HEAD y main remoto. No sobrescribir cambios posteriores.
@@ -11,9 +13,13 @@
 
 La preview ya existe en el proyecto dedicado `simple-staging-raulchulbi`, rama `codex/cloudflare-migration`. No crear otro proyecto equivalente ni volver a instalar la App. La instalación GitHub 171372329 está limitada a `raulchulbi-sys/SIMPLE`. Su despliegue verificado es `4a8636ab-ec94-42db-b57e-cf43d01230b9`, fuente `0aa1d6b6dc6fe0165534b8c7610c1e8a56521709`.
 
-URL estable: `https://simple-staging-raulchulbi.pages.dev/`. URL del despliegue: `https://4a8636ab.simple-staging-raulchulbi.pages.dev/`. Ambas usan exclusivamente `dmqjexigdnfzobarhnib`. Cloudflare llama «Production» a la rama predeterminada de este proyecto; esa etiqueta no significa Supabase productivo. Las demás ramas de preview están desactivadas. Se excluyen `tests/**` y `docs/**` de los disparadores de build: un commit limitado a evidencia no necesita desplegar otra vez la misma aplicación.
+URL estable: `https://simple-staging-raulchulbi.pages.dev/`. URL del despliegue: `https://4a8636ab.simple-staging-raulchulbi.pages.dev/`. Ambas usan exclusivamente `dmqjexigdnfzobarhnib`. Cloudflare llama «Production» a la rama predeterminada de este proyecto; esa etiqueta no significa Supabase productivo. Las demás ramas de preview están desactivadas. Los watch paths excluyen `tests/**` y `docs/**`, pero no se considera probado que el filtro haya evitado el último intento de build.
 
-Los CORS exactos de esos dos hosts ya se añadieron en staging. No repetir esa escritura. Los dos redirects Auth siguen pendientes del acceso manual al panel; ver AUTH-CORS antes de añadirlos. Conservar Site URL y todas las entradas anteriores.
+El último check/deployment `65d96659-8aab-41a1-9bd7-a3ae876c232e`, fuente remota `a39ec11f5c3476c20fedb6b4a21be6fe65ea0675`, figura cancelado. No está verde ni publicó assets; `S` conserva la fuente `0aa1d6b…`. En el checkpoint Git previo a esta reanudación, local `cf76bdfd0af1a523e48d602b50010c03f1a2bf78` y ese remoto tenían el árbol `c78dae8c23d4444bc3e9b58de04ba06150de66a6`, con checkout limpio entonces.
+
+Para un commit **exclusivamente de evidencia, tests o docs**, usar el prefijo oficial `[CF-Pages-Skip]` en el mensaje. Pages omite su build sin desactivar las demás CI. No usarlo para cambios del producto ni para una publicación productiva: esos cambios requieren su build y validación. No apagar builds globales para evitar este build idéntico. [Cloudflare: Skipping a build via commit message](https://developers.cloudflare.com/pages/configuration/git-integration/github-integration/#skipping-a-build-via-commit-message).
+
+Los CORS exactos de esos dos hosts ya se añadieron en staging. El 15/10/2026 también se guardaron, tras autorización expresa, las dos Redirect URLs de staging: `https://simple-staging-raulchulbi.pages.dev/` y `https://simple-staging-raulchulbi.pages.dev/\?reset=1`. El panel conectado confirmó dos entradas sobre una lista previamente vacía; Site URL sigue en `http://localhost:3000`. No repetir esas escrituras. Pasaron los dos GET verify inválidos y los cuatro callbacks nativos, sin correo ni sesión nueva; ver AUTH-CORS para su alcance.
 
 Revisar todos los archivos de `dist` mediante GET, MIME, HTTPS, ETag/caché, headers, console/network y hash. Los SQL/tests/private deben dar 404; `_headers` es configuración de la plataforma. Verificar móvil, escritorio, temas y rutas con query/hash de Auth. Nunca introducir una redirección general a GitHub que descarte el callback.
 
@@ -35,7 +41,7 @@ Antes del corte, basta con desactivar builds de la rama de migración o retirar 
 
 Tras un corte autorizado, usar el rollback oficial de Pages a un deployment aprobado y comprobar sus archivos/configuración. Si se vuelve temporalmente a GitHub Pages, servir su versión aprobada y comunicar el enlace; restaurar DNS solo si fue cambiado con autorización y se conserva su estado previo. No borrar cuentas ni copiar sesiones.
 
-Para Auth, eliminar exclusivamente las entradas nuevas documentadas y conservar todas las anteriores. Para CORS, restaurar los paquetes LIVE exactos capturados **solo si no hubo otros cambios posteriores**; si los hay, retirar únicamente los orígenes añadidos sobre la nueva versión. Releer la función y comprobar JWT, guards y dependencias. No reaplicar migraciones, Financial P1 ni recetas antiguas de backend.
+Para Auth de staging, eliminar exclusivamente `https://simple-staging-raulchulbi.pages.dev/` y `https://simple-staging-raulchulbi.pages.dev/\?reset=1`, añadidas el 15/10/2026. La lista previa estaba vacía; conservar cualquier entrada añadida después y Site URL `http://localhost:3000`. No tocar Auth productivo, Google ni SMTP. Para CORS, restaurar los paquetes LIVE exactos capturados **solo si no hubo otros cambios posteriores**; si los hay, retirar únicamente los orígenes añadidos sobre la nueva versión. Releer la función y comprobar JWT, guards y dependencias. No reaplicar migraciones, Financial P1 ni recetas antiguas de backend.
 
 Hay dos rollbacks de CORS independientes y secuenciales. `tests/cloudflare/private/cloudflare-https-cors-plan-4a8636ab.json` revierte exclusivamente la adición HTTPS y restaura Basic/Premium/chat/inicial a versiones fuente 30/14/14/3, conservando los 34 orígenes locales anteriores. `tests/cloudflare/private/staging-local-cors-plan.json` corresponde a la fase local previa, versiones fuente 29/13/13/2; **no usarlo para revertir solo HTTPS**, porque también quitaría los dos orígenes locales de 4280. Las secciones `rollback` conservan los archivos exactos y JWT obligatorio. Antes de aplicar cualquiera, verificar que no haya publicaciones posteriores; las versiones de Supabase son crecientes aunque el contenido se restaure. Son evidencias privadas ignoradas, sin valores de secrets; no publicarlas como assets ni volcarlas completas a logs. El helper de prueba se retira a una respuesta 410 al terminar.
 
@@ -43,4 +49,4 @@ Si falla la primera versión de este nuevo proyecto, aún no existe otro deploym
 
 ## Cierre y monitorización
 
-Registrar SHA público, resultado de GET con/sin caché, estado de Auth pendiente, backend intacto, flags y prueba de cleanup. No instalar analytics, logging de tokens, alertas con datos privados o nuevas automatizaciones de pago. Si una red falla, distinguir DNS/CDN/SDK de errores funcionales antes de alterar datos.
+Registrar SHA público, resultado de GET con/sin caché, las dos URLs Auth guardadas y el alcance de las pruebas de retorno inválido, backend intacto, flags y prueba de cleanup. La lectura de Emails sólo confirmó plantillas por defecto, asunto de recuperación `Reset your password` y Source deshabilitado; no se leyó HTML ni se cambió SMTP. Mantener pendientes Google real y recuperación válida. No instalar analytics, logging de tokens, alertas con datos privados o nuevas automatizaciones de pago. Si una red falla, distinguir DNS/CDN/SDK de errores funcionales antes de alterar datos.
