@@ -207,10 +207,14 @@ function buildPlaceholder({sourceRoot = path.resolve(__dirname, '..'), env = {}}
   for (const name of ['index.html','404.html']) {
     const html = bytes.find(([file]) => file === name)[1].toString('utf8');
     if (JSON.stringify([...references(html, name, new Set())]) !== JSON.stringify(['assets/preparation.css'])) fail('Unexpected placeholder dependency');
+    const anchors = html.match(/<a\b[^>]*>/gi) || [];
+    const approved = name === 'index.html' ? '<a href="https://raulchulbi-sys.github.io/SIMPLE/" rel="noreferrer">' : '<a href="/">';
+    if (JSON.stringify(anchors) !== JSON.stringify([approved])) fail('Unreviewed placeholder navigation');
   }
   const headers = bytes.find(([name]) => name === '_headers')[1].toString('utf8');
-  if (!headers.includes("Content-Security-Policy: default-src 'none'; style-src 'self';") ||
-      !headers.includes("form-action 'none'; frame-ancestors 'none'") || !headers.includes('Cache-Control: no-store')) fail('Placeholder security headers required');
+  const csp = headers.split(/\r?\n/).filter(line => /content-security-policy/i.test(line)).map(line => line.trim());
+  if (JSON.stringify(csp) !== JSON.stringify(["Content-Security-Policy: default-src 'none'; style-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"]) ||
+      !headers.includes('Cache-Control: no-store')) fail('Placeholder security headers required');
   // Validate all inputs before cleaning; outputRoot has checked the bounded path and symlinks.
   fs.rmSync(output, {recursive:true, force:true});
   fs.mkdirSync(output);
