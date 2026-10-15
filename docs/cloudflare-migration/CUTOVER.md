@@ -28,7 +28,7 @@ Sólo existe el proyecto de staging en Workers & Pages. La cuenta muestra Zero T
 
 ## Artefacto offline comprobado
 
-`node tests/cloudflare/production-build.cjs` ejecuta cuatro comprobaciones específicas, sin red, servidor ni deploy. Construye dos veces el perfil propuesto; 36 archivos y árbol SHA-256 `09491d852087f21b8796532366aa1add47184bf1bc70ac233c97bff60027d8d6`. Todos los archivos originales de aplicación conservan bytes (sólo CRLF→LF en texto). Cambian el runtime generado y los headers según backend. Ningún SQL, test, informe, credencial, fixture, backup, este plan o documento forma parte del artefacto.
+`node tests/cloudflare/production-build.cjs` ejecuta cuatro comprobaciones específicas, sin red, servidor ni deploy. Construye dos veces el perfil propuesto; 36 archivos y árbol SHA-256 actualizado `01590215675c07de46524f453b48e0ba141633c4748a82874d640d3464deb81b` tras el fix mínimo de recarga de recovery en assets/auth.js. El empaquetado conserva todos los bytes de la fuente candidata (sólo CRLF→LF en texto); no confundirlo con que auth.js siga idéntico al deployment antiguo. Cambian runtime/headers según backend. Ningún SQL, test, informe, credencial, fixture, backup, este plan o documento forma parte del artefacto.
 
 El hostname propuesto se usa exclusivamente como fixture offline. Este resultado no demuestra que exista, esté libre o funcione como deployment. El runtime productivo empaquetado rechaza los orígenes de staging y GitHub; GitHub conserva su runtime de repositorio independiente y sigue funcionando. No copiar el runtime específico de Cloudflare sobre los assets de GitHub.
 

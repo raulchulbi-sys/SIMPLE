@@ -99,10 +99,10 @@ async function check(name, fn) {
       assert.equal(t.run('simpleAuth.screen'), 'login');
       assert.match(t.element('authMsg').textContent, /límite de solicitudes/);
     });
-    await check(`${base} callback cleanup keeps same origin and base path`, async () => {
+    await check(`${base} callback cleanup keeps only reload-safe recovery intent on the same base`, async () => {
       const t = fresh(base);
       t.run('openPasswordReset()');
-      assert.equal(t.calls.find(c => c.kind === 'replaceState').url, base);
+      assert.equal(t.calls.find(c => c.kind === 'replaceState').url, base+'?reset=1');
       assert.equal(t.run('simpleAuth.recovery'), true);
       assert.equal(t.calls.find(c => c.kind === 'modal').id, 'resetModal');
     });

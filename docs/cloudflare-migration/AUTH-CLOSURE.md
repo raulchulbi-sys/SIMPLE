@@ -3,7 +3,7 @@
 ## Resultado
 
 - **GOOGLE OAUTH: REAL PASS**, en Chromium del navegador integrado. Alta y acceso posterior reales; no mocks/interceptación/sesiones sembradas. No nueva prueba OAuth en WebKit, Safari físico o producción.
-- **PASSWORD RECOVERY: BLOCKED**, por transporte de correo de staging. Cero correos enviados/recibidos, cero contraseñas cambiadas. Una aceptación HTTP no demostraría entrega.
+- **PASSWORD RECOVERY: BLOCKED**, únicamente por cambio de contraseña/login manual aún pendientes. Dos correos reales autorizados recibidos; enlace legítimo y formulario comprobados. SMTP intacto. No declarar todavía cambio de contraseña ni recorrido completo.
 - **CLOUDFLARE STAGING: DEPLOYED**: `https://simple-staging-raulchulbi.pages.dev/`, deployment `4a8636ab-ec94-42db-b57e-cf43d01230b9`, fuente de aplicación `0aa1d6b6dc6fe0165534b8c7610c1e8a56521709`.
 - **CLOUDFLARE PRODUCCIÓN: CONFIGURATION PENDING**. Perfil y cuatro pruebas offline en CUTOVER; sin hosting productivo, merge, DNS o corte.
 
@@ -36,19 +36,29 @@ Se eligió el buzón de Patata entre los dos autorizados. Antes: cero usuarios/i
 | Segundo acceso | Login → Google real → misma cuenta; mismo UUID, una identidad y un perfil client. |
 | Cierre | Logout y recarga vuelven a bienvenida; SQL auth.sessions para ese UUID: 0. |
 
-No se guardaron entrenamientos, notas, rutinas, asignaciones, intakes u operaciones Coach. El usuario de staging se conserva: esta misión no autoriza borrar cuentas. Tokens sólo en almacenamiento normal del SDK para comprobar persistencia, nunca copiados a resultados/HAR/logs/storageState/Git; sesión finalmente cerrada. No capturas de credenciales.
+No se guardaron entrenamientos, notas, rutinas, asignaciones, intakes u operaciones Coach. El usuario Patata de staging se conserva y sus sesiones quedaron cerradas. Posteriormente el propietario autorizó otro perfil client de staging para recovery con su propio buzón: una única identidad Google/perfil, sin entrenamientos. Este segundo perfil mantiene una sesión válida de recuperación para la intervención manual; no se confunde con el entrenador productivo. No borrar cuentas. Tokens sólo en almacenamiento normal del SDK, nunca copiados a resultados/HAR/logs/storageState/Git. No capturas de credenciales.
 
 Evidencia ignorada `tests/cloudflare/results/`: auth-closure-real.json, google-staging-client-prepared.png, google-staging-client-created.png, stage-google-enabled.png y staging-google-atleta-first.png. El JSON conserva buzón/UUID exactos para continuidad; no se publican como assets.
 
-## Recovery: bloqueo sin consumir el envío
+## Recovery: entrega y enlace real comprobados; contraseña pendiente
 
 SMTP personalizado OFF. Team tiene exactamente un miembro, el propietario; ninguno de los dos buzones autorizados pertenece al equipo. El servicio por defecto sólo entrega a miembros y limita actualmente a dos mensajes/hora. [Fuente oficial](https://supabase.com/docs/guides/auth/auth-smtp).
 
-No se invitó a Patata al equipo administrativo como atajo. No se copiaron secretos SMTP productivos ni se cambiaron remitente/plantillas/URLs/cuotas. No se envió una petición que no permite completar la entrega al destinatario autorizado. La cuenta nueva es Google-only: tampoco existe una contraseña anterior cuyo rechazo se pueda afirmar probado.
+El propietario autorizó después usar su buzón de miembro, crear exclusivamente en staging un perfil client mediante Google y solicitar un correo real. No se invitó a Patata al equipo ni se cambió SMTP, remitente, plantillas, URLs o cuotas. Ambas cuentas nuevas son inicialmente Google-only; no existe una contraseña anterior cuya invalidación se pueda afirmar comprobada.
 
-Para continuar con el buzón elegido hace falta SMTP de pruebas autorizado: host, puerto, usuario, secreto introducido en el panel, remitente verificado y nombre. No inventar valores, contratar servicios o modificar DNS. Alternativa: autorizar expresamente una cuenta de staging y el buzón del miembro existente; no está autorizado todavía. No ampliar miembros para sortear restricciones.
+Primer correo: POST /recover HTTP200 el 15/10 a las 09:58:23Z; recepción en Gmail del titular con remitente Supabase Auth y cabecera de proyecto staging. El titular abrió el enlace en iPhone a las 10:00:40Z, vio el formulario y lo confirmó en el chat; no cambió la contraseña y cerró sesión a las 10:01:06Z. El posterior reuso en Codex fue rechazado correctamente. Logs de sólo lectura distinguen los agentes iPhone/Windows y login/logout; no se atribuye a un fallo de SIMPLE ni a un escáner sin evidencia. No se imprimieron queries de verify/tokens.
 
-Con transporte listo: solicitar un único correo desde Cloudflare; recepción por titular; revisar origen/path del enlace sin revelar token; abrir y reconocer sesión recovery. El titular escribe/confirma/envía la contraseña personalmente; verificar confirmación/logout/login. No SQL/Admin API para cambiarla ni tokens/contraseñas en archivos. Enlace usado, recarga de recovery y contraseña nueva siguen pendientes de un enlace legítimo.
+El propietario autorizó un único correo adicional. Segundo recibido el 15/10 a las 10:07:09Z, mismo proyecto/destinatario. En Gmail se abrió sólo ese mensaje; se comprobó origen `https://dmqjexigdnfzobarhnib.supabase.co`, path `/auth/v1/verify`, type recovery y retorno estable `?reset=1`, manteniendo token sólo en memoria. Verificación válida a las 10:10:52Z. La herramienta de navegador quedó bloqueada durante esa navegación; al recuperar conexión el formulario estaba abierto, sesión SQL=1 y password_is_set=false. No se repitió la navegación ni se envió otro correo por el bloqueo. Referencias al enlace borradas; Gmail cerrado.
+
+Formulario real entregado al titular para que escriba, confirme y envíe la contraseña personalmente. Pendiente verificar confirmación, logout, login manual con contraseña nueva y persistencia. No SQL/Admin API para cambiarla. Ningún correo adicional sin autorización. Confirmación visual y recepción reales son PASS parciales, no un PASSWORD RECOVERY REAL PASS completo.
+
+## Defecto de recarga reproducido y corrección mínima preparada
+
+Prueba local con frontend y SDK 2.115.0 reales, HTTP completamente interceptado, sin cuentas remotas: el callback válido abría reset y borraba todo el marcador. Tras reload conservaba sesión pero abría la aplicación normal; falló en los tres perfiles GitHub/Cloudflare/local. No es un fallo de transporte Cloudflare ni de contraseña.
+
+`assets/auth.js` ahora conserva únicamente `?reset=1` mientras el reset está abierto; no tokens/hash. Tras reload vuelve a validar getSession/getUser antes de abrir formulario. Cerrar/salir o éxito retiran el marcador. No guarda un flag de autorización en storage ni acepta un callback inválido con una sesión antigua. No modifica OAuth, backend, perfiles, permisos o entrenamiento.
+
+Pruebas finales locales: **48/48** recovery (incluyen **12 nuevos** de reload: tres perfiles × dos motores × móvil/escritorio), **24/24** regresiones OAuth client/trainer, **18/18** VM y **4/4** empaquetado productivo actualizado. El primer lanzamiento de Edge dentro del sandbox falló antes de ejecutar tests; la ejecución autorizada fuera del sandbox reprodujo el fallo, y la final pasó tras el cambio. SDK/HTTP interceptado no se presenta como recovery real. El deployment de esta corrección se mantiene pendiente mientras el titular usa el formulario actual; no forzar su recarga. El código servido sigue siendo 0aa hasta nueva comprobación de Pages.
 
 ### Escape del signo de interrogación
 
@@ -58,7 +68,7 @@ Repetidos sólo los dos GET verify inválidos históricos: HTTP303/otp_expired, 
 
 ## Integridad
 
-Baseline 15/10 08:56:38Z producción / 08:56:40Z staging → lectura 09:35:12Z / 09:35:13Z. Exclusivamente SELECT, sin credenciales.
+Baseline 15/10 08:56:38Z producción / 08:56:40Z staging. Primer cierre 09:35:12Z/09:35:13Z, confirmado otra vez a las 09:51Z antes de crear la cuenta adicional autorizada para recovery. Exclusivamente SELECT, sin credenciales.
 
 | Ámbito | Resultado |
 |---|---|
@@ -66,21 +76,25 @@ Baseline 15/10 08:56:38Z producción / 08:56:40Z staging → lectura 09:35:12Z /
 | Producción SQL | 214 funciones/owner/grants/search_path, políticas, RLS/ACL y triggers iguales |
 | Producción Edge / finanzas | 5 funciones/versiones/metadatos iguales; presupuestos, consumos, reservas y flags iguales |
 | Ciclo, ambos | `88c3564c3c49cf9c53fccba89a1e71b5` |
-| Staging | 31 entradas iguales; user/identity/profile +1 autorizado cada uno |
-| Staging excluyendo sólo UUID nuevo | 34/34 exactamente iguales al baseline |
+| Staging en el primer cierre | 31 entradas iguales; user/identity/profile +1 autorizado cada uno |
+| Staging excluyendo UUID Patata en el primer cierre | 34/34 exactamente iguales al baseline |
 | Staging backend | 219 funciones/seguridad y 10 Edge sin cambios |
 | Patata productivo, R1/R2, historial | En huellas productivas iguales; cero escrituras productivas |
 
-Auth compara identidad/campos estables, sin exigir updated_at/last_sign_in_at iguales ni alterar usuarios para cuadrar huellas. Staging conserva el nuevo usuario de prueba con sesiones cerradas.
+Comparación final adicional, **11:04:04Z producción / 11:04:05Z staging**: 34/34 entradas productivas iguales al baseline inicial; excluyendo únicamente los dos UUID de pruebas autorizados, 34/34 de staging iguales. SQL/owner/grants/search_path, RLS/ACL/policies/triggers, presupuestos y ciclo iguales en ambos. La cuenta de recovery seguía sin contraseña y con una sesión válida pendiente de intervención. No se fuerza su logout por limpieza.
+
+Auth compara identidad/campos estables, sin exigir updated_at/last_sign_in_at iguales ni alterar usuarios para cuadrar huellas. La cuenta de recovery adicional y su sesión pendiente se registran explícitamente; no afirmar después de su creación que sólo hay un usuario nuevo.
 
 ## Pruebas, seguridad y continuidad
 
-- **635 casos históricos reutilizados**, no reejecutados en masa. Código de aplicación/backend sin cambios.
+- **635 casos históricos conservados**, no reejecutados en masa. Tras detectar el defecto se ejecutaron sólo las regresiones Auth afectadas; no afirmar que el antiguo contrato de URL sin marcador sea el vigente.
 - **2 escenarios nuevos Google reales**, interactivos en Chromium integrado: alta y retorno con perfil/persistencia/logout. No inflar cada paso como un caso nuevo.
-- **4/4 nuevas pruebas offline** de perfil productivo, production-build.cjs. Artefacto sólo local, no servido; dist reconstruido luego al perfil staging original.
+- **4/4 pruebas offline** de perfil productivo, production-build.cjs; repetidas tras el fix de Auth, sin inflar el contador. Artefacto sólo local, no servido; reconstruir dist al perfil staging al cerrar.
 - 2 verify históricos repetidos y settings públicos, evidencia de configuración sin duplicar contadores.
-- No nuevas pruebas masivas de entrenamiento, Google WebKit/físico, recuperación válida, DNS, deploy/rollback productivo o llamadas OpenAI.
+- No nuevas pruebas masivas de entrenamiento, Google real WebKit/físico, cambio real de contraseña, DNS, deploy/rollback productivo o llamadas OpenAI. El titular confirmó el formulario recovery en iPhone; esto no acredita Google OAuth móvil.
 
-Cambios de repositorio sólo en plan de revisión, prueba y documentación. Sin lógica Auth/entrenamiento/Basic/Premium/Financial P1. Staging público con Auth/RLS; noindex no es protección; CSP sigue report-only. No se retienen referencias a secretos transferidos; no descargas de credenciales. Cliente OAuth/usuario de staging autorizados se conservan.
+Cambios de repositorio: plan, pruebas, documentación y la corrección acotada de continuidad del formulario recovery. Sin cambios de sistema OAuth/roles, entrenamiento/Basic/Premium/Financial P1. Staging público con Auth/RLS; noindex no es protección; CSP sigue report-only. No se retienen referencias a secretos transferidos; no descargas de credenciales. Cliente OAuth y dos usuarios de staging autorizados se conservan. La recuperación pendiente permanece abierta para intervención manual.
 
 Rollback de Google, si se autoriza después: desactivar únicamente proveedor de staging y comprobar settings; no borrar/desvincular cuentas ni tocar cliente productivo. El cliente separado puede conservarse desactivado. Hosting/redirects/CORS: CUTOVER y OPERATIONS; no se ejecutó rollback productivo.
+
+Continuación del fix: candidato local sobre `5e1d51f`, aún no enviado a la rama que autodespliega mientras se utiliza el formulario. Una vez finalizada la intervención, reconciliar main/PR, publicar sólo staging y verificar reload real con sesión válida, cierre, callback usado y Google sin nuevo alta. No pedir/leer la contraseña ni enviar un tercer email. Si hiciera falta otro enlace, necesita autorización expresa nueva. Rollback del frontend de staging, una vez exista segundo deployment: volver al 0aa validado y verificar runtime/backend; no SQL ni cambios de cuentas. La versión productiva permanece c818.

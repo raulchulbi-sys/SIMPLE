@@ -1,6 +1,6 @@
 # Operación y rollback
 
-Estado actualizado el **15/10/2026**, fecha del cliente. Preview publicada y Google real validado en Chromium integrado; entrega de correo, recuperación válida y corte productivo pendientes. La actualización posterior [AUTH-CLOSURE](AUTH-CLOSURE.md) documenta cliente/proveedor Google y usuario de pruebas de staging autorizados. [CUTOVER](CUTOVER.md) concreta perfil productivo, puertas y rollback sin aplicarlos. Las referencias anteriores a Google pendiente se conservan como evidencia histórica, no como estado actual.
+Estado actualizado el **15/10/2026**, fecha del cliente. Preview publicada/Google real validado. Recovery: dos correos autorizados recibidos, enlace/formulario real válido, contraseña/login manual pendientes. No volver a consumir el enlace ni cerrar la sesión del formulario antes de la intervención. Fix de recarga preparado y probado localmente; deployment pendiente mientras se usa el formulario. [AUTH-CLOSURE](AUTH-CLOSURE.md) documenta configuración y dos cuentas staging autorizadas. [CUTOVER](CUTOVER.md): perfil productivo, puertas y rollback no aplicados. Las referencias antiguas a Google/correo pendientes pertenecen al checkpoint anterior.
 
 ## Antes de cualquier escritura
 

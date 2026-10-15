@@ -204,7 +204,8 @@ async function requestPasswordReset(){
 function setResetMsg(text,ok=false){const el=$('resetMsg');el.textContent=text;el.className='msg '+(ok?'ok':'error');el.setAttribute('role','status');}
 function openPasswordReset(){
   simpleAuth.recovery=true;setAuthScreen('recovery',false);$('newPassword').value='';$('newPassword2').value='';setResetMsg('');openM('resetModal');
-  try{history.replaceState({},document.title,location.origin+location.pathname);}catch(_){}
+  // Keep only non-secret recovery intent so reload can revalidate the SDK session.
+  try{history.replaceState({},document.title,location.origin+location.pathname+'?reset=1');}catch(_){}
   $('newPassword').focus({preventScroll:true});
 }
 async function updatePassword(){
@@ -226,6 +227,7 @@ async function updatePassword(){
   finally{setAuthBusy(false);btn.disabled=false;btn.textContent='Cambiar contraseña';}
 }
 function resetAuthSession(){
+  const leavingRecovery=simpleAuth.recovery||isRecoveryLocation();
   simpleAuth.epoch++;simpleAuth.role=null;simpleAuth.recovery=false;simpleAuth.callbackError=false;simpleAuth.failed=false;
   window.__workoutContextVersion=(window.__workoutContextVersion||0)+1;
   window.__simpleStarted=false;window.__simpleStartBusy=false;
@@ -234,6 +236,7 @@ function resetAuthSession(){
   ['mine','shared','clients','new','trash','tabs'].forEach(id=>{if($(id))$(id).innerHTML='';});
   $('password').value='';$('email').value='';resetPasswordVisibility();msg('');
   $('newPassword').value='';$('newPassword2').value='';
+  if(leavingRecovery){try{history.replaceState({},document.title,location.origin+location.pathname);}catch(_){}}
   setAuthScreen('welcome',false);
 }
 async function authLogout(){

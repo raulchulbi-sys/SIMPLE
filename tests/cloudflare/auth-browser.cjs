@@ -18,7 +18,7 @@ const sites = [
   { name: 'Cloudflare preview root (synthetic fixture; not a deployment)', target: 'preview', env: { SIMPLE_PAGES_PROJECT: 'synthetic-fixture-only', CF_PAGES_URL: 'https://synthetic-fixture-only.pages.dev', SIMPLE_APP_URL: 'https://synthetic-fixture-only.pages.dev/', CF_PAGES_BRANCH: 'codex/cloudflare-migration' } },
   { name: 'Local staging root', target: 'local', env: { SIMPLE_APP_URL: 'http://127.0.0.1:4280/' } },
 ];
-const scenarios = ['signup-client', 'signup-trainer', 'oauth-existing-client', 'oauth-existing-trainer', 'recovery-valid', 'recovery-expired', 'recovery-request'];
+const scenarios = ['signup-client', 'signup-trainer', 'oauth-existing-client', 'oauth-existing-trainer', 'recovery-valid', 'recovery-reload', 'recovery-expired', 'recovery-request'];
 const engines = (process.env.SIMPLE_AUTH_ENGINES || 'chromium,webkit').split(',');
 const widths = (process.env.SIMPLE_AUTH_WIDTHS || '320,1280').split(',').map(Number);
 const results = [];
@@ -47,7 +47,7 @@ async function runCase(browser, engine, width, site, scenario) {
   const exp = Math.floor(Date.now() / 1000) + 3600;
   const token = [{ alg: 'HS256', typ: 'JWT' }, { sub: uid, exp, iat: exp - 3600, role: 'authenticated', aud: 'authenticated' }, 'synthetic-http-fixture-signature'].map(v => Buffer.from(typeof v === 'string' ? v : JSON.stringify(v)).toString('base64url')).join('.');
   const session = { access_token: token, refresh_token: 'synthetic-http-only-refresh', token_type: 'bearer', expires_in: 3600, expires_at: exp, user: account };
-  const callbackHash = '#' + new URLSearchParams({ access_token: token, refresh_token: session.refresh_token, expires_in: '3600', token_type: 'bearer', ...(scenario === 'recovery-valid' ? { type: 'recovery' } : {}) });
+  const callbackHash = '#' + new URLSearchParams({ access_token: token, refresh_token: session.refresh_token, expires_in: '3600', token_type: 'bearer', ...(['recovery-valid','recovery-reload'].includes(scenario) ? { type: 'recovery' } : {}) });
   page.on('pageerror', error => errors.push(error.message));
   await page.route('**/*', async route => {
     try {
@@ -103,10 +103,23 @@ async function runCase(browser, engine, width, site, scenario) {
       assert.match(await page.locator('#authMsg').innerText(), /caducado/);
       assert.equal(calls.filter(c => c.method === 'PUT' || c.path.startsWith('/rest/')).length, 0);
       assert.equal(page.url(), base);
+    } else if (scenario === 'recovery-reload') {
+      await page.goto(base + '?reset=1' + callbackHash);
+      await page.locator('#resetModal.show').waitFor(); await idle();
+      assert.equal(new URL(page.url()).hash, '');
+      await page.reload(); await idle();
+      assert.equal(await page.locator('#resetModal').isVisible(), true, 'Reload must preserve a validated recovery flow');
+      assert.equal(await page.locator('#app').isVisible(), false);
+      assert.equal(calls.filter(c => c.path.startsWith('/rest/') || c.method === 'PUT').length, 0);
+      await page.getByRole('button', {name:'Cerrar',exact:true}).click(); await idle();
+      assert.equal(page.url(), base);
+      await page.reload(); await idle();
+      assert.equal(await page.locator('#auth').getAttribute('data-screen'), 'welcome');
+      assert.equal(await page.locator('#resetModal').isVisible(), false);
     } else if (scenario === 'recovery-valid') {
       await page.goto(base + '?reset=1' + callbackHash);
       await page.locator('#resetModal.show').waitFor(); await idle();
-      assert.equal(page.url(), base);
+      assert.equal(page.url(), base + '?reset=1');
       assert.equal(await page.locator('#app').isVisible(), false);
       await page.locator('#newPassword').fill('short'); await page.locator('#newPassword2').fill('short');
       await page.evaluate(() => updatePassword());
