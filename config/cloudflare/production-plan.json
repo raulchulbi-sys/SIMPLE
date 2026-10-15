@@ -54,7 +54,7 @@
     "deploymentUrl": "https://170fea3b.simple-raulchulbi.pages.dev/",
     "artifactTreeSha256": "47ba45ce844af2c62569d60c8d622f5e8c8b864c807f465cf3037cd74e662399",
     "rootAndDeploymentContainOnlyPlaceholder": true,
-    "accessStatus": "NOT CONFIGURED; Free plan selection requires approval after automatic review rejection"
+    "accessStatus": "NOT CONFIGURED; Free selection authorized and executed; checkout Session Expired, then Cloudflare One loading; enrollment/payment/terms not completed"
   },
   "projectCreated": true,
   "projectNameVerified": "simple-raulchulbi",
@@ -62,5 +62,14 @@
   "productionSupabaseChangesApplied": false,
   "productionAuthBackup": "tests/cloudflare/private/production-auth-urls-before.json (ignored)",
   "corsPlan": "tests/cloudflare/private/production-cors-plan-review.json (ignored; reviewOnly/applyAllowed=false)",
-  "deployedMeaning": "Production application only; preparation.placeholderDeployed records the inert public deployment."
+  "deployedMeaning": "Production application only; preparation.placeholderDeployed records the inert public deployment.",
+  "googleClientReview": {
+    "project": "simple-509717",
+    "client": "SIMPLE Web",
+    "authorizedReadOnly": true,
+    "status": "BLOCKED_LOADING",
+    "currentOriginsAndCallbacksVerified": false,
+    "secretsOpened": false,
+    "configurationSaved": false
+  }
 }
