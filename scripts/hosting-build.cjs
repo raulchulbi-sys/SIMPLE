@@ -175,6 +175,56 @@ function outputRoot(sourceRoot) {
   return {root, output};
 }
 
+// This mode deliberately does not create a runtime or package application files.
+// It is safe to expose while Access and the future production cutover are pending.
+function buildPlaceholder({sourceRoot = path.resolve(__dirname, '..'), env = {}} = {}) {
+  const {PAGES_PROJECTS} = require('./hosting-runtime.cjs');
+  const project = PAGES_PROJECTS.production;
+  if (env.SIMPLE_DEPLOY_TARGET !== 'placeholder' || env.SIMPLE_PAGES_PROJECT !== project ||
+      env.SIMPLE_APP_URL !== 'https://' + project + '.pages.dev/' ||
+      env.CF_PAGES_BRANCH !== 'codex/cloudflare-production-preparation') fail('Unapproved placeholder deployment identity');
+  const deployment = new URL(env.CF_PAGES_URL || 'invalid');
+  const host = project + '.pages.dev';
+  const prefix = deployment.hostname.slice(0, -(host.length + 1));
+  if (deployment.protocol !== 'https:' || deployment.username || deployment.password || deployment.port ||
+      deployment.pathname !== '/' || deployment.search || deployment.hash ||
+      !(deployment.hostname === host || (deployment.hostname.endsWith('.' + host) && /^[a-z0-9-]+$/.test(prefix)))) fail('Unapproved placeholder deployment URL');
+  if (env.SIMPLE_SUPABASE_URL || env.SIMPLE_SUPABASE_KEY) fail('Placeholder must not receive backend overrides');
+  const {root, output} = outputRoot(sourceRoot);
+  const entries = [
+    ['index.html','index.html'],['404.html','404.html'],
+    ['preparation.css','assets/preparation.css'],['_headers','_headers'],['robots.txt','robots.txt']
+  ];
+  const bytes = entries.map(([source, destination]) => {
+    const content = canonicalPublicContent(regularFile(root, 'config/cloudflare/preparation/' + source), destination);
+    const text = content.toString('utf8');
+    rejectSecrets(text, destination);
+    if (/supabase|openai|\b(?:fetch|XMLHttpRequest|WebSocket)\b|<\s*(?:script|form|iframe|object|embed)\b|\bon\w+\s*=|http-equiv|@import|\burl\s*\(/i.test(text)) fail('Active or backend content in placeholder: ' + destination);
+    if (/https?:\/\//i.test(text) && (destination !== 'index.html' || (text.match(/https?:\/\//gi)||[]).length !== 1 ||
+        !text.includes('href="https://raulchulbi-sys.github.io/SIMPLE/"'))) fail('Unreviewed external content in placeholder');
+    return [destination, content];
+  });
+  for (const name of ['index.html','404.html']) {
+    const html = bytes.find(([file]) => file === name)[1].toString('utf8');
+    if (JSON.stringify([...references(html, name, new Set())]) !== JSON.stringify(['assets/preparation.css'])) fail('Unexpected placeholder dependency');
+  }
+  const headers = bytes.find(([name]) => name === '_headers')[1].toString('utf8');
+  if (!headers.includes("Content-Security-Policy: default-src 'none'; style-src 'self';") ||
+      !headers.includes("form-action 'none'; frame-ancestors 'none'") || !headers.includes('Cache-Control: no-store')) fail('Placeholder security headers required');
+  // Validate all inputs before cleaning; outputRoot has checked the bounded path and symlinks.
+  fs.rmSync(output, {recursive:true, force:true});
+  fs.mkdirSync(output);
+  const files = [];
+  for (const [name, content] of bytes.sort(([a],[b]) => a.localeCompare(b))) {
+    const destination = path.join(output, name);
+    fs.mkdirSync(path.dirname(destination), {recursive:true});
+    fs.writeFileSync(destination, content, {mode:0o644});
+    fs.utimesSync(destination, 0, 0);
+    files.push({path:name,bytes:content.length,sha256:crypto.createHash('sha256').update(content).digest('hex')});
+  }
+  return {target:'placeholder',backendInitialized:false,output,files,treeSha256:crypto.createHash('sha256').update(JSON.stringify(files)).digest('hex')};
+}
+
 function build({sourceRoot = path.resolve(__dirname, '..'), target, runtime} = {}) {
   validateRuntime(runtime, target);
   const {root, output} = outputRoot(sourceRoot);
@@ -234,9 +284,13 @@ function build({sourceRoot = path.resolve(__dirname, '..'), target, runtime} = {
 
 function main() {
   const args = process.argv.slice(2);
-  if (args.length !== 2 || args[0] !== '--target') fail('Usage: node scripts/hosting-build.cjs --target local|preview|production');
+  if (args.length !== 2 || args[0] !== '--target') fail('Usage: node scripts/hosting-build.cjs --target local|preview|production|placeholder');
   const target = args[1];
   if (process.env.SIMPLE_DEPLOY_TARGET && process.env.SIMPLE_DEPLOY_TARGET !== target) fail('CLI and environment targets disagree');
+  if (target === 'placeholder') {
+    console.log(JSON.stringify(buildPlaceholder({env:process.env}), null, 2));
+    return;
+  }
   const runtimeGenerator = require('./hosting-runtime.cjs');
   const runtime = runtimeGenerator.createRuntimeConfig({target, env: process.env});
   const result = build({target, runtime});
@@ -246,4 +300,4 @@ function main() {
 if (require.main === module) {
   try { main(); } catch (error) { console.error('Build rejected: ' + error.message); process.exitCode = 1; }
 }
-module.exports = {build, references, validateRuntime};
+module.exports = {build, buildPlaceholder, references, validateRuntime};

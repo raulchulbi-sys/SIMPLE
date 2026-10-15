@@ -1,8 +1,8 @@
 {
   "status": "CONFIGURATION PENDING",
   "deployed": false,
-  "projectNameProposed": "simple-production-raulchulbi",
-  "appUrlProposed": "https://simple-production-raulchulbi.pages.dev/",
+  "projectNameProposed": "simple-raulchulbi",
+  "appUrlProposed": "https://simple-raulchulbi.pages.dev/",
   "repository": "raulchulbi-sys/SIMPLE",
   "productionBranch": "main",
   "previewBranches": "none",
@@ -12,22 +12,41 @@
   "outputDirectory": "dist",
   "variablesPublic": {
     "SIMPLE_DEPLOY_TARGET": "production",
-    "SIMPLE_PAGES_PROJECT": "simple-production-raulchulbi",
-    "SIMPLE_APP_URL": "https://simple-production-raulchulbi.pages.dev/"
+    "SIMPLE_PAGES_PROJECT": "simple-raulchulbi",
+    "SIMPLE_APP_URL": "https://simple-raulchulbi.pages.dev/"
   },
-  "variablesAutomatic": ["CF_PAGES_BRANCH", "CF_PAGES_URL"],
+  "variablesAutomatic": [
+    "CF_PAGES_BRANCH",
+    "CF_PAGES_URL"
+  ],
   "supabaseProject": "yvguatdqncadkwewlepe",
   "googleProviderCallbackUnchanged": "https://yvguatdqncadkwewlepe.supabase.co/auth/v1/callback",
   "authRedirectsProposedAdditive": [
-    "https://simple-production-raulchulbi.pages.dev/",
-    "https://simple-production-raulchulbi.pages.dev/\\?reset=1"
+    "https://simple-raulchulbi.pages.dev/",
+    "https://simple-raulchulbi.pages.dev/\\?reset=1"
   ],
-  "corsOriginProposed": "https://simple-production-raulchulbi.pages.dev",
+  "corsOriginProposed": "https://simple-raulchulbi.pages.dev",
   "preserveExistingOrigin": "https://raulchulbi-sys.github.io",
   "preserveExistingAppUrl": "https://raulchulbi-sys.github.io/SIMPLE/",
   "siteUrlChangeAuthorized": false,
   "dnsChangeAuthorized": false,
   "mainMergeAuthorized": false,
   "cutoverAuthorized": false,
-  "initialDeploymentGate": "Do not connect or deploy a production-backed public frontend before approval, protected initial access and exact Auth/CORS readiness. This JSON is a review plan, not executable Cloudflare configuration."
+  "initialDeploymentGate": "Only the inert five-file placeholder may be public before Access is verified. Production application and additive Auth/CORS remain gated; main merge and cutover are not authorized.",
+  "preparation": {
+    "branch": "codex/cloudflare-production-preparation",
+    "target": "placeholder",
+    "buildCommand": "node scripts/hosting-build.cjs --target placeholder",
+    "outputDirectory": "dist",
+    "automaticProductionDeployments": false,
+    "previewBranches": "none",
+    "backendInitialized": false,
+    "accessConfigured": false,
+    "applicationDeployed": false,
+    "variablesPublic": {
+      "SIMPLE_DEPLOY_TARGET": "placeholder",
+      "SIMPLE_PAGES_PROJECT": "simple-raulchulbi",
+      "SIMPLE_APP_URL": "https://simple-raulchulbi.pages.dev/"
+    }
+  }
 }

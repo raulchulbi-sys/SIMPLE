@@ -5,6 +5,9 @@ const path = require('node:path');
 const BACKENDS = require('../config/public-backends.json');
 const TARGETS = new Set(['local', 'preview', 'production']);
 const GITHUB_APP = 'https://raulchulbi-sys.github.io/SIMPLE/';
+// These are reviewed deployment identities, not values selected by build variables.
+// The production name is proposed for reservation; this does not provision it.
+const PAGES_PROJECTS = Object.freeze({preview:'simple-staging-raulchulbi',production:'simple-raulchulbi'});
 
 function fail(message) { throw new Error('Hosting configuration: ' + message); }
 function validateBackend(environment, backend) {
@@ -28,10 +31,11 @@ function parseAppUrl(raw, target, env) {
     if (env.CF_PAGES_URL || env.CF_PAGES_BRANCH || env.SIMPLE_PAGES_PROJECT) fail('local target cannot inherit Cloudflare deployment metadata');
     if (url.protocol !== 'http:' || !['localhost','127.0.0.1'].includes(url.hostname) || !url.port || !['/','/SIMPLE/'].includes(url.pathname)) fail('local must use an explicit loopback HTTP port');
   } else if (url.href === GITHUB_APP && target === 'production' && env.SIMPLE_HOSTING_PROVIDER === 'github') {
-    if (env.CF_PAGES_URL) fail('Cloudflare cannot build the GitHub target');
+    if (env.CF_PAGES_URL || env.CF_PAGES_BRANCH || env.SIMPLE_PAGES_PROJECT) fail('Cloudflare cannot build the GitHub target');
   } else {
     const project = env.SIMPLE_PAGES_PROJECT;
     if (!/^[a-z0-9](?:[a-z0-9-]{0,56}[a-z0-9])?$/.test(project || '')) fail('verified SIMPLE_PAGES_PROJECT required');
+    if (project !== PAGES_PROJECTS[target]) fail('Pages project is not approved for target ' + target);
     const host = project + '.pages.dev';
     const suffix = '.' + host;
     if (url.protocol !== 'https:' || url.port || url.pathname !== '/' || !(url.hostname === host || (url.hostname.endsWith(suffix) && /^[a-z0-9-]+$/.test(url.hostname.slice(0,-suffix.length))))) fail('URL is outside the verified Pages project');
@@ -71,7 +75,7 @@ function createRepositoryRuntime() {
   const local = ['127.0.0.1','localhost'].map(host => createRuntimeConfig({target:'local',env:{SIMPLE_APP_URL:'http://'+host+':4280/'}}).config);
   return renderRuntime([production,...local]);
 }
-module.exports = {createRuntimeConfig,createRepositoryRuntime,renderRuntime,validateBackend};
+module.exports = {createRuntimeConfig,createRepositoryRuntime,renderRuntime,validateBackend,PAGES_PROJECTS};
 if (require.main === module) {
   if (process.argv.includes('--repository')) {
     fs.writeFileSync(path.join(__dirname,'../assets/runtime-config.js'),createRepositoryRuntime());

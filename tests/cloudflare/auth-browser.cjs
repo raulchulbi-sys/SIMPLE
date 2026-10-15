@@ -15,7 +15,7 @@ const sdk = fs.readFileSync(process.env.SIMPLE_AUTH_SDK || path.join(root, 'test
 assert.equal(crypto.createHash('sha256').update(sdk).digest('hex'), '0d8509e5aab9a4d8b0b0525c27082149a849f50df7ebbddfcd9c33d2ba645ad7', 'Pinned real SDK required');
 const sites = [
   { name: 'GitHub production base', target: 'production', env: { SIMPLE_APP_URL: 'https://raulchulbi-sys.github.io/SIMPLE/', SIMPLE_HOSTING_PROVIDER: 'github' } },
-  { name: 'Cloudflare preview root (synthetic fixture; not a deployment)', target: 'preview', env: { SIMPLE_PAGES_PROJECT: 'synthetic-fixture-only', CF_PAGES_URL: 'https://synthetic-fixture-only.pages.dev', SIMPLE_APP_URL: 'https://synthetic-fixture-only.pages.dev/', CF_PAGES_BRANCH: 'codex/cloudflare-migration' } },
+  { name: 'Cloudflare preview root (intercepted fixture; no live requests)', target: 'preview', env: { SIMPLE_PAGES_PROJECT: 'simple-staging-raulchulbi', CF_PAGES_URL: 'https://simple-staging-raulchulbi.pages.dev', SIMPLE_APP_URL: 'https://simple-staging-raulchulbi.pages.dev/', CF_PAGES_BRANCH: 'codex/cloudflare-migration' } },
   { name: 'Local staging root', target: 'local', env: { SIMPLE_APP_URL: 'http://127.0.0.1:4280/' } },
 ];
 const scenarios = ['signup-client', 'signup-trainer', 'oauth-existing-client', 'oauth-existing-trainer', 'recovery-valid', 'recovery-reload', 'recovery-expired', 'recovery-request'];
