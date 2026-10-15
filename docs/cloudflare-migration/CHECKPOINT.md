@@ -1,5 +1,9 @@
 # Checkpoint de Cloudflare — 15/10/2026
 
+## Actualización posterior: OAuth real cerrado, recovery bloqueado
+
+Google staging se configuró tras dos confirmaciones expresas y pasaron dos recorridos reales (alta y segundo login). Un único usuario/perfil client/identidad de pruebas, UUID privado, persistencia y logout/0 sesiones confirmados. Producción conserva 34/34 huellas y backend/finanzas iguales. Recovery no envió correos: SMTP personalizado OFF y destinatarios autorizados fuera del único miembro del equipo. Ver [AUTH-CLOSURE](AUTH-CLOSURE.md) para evidencia y límites; [CUTOVER](CUTOVER.md) y production-plan.json preparan un perfil productivo no aplicado, con 4/4 pruebas offline nuevas. No se fusionó main ni desplegó producción. Los párrafos siguientes describen el cierre anterior y sus 635 casos históricos; Google OFF/pendiente pertenece a aquel checkpoint, no al estado actual.
+
 **CLOUDFLARE: PREVIEW DEPLOYED — FINAL CONFIGURATION PENDING**
 
 Fecha del cliente: 15/10/2026. Rama: `codex/cloudflare-migration`. Main inicial y final del cierre anterior verificado: `c818e35fcb0cfeddb61e8232aaaffba222ea8f4d`; esta actualización no escribe en main. No merge, cutover, DNS ni publicación productiva. El checkout histórico y su trabajo previo se conservan. El SHA final de la rama se registra en la entrega; este documento evita un hash autorreferente.

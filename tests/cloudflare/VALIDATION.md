@@ -1,5 +1,9 @@
 # Validación de la migración estática
 
+## Cierre real y perfil productivo — actualización 15/10/2026
+
+Posteriormente al cierre histórico de 635: **dos escenarios Google reales nuevos** en Chromium integrado (alta/retorno, misma identidad, perfil client, vacío/persistencia/logout), documentados en docs/cloudflare-migration/AUTH-CLOSURE.md. No mocks ni passwords/tokens en evidencia. **4/4 pruebas nuevas offline**: `node tests/cloudflare/production-build.cjs`, propuesta de build productivo reproducible, 36 archivos, bytes de aplicación, aislamiento de orígenes y headers; sin red/deploy. Resultado ignorado production-build.json. Dist local restaurado al perfil staging después. Dos GET verify históricos repetidos no suman casos nuevos. No se repiten las otras 635 pruebas. Recovery válido sigue BLOCKED por SMTP/destinatarios; no correo ni cambio de contraseña. No Google real WebKit/físico ni corte productivo. Informe actual y límites en AUTH-CLOSURE; plan/rollback en CUTOVER.
+
 Ejecución nueva de 14/10/2026. Base pública comprobada: `c818e35`. El HTML descargado de GitHub Pages coincide byte a byte con ese commit: SHA-256 `ec3ab5f1af7d75b1db71110bc9b520737382d503ad5dc3d2dc39cf189e16b946`. El HTML del paquete validado tiene SHA-256 `3f5dbbb5e4a5b5b987db3c5bafd51b4713243b0a7675c37ad261ec4273e50fa1`.
 
 Paquete final: 36 archivos, árbol SHA-256 `24423fbbd4e2e7609c6deaada0b9a6b13da87f6cb31861032ddebf0a31a21f4f`; configuración de staging SHA-256 `202f61a9655692982c33b095c15ae1675b321b3c768e7328fd6de71d6db7a60f`. El build elimina únicamente CR de pares CRLF en entradas de texto, conservando todos los demás bytes y los binarios. Los 31 assets existentes del paquete coinciden byte a byte con los blobs de Git; el HTML mixto tenía 89 pares CRLF que también se normalizaron. La repetición tras esa normalización LF reemplaza los resultados previos; no se suma al contador de 48.

@@ -2,7 +2,7 @@
 
 **CLOUDFLARE: PREVIEW DEPLOYED — FINAL CONFIGURATION PENDING**
 
-Estado actualizado el **15/10/2026**, fecha del cliente. La preview real de staging está publicada en [simple-staging-raulchulbi.pages.dev](https://simple-staging-raulchulbi.pages.dev/). GitHub Pages sigue siendo producción y respaldo. El panel de Supabase está conectado, las dos Redirect URLs exactas de staging están guardadas y pasaron seis comprobaciones nativas de retorno con enlaces inválidos. Google real, entrega de correo y recuperación válida siguen pendientes; esta preview no autoriza el corte productivo. No se ha cambiado `main`, DNS, Site URL productiva, Google Cloud ni configuración productiva de Supabase.
+Estado actualizado el **15/10/2026**, fecha del cliente. La preview real de staging está publicada en [simple-staging-raulchulbi.pages.dev](https://simple-staging-raulchulbi.pages.dev/). GitHub Pages sigue siendo producción y respaldo. **Google real: PASS** en Chromium integrado, alta y segundo acceso con persistencia/logout. Se creó únicamente un cliente Google separado y se habilitó Google de staging con autorización expresa; usuario client de pruebas conservado. **Recovery: BLOCKED** por restricción de destinatarios del SMTP por defecto; no correo ni cambio de contraseña. Las dos Redirect URLs existentes funcionan sin backslash en el retorno. No cambian main, DNS, Site URL ni Supabase/Google productivos. [Evidencia actual y límites](AUTH-CLOSURE.md); [plan de corte y rollback no ejecutados](CUTOVER.md). Producción Cloudflare: CONFIGURATION PENDING, no autoriza el corte.
 
 | Identidad verificada | Valor |
 |---|---|
