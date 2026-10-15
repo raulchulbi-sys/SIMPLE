@@ -42,7 +42,7 @@ Son propuestas; **ninguna aplicada en producción**:
 2. CORS: añadir sólo `https://simple-production-raulchulbi.pages.dev` a las funciones LIVE necesarias de Basic, Premium, Chat e inicial, conservando código/guards/JWT y los orígenes vigentes. No desplegar bundles de staging sobre producción. Releer fuentes LIVE y diff mínimo antes de preparar su rollback. No habilitar todos los aliases de deployment ni `*`; si se necesita probar uno, identificarlo y autorizarlo exactamente o usar el host estable protegido.
 3. Google: el callback de proveedor permanece `https://yvguatdqncadkwewlepe.supabase.co/auth/v1/callback`, no Pages. No cambiar Client Secret, scopes ni cliente productivo por el cambio de hosting. Se usa OAuth mediante Supabase; no se introduce Google Identity Services. Cualquier origen adicional que se considere necesario deberá presentarse aparte, nunca añadirse por suposición. Google real debe verificarse posteriormente desde el origen productivo definitivo.
 4. Site URL productiva, si se decide cambiarla como fallback/URL canónica, requiere autorización independiente. Primero capturar su valor y lista de redirects vigentes. Conservar GitHub Pages; no establecer redirecciones permanentes durante la validación.
-5. SMTP productivo queda intacto. La prueba de recuperación pendiente de staging no equivale a entrega desde producción ni acredita su plantilla. Validar el enlace de correo real en el host definitivo con buzón/autorización específicos.
+5. SMTP productivo queda intacto. La prueba de recuperación real superada en staging no equivale a entrega desde producción ni acredita su plantilla. Validar el enlace de correo real en el host definitivo con buzón/autorización específicos.
 
 ## ANTES — puertas obligatorias
 

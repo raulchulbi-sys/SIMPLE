@@ -2,22 +2,22 @@
 
 **CLOUDFLARE: PREVIEW DEPLOYED — FINAL CONFIGURATION PENDING**
 
-Estado actualizado el **15/10/2026**, fecha del cliente. La preview real de staging está publicada en [simple-staging-raulchulbi.pages.dev](https://simple-staging-raulchulbi.pages.dev/). GitHub Pages sigue siendo producción y respaldo. **Google real: PASS** en Chromium integrado, alta y retorno con persistencia/logout. Cliente Google separado y proveedor staging habilitados con autorización. **Recovery: BLOCKED por contraseña/login manual pendientes**; dos correos reales autorizados recibidos mediante el SMTP por defecto, enlace/formulario válidos comprobados. Se conservan dos perfiles client de pruebas autorizados, sin entrenamientos. Se preparó un fix mínimo de recarga del formulario, con 94 regresiones locales finales; aún no se actualiza el deployment mientras el titular utiliza el formulario actual. No cambian main, DNS, Site URL ni Supabase/Google productivos. [Evidencia y límites](AUTH-CLOSURE.md); [plan de corte y rollback](CUTOVER.md). Producción Cloudflare: CONFIGURATION PENDING; no autoriza el corte.
+Estado actualizado el **15/10/2026**, fecha del cliente. La preview permanece en https://simple-staging-raulchulbi.pages.dev/. **Google OAuth y password recovery: REAL PASS** en Chromium integrado, con participación manual del titular para la contraseña. Dos cuentas client de staging autorizadas conservadas, sin entrenamiento y con sesiones cerradas. Fix mínimo de recarga publicado y comprobado; 94 regresiones locales afectadas y 42/42 checks HTTPS de revalidación, sin sumar repeticiones a los 635 históricos. [Evidencia y límites](AUTH-CLOSURE.md). Producción Cloudflare: **CONFIGURATION PENDING**; [plan y rollback](CUTOVER.md). No merge, DNS, Site URL ni cambios productivos.
 
 | Identidad verificada | Valor |
 |---|---|
 | Proyecto Pages | `simple-staging-raulchulbi`, dedicado exclusivamente a staging |
 | URL estable, `S` | `https://simple-staging-raulchulbi.pages.dev/` |
-| URL de este build, `D` | `https://4a8636ab.simple-staging-raulchulbi.pages.dev/` |
-| Deployment ID | `4a8636ab-ec94-42db-b57e-cf43d01230b9` |
-| Fuente desplegada | `0aa1d6b6dc6fe0165534b8c7610c1e8a56521709` |
-| Referencia local equivalente | `1369022d637815cd6b6d7af827d7f325208cc22a`, mismo árbol de archivos |
+| URL de este build, `D` | `https://e829b4d6.simple-staging-raulchulbi.pages.dev/` |
+| Deployment ID | `e829b4d6-2235-44e8-a7f4-a96d875d8946` |
+| Fuente desplegada | `eb9eba59ca9589a94a6b09612b0acd4354e9bba7` |
+| Referencia local equivalente | `ed4b32be266ba6de3c4b0f70861f3430d2b3a0d4`, árbol `10a89b3e426a9c0fa995ba8741e7536a0f7d87b3` |
 | Rama de despliegue | `codex/cloudflare-migration` |
 | GitHub App | Instalación `171372329`, limitada a `raulchulbi-sys/SIMPLE` |
 
 La rama de migración parte de `c818e35fcb0cfeddb61e8232aaaffba222ea8f4d`; no se ha integrado en `main`. No convertir este proyecto de staging en producción: su URL estable recibe los callbacks de staging. La futura producción necesita otro proyecto/origen estable y un corte expresamente autorizado.
 
-El último check de Cloudflare observado, `65d96659-8aab-41a1-9bd7-a3ae876c232e`, figura cancelado y corresponde a la fuente remota `a39ec11f5c3476c20fedb6b4a21be6fe65ea0675`, con cambios de pruebas/documentación. No publicó assets: `S` y `D` siguen sirviendo la fuente `0aa1d6b…` indicada arriba. En el checkpoint Git previo a esta reanudación, local `cf76bdfd0af1a523e48d602b50010c03f1a2bf78` y ese remoto compartían el árbol `c78dae8c23d4444bc3e9b58de04ba06150de66a6`; el checkout estaba limpio entonces. Ese check cancelado no es un despliegue correcto ni prueba que el filtro de rutas haya omitido el build.
+Nota histórica anterior al cierre Auth, superada por el deployment eb9eba5: el check de Cloudflare observado entonces, `65d96659-8aab-41a1-9bd7-a3ae876c232e`, figura cancelado y corresponde a la fuente remota `a39ec11f5c3476c20fedb6b4a21be6fe65ea0675`, con cambios de pruebas/documentación. No publicó assets: `S` y `D` siguen sirviendo la fuente `0aa1d6b…` indicada arriba. En el checkpoint Git previo a esta reanudación, local `cf76bdfd0af1a523e48d602b50010c03f1a2bf78` y ese remoto compartían el árbol `c78dae8c23d4444bc3e9b58de04ba06150de66a6`; el checkout estaba limpio entonces. Ese check cancelado no es un despliegue correcto ni prueba que el filtro de rutas haya omitido el build.
 
 ## Arquitectura elegida
 

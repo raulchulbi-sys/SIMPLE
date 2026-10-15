@@ -1,14 +1,16 @@
 # Checkpoint de Cloudflare — 15/10/2026
 
-## Actualización posterior: OAuth real cerrado; recovery entregado, intervención manual pendiente
+## Estado vigente: OAuth y recuperación reales cerrados en staging
 
-Google staging se configuró tras dos confirmaciones; pasaron alta/retorno reales con Patata, un único perfil/identidad client y logout final. Después se autorizó un segundo client de staging con el buzón del propietario para recovery, evitando tocar SMTP. Dos correos autorizados recibidos; primer enlace utilizado en iPhone (formulario confirmado, sin cambiar contraseña), segundo abierto en Codex con sesión válida. Formulario pendiente de contraseña manual: NO reenviar ni reutilizar el enlace, NO cerrar esa sesión mientras se usa. Un fix mínimo conserva ?reset=1 al recargar y lo retira al terminar/cerrar; 48 recovery +24 OAuth +18 VM +4 build locales pasan, sin AI. Deployment del fix pendiente mientras el titular usa el formulario; fuente servida aún 0aa. Producción conserva 34/34 huellas/backend/finanzas iguales hasta el cierre de las 09:51Z anterior a la segunda cuenta; repetir comparación final excluyendo únicamente los dos UUID autorizados. Ver [AUTH-CLOSURE](AUTH-CLOSURE.md), [CUTOVER](CUTOVER.md) y production-plan.json. No merge/corte. Párrafos siguientes: checkpoint histórico/635 casos, no estado actual.
+Google OAuth y PASSWORD RECOVERY: REAL PASS, con límites en [AUTH-CLOSURE](AUTH-CLOSURE.md). El titular cambió la contraseña manualmente; se verificaron confirmación, login password200, mismo client, recarga y logout. No contraseña previa: era Google-only. Fix de recarga desplegado como eb9eba59ca9589a94a6b09612b0acd4354e9bba7, deployment e829b4d6-2235-44e8-a7f4-a96d875d8946. Árbol exacto local ed4b32b:10a89b3e426a9c0fa995ba8741e7536a0f7d87b3. Google real también revalidado sobre ese frontend sin nueva alta.
+
+Pruebas afectadas:94/94 locales finales anteriores,42/42 HTTPS postdeploy ahora (una cancelación de imagen WebKit inicial conservada y sólo ese recorrido repetido). No sumar reejecuciones a635 históricos. Dos cuentas client autorizadas conservadas; sesiones0; sin entrenamiento. Producción34/34 entradas/backend/finanzas iguales; staging34/34 al excluir únicamente esos dos UUID; Edge5/10 sin cambios. Main conserva c818e35. Cloudflare producción CONFIGURATION PENDING; no proyecto/corte/merge/DNS. CUTOVER y production-plan.json preparados. Secciones siguientes: checkpoint histórico previo, no la identidad vigente del deployment.
 
 **CLOUDFLARE: PREVIEW DEPLOYED — FINAL CONFIGURATION PENDING**
 
 Fecha del cliente: 15/10/2026. Rama: `codex/cloudflare-migration`. Main inicial y final del cierre anterior verificado: `c818e35fcb0cfeddb61e8232aaaffba222ea8f4d`; esta actualización no escribe en main. No merge, cutover, DNS ni publicación productiva. El checkout histórico y su trabajo previo se conservan. El SHA final de la rama se registra en la entrega; este documento evita un hash autorreferente.
 
-## Despliegue real
+## Despliegue histórico anterior al cierre de Auth
 
 | Propiedad | Valor verificado |
 |---|---|
