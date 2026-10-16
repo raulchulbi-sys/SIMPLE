@@ -1,3 +1,11 @@
+> **Cierre posterior: 16/10/2026, 12:49–12:58 UTC.** La igualdad34/34 de producción descrita para09:15–09:59 no implica que la base permaneciese congelada después. La lectura final conserva31/34 entradas productivas y34/34 de staging iguales. Workouts pasó de65 a66; las65filas anteriores mantienen exactamente el hash cc5335c1fb619237c76c386f4b7d8e3e. El nuevo workout pertenece a un perfil trainer y coincide temporalmente con seis notas del mismo actor actualizadas a12:09:05. routine_exercises conserva86filas, sin creaciones ni updated_at reciente, pero su hash cambió. El código vigente escribe notas del entrenador en esa tabla sin cambiar updated_at; es una explicación compatible, no una demostración de que sólo cambiaron notas. No existe baseline por campo/auditoría suficiente para atribuir el evento exacto. No se revirtió ni ajustó ningún dato para cuadrar huellas.
+>
+> Patata conserva sus cinco workouts (cero nuevos y todos los históricos anteriores idénticos), cero notas actualizadas en ese intervalo y R1/R2/Coach sin cambios. Auth estable, funciones/permisos/políticas/triggers, finanzas, asignaciones y ciclo siguen iguales. La misión no ejecutó escrituras productivas.
+>
+> PR#1 se actualizó en borrador a12d70f216d7f25062c5d6b64f7d8e433f504c51f: su árbol54daeeb3e39787266af8b061ec354facdbcc128f coincide exactamente con el local3ac6ae6. Sólo staging desplegó esa fuente: e6bf32a7-2f7e-4c4f-b19c-4126407d4774, checkCloudflare success. Runtime público SHAe6733ab222d381b51e29081bce111f30748ecdda76f79e0c829a713f06a53c3f; backend staging. Dos smokes nativos nuevos pasaron2/2: Chromium390/claro y WebKit390/oscuro, sin sesión, datos privados ni llamadas IA. Informe staging-sessionless-e6bf32a7.json. El primer diagnóstico de about:blank/localStorage era del arnés; se conserva y sólo se repitió Chromium, sin sumar otro caso. Consola con los avisos conocidos de favicon404/CSP report-only, sin errores JS finales.
+>
+> La revisión automática de un comando offline agotó el plazo. Se comprobó que no llegó a ejecutarse y se completó una vez por terminal; no se repitió ningún deployment. El último commit posterior a este cierre es exclusivamente documental y puede usar CF-Pages-Skip; no altera el artefacto ni el resultado de los tests.
+
 # Checkpoint vigente — 16/10/2026, misión sin facturación
 
 **CLOUDFLARE: PREPARATION COMPLETE — BLOCKERS REMAIN.**
@@ -19,15 +27,16 @@
 | Categoría | Casos finales | Evidencia ignorada / límite |
 |---|---:|---|
 | Unitarios runtime afectados |32/32|runtime.cjs;31existentes afectados+1nuevo; bytesgeneradosidénticos|
-| Unitarios CORS afectados |8/8|production-cors-plan-unit.json; propuesta sinapply|
+| Unitarios CORS afectados |8/8|public-cors-unit-final.tap; propuesta sin apply|
 | Guardas release nuevas |17/17|public-release-unit.json; builddoble, tampering yrollbackoffline|
 | Integración HTTP anónima real staging |53/53|public-anonymous-security.json50 + public-anonymous-reorder.json3|
 | Integración JWT real staging |92/92 ejecutados,4gaps|public-jwt-security.json; NOseguridadPASSglobal|
 | OPTIONS real producción/staging |32/32|public-auth-cors-options-20261016.json; sinPOST/provider|
 | Navegador simulado |16/16|public-browser-simulation.json;2roles×2motores×320/1280×2temas; tráfico100%interceptado|
+| Navegador nativo con staging real, sin sesión |2/2|staging-sessionless-e6bf32a7.json; Chromium390/claro y WebKit390/oscuro, sin mocks|
 | Hosting público sóloGET |3/3|public-hosting-readonly.json; GitHubactual,placeholdery runtimestaging|
 
-**253 casos de las suites actuales**, sin sumar reruns,6aserciones auxiliares offline del matcher,64capturas anteriores ni las635/94/103históricas. Los dos diagnósticos del arnés (booleanreviewer y autosavenota) se conservan; no son18recorridos ni bugsproductivos. El guard sourceCommit de rollback se corrigió tras segunda revisión; su regresión está dentro de17, no se suma una ejecución anterior de16.
+**255 casos de las suites actuales**, sin sumar reruns,6aserciones auxiliares offline del matcher,64capturas anteriores ni las635/94/103históricas. Los dos diagnósticos del arnés (booleanreviewer y autosavenota) se conservan; no son18recorridos ni bugsproductivos. El guard sourceCommit de rollback se corrigió tras segunda revisión; su regresión está dentro de17, no se suma una ejecución anterior de16.
 
 320/1280 se revalidaron en ambos motores y temas sobre el artefacto productivo offline;360/390/430 conservan la evidencia histórica aplicable porque no cambió UI. No simular40casos nuevos de diseño ni declarar Safari físico. Notas/historial en lectura; draft, timer, tema, gráfica y controles editor comprobados con dobles; no guardados reales ni IA. Google/recovery reales de staging ya validados con titular anteriormente, no repetidos. **OAuth productivo en Cloudflare no probado.**
 
