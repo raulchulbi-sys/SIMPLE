@@ -54,7 +54,7 @@
     "deploymentUrl": "https://170fea3b.simple-raulchulbi.pages.dev/",
     "artifactTreeSha256": "47ba45ce844af2c62569d60c8d622f5e8c8b864c807f465cf3037cd74e662399",
     "rootAndDeploymentContainOnlyPlaceholder": true,
-    "accessStatus": "NOT CONFIGURED; Free selection authorized and executed; checkout Session Expired, then Cloudflare One loading; enrollment/payment/terms not completed"
+    "accessStatus": "NOT CONFIGURED; Free checkout inspected on 2026-10-16; payment method, billing address, terms/privacy and monthly overage-charge authorization required; stopped without activation; new human financial authorization required"
   },
   "projectCreated": true,
   "projectNameVerified": "simple-raulchulbi",
@@ -67,9 +67,30 @@
     "project": "simple-509717",
     "client": "SIMPLE Web",
     "authorizedReadOnly": true,
-    "status": "BLOCKED_LOADING",
-    "currentOriginsAndCallbacksVerified": false,
+    "status": "READ_ONLY_VERIFIED",
+    "currentOriginsAndCallbacksVerified": true,
+    "reviewedAt": "2026-10-16",
+    "authorizedJavaScriptOrigins": ["https://raulchulbi-sys.github.io"],
+    "authorizedRedirectUris": ["https://yvguatdqncadkwewlepe.supabase.co/auth/v1/callback"],
+    "originAdditionProposed": "https://simple-raulchulbi.pages.dev",
+    "originAdditionAuthorized": false,
     "secretsOpened": false,
     "configurationSaved": false
+  },
+  "accessEnrollmentReview": {
+    "reviewedAt": "2026-10-16",
+    "plan": "Zero Trust Free",
+    "monthlyBaseUsd": 0,
+    "includedUsers": 50,
+    "paymentMethodRequired": true,
+    "billingAddressRequired": true,
+    "termsAndPrivacyAcceptanceRequired": true,
+    "monthlyOverageChargeAuthorizationRequired": true,
+    "paymentDetailsEntered": false,
+    "walletsSelected": false,
+    "termsAccepted": false,
+    "overageChargeAuthorizationAccepted": false,
+    "activated": false,
+    "newFinancialAuthorizationRequired": true
   }
 }

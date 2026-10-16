@@ -1,6 +1,6 @@
 # Cloudflare producción: proyecto configurado, aplicación pendiente
 
-Checkpoint del **15/10/2026**. Estado: **PRODUCTION PROJECT CONFIGURED — DEPLOYMENT PENDING**. La parte pendiente es el despliegue de la **aplicación conectada a producción**. El proyecto independiente ya existe y sirve públicamente un placeholder estático sin backend. **Cloudflare Access sigue pendiente; no hay una aplicación productiva protegida ni una validación funcional completa de esa aplicación.**
+Checkpoint actualizado el **16/10/2026**. Estado: **PRODUCTION PROJECT CONFIGURED — DEPLOYMENT PENDING**. La parte pendiente es el despliegue de la **aplicación conectada a producción**. El proyecto independiente ya existe y sirve públicamente un placeholder estático sin backend. **Cloudflare Access sigue pendiente; no hay una aplicación productiva protegida ni una validación funcional completa de esa aplicación.**
 
 Este checkpoint sustituye las afirmaciones anteriores de CUTOVER/README que indicaban que el segundo proyecto todavía no se había creado. GitHub Pages conserva la aplicación vigente. Main permanece en `c818e35fcb0cfeddb61e8232aaaffba222ea8f4d`; la PR #1 continúa en borrador y no se ha fusionado.
 
@@ -43,7 +43,7 @@ Los resultados guardados, sin reejecutarlos para escribir este documento, son:
 - **4/4** empaquetados offline del futuro perfil productivo, sin desplegar la aplicación.
 - **4/4** comprobaciones específicas de staging tras la preparación: runtime real y navegación sin sesión en ambos motores. Staging conserva `dmqjexigdnfzobarhnib`; la comprobación no repite Google ni recovery reales.
 
-**Total: 103 comprobaciones únicas ejecutadas en esta fase**, sin sumar intentos ni evidencia histórica. El smoke de staging registró un mensaje de recurso 404 sin ubicación en Chromium y el aviso report-only sin report-to en WebKit. No hubo pageErrors, fallos de requests observados, escrituras ni acceso a producción; no se afirma una consola vacía.
+**Total histórico de la fase del 15/10/2026: 103 comprobaciones únicas**, sin sumar intentos ni evidencia histórica anterior. No se repitieron para las lecturas de panel del 16/10 ni para esta actualización documental. El smoke de staging registró un mensaje de recurso 404 sin ubicación en Chromium y el aviso report-only sin report-to en WebKit. No hubo pageErrors, fallos de requests observados, escrituras ni acceso a producción; no se afirma una consola vacía.
 
 La primera comprobación HTTPS del placeholder dejó un diagnóstico de propagación DNS del alias: cuatro éxitos y cuatro fallos de red. Se conserva en `tests/cloudflare/results/placeholder-live-first-dns.json`; la ejecución posterior completa está en `placeholder-live.json`. No sumar ambos intentos como casos distintos ni ocultar el diagnóstico. Los demás informes permanecen en `tests/cloudflare/results/`, ignorados por Git y excluidos del hosting.
 
@@ -57,9 +57,11 @@ Raul conserva trainer; Patatasimple conserva client, R1/R2 y cinco workouts. No 
 
 El panel productivo se leyó sin guardar: Site URL y la única Redirect URL siguen siendo `https://raulchulbi-sys.github.io/SIMPLE/`. Las plantillas de confirmación y recuperación usan `{{ .ConfirmationURL }}`, sin destino GitHub incrustado en el enlace. No se editó ni envió ninguna plantilla y no se accedió a credenciales SMTP. Los backups y comprobaciones de plantillas son privados e ignorados.
 
-## Access: bloqueo pendiente y cobertura necesaria
+## Access: alta con condiciones financieras pendiente y cobertura necesaria
 
-La autorización para seleccionar exclusivamente **Free** se recibió y se ejecutó el 15/10/2026. El navegador avanzó por checkout/free hasta checkout/payment, donde mostró **Session Expired**. Se volvió al dashboard existente, pero Cloudflare One quedó en Loading al recuperar su página oficial. No se introdujeron datos de pago, no se aceptaron condiciones ni se completó el alta de Access. **No se ha observado todavía un formulario de tarjeta en esta cuenta**; la ruta payment no prueba por sí sola qué campos solicitará. Se pidió al titular recuperar la carga de la pestaña. La documentación oficial de alta contempla datos de pago incluso para el plan gratuito; ese posible paso sigue reservado al titular. [Cloudflare One: setup](https://developers.cloudflare.com/cloudflare-one/setup/).
+El 16/10/2026 Cloudflare One volvió a cargar. Se continuó desde Get started y se seleccionó **Free** dentro de la autorización ya concedida para inspeccionar el siguiente paso. El checkout real **Activate Zero Trust Free** mostró base de **0 dólares y 50 usuarios**, campos de tarjeta y dirección de facturación, una casilla de aceptación de Terms/Privacy y otra para autorizar cargos mensuales por uso que exceda los límites gratuitos. **Se detuvo antes de introducir datos, seleccionar wallets, marcar casillas o pulsar Activate.** No se completó el alta ni existe una política o aplicación Access configurada. [Cloudflare One: setup](https://developers.cloudflare.com/cloudflare-one/setup/).
+
+Las autorizaciones limitadas para seleccionar Free y leer Google ya están resueltas; no hay que pedirlas otra vez. Los errores Session Expired/Loading del 15/10 quedan como antecedentes superados. La dependencia actual es distinta: completar el alta requiere método de pago y aceptación de condiciones/cargos, y el encargo original prohíbe activar facturación. Ese paso necesita intervención del titular y una **nueva autorización explícita** que cubra esas condiciones; la selección Free autorizada no la sustituye. No se extrajeron ni conservaron códigos SMS, credenciales o tokens de Link, ni URLs de iframes de pago.
 
 Antes de servir la aplicación real, completar el procedimiento oficial para proteger tanto `simple-raulchulbi.pages.dev` como `*.simple-raulchulbi.pages.dev`. La documentación de Pages distingue la protección de previews de la del hostname raíz y describe la preparación de las aplicaciones Access correspondientes; no dar por protegida la raíz al activar solamente previews. Verificar también la ruta raíz y todas las rutas de cada hostname, sin excepciones públicas que permitan descargar el frontend conectado a producción. [Pages: known issues](https://developers.cloudflare.com/pages/platform/known-issues/), [Preview deployments](https://developers.cloudflare.com/pages/configuration/preview-deployments/), [Access: application paths](https://developers.cloudflare.com/cloudflare-one/access-controls/policies/app-paths/).
 
@@ -80,14 +82,21 @@ Las propuestas exactas son la base `https://simple-raulchulbi.pages.dev/`, el pa
 
 La falta actual de Access mantiene cerrada la segunda puerta; no se realizaron escrituras productivas de Auth/CORS. Tampoco se cambiaron Site URL, configuración Google, Edge Functions, datos deportivos/financieros, cuentas o roles. Esto describe el alcance de las acciones realizadas; no afirma una nueva auditoría completa de toda la base productiva.
 
-Google Cloud requiere una revisión específica antes de la validación OAuth productiva. La guía oficial de Supabase incluye la URL de la aplicación en **Authorized JavaScript origins** y el callback Supabase en **Authorized redirect URIs**. Revisar el cliente existente **SIMPLE Web** y preparar, si corresponde, la adición exacta `https://simple-raulchulbi.pages.dev` en el primer campo. Conservar el origen GitHub existente y `https://yvguatdqncadkwewlepe.supabase.co/auth/v1/callback` en el segundo; no sustituirlo por Cloudflare. El uso de `signInWithOAuth` por sí solo no demuestra que la configuración Google ya sea suficiente. [Supabase: Google social login, Project setup](https://supabase.com/docs/guides/auth/social-login/auth-google).
+Google Auth Platform volvió a cargar el 16/10/2026 y se completó únicamente la lectura acotada autorizada del cliente existente **SIMPLE Web**, proyecto **simple-509717**. Se observó una URI en cada sección:
 
-La lectura limitada del cliente Google existente fue autorizada expresamente. Se abrió Google Auth Platform en SIMPLE, proyecto simple-509717, pero la lista de clientes mostró «Se produjo un error durante la carga» y volvió a fallar con Reintentar. No se alcanzaron los campos de SIMPLE Web, por lo que **sus orígenes y callbacks actuales siguen sin verificarse**. Una captura amplia del panel fue rechazada por la revisión automática; se sustituyó por lectura textual acotada del error, sin capturar configuración ni secretos. Se pidió al titular recuperar la carga de la pestaña. No se ha aplicado ningún cambio Google Cloud en esta fase, ni creado clientes, scopes o secretos. Si ese ajuste resulta necesario, presentar el campo/valor y respetar la aprobación o intervención requerida antes del corte. No bloquea el placeholder. **OAuth real desde Cloudflare producción permanece pendiente**; el PASS real de staging se conserva con su alcance original.
+| Campo Google verificado | Único valor actual |
+|---|---|
+| Authorized JavaScript origins | `https://raulchulbi-sys.github.io` |
+| Authorized redirect URIs | `https://yvguatdqncadkwewlepe.supabase.co/auth/v1/callback` |
+
+La adición preparada es **sólo** `https://simple-raulchulbi.pages.dev` en Authorized JavaScript origins, conservando el origen GitHub y el callback Supabase. **No está autorizada por la aprobación de sólo lectura y no se aplicó.** La guía oficial de Supabase incluye la URL de la aplicación y el callback en esos campos; no sustituir el callback Supabase por Cloudflare. [Supabase: Google social login, Project setup](https://supabase.com/docs/guides/auth/social-login/auth-google).
+
+No se abrió ningún secreto, guardó configuración ni creó clientes, scopes o secretos. Los errores de carga anteriores no son el estado actual. La modificación Google propuesta necesita autorización separada; no bloquea el placeholder. **OAuth real desde Cloudflare producción permanece pendiente**; el PASS real de staging se conserva con su alcance original.
 
 ## Orden para la siguiente promoción
 
-1. Conservar el placeholder y los controles actuales. Completar primero el alta/políticas Access con el titular y verificar su cobertura sin sesión, incluyendo aliases.
-2. Reconciliar main, PR, fuentes LIVE, flags e integridad mediante lecturas; preparar backup y reversión contra ese estado. Validar el diff aditivo en staging, revisar los dos campos Google indicados y satisfacer las seis puertas.
+1. Conservar el placeholder y los controles actuales. Resolver con el titular la nueva autorización financiera/contractual antes de completar el alta Access; después configurar sus políticas y verificar la cobertura sin sesión, incluyendo aliases.
+2. Reconciliar main, PR, fuentes LIVE, flags e integridad mediante lecturas; preparar backup y reversión contra ese estado. Validar el diff aditivo en staging, releer los dos campos Google ya verificados y aplicar su adición exacta únicamente si recibe autorización separada. Satisfacer las seis puertas.
 3. Aplicar únicamente Redirect URLs/CORS exactos autorizados, conservando GitHub Pages y el callback Google `https://yvguatdqncadkwewlepe.supabase.co/auth/v1/callback`. No cambiar Site URL ni SMTP.
 4. Tras autorización separada de merge, incorporar el árbol revisado a `main`. Antes de publicar, comprobar cómo se despliega GitHub Pages y conservar su compatibilidad. Configurar la promoción manual de Cloudflare con `--target production`, rama `main` y runtime productivo, manteniendo Access activo y las publicaciones automáticas apagadas.
 5. Publicar la aplicación bajo Access y contrastar deployment, SHA, runtime, backend, allowlist, headers y recursos. Validar Auth/OAuth/recovery con una cuenta autorizada, sin entrenamientos sintéticos, generación AI ni cambios de usuarios reales. Una limitación pendiente se documenta como tal.
@@ -111,6 +120,6 @@ No se ha ensayado un rollback productivo: el placeholder tiene un único deploym
 
 ## Próximas acciones del titular
 
-1. Recuperar la carga de las pestañas Cloudflare One y Google Cloud. La selección Free y la lectura OAuth ya están autorizadas; no volver a pedir esos mismos permisos. Detenerse ante datos de pago o nuevas condiciones.
-2. Cuando carguen, completar la lectura de orígenes/callbacks y preparar Access. Identificar la cuenta autorizada para validar Auth productivo sólo después de verificar la protección.
-3. Revisar el resultado final y autorizar por separado el merge y el corte cuando sus comprobaciones estén cerradas. No es necesario elegir ni comprar un dominio para conservar esta preparación segura.
+1. Decidir si autoriza expresamente el alta Zero Trust Free con método de pago, condiciones y posibles cargos por excedentes; si continúa, completar personalmente ese paso. Sin esa autorización se mantiene el placeholder.
+2. Autorizar por separado, si desea continuar, la adición Google exacta `https://simple-raulchulbi.pages.dev` a Authorized JavaScript origins; conservar el origen y callback actuales.
+3. Cuando se cumplan las puertas, identificar la cuenta de validación productiva y autorizar el merge del árbol revisado; el corte requerirá una aprobación posterior independiente. No es necesario elegir ni comprar un dominio para conservar esta preparación segura.
