@@ -1,0 +1,109 @@
+{
+  "status": "PUBLIC FRONTEND PREPARATION — CUTOVER NOT AUTHORIZED",
+  "deployed": false,
+  "projectNameProposed": "simple-raulchulbi",
+  "appUrlProposed": "https://simple-raulchulbi.pages.dev/",
+  "repository": "raulchulbi-sys/SIMPLE",
+  "productionBranch": "main",
+  "previewBranches": "none",
+  "frameworkPreset": "None",
+  "rootDirectory": "/",
+  "buildCommand": "node scripts/hosting-build.cjs --target production",
+  "outputDirectory": "dist",
+  "variablesPublic": {
+    "SIMPLE_DEPLOY_TARGET": "production",
+    "SIMPLE_PAGES_PROJECT": "simple-raulchulbi",
+    "SIMPLE_APP_URL": "https://simple-raulchulbi.pages.dev/"
+  },
+  "variablesAutomatic": [
+    "CF_PAGES_BRANCH",
+    "CF_PAGES_URL"
+  ],
+  "supabaseProject": "yvguatdqncadkwewlepe",
+  "googleProviderCallbackUnchanged": "https://yvguatdqncadkwewlepe.supabase.co/auth/v1/callback",
+  "authRedirectsProposedAdditive": [
+    "https://simple-raulchulbi.pages.dev/",
+    "https://simple-raulchulbi.pages.dev/\\?reset=1"
+  ],
+  "corsOriginProposed": "https://simple-raulchulbi.pages.dev",
+  "preserveExistingOrigin": "https://raulchulbi-sys.github.io",
+  "preserveExistingAppUrl": "https://raulchulbi-sys.github.io/SIMPLE/",
+  "siteUrlChangeAuthorized": false,
+  "dnsChangeAuthorized": false,
+  "mainMergeAuthorized": false,
+  "cutoverAuthorized": false,
+  "initialDeploymentGate": "Keep the inert placeholder until explicit cutover authorization, public backend security validation, exact Auth/CORS additions and approved artifact are verified. Access is not required or enrolled.",
+  "preparation": {
+    "branch": "codex/cloudflare-production-preparation",
+    "target": "placeholder",
+    "buildCommand": "node scripts/hosting-build.cjs --target placeholder",
+    "outputDirectory": "dist",
+    "automaticProductionDeployments": false,
+    "previewBranches": "none",
+    "backendInitialized": false,
+    "accessConfigured": false,
+    "applicationDeployed": false,
+    "variablesPublic": {
+      "SIMPLE_DEPLOY_TARGET": "placeholder",
+      "SIMPLE_PAGES_PROJECT": "simple-raulchulbi",
+      "SIMPLE_APP_URL": "https://simple-raulchulbi.pages.dev/"
+    },
+    "placeholderDeployed": true,
+    "sourceCommit": "8b2f526edae136b43970dd9770f5b74db575e7e6",
+    "deploymentId": "170fea3b-05ea-426b-b482-af7749bd0218",
+    "deploymentUrl": "https://170fea3b.simple-raulchulbi.pages.dev/",
+    "artifactTreeSha256": "47ba45ce844af2c62569d60c8d622f5e8c8b864c807f465cf3037cd74e662399",
+    "rootAndDeploymentContainOnlyPlaceholder": true,
+    "accessStatus": "NOT CONFIGURED — enrollment abandoned for this mission; no card, terms, subscription or charges accepted"
+  },
+  "projectCreated": true,
+  "projectNameVerified": "simple-raulchulbi",
+  "appUrlVerified": "https://simple-raulchulbi.pages.dev/",
+  "productionSupabaseChangesApplied": false,
+  "productionAuthBackup": "tests/cloudflare/private/public-production-auth-urls-readonly-20261016.json (ignored; refresh before cutover)",
+  "corsPlan": "tests/cloudflare/private/public-auth-cors-production-plan-review-20261016.json (ignored; reviewOnly/applyAllowed=false)",
+  "deployedMeaning": "Production application only; preparation.placeholderDeployed records the inert public deployment.",
+  "googleClientReview": {
+    "project": "simple-509717",
+    "client": "SIMPLE Web",
+    "authorizedReadOnly": true,
+    "status": "READ_ONLY_VERIFIED",
+    "currentOriginsAndCallbacksVerified": true,
+    "reviewedAt": "2026-10-16",
+    "authorizedJavaScriptOrigins": [
+      "https://raulchulbi-sys.github.io"
+    ],
+    "authorizedRedirectUris": [
+      "https://yvguatdqncadkwewlepe.supabase.co/auth/v1/callback"
+    ],
+    "originAdditionProposed": "https://simple-raulchulbi.pages.dev",
+    "originAdditionAuthorized": false,
+    "secretsOpened": false,
+    "configurationSaved": false
+  },
+  "accessEnrollmentReview": {
+    "reviewedAt": "2026-10-16",
+    "plan": "Zero Trust Free",
+    "monthlyBaseUsd": 0,
+    "includedUsers": 50,
+    "paymentMethodRequired": true,
+    "billingAddressRequired": true,
+    "termsAndPrivacyAcceptanceRequired": true,
+    "monthlyOverageChargeAuthorizationRequired": true,
+    "paymentDetailsEntered": false,
+    "walletsSelected": false,
+    "termsAccepted": false,
+    "overageChargeAuthorizationAccepted": false,
+    "activated": false,
+    "newFinancialAuthorizationRequired": false,
+    "status": "HISTORICAL_INSPECTION_ABANDONED",
+    "reason": "User chose public frontend with existing backend authorization; no further checkout"
+  },
+  "architecture": {
+    "frontend": "public Cloudflare Pages",
+    "authentication": "existing Supabase Auth",
+    "authorization": "server JWT, grants, RLS and protected RPC",
+    "accessRequired": false
+  },
+  "publicFrontendSecurityValidated": false
+}

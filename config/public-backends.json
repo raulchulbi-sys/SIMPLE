@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "staging": {
+    "projectId": "dmqjexigdnfzobarhnib",
+    "url": "https://dmqjexigdnfzobarhnib.supabase.co",
+    "publicKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtcWpleGlnZG5mem9iYXJobmliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg5MDIwNzUsImV4cCI6MjEwNDQ3ODA3NX0.C-mw7CeIJhacqSlV9_khPzVpHw1ab5XRyEEwCtqYAk8"
+  },
+  "production": {
+    "projectId": "yvguatdqncadkwewlepe",
+    "url": "https://yvguatdqncadkwewlepe.supabase.co",
+    "publicKey": "sb_publishable_VYoUECN0MaGIOC2LtGi0iw_C0wqUY-W"
+  }
+}
