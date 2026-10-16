@@ -1,6 +1,6 @@
 'use strict';
 // Offline review payload only. No network client, deploy command, Auth write or SQL.
-// Reviewed against LIVE production and main c818e35 on 2026-10-15.
+// Reviewed against LIVE production and main c818e35 on 2026-10-16.
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),assert=require('node:assert/strict');
 const PROJECT='yvguatdqncadkwewlepe',PAGES_PROJECT='simple-raulchulbi';
 const GITHUB='https://raulchulbi-sys.github.io';
@@ -64,7 +64,12 @@ function patchEntry(fn,origin){
   assert(['simple-coach-premium','simple-coach-chat'].includes(fn.name),'Unexpected function');
   assert(entry.content.includes("if(URL!=='https://"+PROJECT+".supabase.co')"),'Production environment guard missing');array=expression;
  }
- const retainedOrigins=literalOrigins(array);assert.deepEqual(retainedOrigins,[GITHUB],'Production whitelist baseline changed');
+ const retainedOrigins=literalOrigins(array);
+ if(retainedOrigins.includes(origin)){
+  assert.deepEqual(retainedOrigins,[GITHUB,origin],'Production whitelist baseline changed');
+  return {entryName,content:entry.content,retainedOrigins,addedOrigins:[],beforeSha256:hash(entry.content),afterSha256:hash(entry.content)};
+ }
+ assert.deepEqual(retainedOrigins,[GITHUB],'Production whitelist baseline changed');
  const patchedArray=array.slice(0,-1)+','+JSON.stringify(origin)+']',start=line.indexOf(array);
  assert(start>=0,'Array boundary missing');
  const patchedLine=line.slice(0,start)+patchedArray+line.slice(start+array.length);
@@ -74,9 +79,9 @@ function patchEntry(fn,origin){
 }
 function safetyGate(safety,origin){
  // Receipts are review evidence, not a substitute for reading the real external state.
- const required=['originOwned','originProtected','stagingValidated','configBackupVerified','rollbackReviewed','mandatoryApprovalsSatisfied'];
+ const required=['originOwned','publicFrontendSecurityValidated','stagingValidated','configBackupVerified','rollbackReviewed','mandatoryApprovalsSatisfied'];
  const checks=required.map(name=>{const proof=safety?.[name];let pass=proof?.verified===true&&typeof proof.evidence==='string'&&proof.evidence.trim().length>0;
-  if(['originOwned','originProtected'].includes(name))pass=pass&&proof.origin===origin;
+  if(['originOwned','publicFrontendSecurityValidated'].includes(name))pass=pass&&proof.origin===origin;
   if(name==='configBackupVerified')pass=pass&&/^[a-f0-9]{64}$/.test(proof?.sha256||'');
   return {name,pass:!!pass,evidence:pass?proof.evidence:null};
  });
@@ -126,7 +131,7 @@ function assertRollbackSafe({plan,currentSnapshot,liveRead,appliedVersions}={}){
  }
  return true;
 }
-module.exports={prepare,verifiedOrigin,patchEntry,assertRollbackSafe,sourceHash,PROJECT,PAGES_PROJECT,BASELINE};
+module.exports={prepare,verifiedOrigin,patchEntry,safetyGate,assertRollbackSafe,sourceHash,PROJECT,PAGES_PROJECT,BASELINE};
 if(require.main===module){try{
  const args=process.argv.slice(2),options={};assert(args.length===8||args.length===10,'Usage: --pages-project simple-raulchulbi --app-url URL --snapshot PRIVATE_JSON --live-read PRIVATE_JSON [--safety-evidence PRIVATE_JSON]');
  for(let i=0;i<args.length;i+=2){assert(['--pages-project','--app-url','--snapshot','--live-read','--safety-evidence'].includes(args[i])&&!Object.hasOwn(options,args[i]),'Unknown or duplicate option');options[args[i]]=args[i+1];}

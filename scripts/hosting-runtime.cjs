@@ -2,12 +2,20 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const {createHash} = require('node:crypto');
 const BACKENDS = require('../config/public-backends.json');
 const TARGETS = new Set(['local', 'preview', 'production']);
 const GITHUB_APP = 'https://raulchulbi-sys.github.io/SIMPLE/';
 // These are reviewed deployment identities, not values selected by build variables.
 // The production name is proposed for reservation; this does not provision it.
 const PAGES_PROJECTS = Object.freeze({preview:'simple-staging-raulchulbi',production:'simple-raulchulbi'});
+// Opaque publishable keys do not encode their project. Pin reviewed public
+// configuration so a mistaken key replacement fails before producing an artifact.
+// A deliberate public-key rotation requires reviewing and updating this fingerprint.
+const PUBLIC_KEY_FINGERPRINTS = Object.freeze({
+  staging:'4f0c7e2718941ddc16432e574785c942e26b63e00b4c670a1ded231b1bf082fc',
+  production:'c1a8114503ed33bbd66261feb649bcc58bd3bdf3dc29e9481ea4cb9088219504'
+});
 
 function fail(message) { throw new Error('Hosting configuration: ' + message); }
 function validateBackend(environment, backend) {
@@ -22,6 +30,7 @@ function validateBackend(environment, backend) {
     catch (_) { fail('invalid public key'); }
     if (key.split('.').length !== 3 || claims.role !== 'anon' || claims.ref !== expected || claims.sub || claims.session_id || claims.email) fail('key does not match public backend');
   } else if (!/^sb_publishable_[A-Za-z0-9_-]+$/.test(key)) fail('unrecognised public key');
+  if (createHash('sha256').update(key).digest('hex') !== PUBLIC_KEY_FINGERPRINTS[environment]) fail('public key fingerprint is not approved for backend');
 }
 function parseAppUrl(raw, target, env) {
   let url;

@@ -1,3 +1,5 @@
+> HISTÓRICO FECHADO. Para el estado vigente y la arquitectura pública sin Access, consultar README.md, PUBLIC-AUTH-CORS.md y CHECKPOINT.md (16/10/2026). No ejecutar instrucciones antiguas como autorización actual. La inspección de Zero Trust queda descartada; no se requiere completar su alta.
+
 # Autenticación y CORS durante la migración
 
 Este documento describe la adaptación de alojamiento y sus límites de prueba. Supabase conserva Auth, usuarios, perfiles, sesiones, permisos y Edge Functions. La migración no requiere cambiar `assets/auth.js` ni `assets/oauth.js`: sus tres destinos ya utilizan `APP_URL`, que ahora obtiene la configuración pública validada del entorno.

@@ -1,3 +1,5 @@
+> RESULTADOS HISTÓRICOS por fase. El cierre vigente del16/10 está en docs/cloudflare-migration/CHECKPOINT.md; no sumar reejecuciones ni confundir pruebas simuladas con JWT/OAuth reales.
+
 # Validación de la migración estática
 
 ## Preparación productiva posterior — 15/10/2026

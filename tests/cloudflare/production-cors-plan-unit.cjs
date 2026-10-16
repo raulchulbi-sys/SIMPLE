@@ -1,7 +1,7 @@
 'use strict';
 // Local CORS prefixes only; the existing VM helper cannot cross the RPC boundary.
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
-const {prepare,verifiedOrigin,patchEntry,assertRollbackSafe,PROJECT,PAGES_PROJECT,BASELINE}=require('./production-cors-plan.cjs');
+const {prepare,verifiedOrigin,patchEntry,safetyGate,assertRollbackSafe,PROJECT,PAGES_PROJECT,BASELINE}=require('./production-cors-plan.cjs');
 const {prefixHandler,allowed}=require('./auth-cors.cjs');
 const root=path.resolve(__dirname,'../..'),origin='https://'+PAGES_PROJECT+'.pages.dev',appUrl=origin+'/';
 const names=Object.keys(BASELINE),github='https://raulchulbi-sys.github.io',production='https://'+PROJECT+'.supabase.co',staging='https://dmqjexigdnfzobarhnib.supabase.co';
@@ -19,6 +19,9 @@ for(const name of names)test(name+': CORS addition retains GitHub, rejects forei
  }
  const originalLines=source.split('\n'),patchedLines=patch.content.split('\n');
  assert.equal(originalLines.filter((line,i)=>line!==patchedLines[i]).length,1);
+ const repeated=patchEntry({name,files:[{name:file,content:patch.content}]},origin);
+ assert.equal(repeated.content,patch.content,'Applying the same exact-origin patch twice must be a byte-identical no-op');
+ assert.deepEqual(repeated.addedOrigins,[]);assert.deepEqual(repeated.retainedOrigins,[github,origin]);
  const stage=prefixHandler(patch.content,staging);
  if(['simple-coach-mock','simple-coach-initial-premium'].includes(name)){
   const port=name==='simple-coach-mock'?4194:4262;await allowed(stage,'http://127.0.0.1:'+port);
@@ -32,7 +35,23 @@ test('changed production whitelist and unexpected functions are refused',()=>{
  assert.throws(()=>patchEntry({name,files:[{name:file,content:source}]},'https://other.pages.dev'),/reviewed stable/);
  assert.throws(()=>patchEntry({name:'unexpected',files:[{name:'supabase/functions/unexpected/index.ts',content:source}]},origin),/Unexpected function/);
 });
-const privateFile=path.join(__dirname,'private/production-edge-before.json');
+test('public frontend security replaces Access without granting deployment authorization',()=>{
+ const blocked=safetyGate(undefined,origin);assert.equal(blocked.passed,false);
+ const names=blocked.checks.map(check=>check.name);
+ assert(names.includes('publicFrontendSecurityValidated'));assert(!names.includes('originProtected'));
+ const receipt=Object.fromEntries(names.map(name=>[name,{verified:true,evidence:'Synthetic offline receipt only',origin,sha256:'a'.repeat(64)}]));
+ const pending=structuredClone(receipt);pending.publicFrontendSecurityValidated.verified=false;
+ assert.deepEqual(safetyGate(pending,origin).blockingReasons,['publicFrontendSecurityValidated']);
+ const legacy=structuredClone(receipt);delete legacy.publicFrontendSecurityValidated;legacy.originProtected={verified:true,evidence:'Legacy Access receipt',origin};
+ assert.deepEqual(safetyGate(legacy,origin).blockingReasons,['publicFrontendSecurityValidated']);
+ const other=structuredClone(receipt);other.publicFrontendSecurityValidated.origin='https://foreign.example.invalid';
+ assert.equal(safetyGate(other,origin).passed,false);
+ const unapproved=structuredClone(receipt);unapproved.mandatoryApprovalsSatisfied.verified=false;
+ assert.deepEqual(safetyGate(unapproved,origin).blockingReasons,['mandatoryApprovalsSatisfied']);
+ assert.equal(safetyGate(receipt,origin).passed,true,'Synthetic gate evaluation is not deployment approval');
+});
+const freshPrivateFile=path.join(__dirname,'private/public-auth-cors-production-before-20261016.json');
+const privateFile=fs.existsSync(freshPrivateFile)?freshPrivateFile:path.join(__dirname,'private/production-edge-before.json');
 // Full exact-source tests use the existing ignored LIVE capture, never a public bundle copy.
 test('captured production source: fail-closed readiness, exact rollback and drift guards',{skip:!fs.existsSync(privateFile)},()=>{
  const snapshot=JSON.parse(fs.readFileSync(privateFile,'utf8')).filter(fn=>names.includes(fn.name));
@@ -56,7 +75,9 @@ test('captured production source: fail-closed readiness, exact rollback and drif
   value=>value.snapshot.push(value.snapshot[0]),
  ]){const input=defaults();mutate(input);assert.throws(()=>prepare(input));}
  const onlyBooleans=defaults();onlyBooleans.safety=Object.fromEntries(plan.gate.checks.map(item=>[item.name,{verified:true}]));assert.equal(prepare(onlyBooleans).gate.passed,false);
- const protectedOther=defaults();protectedOther.safety={originProtected:{verified:true,evidence:'protection receipt',origin:'https://other.pages.dev'}};assert.equal(prepare(protectedOther).gate.checks.find(item=>item.name==='originProtected').pass,false);
+ const securityOther=defaults();securityOther.safety={publicFrontendSecurityValidated:{verified:true,evidence:'security receipt',origin:'https://other.pages.dev'}};assert.equal(prepare(securityOther).gate.checks.find(item=>item.name==='publicFrontendSecurityValidated').pass,false);
+ const syntheticReady=defaults();syntheticReady.safety=Object.fromEntries(plan.gate.checks.map(item=>[item.name,{verified:true,evidence:'Synthetic offline receipt only',origin,sha256:'a'.repeat(64)}]));
+ const stillReviewOnly=prepare(syntheticReady);assert.equal(stillReviewOnly.gate.passed,true);assert.equal(stillReviewOnly.reviewOnly,true);assert.equal(stillReviewOnly.applyAllowed,false);
  const after=snapshot.map(fn=>({...structuredClone(fn),version:fn.version+1,ezbr_sha256:'b'.repeat(64),files:plan.deployments.find(item=>item.name===fn.name).files}));
  const afterRead={...liveRead,functions:after.map(({files,...fn})=>fn)},appliedVersions=Object.fromEntries(after.map(fn=>[fn.name,fn.version]));
  assert.equal(assertRollbackSafe({plan,currentSnapshot:after,liveRead:afterRead,appliedVersions}),true);

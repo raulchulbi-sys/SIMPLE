@@ -22,6 +22,13 @@ test('local cannot inherit unvalidated Cloudflare aliases',()=>{for(const extra 
 test('no backend override',()=>assert.throws(()=>createRuntimeConfig({target:'local',env:{SIMPLE_APP_URL:'http://127.0.0.1:4280/',SIMPLE_SUPABASE_URL:'https://yvguatdqncadkwewlepe.supabase.co'}}),/override/));
 test('no key override',()=>assert.throws(()=>createRuntimeConfig({target:'local',env:{SIMPLE_APP_URL:'http://127.0.0.1:4280/',SIMPLE_SUPABASE_KEY:'sb_secret_forbidden'}}),/override/));
 test('reject service role and session keys',()=>{const encode=x=>Buffer.from(JSON.stringify(x)).toString('base64url');const backend=require('../../config/public-backends.json').staging;for(const payload of [{role:'service_role',ref:backend.projectId},{role:'anon',ref:backend.projectId,email:'fixture@example.invalid'},{role:'anon',ref:'yvguatdqncadkwewlepe'}])assert.throws(()=>validateBackend('staging',{...backend,publicKey:'eyJ.'+encode(payload)+'.signature'}),/public backend|private/);});
+test('opaque keys must match the reviewed project fingerprint',()=>{
+ const backends=require('../../config/public-backends.json');
+ for(const environment of ['staging','production']){
+  assert.throws(()=>validateBackend(environment,{...backends[environment],publicKey:'sb_publishable_synthetic_other_project_key'}),/fingerprint/);
+  assert.doesNotThrow(()=>validateBackend(environment,backends[environment]));
+ }
+});
 test('reject URL credentials/query/hash',()=>{for(const u of ['http://user:pass@localhost:4280/','http://localhost:4280/?reset=1','http://localhost:4280/#code','http://localhost:4280/SIMPLE'])assert.throws(()=>local(u));});
 test('reject nonloopback local',()=>{for(const u of ['http://0.0.0.0:4280/','https://localhost:4280/','http://localhost/','http://127.0.0.1:4280/nested/'])assert.throws(()=>local(u));});
 test('reject unknown Pages host',()=>assert.throws(()=>createRuntimeConfig({target:'preview',env:{...previewEnv,SIMPLE_APP_URL:'https://other.pages.dev/',CF_PAGES_URL:'https://other.pages.dev'}}),/outside/));

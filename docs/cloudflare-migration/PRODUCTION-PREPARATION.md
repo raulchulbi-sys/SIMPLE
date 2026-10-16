@@ -1,3 +1,5 @@
+> HISTÓRICO FECHADO. Para el estado vigente y la arquitectura pública sin Access, consultar README.md, PUBLIC-AUTH-CORS.md y CHECKPOINT.md (16/10/2026). No ejecutar instrucciones antiguas como autorización actual. La inspección de Zero Trust queda descartada; no se requiere completar su alta.
+
 # Cloudflare producción: proyecto configurado, aplicación pendiente
 
 Checkpoint actualizado el **16/10/2026**. Estado: **PRODUCTION PROJECT CONFIGURED — DEPLOYMENT PENDING**. La parte pendiente es el despliegue de la **aplicación conectada a producción**. El proyecto independiente ya existe y sirve públicamente un placeholder estático sin backend. **Cloudflare Access sigue pendiente; no hay una aplicación productiva protegida ni una validación funcional completa de esa aplicación.**

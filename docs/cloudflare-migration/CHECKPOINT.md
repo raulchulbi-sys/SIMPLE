@@ -1,3 +1,62 @@
+# Checkpoint vigente — 16/10/2026, misión sin facturación
+
+**CLOUDFLARE: PREPARATION COMPLETE — BLOCKERS REMAIN.**
+
+**PUBLIC FRONTEND SECURITY: BLOCKED.** No hubo corte. El bloqueo es cobertura pendiente de reviewer Premium con scope elegible y su proyección REST/privada, además de revocación real; no un requisito de Access o de tarjeta. No se ha confirmado una filtración. No emitir un recibo PASS hasta cerrar esa prueba.
+
+## Resultado técnico y seguridad
+
+- Frontend/build:36archivos exactos, reproducible, app SHA256 **80733c3de72d3e026ac0dba632b8be34eac0d53c77561fbf4b0bfaa9e6b3ba9f**. HTML y assets de producto no cambiaron en esta misión. Sólo se endureció el guard de clave pública del builder y se añadieron herramientas/tests/docs.
+- Backend staging:41tablas conRLS,47políticas,219funciones; sinviews inspeccionadas ni autorización por user_metadata. Es evidencia de catálogo, no prueba de seguridad completa por sí sola.
+- Anon real:53/53, sin registros privados; incluye3reorderPUBLIC con auth.uid nulo rechazado antes de escribir. EdgeGateway401sinJWT. CORS no se usa como control de identidad.
+- JWT reales:92/92checks,109peticiones y5logins sintéticos. Owner/cross-client, trainer asignado y denegaciones de privilegios;26errores403/42501. Nueve400/P0001 son negativas de scope/negocio, NO prueba completa de escritura cross-user. Sinfirmasfaltantes/UUIDinválidos consideradosPASS.
+- Cuatro gaps explícitos: tercerclient sinrutina para ownerpositive; sinmesocicloasignado/eligiblealreviewer; sinrecommendationvisiblepara suproyección; Premiumdeshabilitado para probarenabled→revoked. Globalpremium_enabled=false yentitlementsvencidos/sintracking; no se alteraron para fabricar cobertura.
+- Hallazgo condicional: los grants SELECT completos en mesocycles/recommendations combinados con RLS reviewer podrían exponer intake/context fuera de la proyección UI cuando exista un scope elegible. No hubo filas elegibles para reproducirlo. No inferir seguridad de la selección del frontend ni declarar una filtración confirmada sin esa prueba.
+- Tokens nuevos sólo RAM; mapa destruido y proceso terminado. Cinco sesiones normales de Auth de staging, sin password reset, refresh, logout, usuarios o perfiles modificados; no se revocaron sesiones. No cuentas ni fixtures nuevas, ni cleanup de cuentas financieras.
+
+## Pruebas de esta misión
+
+| Categoría | Casos finales | Evidencia ignorada / límite |
+|---|---:|---|
+| Unitarios runtime afectados |32/32|runtime.cjs;31existentes afectados+1nuevo; bytesgeneradosidénticos|
+| Unitarios CORS afectados |8/8|production-cors-plan-unit.json; propuesta sinapply|
+| Guardas release nuevas |17/17|public-release-unit.json; builddoble, tampering yrollbackoffline|
+| Integración HTTP anónima real staging |53/53|public-anonymous-security.json50 + public-anonymous-reorder.json3|
+| Integración JWT real staging |92/92 ejecutados,4gaps|public-jwt-security.json; NOseguridadPASSglobal|
+| OPTIONS real producción/staging |32/32|public-auth-cors-options-20261016.json; sinPOST/provider|
+| Navegador simulado |16/16|public-browser-simulation.json;2roles×2motores×320/1280×2temas; tráfico100%interceptado|
+| Hosting público sóloGET |3/3|public-hosting-readonly.json; GitHubactual,placeholdery runtimestaging|
+
+**253 casos de las suites actuales**, sin sumar reruns,6aserciones auxiliares offline del matcher,64capturas anteriores ni las635/94/103históricas. Los dos diagnósticos del arnés (booleanreviewer y autosavenota) se conservan; no son18recorridos ni bugsproductivos. El guard sourceCommit de rollback se corrigió tras segunda revisión; su regresión está dentro de17, no se suma una ejecución anterior de16.
+
+320/1280 se revalidaron en ambos motores y temas sobre el artefacto productivo offline;360/390/430 conservan la evidencia histórica aplicable porque no cambió UI. No simular40casos nuevos de diseño ni declarar Safari físico. Notas/historial en lectura; draft, timer, tema, gráfica y controles editor comprobados con dobles; no guardados reales ni IA. Google/recovery reales de staging ya validados con titular anteriormente, no repetidos. **OAuth productivo en Cloudflare no probado.**
+
+## Integridad verificada, no modificada
+
+Snapshots de sólo lectura09:15→09:59UTC: **34/34entradas iguales en producción y34/34enstaging**. Definiciones214/219funciones, permisos/seguridad,políticas,triggers,presupuestos/contabilidad y reservasiguales. Ciclo **88c3564c3c49cf9c53fccba89a1e71b5**. Authestable igual; timestamps/sessions de los5loginssintéticos pueden variar normalmente, no se usan como pérdida de identidad.
+
+Producción conserva usuarios, PatataR1/R2y5workouts,clientes/asignaciones,rutinas,notas,historial,BasicV5/PremiumyFinancialP1. Premiumdirecto sigueOFF. CeroOpenAI,correos,pagos,planes,DNS,AuthURLs/SMTP/Google/CORSproductivos,migraciones o SQL de escritura.
+
+## Git, hosting y operación
+
+Inicio: localfc993016f0adbf17f44da0fb210e094458b7d4c3, remoto427a93b4b0f163bc63faecb8cfd1545179178385; árbol idéntico061f9311b1e39b148e07316b481c226267a354d7. Main **c818e35fcb0cfeddb61e8232aaaffba222ea8f4d** releído antesdepublicarrama; PR#1borrador sinmerge. SHAfinaldelcandidato se informa al cerrar; el sourceTree del artefacto de prueba es el original y se contrastará con el artefacto reconstruido del commit final, sin atribuirle un PASS de otra fuente.
+
+GitHubPages sigue sirviendo HTML SHA256ec3ab5f1af7d75b1db71110bc9b520737382d503ad5dc3d2dc39cf189e16b946. ProducciónCloudflare conserva170fea3b-05ea-426b-b482-af7749bd0218/placeholder5files/hash47ba45ce844af2c62569d60c8d622f5e8c8b864c807f465cf3037cd74e662399. Staging antesdelpush:4eef94ba,fuente8b2f526; el guardbuildpuededispararautobuildstaging. ReleerSHA/deploymenttrasactualizarrama. Noautodeployproductivo ni previewsalternativas.
+
+Releasehelper es offline:prepare/validate/plan/rollback, sinfetch/credenciales/ejecutorimplícito. Dist raízpreservado;rollbacklocal reproduceplaceholder. No nuevaCI productiva ni dependenciagrande; Wranglernoinstalado,noexecutorproductivovalidado. Dashboardactualpermitirádespliegue futuroautorizado; no seprometequeuncomandosincredencialespublique.
+
+Auth/Google/templates fueron leídos sin secretos/saves. Propuestas exactas en PUBLIC-AUTH-CORS; SiteURLyGitHubconservados. Accesscheckout cerrado y descartado; no intervención financiera pendiente. pages.dev es viable provisionalmente, no se requierecomprardominio.
+
+## Máximo tres acciones humanas pendientes
+
+1. Autorizar/definir el scope mínimo de staging nofinanciero para reviewer positivo/proyección y revocación, sin tocar cuentas financieras o producción; cerrar el hallazgo antes de seguridadPASS.
+2. Conseguridadcerrada, autorizar el corte exacto (PR,AuthURLs/CORS/origenGoogle segúnnecesidad y deploymentmanual) y participar en OAuth/recoveryproductivo cuando proceda. No hayautorizaciónactual para esas escrituras.
+3. Completar identidad real del responsable y revisión de privacidad/condiciones antesdelanzamiento comercial; no es un requisito de contratarhosting/pagardominio.
+
+Guíasvigentes:README,PUBLIC-RELEASE,PUBLIC-AUTH-CORS,CUTOVER,PRIVACY-READINESS,PR-REVIEW y PUBLIC-SECURITY-INVENTORY. Se conservan a continuación checkpoints históricos fechados; no son instruccionesoperativasactuales.
+
+---
+
 # Checkpoint de Cloudflare — 16/10/2026
 
 ## Continuación autorizada — lecturas completadas, nueva decisión financiera pendiente
