@@ -52,12 +52,12 @@ async function openPremiumCoach(options={}){
  const host=document.createElement('div');host.id='premiumCoachHost';const loading=document.createElement('p');loading.textContent='Cargando seguimiento…';loading.setAttribute('role','status');const close=document.createElement('button');close.type='button';close.textContent='← Volver';close.onclick=()=>d.close();host.append(loading,close);d.replaceChildren(host);if(!d.open)d.showModal();
  const current=()=>d.open&&epoch===simpleCoachPremium.epoch&&owner===user?.id;
  try{
-  if(mesocycleId){const assigned=await db.from('coach_mesocycles').select('id').eq('id',mesocycleId).eq('reviewer_id',owner).maybeSingle();if(!current())return;if(assigned.error||!assigned.data)throw Error('premium_not_authorized');}
+  if(mesocycleId){const assigned=await db.rpc('premium_reviewer_state',{p_mesocycle:mesocycleId});if(!current())return;if(assigned.error?.code==='PGRST202')throw Error('premium_reviewer_api_unavailable');if(assigned.error||assigned.data?.actor!=='reviewer'||assigned.data.mesocycle?.id!==mesocycleId)throw Error('premium_not_authorized');}
   const controller=await PremiumApp.attach(host,{db,mesocycleId,onNavigate:(to,data)=>{if(!d.open||epoch!==simpleCoachPremium.epoch)return;d.close();if(to==='train'&&profile?.role==='client'&&owner===user?.id&&data?.routine_id)openCoachRoutine(data.routine_id);}});
   if(!current()){controller.destroy();if(d.open&&epoch===simpleCoachPremium.epoch)d.close();return;}
   if(!controller.enabled){controller.destroy();loading.textContent='El seguimiento Premium no está disponible para esta cuenta.';return;}
   simpleCoachPremium.controller=controller;host.querySelector('h1')?.setAttribute('tabindex','-1');host.querySelector('h1')?.focus({preventScroll:true});
- }catch(e){if(!current())return;loading.textContent=PremiumApp.errorText(e);loading.setAttribute('role','alert');const retry=document.createElement('button');retry.type='button';retry.textContent='Reintentar';retry.onclick=()=>openPremiumCoach(options);host.className='';host.replaceChildren(loading,close,retry);}
+ }catch(e){if(!current())return;loading.textContent=e.message==='premium_reviewer_api_unavailable'?'La revisión Premium no está disponible en este despliegue.':PremiumApp.errorText(e);loading.setAttribute('role','alert');const retry=document.createElement('button');retry.type='button';retry.textContent='Reintentar';retry.onclick=()=>openPremiumCoach(options);host.className='';host.replaceChildren(loading,close,retry);}
 }
 async function openCoachRoutine(id){
  const owner=user?.id,epoch=(simpleCoach.hintsEpoch||0)+1;simpleCoach.hintsEpoch=epoch;simpleCoach.routineHints=null;

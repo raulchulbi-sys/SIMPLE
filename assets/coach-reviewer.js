@@ -18,11 +18,12 @@ async function renderPremiumInitialReviewerEntry(owner){
 async function renderPremiumCoachReviewerEntry(owner){
  $('premiumCoachReviewerEntry')?.remove();if(!coachEnabled()||profile?.role!=='trainer'||owner!==user?.id)return;
  try{
-  const result=await db.from('coach_mesocycles').select('id,number,state').eq('reviewer_id',owner).in('state',['draft','active']).order('created_at',{ascending:false});
-  if(result.error||owner!==user?.id||!coachEnabled()||!(result.data||[]).length)return;
+  const result=await db.rpc('premium_reviewer_state',{p_mesocycle:null});
+  const scopes=result.data?.actor==='reviewer'&&Array.isArray(result.data.scopes)?result.data.scopes:[];
+  if(result.error||owner!==user?.id||!coachEnabled()||!scopes.length)return;
   const host=document.createElement('div');host.id='premiumCoachReviewerEntry';host.className='card';
   const title=document.createElement('h3');title.textContent='Seguimiento Premium · Revisiones';host.append(title);
-  for(const item of result.data){const row=document.createElement('div'),reference=document.createElement('p'),button=document.createElement('button');reference.className='muted';reference.textContent='Mesociclo '+item.id;button.type='button';button.className='btn';button.dataset.keepEnabled='true';button.dataset.premiumMesocycle=item.id;button.textContent='Revisar seguimiento Premium';button.setAttribute('aria-label','Revisar seguimiento Premium · mesociclo '+item.id);button.onclick=()=>openPremiumCoach({mesocycleId:item.id});row.append(reference,button);host.append(row);}
+  for(const item of scopes){const row=document.createElement('div'),reference=document.createElement('p'),button=document.createElement('button');reference.className='muted';reference.textContent='Mesociclo '+item.id;button.type='button';button.className='btn';button.dataset.keepEnabled='true';button.dataset.premiumMesocycle=item.id;button.textContent='Revisar seguimiento Premium';button.setAttribute('aria-label','Revisar seguimiento Premium · mesociclo '+item.id);button.onclick=()=>openPremiumCoach({mesocycleId:item.id});row.append(reference,button);host.append(row);}
   $('premiumCoachReviewerEntry')?.remove();$('app').append(host);
  }catch(_){/* Read failures and absent pre-Premium schema never grant access. */}
 }
