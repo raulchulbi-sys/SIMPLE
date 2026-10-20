@@ -40,6 +40,10 @@
 #auth input{display:block;width:100%;height:59px;min-width:0;border:1px solid var(--auth-input-line);border-radius:12px;background:rgb(var(--simple-card-rgb) / .85);font:inherit;font-size:16px;font-weight:400;padding:15px 16px 15px 49px;margin:0;box-shadow:none;color:var(--simple-text);line-height:1.2}
 #auth input::placeholder{color:var(--auth-placeholder);opacity:1}
 #auth #password{padding-right:54px}
+#auth .auth-caps-on #password{padding-right:84px}
+#auth .auth-caps-lock{position:absolute;right:56px;top:50%;transform:translateY(-50%);width:20px;height:20px;color:var(--auth-label);pointer-events:none}
+#auth .auth-caps-lock svg{display:block;width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linejoin:round}
+#auth .auth-caps-status{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
 #auth .password-eye{position:absolute;right:5px;top:6px;width:46px;height:46px;display:flex;align-items:center;justify-content:center;border:0;background:transparent;border-radius:9px;color:var(--auth-eye);cursor:pointer;padding:10px}
 #auth .password-eye-icon{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
 #auth .auth-forgot{display:block;text-align:right;width:100%;min-height:44px;padding:10px 0 0;border:0;background:none;font:inherit;font-size:13px;color:var(--auth-forgot);cursor:pointer;text-decoration:underline;text-underline-offset:3px}

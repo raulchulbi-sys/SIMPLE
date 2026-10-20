@@ -5,6 +5,7 @@ const SIMPLE_AUTH_LINKS=Object.freeze({terms:null,privacy:null});
 
 function msg(text,ok=false){const el=$('authMsg');el.textContent=text;el.className='auth-message'+(ok?' ok':'');}
 function setAuthScreen(screen,focus=true){
+  setPasswordCapsLock(false);
   simpleAuth.screen=screen;
   $('auth').dataset.screen=screen;
   $('auth').style.display='flex';
@@ -44,6 +45,7 @@ function authNavigate(screen){
   setAuthScreen(screen);
 }
 function setAuthBusy(busy){
+  if(busy)setPasswordCapsLock(false);
   simpleAuth.busy=busy;
   $('auth').setAttribute('aria-busy',String(busy));
   $('auth').querySelectorAll('button,input').forEach(el=>el.disabled=busy);
@@ -137,9 +139,24 @@ async function completeRegistration(role){
   finally{setAuthBusy(false);}
 }
 function resetPasswordVisibility(){
+  setPasswordCapsLock(false);
   const input=$('password'),button=$('passwordToggle');
   input.type='password';button.setAttribute('aria-pressed','false');button.setAttribute('aria-label','Mostrar contraseña');
   button.innerHTML='<svg class="password-eye-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18M10 5h2c6 0 10 7 10 7a21 21 0 0 1-3 4M6 6C3 8 2 12 2 12s4 7 10 7a13 13 0 0 0 5-1"/></svg>';
+}
+function setPasswordCapsLock(active){
+  const icon=$('passwordCapsLock'),status=$('passwordCapsLockStatus');
+  if(icon.hidden===!active)return;
+  icon.hidden=!active;
+  icon.parentElement.classList.toggle('auth-caps-on',active);
+  status.textContent=active?'Bloq Mayús activado':'';
+}
+function updatePasswordCapsLock(event){
+  // Use the keyboard's reported state, never password text or Shift alone.
+  const active=document.activeElement===$('password')&&!simpleAuth.busy
+    &&['login','signup'].includes(simpleAuth.screen)
+    &&typeof event.getModifierState==='function'&&event.getModifierState('CapsLock');
+  setPasswordCapsLock(Boolean(active));
 }
 function toggleLoginPassword(){
   const visible=$('password').type==='password';$('password').type=visible?'text':'password';
@@ -294,6 +311,11 @@ async function handleAuthStateChange(event,session){
   finally{setAuthBusy(false);}
 }
 $('authForm').addEventListener('submit',authSubmit);
+$('password').addEventListener('keydown',updatePasswordCapsLock);
+$('password').addEventListener('keyup',updatePasswordCapsLock);
+$('password').addEventListener('blur',()=>setPasswordCapsLock(false));
+window.addEventListener('blur',()=>setPasswordCapsLock(false));
+document.addEventListener('visibilitychange',()=>{if(document.hidden)setPasswordCapsLock(false);});
 $('forgotBtn').addEventListener('click',requestPasswordReset);
 $('authSwitch').addEventListener('click',()=>authNavigate(mode==='signup'?'login':'role'));
 for(const [id,url] of [['authTerms',SIMPLE_AUTH_LINKS.terms],['authPrivacy',SIMPLE_AUTH_LINKS.privacy]]){

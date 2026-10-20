@@ -9,6 +9,12 @@ const PROJECT=PAGES_PROJECTS.production;
 const APP='https://'+PROJECT+'.pages.dev/';
 const ROLLBACK=Object.freeze({deploymentId:'170fea3b-05ea-426b-b482-af7749bd0218',sourceCommit:'8b2f526edae136b43970dd9770f5b74db575e7e6',treeSha256:'47ba45ce844af2c62569d60c8d622f5e8c8b864c807f465cf3037cd74e662399'});
 const sha=value=>crypto.createHash('sha256').update(value).digest('hex');
+// Reviewed consumers. Deliberate later changes require contract review and pin refresh.
+const REVIEWER_CONSUMERS=Object.freeze({
+ "assets/coach-premium-adapter.js": "b47efaac213ceb8b045b04961c95a6e0f1a77618e9fd8716220315a72f3511aa",
+ "assets/coach-reviewer.js": "95758b5b5837122f05470a349f24f87d95928ae3a839accaf9687c1c4cca4c19",
+ "assets/coach.js": "59c74e6f296e83a51bc5bfae6e7098aa4581681f03ab82a7a16db2b77a7357d2"
+});
 const canonical=(bytes,name)=>/\.(?:html|js|css|txt)$/.test(name)||name==='_headers'?Buffer.from(bytes.toString('utf8').replace(/\r\n/g,'\n')):bytes;
 const fail=message=>{throw Error('Release preparation: '+message);};
 function git(...args){return execFileSync('git',args,{cwd:ROOT,encoding:null,maxBuffer:8*1024*1024,stdio:['ignore','pipe','pipe']});}
@@ -55,8 +61,24 @@ function sourceInfo(sourceCommit,expectedSourceTree){
  if(commit!==sourceCommit||tree!==expectedSourceTree)fail('source commit/tree mismatch');
  return {sourceCommit:commit,sourceTree:tree};
 }
+function reviewerConsumerContract(sourceCommit){
+ const files=Object.entries(REVIEWER_CONSUMERS).map(([name,expected])=>{
+  const actual=sha(git('show',sourceCommit+':'+name));
+  if(actual!==expected)fail('reviewer consumer differs from reviewed security baseline');
+  return {path:name,sha256:actual};
+ });
+ return {validated:true,files};
+}
+function reviewerMainIntegration(sourceCommit,mainCommit){
+ if(!/^[a-f0-9]{40}$/.test(mainCommit||''))fail('explicit verified main SHA required');
+ if(git('rev-parse','--verify',mainCommit+'^{commit}').toString().trim()!==mainCommit)fail('main SHA mismatch');
+ try{git('merge-base','--is-ancestor',mainCommit,sourceCommit);}catch{fail('hosting source does not contain verified main');}
+ reviewerConsumerContract(mainCommit);reviewerConsumerContract(sourceCommit);
+ return {validated:true,mainCommit,sourceCommit,mainContained:true,consumersIdentical:true};
+}
 function prepare(options={}){
  const selected=identity(options),source=sourceInfo(options.sourceCommit,options.expectedSourceTree);
+ const reviewerSecurity=reviewerConsumerContract(source.sourceCommit);
  const read=name=>git('show',source.sourceCommit+':'+name);
  const manifest=JSON.parse(read('config/static-public-manifest.json'));
  const inputs=[...manifest.files,'config/static-public-manifest.json','config/public-backends.json','scripts/hosting-build.cjs','scripts/hosting-runtime.cjs','config/cloudflare/_headers.template','config/cloudflare/404.html','config/cloudflare/robots.txt',...['index.html','404.html','_headers','preparation.css','robots.txt'].map(name=>'config/cloudflare/preparation/'+name)];
@@ -92,7 +114,7 @@ function prepare(options={}){
  const previous=buildModule.buildPlaceholder({sourceRoot:path.join(workspace,'rollback-source'),env:{SIMPLE_DEPLOY_TARGET:'placeholder',SIMPLE_PAGES_PROJECT:PROJECT,SIMPLE_APP_URL:APP,CF_PAGES_BRANCH:'codex/cloudflare-production-preparation',CF_PAGES_URL:APP}});
  if(previous.treeSha256!==ROLLBACK.treeSha256)fail('rollback placeholder differs from approved deployment');
  scan(previous.output,previous.files);
- const receipt={schemaVersion:1,mode:'OFFLINE_DRY_RUN',...selected,...source,artifactDirectory:first.output,artifactTreeSha256:first.treeSha256,files:first.files,securityScan,sourceFiles:[...blobs].map(([name,content])=>({path:name,sha256:sha(content)})),rollback:{...ROLLBACK,artifactDirectory:previous.output,files:previous.files},publicFrontendSecurityValidated:false,published:false,credentialsPersisted:false};
+ const receipt={schemaVersion:1,mode:'OFFLINE_DRY_RUN',...selected,...source,reviewerSecurity,artifactDirectory:first.output,artifactTreeSha256:first.treeSha256,files:first.files,securityScan,sourceFiles:[...blobs].map(([name,content])=>({path:name,sha256:sha(content)})),rollback:{...ROLLBACK,artifactDirectory:previous.output,files:previous.files},publicFrontendSecurityValidated:false,published:false,credentialsPersisted:false};
  const receiptPath=path.join(workspace,'release.json');fs.writeFileSync(receiptPath,JSON.stringify(receipt,null,2)+'\n');
  return {receiptPath,...receipt};
 }
@@ -105,6 +127,8 @@ function readReceipt(file){
 function verifyReceipt(receipt,resolved){
  if(receipt.schemaVersion!==1||receipt.mode!=='OFFLINE_DRY_RUN'||receipt.published!==false)fail('unsupported receipt');
  identity(receipt);sourceInfo(receipt.sourceCommit,receipt.sourceTree);
+ const security=reviewerConsumerContract(receipt.sourceCommit);
+ if(JSON.stringify(receipt.reviewerSecurity)!==JSON.stringify(security))fail('reviewer security receipt differs from committed source');
  const workspace=path.join(RESULTS,'public-release-'+receipt.sourceCommit);
  if(resolved!==path.join(workspace,'release.json')||receipt.artifactDirectory!==path.join(workspace,'source/dist')||receipt.rollback.artifactDirectory!==path.join(workspace,'rollback-source/dist'))fail('receipt paths do not match source identity');
  // A receipt is not a substitute for committed source: validate its expected inventories again.
@@ -131,20 +155,21 @@ function verifyReceipt(receipt,resolved){
 function validateSecurityReceipt(security,receipt){
  return security?.status==='PASS'&&security.sourceTree===receipt.sourceTree&&security.artifactTreeSha256===receipt.artifactTreeSha256&&Array.isArray(security.evidence)&&security.evidence.length>0;
 }
-function plan({receiptPath,securityReceiptPath,rollback=false}={}){
+function plan({receiptPath,securityReceiptPath,mainCommit,rollback=false}={}){
  const receipt=readReceipt(receiptPath);
  let security=null;
  if(securityReceiptPath){security=JSON.parse(fs.readFileSync(bounded(securityReceiptPath),'utf8'));}
  const passed=validateSecurityReceipt(security,receipt);
- return {mode:'OFFLINE_DRY_RUN',published:false,backendChanges:false,publicationPermitted:false,requiresExplicitFuturePublicationAuthorization:true,publicFrontendSecurityValidated:passed,readyForFutureReview:rollback||passed,blockers:rollback?['Rollback is simulated; a remote rollback requires incident authorization and a verified Cloudflare session']: [...(!passed?['PUBLIC FRONTEND SECURITY receipt missing, blocked or bound to another source/artifact']:[]),'Fresh main approval, Auth/CORS/Google readiness and explicit publication authorization remain required','No authorized Cloudflare API/CLI executor is configured by this helper'],stages:rollback?['STOP_AUTODEPLOY','RESTORE_APPROVED_PLACEHOLDER','CHECK_BYTES_HEADERS_AND_BACKEND_ABSENT','KEEP_GITHUB_AND_PREVIOUS_ORIGINS']:['PREPARE','VALIDATE_PUBLIC_SECURITY','REVIEW_EXACT_MAIN_AUTH_CORS_GOOGLE','DEPLOY_SIMULATED_ONLY','CHECK_WITH_EXISTING_LIVE_HOSTING','ROLLBACK_SIMULATED_ONLY'],project:PROJECT,branch:'main',appUrl:APP,sourceCommit:receipt.sourceCommit,sourceTree:receipt.sourceTree,artifactTreeSha256:receipt.artifactTreeSha256,rollback:receipt.rollback,execute:false};
+ const integration=mainCommit?reviewerMainIntegration(receipt.sourceCommit,mainCommit):null;
+ return {mode:'OFFLINE_DRY_RUN',published:false,backendChanges:false,publicationPermitted:false,requiresExplicitFuturePublicationAuthorization:true,publicFrontendSecurityValidated:passed,reviewerSecurityIntegrationValidated:!!integration,mainIntegration:integration,readyForFutureReview:rollback||passed&&!!integration,blockers:rollback?['Rollback is simulated; a remote rollback requires incident authorization and a verified Cloudflare session']: [...(!integration?['Verified main SHA missing; security integration must be reconciled']:[]),...(!passed?['PUBLIC FRONTEND SECURITY receipt missing, blocked or bound to another source/artifact']:[]),'Fresh main approval, Auth/CORS/Google readiness and explicit publication authorization remain required','No authorized Cloudflare API/CLI executor is configured by this helper'],stages:rollback?['STOP_AUTODEPLOY','RESTORE_APPROVED_PLACEHOLDER','CHECK_BYTES_HEADERS_AND_BACKEND_ABSENT','KEEP_GITHUB_AND_PREVIOUS_ORIGINS']:['PREPARE','VALIDATE_PUBLIC_SECURITY','REVIEW_EXACT_MAIN_AUTH_CORS_GOOGLE','DEPLOY_SIMULATED_ONLY','CHECK_WITH_EXISTING_LIVE_HOSTING','ROLLBACK_SIMULATED_ONLY'],project:PROJECT,branch:'main',appUrl:APP,sourceCommit:receipt.sourceCommit,sourceTree:receipt.sourceTree,artifactTreeSha256:receipt.artifactTreeSha256,rollback:receipt.rollback,execute:false};
 }
 function main(){
  const [command,...args]=process.argv.slice(2),values={};
- if(!command){console.log(JSON.stringify({mode:'OFFLINE_DRY_RUN',published:false,commands:['prepare --source FULL_SHA --tree GIT_TREE','validate --receipt PATH [--security PATH]','plan --receipt PATH [--security PATH]','rollback --receipt PATH'],executeSupported:false}));return;}
+ if(!command){console.log(JSON.stringify({mode:'OFFLINE_DRY_RUN',published:false,commands:['prepare --source FULL_SHA --tree GIT_TREE','validate --receipt PATH [--security PATH] [--main FULL_SHA]','plan --receipt PATH [--security PATH] [--main FULL_SHA]','rollback --receipt PATH'],executeSupported:false}));return;}
  if(!['prepare','validate','plan','rollback'].includes(command))fail('only offline prepare, validate, plan or rollback supported');
- for(let i=0;i<args.length;i+=2){if(!['--source','--tree','--receipt','--security'].includes(args[i])||!args[i+1]||Object.hasOwn(values,args[i]))fail('unknown or repeated argument; execution and credential arguments forbidden');values[args[i]]=args[i+1];}
- const result=command==='prepare'?prepare({sourceCommit:values['--source'],expectedSourceTree:values['--tree']}):plan({receiptPath:values['--receipt'],securityReceiptPath:values['--security'],rollback:command==='rollback'});
+ for(let i=0;i<args.length;i+=2){if(!['--source','--tree','--receipt','--security','--main'].includes(args[i])||!args[i+1]||Object.hasOwn(values,args[i]))fail('unknown or repeated argument; execution and credential arguments forbidden');values[args[i]]=args[i+1];}
+ const result=command==='prepare'?prepare({sourceCommit:values['--source'],expectedSourceTree:values['--tree']}):plan({receiptPath:values['--receipt'],securityReceiptPath:values['--security'],mainCommit:values['--main'],rollback:command==='rollback'});
  console.log(JSON.stringify(command==='prepare'?{mode:result.mode,receiptPath:result.receiptPath,artifactDirectory:result.artifactDirectory,artifactTreeSha256:result.artifactTreeSha256,sourceCommit:result.sourceCommit,sourceTree:result.sourceTree,published:false}:result,null,2));
 }
-module.exports={prepare,readReceipt,verifyReceipt,plan,scan,identity,sourceInfo,validateSecurityReceipt,ROLLBACK};
+module.exports={prepare,readReceipt,verifyReceipt,plan,scan,identity,sourceInfo,validateSecurityReceipt,reviewerConsumerContract,reviewerMainIntegration,REVIEWER_CONSUMERS,ROLLBACK};
 if(require.main===module)try{main();}catch(error){console.error('Offline release rejected: '+(error.message?.startsWith('Release preparation:')?error.message:'invalid input or bounded filesystem operation'));process.exitCode=1;}

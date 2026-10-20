@@ -1,6 +1,10 @@
 # Publicación pública futura: preparación y simulación offline
 
-La arquitectura elegida es frontend público en Cloudflare Pages y autorización de cuentas/datos en Supabase Auth, JWT, RLS y permisos del servidor. Access no es una puerta de esta preparación. **La aplicación no se publica en esta misión:** `simple-raulchulbi` conserva su placeholder; main, Google, Auth/CORS productivos, Site URL, plantillas y datos permanecen fuera de las acciones de este helper.
+**Estado actual 20/10: BLOCKED para el corte.** Main vigente incluye Bloq Mayús, ciclo corregido y ambos arreglos del reviewer; hosting conserva recovery al recargar. El contraste directo REST con JWT productivo normal sigue pendiente y la ventana temporal autorizada no se ha utilizado en este checkpoint. UI, SQL claims y staging no sustituyen su control positivo y negativo. No emitir un recibo de seguridad PASS para el corte mientras falte ese control. Actualizar staging tras sus controles y regresiones no sustituye esa validación productiva ni autoriza el corte.
+
+Actualización20/10/2026: main `0c96b5fa96c2b99436dfc1c32425ed5e3a8b4663` conserva el hotfix de privacidad `520a98a`, compatibilidad histórica `b415e9f2`, Bloq Mayús y las tres funciones de ciclo actuales. RPC reviewer MD5 `6442b03ced86d22c57dbf434898c6a9a`; projector `fc89c86e5a6fb56069bfbf777d9dd3e1`. Los bytes públicos cambian legítimamente por Bloq Mayús, así que los artefactos anteriores no sustituyen el build de esta fuente integrada. **No se ha fusionado PR #1 ni realizado el corte Cloudflare.** La evidencia productiva del backend corresponde al coordinador y no se sustituye por los tests offline de este documento. No reaplicar SQL de ciclo/reviewer durante la publicación del frontend.
+
+La arquitectura elegida es frontend público en Cloudflare Pages y autorización de cuentas/datos en Supabase Auth, JWT, RLS y permisos del servidor. Access no es una puerta de esta preparación. **Este helper no publica la aplicación:** `simple-raulchulbi` conserva su placeholder; main, Google, Auth/CORS productivos, Site URL, plantillas y datos permanecen fuera de sus acciones.
 
 `scripts/hosting-release.cjs` prepara y comprueba artefactos locales. Todos sus modos son **OFFLINE_DRY_RUN**. Ejecutarlo sin argumentos sólo describe los comandos. No contiene fetch, API Cloudflare, executor Wrangler, credenciales, cambios Git, instalación de dependencias ni publicación. `--publish`, `deploy` y argumentos de credenciales se rechazan. Incluso un recibo de seguridad PASS deja `publicationPermitted=false` y exige autorización posterior explícita.
 
@@ -16,13 +20,16 @@ El empaquetado comprueba proyecto `simple-raulchulbi`, host HTTPS estable exacto
 
 El recibo `release.json` guarda fuente, árbol, inventario, hashes y rollback; queda fuera del output web e ignorado por Git. Cada validación vuelve a comparar HTML/assets y archivos de plataforma con Git, genera la configuración pública esperada y compara los bytes reales. Editar un hash del recibo no basta para aprobar otro artefacto. El escáner no sustituye la revisión de código/datos ni prueba por sí solo RLS; esa evidencia pertenece al recibo PUBLIC FRONTEND SECURITY.
 
-Ejemplo offline de esta preparación, con fuente `fc99301` y su árbol verificado; **no es el SHA que se autorizará automáticamente para una futura publicación**:
+Obtener la fuente y árbol exactos tras el commit de integración; releer main remoto antes de utilizar su SHA. Estos comandos son offline y **no autorizan una futura publicación**:
 
 ```powershell
 node scripts/hosting-release.cjs
-node scripts/hosting-release.cjs prepare --source fc993016f0adbf17f44da0fb210e094458b7d4c3 --tree 061f9311b1e39b148e07316b481c226267a354d7
-node scripts/hosting-release.cjs validate --receipt tests/cloudflare/results/public-release-fc993016f0adbf17f44da0fb210e094458b7d4c3/release.json
-node scripts/hosting-release.cjs rollback --receipt tests/cloudflare/results/public-release-fc993016f0adbf17f44da0fb210e094458b7d4c3/release.json
+$releaseSource = git rev-parse HEAD
+$releaseTree = git rev-parse 'HEAD^{tree}'
+node scripts/hosting-release.cjs prepare --source $releaseSource --tree $releaseTree
+$releaseReceipt = "tests/cloudflare/results/public-release-$releaseSource/release.json"
+node scripts/hosting-release.cjs validate --receipt $releaseReceipt --main 0c96b5fa96c2b99436dfc1c32425ed5e3a8b4663
+node scripts/hosting-release.cjs rollback --receipt $releaseReceipt
 ```
 
 Después de un nuevo commit o merge aprobado, obtener los SHA/árbol reales y preparar un recibo nuevo. No reutilizar una declaración de fuente antigua como si describiera el commit posterior. La app puede mantener la misma huella si únicamente cambian documentación o guardas que no alteran los bytes generados; registrar esa relación expresamente.
@@ -30,6 +37,12 @@ Después de un nuevo commit o merge aprobado, obtener los SHA/árbol reales y pr
 ## Puerta de seguridad y simulación
 
 PREPARAR no exige PASS: sus archivos son necesarios para las pruebas locales. VALIDAR/PLAN sólo marcan `publicFrontendSecurityValidated=true` cuando un recibo externo contiene `status=PASS`, `sourceTree` y `artifactTreeSha256` coincidentes y una lista `evidence` no vacía. Se entrega mediante `--security` apuntando a un JSON local acotado al repositorio. Un recibo ausente, BLOCKED, sin evidencia o perteneciente a otra fuente/artefacto deja la preparación bloqueada. No generar un PASS a partir únicamente de mocks o de un status escrito manualmente; el operador debe reconciliar las evidencias reales y sus límites.
+
+El empaquetado y la revalidación también comprueban los SHA-256 de los tres consumidores del reviewer validados; un árbol que restaure los anteriores se rechaza antes de empaquetar. Una modificación posterior legítima de esos consumidores requiere revisión del contrato y renovación explícita de sus pins. `plan`/`validate` necesitan `--main FULL_SHA` para considerar preparada la integración: ese commit debe existir, ser ancestro de la fuente de hosting y conservar los mismos consumidores. El operador debe haber obtenido el SHA de una lectura remota actual; ancestry local no prueba por sí sola el estado remoto ni los permisos del backend. Sin main verificado, la preparación sigue bloqueada aunque se aporte un recibo de seguridad PASS.
+
+Para el siguiente corte, el recibo privado debe vincular además la ABI productiva anterior con la lectura actual de owner, grants, search_path y policies cerradas, y con el contraste JWT pendiente. La instalación del hash correcto por sí sola no autoriza ese PASS. La compatibilidad SQL no cambia la allowlist, runtime o consumidores: las 13 guardas nuevas, 17 regresiones existentes y 8 comprobaciones de build se reutilizan con su fuente/fecha; una nueva vinculación de árbol no aumenta el contador de pruebas.
+
+Regresión reutilizable: `node tests/cloudflare/reviewer-release-unit.cjs FULL_MAIN_SHA`. Sus escenarios de interrupción vuelven a comprobar receipts y bytes, detectan un archivo incompleto y repiten PREPARAR de manera determinista. Los recibos PASS sintéticos de esas unidades se limitan a `results/`, se eliminan al terminar y no constituyen evidencia de seguridad real. Ningún escenario aplica Google/Auth/CORS o publica. La tabla de reanudación externa está en CUTOVER.
 
 El plan conserva las etapas PREPARAR → VALIDAR → DEPLOY SIMULADO → COMPROBAR → ROLLBACK SIMULADO. No aplica propuestas Google/Auth/CORS. La simulación de navegador separada usa este artefacto y dobles de proveedor con todas las peticiones interceptadas; no equivale a login, correo, backend o deployment productivos reales. Los 103 checks anteriores se reutilizan con su fecha y alcance; las nuevas guardas de release se cuentan separadamente.
 

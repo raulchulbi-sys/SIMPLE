@@ -1,3 +1,29 @@
+# Checkpoint vigente — 20/10/2026, main completo integrado y corte pendiente
+
+Main `0c96b5fa96c2b99436dfc1c32425ed5e3a8b4663` se integra en la rama existente de hosting, conservando los dos arreglos del reviewer, Bloq Mayús junto al ojo y su accesibilidad, la identidad/orden efectivo del inicio del ciclo y recovery al recargar. La integración automática de `assets/auth.js` conserva ambos cambios; no se elige una versión completa descartando la otra. Runtime/build y separación de backends permanecen intactos. Ningún SQL de ciclo/reviewer se reaplica.
+
+Lectura productiva del coordinador el20/10 confirma reviewer MD5 `6442b03ced86d22c57dbf434898c6a9a` y ciclo ordinario/etapa/personalizado `2a8197e876ca69d5bb54124f40c06107` / `5c6c56ae1ca187aefb37891e8664b9fb` / `a936e5595f93366d74d41dcdbe0b6ea7`. Las definiciones anteriores no son un objetivo de rollback de hosting.
+
+El contraste JWT productivo sigue pendiente y la ventana temporal está NOT USED en este checkpoint; no se anticipa un PASS. Las regresiones dirigidas y nuevos hashes del artefacto se registran sobre el commit final integrado. Los resultados del19/10 son evidencia histórica aplicable sólo donde los bytes siguen iguales; no volver a contarlos como pruebas nuevas. La publicación independiente de staging requiere controles frescos y regresiones correctas, mantiene PR #1 en borrador y no toca main ni el placeholder productivo. El corte requiere autorización posterior y el cierre del control JWT.
+
+## Checkpoint histórico — 19/10/2026, reviewer corregido y corte pendiente
+
+**CLOUDFLARE: BLOCKED — falta contraste JWT productivo con scope vigente.** Main confirmado `b415e9f2c5449c010fbf3950c7aaf74393030c72` conserva el cierre de privacidad `520a98a` e incorpora la compatibilidad SQL del listado histórico. RPC MD5 `6442b03ced86d22c57dbf434898c6a9a`; projector `fc89c86e5a6fb56069bfbf777d9dd3e1`. Las policies amplias permanecen retiradas y la proyección sigue autorizada en servidor.
+
+El coordinador verificó mediante UI productiva la cola y detalle del reviewer, la propuesta aceptada, Antes/Después, series y warnings antes de caducar su scope. El contraste REST privado con el mismo JWT productivo normal **no se ejecutó**. La relectura posterior confirmó la caducidad; no se amplió elegibilidad para crear un control positivo. El navegador temporal quedó cerrado, sin probe ni exportación de storage o bearer. Esto no equivale a una revocación remota de sesiones ni a un PASS de esa prueba pendiente.
+
+La rama de hosting integra el main corregido sin cambiar frontend, Auth, runtime, build o assets respecto al candidato `0f5122da`. Cuarenta y cinco entradas de empaquetado mantienen sus bytes; los dos perfiles reproducen 36 archivos: producción `fb92dd632786e85db4082f4799e6909ebc0452d66e46e840706d26e9da47249d` y staging `82399c96a6f267637e4fc4f04cde6ac36f514d5b3ef36b74f98b1a311eee9834`. Las 13 guardas de release, 17 regresiones existentes y 8 comprobaciones de build se reutilizan; no se cuentan como ejecuciones nuevas.
+
+PR #1 continúa en borrador, sin merge. GitHub Pages sigue siendo la web vigente; Cloudflare producción conserva su placeholder sin backend. No hubo corte, Auth/CORS/Google productivos ni cambio de Site URL, DNS, autodeploy o previews. Los recibos privados permanecen BLOCKED; una nueva vinculación de fuente no autoriza publicar.
+
+La configuración actual de despliegue Cloudflare no pudo releerse: el panel requiere acceso con aceptación de condiciones que esta misión no autoriza completar. Por ello no se actualizó la rama remota de hosting ni se utilizó un marcador skip como alternativa. Las referencias anteriores de autodeploy y previews son evidencia fechada, no una nueva verificación de configuración. Este cierre queda en un commit local preparado; no se disparó un deployment de staging o producción.
+
+La comparación inmediata al cambio productivo no demuestra que toda la base permaneciera congelada después: el coordinador observó diferencias agregadas posteriores que no pueden atribuirse completamente sin auditoría adicional. No se modificaron datos para cuadrar hashes. La programación, revisiones y entrenamientos de la cuenta protegida se verificaron de forma específica; no se declara identidad total de todos los agregados durante el intervalo.
+
+Siguiente paso limitado: obtener autorización y elegibilidad legítima para completar el contraste JWT pendiente, sin renovar scope automáticamente; después revisar los cambios exactos de corte. Las evidencias técnicas no constituyen aprobación legal o certificación absoluta de seguridad.
+
+## Registro histórico del 16/10 — no sustituye el checkpoint anterior
+
 > **Cierre posterior: 16/10/2026, 12:49–12:58 UTC.** La igualdad34/34 de producción descrita para09:15–09:59 no implica que la base permaneciese congelada después. La lectura final conserva31/34 entradas productivas y34/34 de staging iguales. Workouts pasó de65 a66; las65filas anteriores mantienen exactamente el hash cc5335c1fb619237c76c386f4b7d8e3e. El nuevo workout pertenece a un perfil trainer y coincide temporalmente con seis notas del mismo actor actualizadas a12:09:05. routine_exercises conserva86filas, sin creaciones ni updated_at reciente, pero su hash cambió. El código vigente escribe notas del entrenador en esa tabla sin cambiar updated_at; es una explicación compatible, no una demostración de que sólo cambiaron notas. No existe baseline por campo/auditoría suficiente para atribuir el evento exacto. No se revirtió ni ajustó ningún dato para cuadrar huellas.
 >
 > Patata conserva sus cinco workouts (cero nuevos y todos los históricos anteriores idénticos), cero notas actualizadas en ese intervalo y R1/R2/Coach sin cambios. Auth estable, funciones/permisos/políticas/triggers, finanzas, asignaciones y ciclo siguen iguales. La misión no ejecutó escrituras productivas.

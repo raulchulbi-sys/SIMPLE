@@ -1,6 +1,6 @@
 # SIMPLE — preparación Cloudflare sin facturación
 
-Vigente16/10/2026. **Preparación para revisión de corte; corte NO ejecutado.** La aplicación productiva sigue en [GitHub Pages](https://raulchulbi-sys.github.io/SIMPLE/). [Cloudflare producción](https://simple-raulchulbi.pages.dev/) conserva el placeholder inerte. [Cloudflare staging](https://simple-staging-raulchulbi.pages.dev/) usa exclusivamente SIMPLE Security Test.
+Vigente20/10/2026. **Corte BLOCKED por contraste JWT productivo pendiente; corte NO ejecutado.** La rama de hosting integra todo main `0c96b5fa96c2b99436dfc1c32425ed5e3a8b4663`: ambos arreglos del reviewer, Bloq Mayús y el reinicio por UUID de la primera sesión del ciclo. Conserva también recovery al recargar y la separación de entornos. La ventana temporal productiva no se ha utilizado en este checkpoint; UI, SQL y staging no sustituyen el positivo de proyección y negativo REST con el mismo JWT legítimo. La aplicación productiva sigue en [GitHub Pages](https://raulchulbi-sys.github.io/SIMPLE/). [Cloudflare producción](https://simple-raulchulbi.pages.dev/) conserva el placeholder inerte. [Cloudflare staging](https://simple-staging-raulchulbi.pages.dev/) usa exclusivamente SIMPLE Security Test. Actualizar sólo staging requiere controles frescos y regresiones correctas; no equivale al corte.
 
 La decisión actual es **frontend público Pages + Supabase Auth/JWT/grants/RLS/RPC**. No se activa Access/Zero Trust, no se visita su checkout y no se registra tarjeta o suscripción. Access no es una puerta de publicación obligatoria; sí lo es validar la autorización real del backend. Noindex y CORS no autentican usuarios.
 
@@ -24,7 +24,7 @@ La decisión actual es **frontend público Pages + Supabase Auth/JWT/grants/RLS/
 | Producción preparada | https://simple-raulchulbi.pages.dev/ | ninguno actualmente | placeholder; autodeploy OFF, previews None |
 | Aplicación futura Cloudflare | mismo origen productivo | yvguatdqncadkwewlepe | main, target production; NO desplegada |
 
-Main verificado: c818e35fcb0cfeddb61e8232aaaffba222ea8f4d. PR existente [#1](https://github.com/raulchulbi-sys/SIMPLE/pull/1), borrador, sin merge. No crear otro proyecto Pages ni otra PR de migración. Releer estado real antes de cualquier acción.
+Main verificado: `0c96b5fa96c2b99436dfc1c32425ed5e3a8b4663`, descendiente de `b415e9f2`, con ambos arreglos del reviewer, Bloq Mayús y las tres funciones de ciclo publicadas. PR existente [#1](https://github.com/raulchulbi-sys/SIMPLE/pull/1), borrador, sin merge. No crear otro proyecto Pages ni otra PR de migración. Releer estado real antes de cualquier acción.
 
 El proyecto producción existente tiene deployment170fea3b-05ea-426b-b482-af7749bd0218, fuente8b2f526edae136b43970dd9770f5b74db575e7e6, sólo cinco archivos. El staging previo de referencia es4eef94ba-b617-48b6-bf99-f1d6bb83a5ad con esa fuente; un commit de código de build puede producir otro deployment de staging y debe verificarse expresamente.
 
