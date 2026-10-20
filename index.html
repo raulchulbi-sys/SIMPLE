@@ -2480,7 +2480,7 @@ button.client-overview-card{display:flex;flex-direction:column;align-items:stret
 }
 </style>
 <link rel="stylesheet" href="assets/theme.css">
-<link rel="stylesheet" href="assets/auth.css?v=auth-fit-20260927">
+<link rel="stylesheet" href="assets/auth.css?v=auth-caps-20261020">
 <link rel="stylesheet" href="assets/interior.css">
 <link rel="stylesheet" href="assets/settings.css">
 <link rel="stylesheet" href="assets/coach.css?v=basic-initial-v5">
@@ -2535,7 +2535,8 @@ button.client-overview-card{display:flex;flex-direction:column;align-items:stret
     <form id="authForm" autocomplete="on">
      <label class="auth-field" for="email"><span class="auth-field-label">Correo electrónico</span><span class="auth-input-wrap"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="4"/><path d="M4 22v-3a8 8 0 0 1 16 0v3"/></svg><input id="email" name="email" type="email" placeholder="tu@correo.com" autocomplete="username" inputmode="email" autocapitalize="none" spellcheck="false" required></span></label>
      <label class="auth-field" for="password"><span class="auth-field-label">Contraseña</span></label>
-     <div class="auth-input-wrap"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10" width="16" height="12" rx="2"/><path d="M7 10V6a5 5 0 0 1 10 0v4M12 15v3"/></svg><input id="password" name="password" type="password" placeholder="Tu contraseña" autocomplete="current-password" required><button id="passwordToggle" class="password-eye" type="button" aria-label="Mostrar contraseña" aria-pressed="false" onclick="toggleLoginPassword()"><svg class="password-eye-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18M10 5h2c6 0 10 7 10 7a21 21 0 0 1-3 4M6 6C3 8 2 12 2 12s4 7 10 7a13 13 0 0 0 5-1"/></svg></button></div>
+     <div class="auth-input-wrap"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10" width="16" height="12" rx="2"/><path d="M7 10V6a5 5 0 0 1 10 0v4M12 15v3"/></svg><input id="password" name="password" type="password" placeholder="Tu contraseña" autocomplete="current-password" aria-describedby="passwordCapsLockStatus" required><span id="passwordCapsLock" class="auth-caps-lock" title="Bloq Mayús activado" aria-hidden="true" hidden><svg viewBox="0 0 24 24"><path d="m12 3 8 8h-5v5H9v-5H4zM8 20h8"/></svg></span><button id="passwordToggle" class="password-eye" type="button" aria-label="Mostrar contraseña" aria-pressed="false" onclick="toggleLoginPassword()"><svg class="password-eye-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18M10 5h2c6 0 10 7 10 7a21 21 0 0 1-3 4M6 6C3 8 2 12 2 12s4 7 10 7a13 13 0 0 0 5-1"/></svg></button></div>
+     <span id="passwordCapsLockStatus" class="auth-caps-status" role="status" aria-live="polite" aria-atomic="true"></span>
      <button id="forgotBtn" class="auth-forgot" type="button" hidden>¿Se te ha olvidado la contraseña?</button>
      <button id="authBtn" class="auth-button auth-primary" type="submit" data-keep-enabled="true">Iniciar sesión</button>
     </form>
@@ -8408,7 +8409,7 @@ async function redeemShareCode(){
 
 </script>
 <script src="assets/oauth.js?v=google-below-20260927"></script>
-<script src="assets/auth.js"></script>
+<script src="assets/auth.js?v=auth-caps-20261020"></script>
 <script src="assets/settings.js"></script>
 <script>
 // Protección contra dobles clics en acciones sensibles.
