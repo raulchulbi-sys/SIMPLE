@@ -1,5 +1,12 @@
 # Coach request recovery — development candidate
 
+Latest preparation: [Basic real-SDK rehearsal](BASIC-SDK-PILOT.md). A separately
+reproduced full-reload gap is now fixed by reconstructing uncertainty from the
+submitted owner-scoped intake. Activation/fixtures/live SDK journey remain pending
+approval. New focused checks: 20 reload + 14 safety; affected existing regressions:
+111 recovery + 40 journey + 23 compatibility. Earlier counts below are dated evidence,
+not a fresh complete authenticated journey on this updated candidate.
+
 Base: production/main `0c96b5fa96c2b99436dfc1c32425ed5e3a8b4663`.
 Independent branch: `codex/coach-flow-reliability`. No deployment, SQL migration,
 Auth change, allowance, reviewer assignment or paid model request is part of this change.
@@ -104,10 +111,11 @@ under ignored `results/` or `private/`. They must not enter public artifacts or 
 
 ## Authenticated staging follow-up — 25 October 2026
 
-The product files are byte-identical to the reviewed PR #2 tree
+At that checkpoint, product files were byte-identical to the reviewed PR #2 tree
 `b07c074c3f7f13a06991bdc736dfd056dfb12a20`. This follow-up adds test runners and
-documentation only. No new product defect was reproduced, so no further frontend,
-server, questionnaire or v5 programming correction was applied.
+documentation only. No new product defect was reproduced in that follow-up. The
+later full-reload gap/fix is recorded in BASIC-SDK-PILOT.md; server, questionnaire
+and v5 programming code still remain unchanged.
 
 | New checks | Passed | Evidence |
 | --- | ---: | --- |

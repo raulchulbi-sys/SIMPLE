@@ -150,11 +150,16 @@ async function coachLoadIntake(permissions=false){
  const owner=user.id,epoch=++simpleCoach.epoch;coachShell('<p>Cargando tu anamnesis…</p>');
  try{
  const [ir,gr,or]=await Promise.all([
- db.from('training_intakes').select('id,revision,schema_version,row_version,state,training').order('revision',{ascending:false}).limit(1).maybeSingle(),
- db.from('context_grants').select('scope').eq('notice_version','pilot-supervised-v2').is('revoked_at',null),
- db.from('coach_operations').select('*').order('created_at',{ascending:false}).limit(1).maybeSingle()]);
- if(ir.error||gr.error||or.error)throw Error('load');if(!coachCurrent(epoch,owner))return;
+ db.from('training_intakes').select('id,user_id,revision,schema_version,row_version,state,training').eq('user_id',owner).order('revision',{ascending:false}).limit(1).maybeSingle(),
+ db.from('context_grants').select('scope').eq('user_id',owner).eq('notice_version','pilot-supervised-v2').is('revoked_at',null),
+ db.from('coach_operations').select('*').eq('user_id',owner).order('created_at',{ascending:false}).limit(1).maybeSingle()]);
+ if(ir.error||gr.error||or.error||ir.data&&ir.data.user_id!==owner||or.data&&or.data.user_id!==owner)throw Error('load');if(!coachCurrent(epoch,owner))return;
  simpleCoach.intake=ir.data;simpleCoach.operation=or.data;simpleCoach.granted=(gr.data||[]).some(x=>x.scope==='training_intake');simpleCoach.reviewed=false;
+ // Reload drops the memory marker, but submission was committed before dispatch.
+ // A submitted intake with no matching operation is still uncertain, not a new form.
+ if(simpleCoach.granted&&ir.data?.state==='submitted'&&or.data?.intake_id!==ir.data.id){
+  await coachRecoverGeneration(ir.data.id,epoch,owner);return;
+ }
  if(!permissions&&simpleCoach.granted&&['reserved','pending_review','ready','rejected','athlete_declined','failed','stale'].includes(or.data?.state)){
  coachShell('<div id="coachProposal"></div><button data-coach-action data-keep-enabled="true" class="btn" id="coachPermissions">Anamnesis y permisos</button>');$('coachPermissions').onclick=()=>coachLoadIntake(true);coachRenderOperation(or.data);
  if(or.data.state==='reserved'){coachBusy(true,'Estamos preparando tu rutina…');try{await coachPollOperation(or.data.id,epoch,owner);}finally{if(coachCurrent(epoch,owner))coachBusy(false);}}return;
