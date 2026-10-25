@@ -59,6 +59,11 @@ effective dataset limited to this fixture, activation requires globally zero Bas
 intakes/operations/feedback and health rows, both configs empty, no preexisting active Basic context grant
 for this owner, exact synthetic identities and unchanged backend/security hashes.
 It stops on drift. It does not claim an assignment restriction absent from the server.
+The same reviewer gate is also used by the assignment-filtered Premium initial queue.
+Activation therefore refuses any pending Premium initial operation assigned to this
+reviewer; read-only inspection currently finds zero. Existing Premium access/expiry
+and assignments remain unchanged. This additional fence prevents this Basic rehearsal
+from exposing an unrelated pending Premium initial review.
 
 One transaction creates **three rows only**: one synthetic training-only context
 grant (`pilot-supervised-v2`), one submitted Basic v2 intake, one V5-compatible
