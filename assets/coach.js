@@ -1,5 +1,5 @@
 /* Closed supervised pilot. UI choices never grant server capabilities. */
-const simpleCoach={epoch:0,intake:null,operation:null,busy:false,accepted:false,newGeneration:false,pageActive:true};
+const simpleCoach={epoch:0,intake:null,operation:null,busy:false,accepted:false,newGeneration:false,pageActive:true,generationAttempt:null};
 function coachEnabled(){return simpleCoach.pageActive&&['https://dmqjexigdnfzobarhnib.supabase.co','https://yvguatdqncadkwewlepe.supabase.co'].includes(SUPABASE_URL);}
 // A cancelled read must not start another request from an unloading document.
 let coachPageHidden=false;
@@ -119,6 +119,8 @@ function coachBusy(value,label='Procesando…'){
 async function openSimpleCoach(){
  if(!coachEnabled()||profile?.role!=='client')return;
  const owner=user.id,epoch=++simpleCoach.epoch;simpleCoach.intake=null;simpleCoach.operation=null;simpleCoach.wizard=null;simpleCoach.newGeneration=false;coachShell('<p>Cargando tu acceso…</p>');
+ if(simpleCoach.generationAttempt?.owner===owner){await coachRecoverGeneration(simpleCoach.generationAttempt.intake,epoch,owner);return;}
+ simpleCoach.generationAttempt=null;
  try{const access=await coachCall('get_my_coach_access',{});if(!coachCurrent(epoch,owner))return;simpleCoach.accepted=!!access.routine_id;
  if(access.routine_id){
   const saved=access.accepted_routines?.length?access.accepted_routines:[{routine_id:access.routine_id,name:'Tu rutina Basic'}];
@@ -174,8 +176,8 @@ function coachShowIntake(){if(simpleCoach.wizard?.owner===user?.id&&!simpleCoach
 function coachTraining(complete=true){return coachWizardTraining(complete);}
 function coachTrainingMarkup(t){t=t||{};if(t?.schema_version==='basic-intake-v2')return coachWizardMarkup(t);const fields=[['Objetivo',t.goal],['Experiencia',coachChoices.experience[t?.experience]||t?.experience||'No indicado'],['Días',t.days],['Minutos por sesión',t.minutes],['Material',(Array.isArray(t?.equipment)?t.equipment:[]).join(', ')||'No indicado'],['Preferidos',t.preferred||'Sin preferencia'],['Evitar',t.avoided||'Ninguno seleccionado']];return '<dl class="coach-context">'+fields.map(([k,v])=>'<dt>'+esc(k)+'</dt><dd>'+esc(String(v??'No indicado'))+'</dd>').join('')+'</dl>';}
 async function coachSave(generate){
- if(simpleCoach.busy||(generate&&(!simpleCoach.reviewed||simpleCoach.accepted))||!$('coachForm').reportValidity())return;
- const owner=user.id,epoch=simpleCoach.epoch;let training;
+ if(simpleCoach.busy||(generate&&(!simpleCoach.reviewed||simpleCoach.accepted||simpleCoach.generationAttempt?.owner===user?.id))||!$('coachForm').reportValidity())return;
+ const owner=user.id,epoch=simpleCoach.epoch;let training,dispatched=false,intakeId=null;
  try{if(!simpleCoach.granted)throw Error('coach_context_required');training=coachTraining(generate);}catch(e){$('coachError').textContent=coachMessage(e.message);return;}
  coachBusy(true,generate?'Estamos preparando tu rutina…':'Guardando borrador…');$('coachError').textContent='';
  try{const i=simpleCoach.intake;
@@ -183,12 +185,39 @@ async function coachSave(generate){
  if(!coachCurrent(epoch,owner))return;simpleCoach.intake=intake;
  if(!generate){coachRenderQuestionnaire();$('coachStatus').textContent='Borrador guardado.';return;}
  // Closing/signing out while saving must never dispatch the provider request afterward.
+ intakeId=intake.id;simpleCoach.generationAttempt={owner,intake:intakeId};dispatched=true;
  const result=await db.functions.invoke('simple-coach-mock',{body:{intake_id:intake.id,key:crypto.randomUUID()}});
  if(!coachCurrent(epoch,owner))return;if(result.error||result.data?.error)throw Error(result.data?.error||'coach_request_failed');
- const op=result.data.operation;simpleCoach.operation=op;if(op.state==='failed')throw Error(op.error_code);
+ const op=result.data?.operation;if(!op?.id||!['reserved','pending_review','ready','failed','stale','rejected','athlete_declined','accepted'].includes(op.state))throw Error('coach_request_failed');
+ simpleCoach.operation=op;simpleCoach.generationAttempt=null;
+ if(op.state==='accepted'){await openSimpleCoach();return;}
  if(op.state==='reserved'){await coachPollOperation(op.id,epoch,owner);return;}coachRenderOperation(op);
- }catch(e){if(coachCurrent(epoch,owner))$('coachError').textContent=coachMessage(e.message);}
+ }catch(e){if(coachCurrent(epoch,owner)){if(dispatched)await coachRecoverGeneration(intakeId,epoch,owner);else $('coachError').textContent=coachMessage(e.message);}}
  finally{if(coachCurrent(epoch,owner)){const status=$('coachStatus')?.textContent;coachBusy(false);if(!generate&&status==='Borrador guardado.')$('coachStatus').textContent=status;}}
+}
+// A lost response is not permission to save another intake or invoke the provider again.
+// Keep only the owner/intake in memory; reconciliation uses the existing owner-protected read.
+function coachGenerationRecovery(intake,epoch,owner,reserved=false){
+ if(!coachCurrent(epoch,owner))return;
+ simpleCoach.generationAttempt={owner,intake};
+ coachShell('<h3 id="coachRecoveryHeading" tabindex="-1">'+(reserved?'Estamos preparando tu rutina':'No podemos confirmar el resultado todavía')+'</h3><p>'+(reserved?'La solicitud ya está registrada. Puedes consultar su estado sin generar otra propuesta.':'Tus respuestas guardadas se conservan. Comprueba si la solicitud se ha registrado antes de volver a enviarla.')+'</p><p>No se enviará ninguna solicitud nueva automáticamente.</p><button data-coach-action data-keep-enabled="true" class="btn" id="coachRecoverRefresh">Actualizar estado</button>');
+ $('coachRecoverRefresh').onclick=async()=>{if(simpleCoach.busy)return;const next=++simpleCoach.epoch;coachBusy(true,'Comprobando tu solicitud…');try{await coachRecoverGeneration(intake,next,owner);}finally{if(coachCurrent(next,owner))coachBusy(false);}};
+ $('coachRecoveryHeading').focus();
+}
+async function coachRecoverGeneration(intake,epoch,owner){
+ if(!coachCurrent(epoch,owner))return;
+ try{
+  const r=await db.from('coach_operations').select('*').eq('user_id',owner).eq('intake_id',intake).order('created_at',{ascending:false}).order('id',{ascending:false}).limit(1).maybeSingle();
+  if(!coachCurrent(epoch,owner))return;
+  const op=r.data;
+  if(r.error||!op?.id||op.user_id!==owner||op.intake_id!==intake||!['reserved','pending_review','ready','failed','stale','rejected','athlete_declined','accepted'].includes(op.state)){coachGenerationRecovery(intake,epoch,owner);return;}
+  simpleCoach.operation=op;
+  if(op.state==='reserved'){coachGenerationRecovery(intake,epoch,owner,true);return;}
+  simpleCoach.generationAttempt=null;
+  if(op.state==='accepted'){await openSimpleCoach();return;}
+  coachShell('<div id="coachProposal"></div><button data-coach-action data-keep-enabled="true" class="btn" id="coachPermissions">Anamnesis y permisos</button>');
+  $('coachPermissions').onclick=()=>coachLoadIntake(true);coachRenderOperation(op);
+ }catch{if(coachCurrent(epoch,owner))coachGenerationRecovery(intake,epoch,owner);}
 }
 function coachDeleteDraft(){
  if(simpleCoach.busy||simpleCoach.intake?.state!=='draft')return;
@@ -231,4 +260,4 @@ async function coachAccept(){
  try{const id=await coachCall('accept_basic_plan',{p_operation:simpleCoach.operation.id});if(!coachCurrent(epoch,owner))return;await reload();if(!coachCurrent(epoch,owner))return;await renderShared();if(!coachCurrent(epoch,owner))return;simpleCoach.accepted=true;coachShell('<h3>Rutina creada</h3><p>Ya puedes abrir las sesiones. La estructura queda fija durante el piloto.</p><button data-keep-enabled="true" class="btn primary" id="coachOpen">Abrir rutina</button>');$('coachOpen').onclick=()=>{coachDialog().close();openCoachRoutine(id);};}
  catch(e){if(coachCurrent(epoch,owner))$('coachError').textContent=coachMessage(e.message);}finally{if(coachCurrent(epoch,owner))coachBusy(false);}
 }
-if(coachEnabled())db.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT'){simpleCoach.hintsEpoch=(simpleCoach.hintsEpoch||0)+1;simpleCoach.routineHints=null;simpleCoach.epoch++;simpleCoach.intake=null;simpleCoach.operation=null;simpleCoach.wizard=null;simpleCoach.accepted=false;simpleCoach.granted=false;const d=$('coachDialog');if(d){d.close();d.replaceChildren();}}});
+if(coachEnabled())db.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT'){simpleCoach.hintsEpoch=(simpleCoach.hintsEpoch||0)+1;simpleCoach.routineHints=null;simpleCoach.epoch++;simpleCoach.intake=null;simpleCoach.operation=null;simpleCoach.wizard=null;simpleCoach.generationAttempt=null;simpleCoach.accepted=false;simpleCoach.granted=false;const d=$('coachDialog');if(d){d.close();d.replaceChildren();}}});
