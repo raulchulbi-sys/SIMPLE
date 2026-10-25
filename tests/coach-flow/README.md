@@ -47,7 +47,7 @@ references in `index.html` change product behavior. There is no redesign or chan
 questionnaire wording, programming rules, catalogue, prescriptions, training save,
 Auth/OAuth, recovery, roles, RLS, RPCs, backend transport or billing.
 
-## Reproducible checks
+## Initial candidate checks (historical; not rerun for the JWT follow-up)
 
 Use the repository's existing Node/Playwright installation; no runtime dependency is
 added. The browser scripts use isolated headless profiles, never personal sessions.
@@ -79,7 +79,8 @@ node tests/coach-flow/staging-anon.cjs
 | Existing chat UI regression | 1,014/1,014 | Offline Chromium/WebKit |
 | Anonymous staging reads | 6/6 | Real HTTP, no JWT |
 
-Total: **1,287 unique final assertions**. Reproductions, smoke runs, reruns and
+Initial candidate total: **1,287 unique assertions**. These are existing evidence,
+not new executions in the authenticated follow-up below. Reproductions, smoke runs, reruns and
 historical counts are not added again. Recovery and workout views include
 360/390/430/1280, light/dark. The chat regression also includes 320px. Keyboard,
 focus, duplicate activation, delayed responses, foreign owner/intake, review gates,
@@ -101,11 +102,120 @@ the final browser runs used the existing authorized test runtime and loopback se
 Results, screenshots, aggregate read-only integrity receipts and failure evidence stay
 under ignored `results/` or `private/`. They must not enter public artifacts or commits.
 
-## Remaining validation and rollback
+## Authenticated staging follow-up — 25 October 2026
 
-- Rehearse this frontend against real authorized synthetic staging JWTs, including
-  owner, other client, trainer and reviewer, before promotion. No accounts or reviewer
-  capabilities were enabled merely to satisfy this check.
+The product files are byte-identical to the reviewed PR #2 tree
+`b07c074c3f7f13a06991bdc736dfd056dfb12a20`. This follow-up adds test runners and
+documentation only. No new product defect was reproduced, so no further frontend,
+server, questionnaire or v5 programming correction was applied.
+
+| New checks | Passed | Evidence |
+| --- | ---: | --- |
+| Existing synthetic identities and scopes | 84/84 | Real JWTs verified by staging Auth; actual authenticated REST/RPC responses |
+| Basic recovery view and full reload | 18/18 | Actual frontend + real JWT HTTP relay in Node; browser contains no token |
+| Full Basic reload and Premium conflicts/context | 54/54 | Actual frontend with controlled synthetic server; Chromium and WebKit |
+
+**156 unique new assertions**, excluding the earlier candidate's 1,287 assertions
+and all partial harness runs. In addition, **27/27 aggregate integrity comparisons**
+match before/after; these are reported separately rather than inflating the test count.
+
+Five already-authorized synthetic identities were used: three clients (`mock`,
+`real`, `retry`), a designated reviewer and a normal trainer. The server verified
+each real JWT and existing profile role. No new identity, permission, consent,
+allowance or reviewer assignment was created. Passwords were read from the existing
+authorized private manifest in memory. Access/refresh tokens were never written to
+files, browser storage, logs, snapshots, child environments or test results.
+All runner processes exited and discarded their in-memory sessions.
+
+Real JWT evidence covers own existing routine/history reads, denial of another
+unassigned client's populated routine, denial of existing private revisions and
+mesocycles, exact owner/intake filtering for a nonexistent Basic operation,
+unavailable Basic/Premium capabilities, role guards and expired reviewer assignments.
+The reviewer currently has four preexisting assignments, all expired; all four
+specific projections reject access. An `actor: reviewer` label with an empty
+`scopes` array is not a permission grant or a positive projection test.
+
+Ten authenticated `premium_chat_reserve` requests target a UUID verified absent
+beforehand. Each rejects in the existing client-role/owned-mesocycle guard before
+expiry reconciliation, inserts, reservations or quota consumption. The trainer
+guard returns `coach_not_authorized`; clients return `premium_chat_not_authorized`.
+The unchanged financial/data hashes confirm there was no persistent business write.
+These rejections do **not** prove the later idempotency/content-binding branch.
+
+The mixed browser checks use a strict read-only Node relay with real JWTs for the
+three clients. External browser HTTP is blocked. It exercises the real recovery
+view, read-only status refresh and full reload with the actual unavailable Basic
+capability. It is **not** a complete Supabase SDK login, OAuth or authenticated
+browser journey, nor a successful generation/operation recovery.
+
+The 54 controlled browser assertions cover full reload of reserved, failed,
+pending-review, ready, accepted and absent operation states while retaining an
+existing accepted routine, revision, workout and note. They verify zero automatic
+invocations or saves. Premium checks pass the same key with changed content to a
+simulated server rejection, change revision between attempts and revoke context;
+the confirmed transcript remains intact without another simulated charge.
+The production server's corresponding key/content/revision checks were inspected
+in read-only source/metadata, but their positive-scope execution remains untested.
+
+### Explicit limitations / blocked positive scenarios
+
+- No Basic intakes or operations currently exist in staging for these identities;
+  their pilot capability is off. Empty foreign Basic reads cannot prove isolation
+  against a populated operation row. Positive owner recovery and review/acceptance
+  states remain simulated.
+- None of these identities owns a Premium mesocycle, conversation or message.
+  Their Premium capability is unavailable. The assigned reviewer scopes are expired.
+  Positive chat idempotency, real server content/revision conflicts and an authorized
+  reviewer projection cannot legitimately reach their target branches today.
+- No scopes were extended, fixtures inserted or existing records modified to make
+  a positive case pass. This is independent of the outstanding production reviewer
+  privacy test for Cloudflare.
+
+### Integrity, harness diagnostics and reproduction
+
+The 27 comparisons include profiles, routines/days/exercises/assignments, workouts,
+notes, intakes/grants/operations, management/revisions/mesocycles, conversations,
+messages/recommendations/check-ins, budgets/entitlements/admissions/financial audit,
+stable Auth identity fields and pilot/reviewer configuration. Counts and hashes match.
+In particular, 19 routines, 98 exercises, 22 workouts, four revisions and four notes
+are unchanged. All preexisting fixtures, including financial records, remain intact.
+Normal test sign-ins create Auth sessions and update login timestamps; those mutable
+fields are deliberately excluded from the stable identity comparison. No Auth
+configuration, identity/role, RLS, secret, quota or budget was changed.
+
+Three stopped attempts were harness diagnostics, not application regressions:
+expecting the reviewer actor label to imply access, expecting a client error for
+trainers, and restoring a memory-only attempt after a supposed full reload. The
+assertions were corrected using the actual function definitions and real reload
+semantics. Their partial counts are not added to the 156 final assertions.
+
+```powershell
+# Offline, no credentials/network/provider:
+node tests/coach-flow/reload-context.cjs
+# Explicit real staging validation using the existing authorized manifest:
+node tests/coach-flow/jwt-readonly.cjs <authorized-private-manifest-path> --browser
+```
+
+The real runner additionally requires an independently checked, ignored
+`private/jwt-scope-proof.json`: exact staging project, five authorized actor IDs and
+roles, own routine/workout counts, a verified nonexistent negative target and the
+four expired reviewer scope IDs. Refresh that read-only proof before a future run;
+it is not a fixture generator or permission-grant script. Never commit it or the
+credential manifest. All evidence is ignored in `results/` and `private/`, including
+the final authenticated/reload-context JSON and aggregate integrity receipt.
+
+No staging Edge Function was invoked, no provider request or spending occurred,
+and no production database or application state was modified. Neither PR was merged
+or deployed; main and draft PR #1 are unchanged. Updating PR #2 adds tests/docs only.
+
+## Remaining pilot validation and rollback
+
+- Before a supervised Basic pilot, separately authorize valid synthetic pilot scope,
+  consent and suitable isolated operation fixtures (or one supervised generation),
+  then test positive recovery, populated cross-owner denial and reload using the
+  real SDK. Do not grant these automatically. For Premium's positive idempotency
+  path, a valid owned mesocycle/chat scope and controlled no-provider fixture/replay
+  mechanism need separate authorization; expired reviewer denial is insufficient.
 - A new real model generation requires separate authorization/cost approval. Existing
   real pilot evidence is historical and was not regenerated or modified.
 - The outstanding production reviewer privacy gate and Cloudflare cutover are not
