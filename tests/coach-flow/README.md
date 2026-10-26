@@ -1,15 +1,19 @@
 # Coach request recovery — development candidate
 
-Latest preparation: [Basic real-SDK rehearsal](BASIC-SDK-PILOT.md). A separately
-reproduced full-reload gap is now fixed by reconstructing uncertainty from the
-submitted owner-scoped intake. Activation/fixtures/live SDK journey remain pending
-approval. New focused checks: 20 reload + 14 safety; affected existing regressions:
-111 recovery + 40 journey + 23 compatibility. Earlier counts below are dated evidence,
-not a fresh complete authenticated journey on this updated candidate.
+Latest result (26 October): [Basic real-SDK rehearsal closed](BASIC-SDK-RESULTS.md).
+The authorized staging run completed 21 unique real SDK/JWT checks, including review,
+acceptance, one workout and history. Its deterministic proposal was seeded, not generated
+by a provider. All fixture rows were removed; 27/27 original count/hash references and
+16 function definitions/owners/ACLs were restored. No model call, deployment or merge.
+The harness fingerprint and navigation fixes add 14 read-only security regression cases
+and 2 offline navigation assertions; reruns are not added to those totals.
+The [plan](BASIC-SDK-PILOT.md) remains the procedure for a separately authorized future
+run. Earlier sections below are dated evidence, not new executions or current blockers.
 
 Base: production/main `0c96b5fa96c2b99436dfc1c32425ed5e3a8b4663`.
-Independent branch: `codex/coach-flow-reliability`. No deployment, SQL migration,
-Auth change, allowance, reviewer assignment or paid model request is part of this change.
+Independent branch: `codex/coach-flow-reliability`. No deployment, persistent SQL migration,
+Auth configuration change or paid model request is part of this change. The separately
+authorized temporary staging scope was restored after the rehearsal.
 Cloudflare PR #1 is a separate draft and is not modified.
 
 ## Current implementation, checked 25 October 2026

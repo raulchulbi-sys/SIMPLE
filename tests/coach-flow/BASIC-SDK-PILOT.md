@@ -1,11 +1,14 @@
 # Basic: prepared authenticated staging rehearsal
 
-Status: **PREPARED — ACTIVATION AND LIVE JOURNEY NOT AUTHORIZED/NOT EXECUTED**.
+Status, 26 October 2026: **AUTHORIZED REHEARSAL COMPLETED AND CLEANED**.
+See [results, limitations and integrity](BASIC-SDK-RESULTS.md). The preparation below
+records the original plan and its historical checks; it is not permission to start
+another run. Existing receipts must never be reused to recreate deleted fixtures.
 This is a recovery/authorization/workflow rehearsal using the real Supabase SDK and
 existing synthetic accounts. Its proposal is deterministic test data. It cannot
 establish real model generation, programming quality or production readiness.
 
-## Completed safely
+## Preparation checkpoint (25 October; historical)
 
 Base is PR #2 remote `92fc4b4` / local equivalent `652e4a1`, tree
 `f75f2192b26ce8b631547d6bbb33c53ec43ade5c`. Main remains `0c96b5f`; draft hosting
@@ -129,7 +132,7 @@ day. Review regenerated SQL and the exact run/fixture UUIDs before executing it.
 An absent project GUC is not evidence of the project: the coordinator must select
 and verify the MCP project. UUID/role/email-domain/config hashes are additional guards.
 
-## Pending approval: execution order
+## Reviewed execution order (new runs require explicit authorization)
 
 1. Authorize this exact four-account scope, 60-minute window, three seed rows,
    synthetic reviewer approval/acceptance, one workout/four-note cap and bounded
