@@ -1,8 +1,8 @@
 # Una generación Basic V5 real — propuesta pendiente de autorización
 
 Actualizado: 27/10/2026. Solo SIMPLE Security Test (`dmqjexigdnfzobarhnib`).
-**Protección implementada y probada offline; NO desplegada ni habilitada. No existe una garantía contractual de facturación por solicitud equivalente a un hard cap monetario del proveedor.**
-Este documento no autoriza activar accesos, desplegar el guard propuesto ni llamar a OpenAI.
+**Guard desplegado y verificado únicamente en staging: v32, verify_jwt=true. Basic/reviewer siguen deshabilitados; cero conteos y generaciones reales. No existe una garantía contractual de facturación por solicitud equivalente a un hard cap monetario del proveedor.**
+El despliegue autorizado está cerrado en [BASIC-GUARD-DEPLOYMENT.md](BASIC-GUARD-DEPLOYMENT.md). Este documento no autoriza activar accesos ni llamar a OpenAI.
 
 ## Código y pruebas del 27/10
 
@@ -29,12 +29,12 @@ la estimación histórica a tarifa nominal, NO una factura certificada ni un nue
 En especial, tier inesperado o caché incoherente no permiten tratar esa estimación como coste
 real: conservar el recibo saneado, detener el ensayo y contrastar el proveedor antes de limpiar.
 
-## Referencias comprobadas el 26/10 (main/PR #2 releídos el 27/10)
+## Referencias iniciales y actualización del 27/10
 
-- PR #2: draft, remoto `3de96b3fd6bec259f1c369dd9f0c55f421327c63`; local equivalente `3183b36f948acdccfe949a996b2575bb99e67002`.
+- PR #2 al iniciar el despliegue: draft, remoto `16ae3f64f835c56551656764b074288ebdec2f0b`; local equivalente `8078440d8c69490a430959e10ab580c2c5870c40`.
 - Main: `0c96b5fa96c2b99436dfc1c32425ed5e3a8b4663`.
 - PR #1: draft, `81fe65f4b9b5a9b7c3d905c2ea3c432f8ef5d839`. Ambas intactas.
-- Staging ACTIVE_HEALTHY; Edge `simple-coach-mock` v31 ACTIVE, verify_jwt=true. Su nombre histórico no implica que sea un mock: llama a Responses cuando hay acceso autorizado.
+- Staging ACTIVE_HEALTHY; Edge `simple-coach-mock` pasó de v31 a v32 ACTIVE, verify_jwt=true. Su nombre histórico no implica que sea un mock: llama a Responses cuando hay acceso autorizado.
 - Contrato, proveedor y catálogo desplegados iguales al checkout salvo dos saltos finales de línea. Entry point difiere exclusivamente en orígenes CORS adicionales ya existentes de staging: NO sobreescribirlo con el local.
 - Modelo fijo permitido por Edge y claim SQL: `gpt-5.4-2026-03-05`. Un override de COACH_OPENAI_MODEL diferente se rechaza antes de invocar al proveedor; no se leyó ese secret.
 - Contrato `basic-initial-v5`, intake `basic-intake-v2`, propuesta expandida schema_version=2; reasoning=low; store=false; JSON Schema strict; sin tools ni conversación.
@@ -92,9 +92,9 @@ El endpoint de conteo no recibe store, max_output_tokens ni service_tier porque 
 parte de sus parámetros de entrada documentados. El hash cambia si cambia cualquier campo
 del cuerpo final; revalidarlo antes de activar. No se acepta body/modelo/presupuesto del cliente.
 
-## Límites existentes y límite propuesto
+## Límites originales y protección desplegada
 
-Existentes en el deployment v31 (el código nuevo aún no está desplegado):
+Referencia histórica de v31, anterior al guard (NO describe los límites actuales de v32):
 - Un único fetch al proveedor por claim. Cero retry automático, incluso 429, timeout o respuesta incompleta.
 - max_output_tokens=5120, incluyendo razonamiento. Timeout cliente 90 s; lease del claim 110 s.
 - Un claim bajo lock por operación; generación marcada antes del envío. Una operación raíz consume el límite aunque falle.
@@ -108,8 +108,8 @@ Referencia aritmética orientativa: input 3.000–5.000 y output 1.500–3.000 �
 No es medición ni promesa de calidad/consumo.
 El proxy bytes+4096 del cuerpo final da 0,1132075 USD; **NO es un conteo exacto ni un techo demostrado**.
 
-**Protección preparada para desplegar solo en staging tras autorización.**
-1. Conservar snapshot del deployment v31 y CORS. No cambiar V5 ni SQL/RLS/Financial P1.
+**Protección desplegada en v32; su camino al proveedor aún no se ha ejecutado.**
+1. Snapshot exacto de v31 y CORS conservados. V5 y SQL/RLS/Financial P1 sin cambios.
 2. El guard acota proyecto staging, modelo/contrato y parámetros fijos. Owner/intake/clave
    pertenecen al manifiesto del runner y a la autorización SQL existente: no se incrustan
    UUID privados en código público. El runner permite solo ese envío; ambos accesos temporales
@@ -124,8 +124,8 @@ El proxy bytes+4096 del cuerpo final da 0,1132075 USD; **NO es un conteo exacto 
 6. Como máximo UN POST /v1/responses; ningún segundo envío aunque falle.
 7. Coste token máximo condicionado a tarifas estándar vigentes:
    (12.000×2,50 + 5.120×15)/1.000.000 = **0,1068 USD** sin caché.
-   Propuesta de autorización: **0,12 USD** máximo de coste API de esta prueba, antes de impuestos,
-   sin elevar presupuestos de aplicación. Verificar también el tratamiento económico del endpoint
+   **0,12 USD no es un máximo facturable garantizado**. Una autorización posterior debe aceptar
+   expresamente esta cota condicionada, sin elevar presupuestos de aplicación. Verificar también el tratamiento económico del endpoint
    de conteo antes de autorizarlo: no se ha acreditado aquí que sea gratuito; si tiene cargo
    adicional no acotable, no llamar. El guard NO lleva un presupuesto0,12 configurable:
    impone tamaño/tokens/modelo/tier/intentos, no el precio comercial ni impuestos.
@@ -140,9 +140,10 @@ El proxy bytes+4096 del cuerpo final da 0,1132075 USD; **NO es un conteo exacto 
 9. Capturar provider response ID/request ID, usage/cache/output, modelo/tier, latencia y coste
    sin headers/clave. Si falta recibo o el coste verificado excede la cota, mantener incidencia
    documentada y bloquear manualmente todo nuevo intento; jamás recortar un coste real.
-10. Restaurar v31 al finalizar, verificando hashes, con accesos ya desactivados.
+10. Rollback exacto de v31 disponible si aparece una regresión. El cierre normal conserva v32;
+    desactivar accesos no requiere desinstalar su protección.
 
-El guard está **implementado y probado offline, no desplegado**. `max_output_tokens=5120`
+El guard está **desplegado en staging; la rama del proveedor solo se ha probado offline**. `max_output_tokens=5120`
 incluye razonamiento y formato invisible: puede producir `incomplete` antes del JSON entero.
 La respuesta sintética offline prueba compatibilidad estructural, no que el modelo siempre
 termine dentro del límite. Si se agota, se conserva consumo y se detiene sin retry ni subida.
@@ -176,7 +177,7 @@ No autorizar retry, aprobar, aceptar ni crear rutina/workout/notas.
    Estado de éxito exigido pending_review, review_required=true, routine_id vacío.
 7. Reviewer lee proyección segura y se entrega propuesta íntegra con evaluación. Nadie
    aprueba/acepta automáticamente. Una rutina estructuralmente válida aún necesita juicio humano.
-8. Desactivar owner/reviewer pronto, restaurar deployment y conservar recibo privado
+8. Desactivar owner/reviewer pronto, conservar v32 salvo regresión y conservar recibo privado
    sanitizado. Ante incertidumbre upstream no limpiar hasta reconciliar; no borrar evidencia.
    El cierre de whitelist impide nuevos claims, pero no cancela una solicitud ya enviada.
 
@@ -234,16 +235,19 @@ Preparar/revisar SQL antes de activar; ejecutarlo solo con los UUID obtenidos de
 
 ## Pendiente de autorización / bloqueo concreto
 
-- Autorizar el deployment staging del guard revisado (preservando sus CORS vigentes), un conteo previo sin generación y una generación como máximo,
-  con condiciones/coste anteriores, y ventana owner/reviewer/limpieza exacta.
+- El deployment staging ya está autorizado, aplicado y verificado. Falta autorizar una única
+  intake sintética, ventana owner/reviewer de hasta 60 minutos, un conteo y como máximo una
+  generación sin reintentos, con condiciones económicas anteriores y limpieza exacta por UUID.
 - Confirmar presencia runtime y autenticación de la credencial en ese preflight; saldo/acceso
   al modelo solo se confirman con el resultado real, nunca con un mock.
 - No hay garantía USD actual suficiente para llamar a la Edge tal como está bajo un
   hard cap de 0,12. No ejecutar usando únicamente la estimación por bytes.
 
 El único cambio de runtime es la capa de protección exclusiva de staging y su enlace en
-el entrypoint. No hay despliegue, merge, login, activación ni writes de base de datos.
-Cero llamadas OpenAI y cero gasto en esta preparación. Producción no se ha tocado.
+el entrypoint. Se desplegó v32 y se usó una sesión sintética existente para probar denegación,
+cerrándola después. Sin merge, activación ni escrituras de negocio. Las 27 referencias de
+integridad y los catálogos de seguridad coinciden antes/después. Cero llamadas OpenAI;
+producción no se ha tocado. El coste del hosting no se presenta como una factura verificada.
 
 Fuentes oficiales consultadas:
 - https://developers.openai.com/api/docs/models/gpt-5.4

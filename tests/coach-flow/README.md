@@ -1,7 +1,9 @@
 # Coach request recovery — development candidate
 
-27 October: [Basic real-generation cost guard](BASIC-REAL-GENERATION.md) prepared locally,
-not deployed. 44 new offline cases and 35 reused V5 regressions pass; no provider calls.
+27 October: [Basic cost guard deployed to staging v32](BASIC-GUARD-DEPLOYMENT.md),
+JWT required and all existing CORS retained. 18 new live denial/CORS/auth checks pass;
+44 existing offline guard cases rerun successfully. No provider calls or pilot activation.
+The earlier preparation also passed 35 existing V5 regressions (not rerun for deployment).
 Run `node tests/coach-flow/basic-cost-guard.cjs` and `node tests/coach-flow/basic-real-preflight.cjs`.
 The preflight's optional private deployment snapshot stays ignored; it is not required by CI.
 See the plan for technical limits versus unverified commercial/credential assumptions.
@@ -17,8 +19,9 @@ The [plan](BASIC-SDK-PILOT.md) remains the procedure for a separately authorized
 run. Earlier sections below are dated evidence, not new executions or current blockers.
 
 Base: production/main `0c96b5fa96c2b99436dfc1c32425ed5e3a8b4663`.
-Independent branch: `codex/coach-flow-reliability`. No deployment, persistent SQL migration,
-Auth configuration change or paid model request is part of this change. The separately
+Independent branch: `codex/coach-flow-reliability`. Only the explicitly authorized staging
+Edge guard was deployed; no production deployment, persistent SQL migration,
+Auth configuration change or paid model request. The separately
 authorized temporary staging scope was restored after the rehearsal.
 Cloudflare PR #1 is a separate draft and is not modified.
 
