@@ -1,5 +1,11 @@
 # Coach request recovery — development candidate
 
+27 October: [Basic real-generation cost guard](BASIC-REAL-GENERATION.md) prepared locally,
+not deployed. 44 new offline cases and 35 reused V5 regressions pass; no provider calls.
+Run `node tests/coach-flow/basic-cost-guard.cjs` and `node tests/coach-flow/basic-real-preflight.cjs`.
+The preflight's optional private deployment snapshot stays ignored; it is not required by CI.
+See the plan for technical limits versus unverified commercial/credential assumptions.
+
 Latest result (26 October): [Basic real-SDK rehearsal closed](BASIC-SDK-RESULTS.md).
 The authorized staging run completed 21 unique real SDK/JWT checks, including review,
 acceptance, one workout and history. Its deterministic proposal was seeded, not generated
