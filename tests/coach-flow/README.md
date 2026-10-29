@@ -1,5 +1,11 @@
 # Coach request recovery — development candidate
 
+29 October staging validation: [authenticated sports review](BASIC-SPORTS-STAGING.md).
+Edge v33 retains the cost guard and changes only the V5 evaluator dependency.
+58/58 distinct live SDK/JWT + authenticated-renderer checks and 11/11 offline
+evidence checks passed. Three synthetic rows cleaned; 27/27 references restored;
+temporary scopes closed. No provider calls or frontend/production deployment.
+
 29 October follow-up: [Basic V5 contextual sports review](BASIC-SPORTS-REVIEW.md).
 56/56 new offline evaluator/browser cases and 79/79 existing regressions passed.
 The preserved real proposal remains valid with five advisory warnings. No deployment,
