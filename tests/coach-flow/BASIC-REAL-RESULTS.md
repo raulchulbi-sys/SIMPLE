@@ -3,6 +3,10 @@
 Ensayo: 28/10/2026. Recuperación documental y auditoría: 29/10/2026.
 Entorno exclusivo: SIMPLE Security Test. PR #2 permanece en borrador.
 
+Seguimiento posterior: [avisos contextuales del evaluador](BASIC-SPORTS-REVIEW.md).
+La reevaluación offline añade cinco avisos sin cambiar la rutina. Este informe conserva
+el resultado original del ensayo: no se reescribe su recibo de cero warnings.
+
 ## Dictamen
 
 **Éxito técnico de una generación real; rutina inicial plausible, con revisión humana necesaria.**

@@ -1,5 +1,10 @@
 # Coach request recovery — development candidate
 
+29 October follow-up: [Basic V5 contextual sports review](BASIC-SPORTS-REVIEW.md).
+56/56 new offline evaluator/browser cases and 79/79 existing regressions passed.
+The preserved real proposal remains valid with five advisory warnings. No deployment,
+provider call or backend change. Historical zero-warning receipts remain unchanged.
+
 28 October: [first real Basic V5 generation and sports audit](BASIC-REAL-RESULTS.md).
 One provider count and one generation succeeded; 24/24 real SDK/JWT checks passed.
 Proposal stayed pending_review and was never accepted. Three synthetic rows were cleaned;
