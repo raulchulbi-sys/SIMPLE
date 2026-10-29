@@ -1,5 +1,14 @@
 # Coach request recovery — development candidate
 
+28 October: [first real Basic V5 generation and sports audit](BASIC-REAL-RESULTS.md).
+One provider count and one generation succeeded; 24/24 real SDK/JWT checks passed.
+Proposal stayed pending_review and was never accepted. Three synthetic rows were cleaned;
+27/27 references and 16 critical functions/configurations were restored.
+Token cost calculated from provider usage: USD 0.036885; invoice/count charges unverified.
+29 October: 10/10 read-only local receipt checks; no new backend or provider requests.
+These are separate evidence categories, not 34 authenticated checks.
+The real-run harness is retained for traceability, not authorization to repeat it.
+
 27 October: [Basic cost guard deployed to staging v32](BASIC-GUARD-DEPLOYMENT.md),
 JWT required and all existing CORS retained. 18 new live denial/CORS/auth checks pass;
 44 existing offline guard cases rerun successfully. No provider calls or pilot activation.
@@ -21,8 +30,8 @@ run. Earlier sections below are dated evidence, not new executions or current bl
 Base: production/main `0c96b5fa96c2b99436dfc1c32425ed5e3a8b4663`.
 Independent branch: `codex/coach-flow-reliability`. Only the explicitly authorized staging
 Edge guard was deployed; no production deployment, persistent SQL migration,
-Auth configuration change or paid model request. The separately
-authorized temporary staging scope was restored after the rehearsal.
+Auth configuration change. The one explicitly authorized provider request on 28 October
+is documented above; temporary staging scopes were restored after both trials.
 Cloudflare PR #1 is a separate draft and is not modified.
 
 ## Current implementation, checked 25 October 2026

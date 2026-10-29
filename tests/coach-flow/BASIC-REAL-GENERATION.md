@@ -1,4 +1,10 @@
-# Una generación Basic V5 real — propuesta pendiente de autorización
+# Una generación Basic V5 real — procedimiento y cierre
+
+**Cierre 28/10/2026:** el ensayo fue autorizado y ejecutado una sola vez. Ver
+[resultados reales y auditoría deportiva](BASIC-REAL-RESULTS.md): 24/24 checks SDK/JWT,
+propuesta pendiente de revisión sin aceptación y staging restaurado. El texto fechado
+27/10 que sigue conserva la preparación histórica, no el estado actual ni permiso
+para repetir. El 29/10 solo se revisaron los recibos locales; ninguna llamada nueva.
 
 Actualizado: 27/10/2026. Solo SIMPLE Security Test (`dmqjexigdnfzobarhnib`).
 **Guard desplegado y verificado únicamente en staging: v32, verify_jwt=true. Basic/reviewer siguen deshabilitados; cero conteos y generaciones reales. No existe una garantía contractual de facturación por solicitud equivalente a un hard cap monetario del proveedor.**
