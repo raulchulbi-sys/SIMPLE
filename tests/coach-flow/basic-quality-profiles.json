@@ -1,0 +1,207 @@
+[
+  {
+    "id": "A",
+    "label": "Principiante, material limitado",
+    "training": {
+      "schema_version": "basic-intake-v2",
+      "experience": "lt6",
+      "goal": "balanced_mass",
+      "days": 2,
+      "weekdays": [
+        "tue",
+        "fri"
+      ],
+      "minutes": 30,
+      "effort": "unknown",
+      "excluded": [
+        "pushup"
+      ],
+      "activity": {
+        "type": "none",
+        "weekdays": []
+      },
+      "inventory": {
+        "equipment": [
+          "dumbbells",
+          "bands"
+        ],
+        "custom": []
+      }
+    }
+  },
+  {
+    "id": "B",
+    "label": "Intermedio, gimnasio completo",
+    "training": {
+      "schema_version": "basic-intake-v2",
+      "experience": "y1_2",
+      "goal": "balanced_mass",
+      "days": 3,
+      "weekdays": [
+        "tue",
+        "thu",
+        "sat"
+      ],
+      "minutes": 60,
+      "effort": "confident",
+      "excluded": [
+        "bar_squat"
+      ],
+      "activity": {
+        "type": "none",
+        "weekdays": []
+      },
+      "inventory": {
+        "equipment": [
+          "chest_press",
+          "incline_press",
+          "convergent_press",
+          "pec_deck",
+          "pulldown",
+          "horizontal_row",
+          "convergent_row",
+          "supported_row",
+          "high_row",
+          "low_row",
+          "pullover",
+          "pullup",
+          "hack",
+          "pendulum",
+          "press45",
+          "horizontal_press",
+          "leg_extension",
+          "seated_curl",
+          "lying_curl",
+          "adductor",
+          "abductor",
+          "hip_thrust",
+          "seated_calf",
+          "standing_calf",
+          "shoulder_press",
+          "lateral",
+          "rear_delt",
+          "preacher",
+          "curl",
+          "triceps",
+          "smith",
+          "bench",
+          "barbell",
+          "rack",
+          "dumbbells",
+          "cables",
+          "bands",
+          "ab_machine",
+          "ab_wheel"
+        ],
+        "custom": []
+      }
+    }
+  },
+  {
+    "id": "C",
+    "label": "Avanzado, cuatro días",
+    "training": {
+      "schema_version": "basic-intake-v2",
+      "experience": "gt4",
+      "goal": "balanced_mass",
+      "days": 4,
+      "weekdays": [
+        "mon",
+        "tue",
+        "thu",
+        "fri"
+      ],
+      "minutes": 75,
+      "effort": "habitual",
+      "excluded": [],
+      "activity": {
+        "type": "none",
+        "weekdays": []
+      },
+      "inventory": {
+        "equipment": [
+          "chest_press",
+          "incline_press",
+          "convergent_press",
+          "pec_deck",
+          "pulldown",
+          "horizontal_row",
+          "convergent_row",
+          "supported_row",
+          "high_row",
+          "low_row",
+          "pullover",
+          "pullup",
+          "hack",
+          "pendulum",
+          "press45",
+          "horizontal_press",
+          "leg_extension",
+          "seated_curl",
+          "lying_curl",
+          "adductor",
+          "abductor",
+          "hip_thrust",
+          "seated_calf",
+          "standing_calf",
+          "shoulder_press",
+          "lateral",
+          "rear_delt",
+          "preacher",
+          "curl",
+          "triceps",
+          "smith",
+          "bench",
+          "barbell",
+          "rack",
+          "dumbbells",
+          "cables",
+          "bands",
+          "ab_machine",
+          "ab_wheel"
+        ],
+        "custom": []
+      }
+    }
+  },
+  {
+    "id": "D",
+    "label": "Tiempo limitado y fútbol próximo",
+    "training": {
+      "schema_version": "basic-intake-v2",
+      "experience": "y1_2",
+      "goal": "regain_mass",
+      "days": 2,
+      "weekdays": [
+        "tue",
+        "fri"
+      ],
+      "minutes": 45,
+      "effort": "learning",
+      "excluded": [
+        "dead_bug",
+        "bird_dog"
+      ],
+      "activity": {
+        "type": "football",
+        "weekdays": [
+          "thu",
+          "sat"
+        ]
+      },
+      "inventory": {
+        "equipment": [
+          "chest_press",
+          "pulldown",
+          "supported_row",
+          "press45",
+          "seated_curl",
+          "dumbbells",
+          "cables",
+          "bench"
+        ],
+        "custom": []
+      }
+    }
+  }
+]
