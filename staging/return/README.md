@@ -52,3 +52,11 @@ de despliegue independiente. Revertir este commit no borra suscripciones ni dato
 coinciden con los 40 hashes aprobados. La base conserva sus 36 hashes. La CI
 mantiene las 88 comprobaciones anteriores y añade los 12 casos; 42 análisis de
 sintaxis. No es una prueba nueva de Cloudflare, Stripe, JWT ni Supabase.
+
+[Recibo saneado del ensamblado positivo](assembly-evidence.json): procedencia de
+los dos artefactos históricos, hash del ensamblador y manifiesto, inventarios
+medidos de ambos resultados y comparación exacta con los 40 archivos aprobados.
+Se verificaron los resultados ya creados, sin reconstruirlos ni publicarlos.
+Los 12 casos de CI no ejecutan por sí solos ese ensamblado completo: necesitan
+la base histórica para reproducirlo. El recibo es evidencia local, no una
+atestación firmada del proveedor. No contiene rutas personales ni credenciales.
