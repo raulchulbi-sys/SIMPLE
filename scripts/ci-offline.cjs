@@ -11,6 +11,7 @@ const suites = [
   'tests/training-reset/unit.cjs',
   'tests/statistics-stage/unit.cjs',
   'tests/cycle-start/unit.cjs',
+  'tests/subscription/offline.cjs',
 ];
 const excludedDirectories = new Set(['private', 'results', 'node_modules', '.git']);
 
