@@ -1,0 +1,197 @@
+{
+  "projectId": "dmqjexigdnfzobarhnib",
+  "functions": [
+    {
+      "name": "simple-coach-mock",
+      "version": 29,
+      "verifyJwt": true,
+      "files": [
+        {
+          "name": "supabase/functions/simple-coach-mock/index.ts",
+          "sha256": "00b3a85f4b36d341ea5284365d9fea907206636e99221bd8ce1631043693366d"
+        },
+        {
+          "name": "supabase/functions/simple-coach-mock/contract.mjs",
+          "sha256": "2f11679ea6d550b04b2e1248edfdc76c47d2d74979ce47c976f2d66447d63a0b"
+        },
+        {
+          "name": "supabase/functions/simple-coach-mock/contract-v5.mjs",
+          "sha256": "101c3c02c2701500284a3b92c15b031c53e52dbe26aeabdd5f474549bd443039"
+        },
+        {
+          "name": "supabase/functions/simple-coach-mock/contract-v4.mjs",
+          "sha256": "428a265edb6df852746a3341522483902650c74106b1d613c2d567e8087a3cc4"
+        },
+        {
+          "name": "supabase/functions/simple-coach-mock/contract-v3.mjs",
+          "sha256": "bf3b91e657a31652c1f4dff65d7312e02d17136b594122e34c53f2bcb0118e52"
+        },
+        {
+          "name": "supabase/functions/simple-coach-mock/contract-v2.mjs",
+          "sha256": "c5e35966bd379058416941e20b30a0594b69e073cb80d9d45460889e71f7eb7c"
+        },
+        {
+          "name": "assets/coach-intake.js",
+          "sha256": "01e871875961e98e9fd787fc7b09affd92a8b18a9c732842f39351e0f319165d"
+        },
+        {
+          "name": "assets/coach-programming-v4.js",
+          "sha256": "7162b7007c3f001752f2409e87151ac22b318157b62cedcd6c0505109f1a0740"
+        },
+        {
+          "name": "assets/coach-programming-v5.js",
+          "sha256": "2d5afd7ae028c20a259c7003b5324facd3fe078352ae5730f4e9887837abb155"
+        },
+        {
+          "name": "supabase/functions/simple-coach-mock/provider.mjs",
+          "sha256": "b9f8ceb7c253ad997fffd6de090cdb98ea9e676162e062c2dd736eb0d892a38f"
+        }
+      ]
+    },
+    {
+      "name": "simple-coach-premium",
+      "version": 13,
+      "verifyJwt": true,
+      "files": [
+        {
+          "name": "supabase/functions/simple-coach-premium/index.ts",
+          "sha256": "de688f15220f5eb4e8982e44d8cc22f6d3ef9f0bc918db5429848f7fa03f4841"
+        },
+        {
+          "name": "supabase/functions/simple-coach-premium/series-contract.mjs",
+          "sha256": "5cdad13f9affb79e0344f964792505a9d0e11f53f1011a9cc569d97b13b71059"
+        },
+        {
+          "name": "supabase/functions/simple-coach-premium/contract.mjs",
+          "sha256": "2c494f88aaf89c8f263f75a75ae052f703b7eef8002e5cced8e554a72dc7aff4"
+        },
+        {
+          "name": "supabase/functions/simple-coach-premium/provider-receipt.mjs",
+          "sha256": "2192a2bede870b15e49d9dd41fe3c1defa424c451176e577f715456a4cd2d42a"
+        },
+        {
+          "name": "assets/coach-intake.js",
+          "sha256": "01e871875961e98e9fd787fc7b09affd92a8b18a9c732842f39351e0f319165d"
+        },
+        {
+          "name": "assets/coach-programming-v4.js",
+          "sha256": "7162b7007c3f001752f2409e87151ac22b318157b62cedcd6c0505109f1a0740"
+        },
+        {
+          "name": "assets/coach-programming-v5.js",
+          "sha256": "cee8d16cd7fdaeebf0b8f7be8fd5d66d5536ba2a8f2cefb5bfaeb6fef317a41c"
+        },
+        {
+          "name": "supabase/functions/simple-coach-premium/weekly-contract.mjs",
+          "sha256": "a73b547dc5481492572697384e3344e5b9ecef8d727139e33e76945e6627bb9c"
+        },
+        {
+          "name": "supabase/functions/simple-coach-premium/distribution-contract.mjs",
+          "sha256": "b4e7321121af9fce5944a2915ab05c745d37cc1741375e7f2cddba04a516d09e"
+        }
+      ]
+    },
+    {
+      "name": "simple-coach-chat",
+      "version": 13,
+      "verifyJwt": true,
+      "files": [
+        {
+          "name": "supabase/functions/simple-coach-chat/index.ts",
+          "sha256": "9d5ea13bfca0b53c71e6adf7a59e475ee8130dfd7f9e4a20719dcc8c9a9925ec"
+        },
+        {
+          "name": "supabase/functions/simple-coach-chat/chat-policy-v1_2.mjs",
+          "sha256": "880e202beefa299fa79700b7cc4d999fecab854c4e3d220977fbf898ea30d3ee"
+        },
+        {
+          "name": "supabase/functions/simple-coach-chat/chat-contract.mjs",
+          "sha256": "8ee33cf5bcf2e75ddf135016fc48a25d67fe33077771c50d9abbe2845707cda0"
+        },
+        {
+          "name": "supabase/functions/simple-coach-premium/provider-receipt.mjs",
+          "sha256": "2192a2bede870b15e49d9dd41fe3c1defa424c451176e577f715456a4cd2d42a"
+        },
+        {
+          "name": "supabase/functions/simple-coach-premium/series-contract.mjs",
+          "sha256": "5cdad13f9affb79e0344f964792505a9d0e11f53f1011a9cc569d97b13b71059"
+        },
+        {
+          "name": "supabase/functions/simple-coach-premium/contract.mjs",
+          "sha256": "2c494f88aaf89c8f263f75a75ae052f703b7eef8002e5cced8e554a72dc7aff4"
+        },
+        {
+          "name": "assets/coach-intake.js",
+          "sha256": "01e871875961e98e9fd787fc7b09affd92a8b18a9c732842f39351e0f319165d"
+        },
+        {
+          "name": "assets/coach-programming-v4.js",
+          "sha256": "7162b7007c3f001752f2409e87151ac22b318157b62cedcd6c0505109f1a0740"
+        },
+        {
+          "name": "assets/coach-programming-v5.js",
+          "sha256": "cee8d16cd7fdaeebf0b8f7be8fd5d66d5536ba2a8f2cefb5bfaeb6fef317a41c"
+        },
+        {
+          "name": "supabase/functions/simple-coach-chat/chat-policy-v1_1.mjs",
+          "sha256": "c3759e25d7d8d3e9f154e483e34094b2a552ca77e6ca17d2933d25950780c0e1"
+        },
+        {
+          "name": "supabase/functions/simple-coach-chat/replacement-prescription-v1.mjs",
+          "sha256": "5d2f1d34d77d02c3207a14feaac417c9b5abd4de47cee07c0733a30e3d952e8b"
+        }
+      ]
+    },
+    {
+      "name": "simple-coach-initial-premium",
+      "version": 2,
+      "verifyJwt": true,
+      "files": [
+        {
+          "name": "supabase/functions/simple-coach-initial-premium/index.ts",
+          "sha256": "dc766fa2544e54ab24501a71797bb64c1419483dccffd712146c1362c1d59b9b"
+        },
+        {
+          "name": "supabase/functions/simple-coach-initial-premium/contract.mjs",
+          "sha256": "9db105034a7f440268eefb9f81e00cad5eed5a4aaa4efe648c779daf74b4bf19"
+        },
+        {
+          "name": "supabase/functions/simple-coach-mock/contract-v5.mjs",
+          "sha256": "5feb6db3f85b0a500bba6c3743d953e26d535ea6d36839adb9deb7545ef3fe4f"
+        },
+        {
+          "name": "supabase/functions/simple-coach-mock/contract-v4.mjs",
+          "sha256": "428a265edb6df852746a3341522483902650c74106b1d613c2d567e8087a3cc4"
+        },
+        {
+          "name": "supabase/functions/simple-coach-mock/contract-v3.mjs",
+          "sha256": "bf3b91e657a31652c1f4dff65d7312e02d17136b594122e34c53f2bcb0118e52"
+        },
+        {
+          "name": "supabase/functions/simple-coach-mock/contract-v2.mjs",
+          "sha256": "c5e35966bd379058416941e20b30a0594b69e073cb80d9d45460889e71f7eb7c"
+        },
+        {
+          "name": "assets/coach-intake.js",
+          "sha256": "01e871875961e98e9fd787fc7b09affd92a8b18a9c732842f39351e0f319165d"
+        },
+        {
+          "name": "assets/coach-programming-v4.js",
+          "sha256": "7162b7007c3f001752f2409e87151ac22b318157b62cedcd6c0505109f1a0740"
+        },
+        {
+          "name": "assets/coach-programming-v5.js",
+          "sha256": "cee8d16cd7fdaeebf0b8f7be8fd5d66d5536ba2a8f2cefb5bfaeb6fef317a41c"
+        },
+        {
+          "name": "supabase/functions/simple-coach-initial-premium/provider.mjs",
+          "sha256": "2f26db4eb5e3a2eac8b44f48f6cc1771f86092f0eaba10d2c5f11e2cd8bce425"
+        },
+        {
+          "name": "supabase/functions/simple-coach-premium/provider-receipt.mjs",
+          "sha256": "46989bf9503f2962d351869e9ab432fba0f2cc8957e512003085aa55a0e2baa0"
+        }
+      ]
+    }
+  ]
+}

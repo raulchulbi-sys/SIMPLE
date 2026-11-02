@@ -2660,12 +2660,13 @@ button.client-overview-card{display:flex;flex-direction:column;align-items:stret
     <div id="trainBody" style="margin-top:12px"></div>
   </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0">
+<script src="assets/runtime-config.js">
+</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0">
 </script><script>
-const SUPABASE_URL="https://yvguatdqncadkwewlepe.supabase.co";
-const SUPABASE_KEY="sb_publishable_VYoUECN0MaGIOC2LtGi0iw_C0wqUY-W";
+const SUPABASE_URL=window.SimpleAppRuntime.supabaseUrl;
+const SUPABASE_KEY=window.SimpleAppRuntime.supabasePublicKey;
 if(!window.supabase){ throw new Error("Supabase JS no cargó"); }
-const APP_URL = 'https://raulchulbi-sys.github.io/SIMPLE/';
+const APP_URL = window.SimpleAppRuntime.appUrl;
 // Capture callback intent before the SDK consumes and removes the URL fragment.
 // No token or other credential is copied into application state here.
 const SIMPLE_AUTH_CALLBACK=Object.freeze({
