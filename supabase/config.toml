@@ -8,3 +8,11 @@ verify_jwt = true
 
 [functions.simple-coach-initial-premium]
 verify_jwt = true
+
+# Prepared TEST-only billing configuration. This file does not deploy anything.
+[functions.billing-test]
+verify_jwt = true
+
+# Stripe supplies a raw-body signature rather than a Supabase JWT.
+[functions.billing-test-webhook]
+verify_jwt = false
