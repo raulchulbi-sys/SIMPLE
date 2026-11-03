@@ -80,6 +80,9 @@ begin
  if not coach_private.is_reviewer(auth.uid()) then raise exception 'coach_reviewer_required' using errcode='42501';end if;
  perform coach_private.lock_review_scope(p_operation,'review');
  select * into o from public.coach_operations where id=p_operation for update;
+ -- The row lock can wait beyond either expiry. Recheck wall-clock eligibility
+ -- after the wait; retain the assignment lock until this transaction commits.
+ perform coach_private.lock_review_scope(p_operation,'review');
  if o.state<>'pending_review' or o.review_decision is not null then raise exception 'coach_review_not_pending';end if;
  if not coach_private.allowed(u) then raise exception 'coach_pilot_required';end if;
  if coach_private.require_context(u) is distinct from o.grant_ids then raise exception 'coach_context_changed';end if;
@@ -113,6 +116,8 @@ BEGIN
  THEN RAISE EXCEPTION 'coach_reviewer_required' USING errcode='42501';END IF;
  perform coach_private.lock_review_scope(p_operation,'retry');
  SELECT * INTO o FROM public.coach_operations WHERE id=p_operation FOR UPDATE;
+ -- Do not authorize a retry with a scope that expired during the row-lock wait.
+ perform coach_private.lock_review_scope(p_operation,'retry');
  IF o.state='reserved' AND o.expires_at<=clock_timestamp() THEN
   UPDATE public.coach_operations SET state='failed',error_code='provider_timeout',updated_at=clock_timestamp()
    WHERE id=o.id AND state='reserved' AND expires_at<=clock_timestamp() RETURNING * INTO o;

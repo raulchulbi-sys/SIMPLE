@@ -1,5 +1,10 @@
 # Backend comercial TEST — revisión pendiente
 
+Seguimiento 03/11: [revisión de integración y corrección de caducidad](INTEGRATION-REVIEW-20261103.md)
+y [plan de staging sin repetir compras](STAGING-VALIDATION-PLAN.md).
+Los recuentos siguientes son históricos; el seguimiento separa 15 casos nuevos
+de las regresiones reutilizadas y no acredita ningún despliegue conectado.
+
 Base main `b2f77c6`; recuperación selectiva de seis commits comerciales cuyo HEAD
 era `f393d29e`. No se incorpora el frontend de esa candidata ni Auth/Cloudflare
 de PR #1 ni los cambios de Coach de PR #2. Nada se ha aplicado a Supabase.

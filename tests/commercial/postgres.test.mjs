@@ -87,8 +87,10 @@ test('concurrent approval resolves once; second action cannot rewrite decision',
 });
 test('revocation committed before waiting review acquires scope denies the review',async()=>{
  seed();assign();
- const revoke=asyncSql(`begin;select pg_advisory_xact_lock(hashtextextended('coach:${OWNER}',0));update coach_private.review_assignments set revoked_at=clock_timestamp();select pg_sleep(0.4);commit;`);
- await new Promise(r=>setTimeout(r,80));const review=asyncSql(auth(REVIEWER,`select public.review_coach_proposal('${OP}',true,'late');`));
+ const revoke=asyncSql(`set application_name='revoke_holder';begin;select pg_advisory_xact_lock(hashtextextended('coach:${OWNER}',0));update coach_private.review_assignments set revoked_at=clock_timestamp();select pg_sleep(1.2);commit;`);
+ await waitForDatabaseWait('revoke_holder','Timeout');
+ const review=asyncSql(auth(REVIEWER,`set application_name='revoke_action';select public.review_coach_proposal('${OP}',true,'late');`));
+ await waitForDatabaseWait('revoke_action','Lock');
  const [a,b]=await Promise.all([revoke,review]);assert.equal(a.ok,true);assert.equal(b.ok,false);assert.match(b.error,/scope_required/);
  assert.equal(query(`select to_jsonb(state) from public.coach_operations where id='${OP}';`),'pending_review');
 });
@@ -105,11 +107,38 @@ test('assignment owner/self constraints and all write grants fail closed',()=>{
  reject(REVIEWER,`coach_private.lock_review_scope('${OP}','review')`,/permission denied/);
 });
 test('review permission expiring while waiting for athlete lock is rechecked with wall clock',async()=>{
- seed();assign();sql("update coach_private.review_assignments set expires_at=clock_timestamp()+interval '250 milliseconds';");
- const a=asyncSql(`begin;select pg_advisory_xact_lock(hashtextextended('coach:${OWNER}',0));select pg_sleep(0.45);commit;`);
- await new Promise(r=>setTimeout(r,80));const b=asyncSql(auth(REVIEWER,`select public.review_coach_proposal('${OP}',true,'late');`));
+ seed();assign();
+ const a=asyncSql(`set application_name='athlete_expiry_holder';begin;select pg_advisory_xact_lock(hashtextextended('coach:${OWNER}',0));select pg_sleep(2.2);commit;`);
+ await waitForDatabaseWait('athlete_expiry_holder','Timeout');
+ sql("update coach_private.review_assignments set expires_at=clock_timestamp()+interval '1 second';");
+ const b=asyncSql(auth(REVIEWER,`set application_name='athlete_expiry_action';select public.review_coach_proposal('${OP}',true,'late');`));
+ await waitForDatabaseWait('athlete_expiry_action','Lock');
  const results=await Promise.all([a,b]);assert.equal(results[0].ok,true);assert.equal(results[1].ok,false);assert.match(results[1].error,/scope_required/);
 });
+async function waitForDatabaseWait(application,waitType){
+ const until=Date.now()+1500;
+ while(Date.now()<until){
+  if(query(`select to_jsonb(exists(select 1 from pg_stat_activity where application_name='${application}' and wait_event_type='${waitType}'));`))return;
+  await new Promise(r=>setTimeout(r,20));
+ }
+ throw Error('Expected controlled local database wait: '+application+'/'+waitType);
+}
+for(const action of ['review','retry'])for(const expiry of ['assignment','reviewer'])test(`${action} rechecks ${expiry} expiry after operation row lock`,async()=>{
+ seed();assign();
+ if(action==='retry')sql(`update public.coach_operations set state='failed' where id='${OP}';`);
+ const holder=asyncSql(`set application_name='scope_expiry_holder';begin;select 1 from public.coach_operations where id='${OP}' for update;select pg_sleep(2.2);commit;`);
+ await waitForDatabaseWait('scope_expiry_holder','Timeout');
+ if(expiry==='assignment')sql("update coach_private.review_assignments set expires_at=clock_timestamp()+interval '1 second';");
+ else sql(`update coach_private.local_config set reviewers=jsonb_set(reviewers,array['${REVIEWER}','expires_at'],to_jsonb(clock_timestamp()+interval '1 second'));`);
+ const expression=action==='review'?`public.review_coach_proposal('${OP}',true,'expired while waiting')`:`public.authorize_coach_retry('${OP}','expired while waiting')`;
+ const pending=asyncSql(auth(REVIEWER,`set application_name='scope_expiry_action';select ${expression};`));
+ await waitForDatabaseWait('scope_expiry_action','Lock');
+ const [a,b]=await Promise.all([holder,pending]);assert.equal(a.ok,true);
+ assert.equal(b.ok,false,'a scope that expires during the row lock wait must deny mutation');assert.match(b.error,/scope_required/);
+ const row=query(`select to_jsonb(o) from public.coach_operations o where id='${OP}';`);
+ assert.equal(row.state,action==='review'?'pending_review':'failed');assert.equal(row.review_decision,null);assert.equal(row.retry_authorized_at,null);
+});
+
 test('commercial gate is closed by default even after verified Basic payment; does not grant Premium',async()=>{
  seed(false);await paid();const cap=call(OWNER,'public.billing_test_capabilities()');assert.equal(cap.basicActive,true);assert.equal(cap.basicGenerationEnabled,false);assert.equal(cap.premiumEnabled,false);
  reject(OWNER,`public.reserve_basic_generation('${INTAKE}',gen_random_uuid())`,/generation_unavailable/);assert.equal(call(OWNER,'public.get_my_coach_access()').can_generate,false);
