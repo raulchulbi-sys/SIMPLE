@@ -22,6 +22,9 @@ function start(){
    return json({error:{message:'unsupported'}});
   }
   if(url.pathname==='/assets/commercial-config.js'){res.setHeader('Content-Type','application/javascript');return res.end('window.SimpleAppRuntime={billingTest:true,supabaseUrl:"https://dmqjexigdnfzobarhnib.supabase.co",supabasePublicKey:"SYNTHETIC_LOCAL_ONLY"};');}
+  // Synthetic subscription harness only. Real hosting origin validation is tested
+  // against the unchanged built artifact in tests/cloudflare/unified-browser.cjs.
+  if(url.pathname==='/assets/runtime-config.js'){res.setHeader('Content-Type','application/javascript');return res.end(`Object.defineProperty(window,'SimpleAppRuntime',{value:Object.freeze({...window.SimpleAppRuntime,target:'local',environment:'staging',appUrl:location.origin+'/',appOrigin:location.origin,basePath:'/',allowedOrigins:Object.freeze([location.origin])}),writable:false,configurable:false});`);}
   if(req.method!=='GET')return json({error:'method'},405);
   if(url.pathname==='/billing-sdk.js'||url.pathname==='/app-sdk.js'){
    res.setHeader('Content-Type','application/javascript');

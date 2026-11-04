@@ -45,8 +45,9 @@ test('JWT remains mandatory in versioned configuration', () => {
 test('CORS keeps the exact observed origins; no wildcard or new production origin', () => {
   assert.equal(origins(entry), `const allowed=new Set(production?['https://raulchulbi-sys.github.io']:['http://127.0.0.1:4194','http://localhost:4194','http://127.0.0.1:4195','http://localhost:4195','http://127.0.0.1:4280','http://localhost:4280',"https://simple-staging-raulchulbi.pages.dev","https://4a8636ab.simple-staging-raulchulbi.pages.dev"]);`);
 });
-test('no SQL, configuration or workflow change accompanies the frontend/Edge source layer', () => {
-  const paths = execFileSync('git', ['diff','--name-only','b2f77c6f86318a4bf11d2b6754b2e3bbd7263ac6','--','supabase', '.github'], {encoding:'utf8'}).trim().split('\n').filter(Boolean);
+test('commercial SQL, configuration and workflow stay exact while adding the Coach source layer', () => {
+  const commercial = '7b9d5709add382a47f35712c80d6744b09955ebd';
+  const paths = execFileSync('git', ['diff','--name-only',commercial,'--','supabase', '.github'], {encoding:'utf8'}).trim().split('\n').filter(Boolean);
   assert(paths.every(p=>['index.ts','staging-cost-guard.mjs'].some(n=>p==='supabase/functions/simple-coach-mock/'+n)));
-  assert.equal(read('supabase/config.toml'), execFileSync('git',['show','b2f77c6f86318a4bf11d2b6754b2e3bbd7263ac6:supabase/config.toml'],{encoding:'utf8'}).replaceAll('\r\n','\n'));
+  assert.equal(read('supabase/config.toml'), execFileSync('git',['show',commercial+':supabase/config.toml'],{encoding:'utf8'}).replaceAll('\r\n','\n'));
 });

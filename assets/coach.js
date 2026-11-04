@@ -105,6 +105,7 @@ function coachShell(content){
  if(!d.open)d.showModal();d.scrollTop=0;$('coachTitle').focus();
 }
 function coachMessage(code){
+ if(code==='billing_basic_generation_unavailable')return 'La generación de nuevas propuestas no está disponible. Tus respuestas y rutinas guardadas se conservan.';
  if(code==='coach_generation_limit')return 'No quedan nuevas generaciones autorizadas. Tus rutinas se conservan.';
  if(code==='coach_new_intake_required')return 'Completa el nuevo cuestionario Basic antes de generar otra propuesta.';
  const messages={coach_retry_review_required:'Ya se ha utilizado el intento disponible. Solicita al reviewer autorización para otro intento.',coach_review_required:'La propuesta necesita aprobación del reviewer.',coach_reviewer_required:'No tienes permiso para revisar propuestas.',coach_feedback_workout_required:'Podrás valorar esta rutina después de guardar tu primer entrenamiento.',coach_invalid_feedback:'Elige una valoración de 1 a 5 y un comentario de hasta 1.000 caracteres.',coach_pilot_required:'Esta cuenta todavía no tiene acceso al piloto.',coach_context_required:'Acepta el permiso de entrenamiento para continuar.',coach_health_disabled:'Este piloto no admite información de salud.',coach_invalid_intake:'Elige únicamente las opciones de entrenamiento disponibles.',coach_invalid_training:'Elige únicamente las opciones de entrenamiento disponibles.',coach_intake_conflict:'El formulario cambió en otra pestaña. Vuelve a abrirlo para cargar la versión actual.',coach_draft_delete_unavailable:'Solo se puede borrar un borrador propio que no se haya enviado ni utilizado.',coach_draft_required:'Solo se puede borrar un borrador que no se haya enviado.',coach_intake_in_use:'Este contexto ya se utilizó en una operación y se conserva para su trazabilidad.',coach_current_intake_required:'Guarda y envía la anamnesis actual antes de generar.',coach_proposal_not_ready:'La propuesta ya no está vigente. Revisa el formulario y solicita otro intento.',coach_intake_changed:'La anamnesis ha cambiado. Esta propuesta no se puede aceptar.',coach_context_changed:'Los permisos cambiaron. Revisa el consentimiento antes de continuar.',coach_rate_limit:'Se ha alcanzado el límite de intentos. Espera antes de reintentar.',safety_review_required:'No podemos preparar una propuesta con estas opciones. Solicita revisión profesional antes de continuar.'};
@@ -133,7 +134,7 @@ async function openSimpleCoach(){
   if($('coachFeedback'))$('coachFeedback').onclick=()=>coachFeedback(access.routine_id);return;
  }
  if(!access.authorized){coachShell('<p>Esta cuenta todavía no está autorizada para el piloto.</p>');return;}
- coachShell('<h3>Basic · piloto</h3><p>Describe tu contexto de entrenamiento, revisa la propuesta y acepta tu primera rutina cuando esté aprobada.</p><button data-keep-enabled="true" class="btn primary" id="coachBegin">Elegir Basic</button>');$('coachBegin').onclick=()=>coachLoadIntake();
+  coachShell('<h3>Basic · piloto</h3><p>Describe tu contexto de entrenamiento, revisa la propuesta y acepta tu primera rutina cuando esté aprobada.</p>'+(access.can_generate===true?'':'<p>'+coachMessage('billing_basic_generation_unavailable')+'</p>')+'<button data-keep-enabled="true" class="btn primary" id="coachBegin">Elegir Basic</button>');$('coachBegin').onclick=()=>coachLoadIntake();
  }catch(e){if(coachCurrent(epoch,owner))$('coachError').textContent=coachMessage(e.message);}
 }
 async function coachBeginNewGeneration(){
@@ -186,6 +187,8 @@ async function coachSave(generate){
  try{if(!simpleCoach.granted)throw Error('coach_context_required');training=coachTraining(generate);}catch(e){$('coachError').textContent=coachMessage(e.message);return;}
  coachBusy(true,generate?'Estamos preparando tu rutina…':'Guardando borrador…');$('coachError').textContent='';
  try{const i=simpleCoach.intake;
+  // Admission and a paid plan do not authorize generation. Recheck before submitting.
+  if(generate){const access=await coachCall('get_my_coach_access',{});if(!coachCurrent(epoch,owner))return;if(access?.authorized!==true||access?.can_generate!==true)throw Error('billing_basic_generation_unavailable');}
  const intake=await coachCall('save_my_training_intake',{p_id:i?.id||null,p_expected:i?.row_version||null,p_training:training,p_submit:generate});
  if(!coachCurrent(epoch,owner))return;simpleCoach.intake=intake;
  if(!generate){coachRenderQuestionnaire();$('coachStatus').textContent='Borrador guardado.';return;}

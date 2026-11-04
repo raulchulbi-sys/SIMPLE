@@ -70,7 +70,7 @@ async function premium(page,engine){
   await page.evaluate(()=>contextController.destroy());
  }
 }
-(async()=>{const server=spawn(process.execPath,['tests/coach-pilot/preview.cjs'],{cwd:root,env:{...process.env,COACH_PORT:'4273'},stdio:['ignore','pipe','pipe'],windowsHide:true});try{
+(async()=>{const server=spawn(process.execPath,['tests/coach-flow/preview-offline.cjs'],{cwd:root,env:{...process.env,COACH_PORT:'4273'},stdio:['ignore','pipe','pipe'],windowsHide:true});try{
  await new Promise((resolve,reject)=>{const t=setTimeout(()=>reject(Error('Preview timeout')),10000);server.stdout.once('data',()=>{clearTimeout(t);resolve();});server.once('exit',()=>{clearTimeout(t);reject(Error('Preview exited'));});});
  const C=await import('../../supabase/functions/simple-coach-mock/contract.mjs');
  const proposal=C.decodeOutput({days:training.weekdays.map(day=>({day,exercises:['goblet','db_rdl','floor_press','band_row'].map(id=>({id,k:0,b:[{s:2,lo:8,hi:10,r:3,rest:120}]}))}))},{training});assert(C.reviewProposal(proposal,{training}).ok);

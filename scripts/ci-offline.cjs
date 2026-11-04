@@ -21,6 +21,18 @@ const suites = [
   'tests/subscription/offline.cjs',
   'tests/commercial/basic-source-lock.test.mjs',
   'tests/premium-review-security/reconciliation.test.mjs',
+  // Unified Coach/hosting suites: standard-library doubles and isolated builds.
+  // Historical git comparisons, browser engines and PostgreSQL stay explicit.
+  'tests/coach-flow/basic-cost-guard.cjs',
+  'tests/coach-flow/preview-offline.test.mjs',
+  'tests/coach-pilot-v2/edge-http.mjs',
+  'tests/cloudflare/runtime.cjs',
+  'tests/cloudflare/auth-contract.cjs',
+  'tests/cloudflare/build.cjs',
+  'tests/cloudflare/commercial-build.cjs',
+  'tests/cloudflare/placeholder-build.cjs',
+  'tests/cloudflare/production-build.cjs',
+  'tests/cloudflare/unified-builds.cjs',
 ];
 const excludedDirectories = new Set(['private', 'results', 'node_modules', '.git']);
 
@@ -50,6 +62,10 @@ function run(args) {
 const sources = [
   'scripts/ci-offline.cjs',
   'scripts/staging-return.cjs',
+  'scripts/hosting-build.cjs',
+  'scripts/hosting-commercial-build.cjs',
+  'scripts/hosting-runtime.cjs',
+  'scripts/hosting-preview.cjs',
   ...syntaxFiles('assets'),
   ...syntaxFiles('supabase/functions'),
 ];

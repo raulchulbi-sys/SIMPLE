@@ -5,7 +5,7 @@ const {seed,training}=require('./recovery.cjs');
 const {chromium,webkit}=require('C:/Users/raulc/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
 const root=path.resolve(__dirname,'../..'),out=path.join(__dirname,'results'),checks=[];
 const check=(name,pass)=>{checks.push({name,pass:!!pass});assert(pass,name);};
-(async()=>{const server=spawn(process.execPath,['tests/coach-pilot/preview.cjs'],{cwd:root,env:{...process.env,COACH_PORT:'4266'},stdio:['ignore','pipe','pipe'],windowsHide:true});try{
+(async()=>{const server=spawn(process.execPath,['tests/coach-flow/preview-offline.cjs'],{cwd:root,env:{...process.env,COACH_PORT:'4266'},stdio:['ignore','pipe','pipe'],windowsHide:true});try{
  await new Promise((resolve,reject)=>{const t=setTimeout(()=>reject(Error('Preview unavailable')),10000);server.stdout.once('data',()=>{clearTimeout(t);resolve();});server.once('exit',()=>{clearTimeout(t);reject(Error('Preview exited'));});});
  const C=await import('../../supabase/functions/simple-coach-mock/contract.mjs');
  const proposal=C.decodeOutput({days:training.weekdays.map(day=>({day,exercises:['goblet','db_rdl','floor_press','band_row'].map(id=>({id,k:0,b:[{s:2,lo:8,hi:10,r:3,rest:120}]}))}))},{training});

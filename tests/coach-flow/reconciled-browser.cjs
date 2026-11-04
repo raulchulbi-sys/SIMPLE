@@ -22,7 +22,7 @@ function run(file) {
     run('tests/coach-flow/reload-uncertain.cjs');
     run('tests/coach-flow/reload-context.cjs');
   }
-  const server = spawn(process.execPath, ['tests/coach-pilot/preview.cjs'], {
+  const server = spawn(process.execPath, ['tests/coach-flow/preview-offline.cjs'], {
     cwd: root, env: {...process.env, COACH_PORT: '4266'},
     stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true,
   });
