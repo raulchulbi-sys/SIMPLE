@@ -1,0 +1,938 @@
+{
+  "schema": 1,
+  "scope": "LOCAL_ONLY_NO_RELEASE",
+  "base": "b2f77c6f86318a4bf11d2b6754b2e3bbd7263ac6",
+  "branch": "codex/simple-unified-candidate-20261104",
+  "codeCommit": "fb9246f6f8da8748504f137481b6f0385ec5a8de",
+  "codeTree": "821cfd098aaf3acf2671f61ab72b11d3a0cadeb4",
+  "compositionCommit": "3d2315444454f5617620e34e4a7d4ee3300a8095",
+  "sources": {
+    "commercial": "7b9d5709add382a47f35712c80d6744b09955ebd",
+    "coach": "94c06d4e90bdb4449fde41fd6e6675e4db9d7e47",
+    "hosting": "d613ba9489e02900761395d62ca245df85327cf0"
+  },
+  "sourceTrees": {
+    "commercial": "92a82d6bce88dcd358200e7e379ad5e165bbe1a1",
+    "coach": "bc9e11c2ccea4eb78f37a6bf75441ffa19222773",
+    "hosting": "a8d22f79103fadfec593d16d205a720185b4ad22"
+  },
+  "protectedBodies": {
+    "review_coach_proposal": "d94b96ae65e69997a37ae83b521ec16b",
+    "authorize_coach_retry": "cdf6200bb140563a96ddc472cc0ac9b7",
+    "premium_initial_review": "c16541b25d191997fce42c2024784c7d"
+  },
+  "additionalProductDelta": [
+    "assets/coach-premium-chat.js",
+    "assets/coach.js",
+    "index.html"
+  ],
+  "workflowDelta": [],
+  "fileCount": 149,
+  "categories": {
+    "repository": 1,
+    "frontend": 11,
+    "hosting": 22,
+    "documentation": 18,
+    "local-tooling": 10,
+    "sql-or-config": 15,
+    "edge": 8,
+    "tests": 64
+  },
+  "files": [
+    {
+      "path": ".gitignore",
+      "category": "repository",
+      "bytes": 115,
+      "sha256": "f2e6bef43369dc8f5670703ad73f33502f65411c2534173e78107d76e06744f0"
+    },
+    {
+      "path": "assets/auth.js",
+      "category": "frontend",
+      "bytes": 20062,
+      "sha256": "a7498482971486b56a6c1aabb71c47b055555f730885d3707bc3474ea42e1943"
+    },
+    {
+      "path": "assets/coach-premium-chat.js",
+      "category": "frontend",
+      "bytes": 22687,
+      "sha256": "52aa54f238fa1e9cb0ae8d3c44f98d0ca4b228835f38363430c9bb63fc998c0d"
+    },
+    {
+      "path": "assets/coach-programming-v5.js",
+      "category": "frontend",
+      "bytes": 16080,
+      "sha256": "93f987914805f52c8d95458736ef727e081ed40a7325ae2ee12e0d050ac4d429"
+    },
+    {
+      "path": "assets/coach.js",
+      "category": "frontend",
+      "bytes": 37656,
+      "sha256": "00f1edda86e420e1e6c7f94fef10f04c53513b28d2557992bbcc9590667f377f"
+    },
+    {
+      "path": "assets/runtime-config.js",
+      "category": "frontend",
+      "bytes": 2070,
+      "sha256": "b47eba19a7ac68f1981e18aa89f4cc1246321d81af43770e9f466617cc82291f"
+    },
+    {
+      "path": "assets/subscription-app.js",
+      "category": "frontend",
+      "bytes": 1322,
+      "sha256": "28faf22d6ec1d0eee40b83382e86b24cff7451e2a37d9500d3028cb1383d3eb2"
+    },
+    {
+      "path": "assets/subscription-return.js",
+      "category": "frontend",
+      "bytes": 1512,
+      "sha256": "16f4927f26b336a059c25ae87c2b6def4e6c53356381a08ecbc8236d6ce713f4"
+    },
+    {
+      "path": "assets/subscription.css",
+      "category": "frontend",
+      "bytes": 3627,
+      "sha256": "6dbb78f0087e061a40b8547bb295707934a300a6bb1a9350ef059e4f3aa76fe7"
+    },
+    {
+      "path": "assets/subscription.js",
+      "category": "frontend",
+      "bytes": 9541,
+      "sha256": "39e58eec36a4df0fd88682ee2db78453ae63cac42aaf795a8769acef2a58bb27"
+    },
+    {
+      "path": "assets/theme.js",
+      "category": "frontend",
+      "bytes": 1340,
+      "sha256": "aec7bfa7a6dbd9e3751b09b32e3f557fa9c05af96d40fd828169dc96d99a66ae"
+    },
+    {
+      "path": "config/cloudflare/404.html",
+      "category": "hosting",
+      "bytes": 400,
+      "sha256": "ba23fa003b8457cf3b3b6a21e0e1c2c3ed7687270f9d6783bc8d1c8326f4df6a"
+    },
+    {
+      "path": "config/cloudflare/_headers.template",
+      "category": "hosting",
+      "bytes": 1070,
+      "sha256": "c3dd3fb5d519c399d8b5b5aeb48cdad0593ff46cd1c67ed707c2c41567bb5b13"
+    },
+    {
+      "path": "config/cloudflare/preparation/404.html",
+      "category": "hosting",
+      "bytes": 515,
+      "sha256": "96c2e2d459da05ab20c3e5ab0db67443c52d1c7657fd96dccb2e0fc9d63cac7e"
+    },
+    {
+      "path": "config/cloudflare/preparation/_headers",
+      "category": "hosting",
+      "bytes": 340,
+      "sha256": "566a5163348c574dfe5c6d3d27cf40529da2a12ebe2b5a552f51a5ccee05875a"
+    },
+    {
+      "path": "config/cloudflare/preparation/index.html",
+      "category": "hosting",
+      "bytes": 643,
+      "sha256": "2d50b8b04aa4204a944bea393c121e9447679ffb38fe50a8885f3d63d6e3e634"
+    },
+    {
+      "path": "config/cloudflare/preparation/preparation.css",
+      "category": "hosting",
+      "bytes": 971,
+      "sha256": "ed43da2bb84edc11bb814e501fec7948591dc1a1f587ecae33d8461cc1c2842a"
+    },
+    {
+      "path": "config/cloudflare/preparation/robots.txt",
+      "category": "hosting",
+      "bytes": 26,
+      "sha256": "331ea9090db0c9f6f597bd9840fd5b171830f6e0b3ba1cb24dfa91f0c95aedc1"
+    },
+    {
+      "path": "config/cloudflare/production-plan.json",
+      "category": "hosting",
+      "bytes": 4742,
+      "sha256": "1a8c5463a3184d9cc88690850776bfc15b5d39e20ddd5c372a82b04533b3c57d"
+    },
+    {
+      "path": "config/cloudflare/robots.txt",
+      "category": "hosting",
+      "bytes": 26,
+      "sha256": "331ea9090db0c9f6f597bd9840fd5b171830f6e0b3ba1cb24dfa91f0c95aedc1"
+    },
+    {
+      "path": "config/public-backends.json",
+      "category": "hosting",
+      "bytes": 554,
+      "sha256": "1815520cbd2a97db1df29147f27c4e33b498c985653869b6869642f6ab371db9"
+    },
+    {
+      "path": "config/static-public-manifest.json",
+      "category": "hosting",
+      "bytes": 1372,
+      "sha256": "bdcb82671d0623ea27525395fd1c6897bd110c112a2502cb07b2a663b81257bc"
+    },
+    {
+      "path": "docs/basic-subscription-ui.md",
+      "category": "documentation",
+      "bytes": 4173,
+      "sha256": "e0b07e4aa9482d2bf137c8e2c51f98bcfe532c840574157458c09c9ccf79bafe"
+    },
+    {
+      "path": "docs/commercial/BASIC-SOURCE-RECONCILIATION-20261104.md",
+      "category": "documentation",
+      "bytes": 6308,
+      "sha256": "5892d3bb32d3c1e1573de722af860741bb7374884ffae701a14aa4ee0a1784c0"
+    },
+    {
+      "path": "docs/commercial/COACH-RECONCILIATION-20261104.md",
+      "category": "documentation",
+      "bytes": 9345,
+      "sha256": "459b31f20b345fd00c3563bb1096010e3f2573d6953a5027b8deb2dac56ec6d1"
+    },
+    {
+      "path": "docs/commercial/HOSTING-CANDIDATE-20261104.md",
+      "category": "documentation",
+      "bytes": 8860,
+      "sha256": "c2ed4160e61f6046148c46146c4d02d394c225740ff735768b7847f1159cf7c7"
+    },
+    {
+      "path": "docs/commercial/HOSTING-CANDIDATE-INVENTORY-20261104.json",
+      "category": "documentation",
+      "bytes": 15169,
+      "sha256": "dc6bc7a3fdd36705939cd97a6d55c6d5de2d87c10c56137fb2db2e6c43f937cc"
+    },
+    {
+      "path": "docs/commercial/INTEGRATION-CANDIDATE-20261104.json",
+      "category": "documentation",
+      "bytes": 6311,
+      "sha256": "991626c90a476f512d1aa5c7a2b51c6523aa26a45c12cd4c4c5e5d18e9a5ab70"
+    },
+    {
+      "path": "docs/commercial/INTEGRATION-CANDIDATE-20261104.md",
+      "category": "documentation",
+      "bytes": 15812,
+      "sha256": "7d38bfaa3d3c2f349decce1a71452ee0df33e1cde29fb952ee340ca274332489"
+    },
+    {
+      "path": "docs/commercial/INTEGRATION-REVIEW-20261103.md",
+      "category": "documentation",
+      "bytes": 10284,
+      "sha256": "b0d52ecd3aa6cadcfb4b61495893b3f22b26ba4ab79de1d4fd8f164bd8e75a3d"
+    },
+    {
+      "path": "docs/commercial/LAUNCH-DECISIONS.md",
+      "category": "documentation",
+      "bytes": 3319,
+      "sha256": "efdc994d865dc35f5cadad8a6da4d407a770c47f017a73166408b6e0d352c96c"
+    },
+    {
+      "path": "docs/commercial/NEXT-WORK.md",
+      "category": "documentation",
+      "bytes": 2125,
+      "sha256": "e12cd4a0891fdcadf6e0f34bdd7985a73a170b046ea731c1a9667086b4f486d0"
+    },
+    {
+      "path": "docs/commercial/PREMIUM-ERROR-BOUNDARY-20261104.md",
+      "category": "documentation",
+      "bytes": 10005,
+      "sha256": "60afc43615bdc490dbee024e9caa21b63a0d3241253f1d2a3bf8fe1bb150d5c4"
+    },
+    {
+      "path": "docs/commercial/PREMIUM-REVIEW-INDEPENDENT-AUDIT.md",
+      "category": "documentation",
+      "bytes": 7888,
+      "sha256": "0386b53e6dd464b80c21233c5fe6029fe4c8ce8a1e356e1384971b3b457e3b65"
+    },
+    {
+      "path": "docs/commercial/PREMIUM-SOURCE-RECONCILIATION-20261104.md",
+      "category": "documentation",
+      "bytes": 10670,
+      "sha256": "02f1a71155c1cab93491c307075ae5e6e81bbc60db8483daa02770f53f0fcc00"
+    },
+    {
+      "path": "docs/commercial/REVIEW.md",
+      "category": "documentation",
+      "bytes": 8312,
+      "sha256": "0bd0f286b38e822fa19cfbaecf83c07be47c7af8700c505c099d0757ccbe3811"
+    },
+    {
+      "path": "docs/commercial/REVIEWER-ENUMERATION-FIX.md",
+      "category": "documentation",
+      "bytes": 14927,
+      "sha256": "a2b811b616b518b261c5e5ae4d6981fd5ddc85b52257b2c605b2957a60c12392"
+    },
+    {
+      "path": "docs/commercial/STAGING-VALIDATION-PLAN.md",
+      "category": "documentation",
+      "bytes": 10642,
+      "sha256": "59581aeefb8148395d4d056196c2b5a513fadc5d717294ccf4690725d1fecef1"
+    },
+    {
+      "path": "docs/commercial/UNIFIED-ARTIFACT-INVENTORY-20261104.json",
+      "category": "documentation",
+      "bytes": 24441,
+      "sha256": "bb3253e58b419bed313653b54394c4df7ce481802aeafc5e982cf941710dd6e6"
+    },
+    {
+      "path": "docs/commercial/code-comparison.json",
+      "category": "documentation",
+      "bytes": 2808,
+      "sha256": "e74dd38be54160412e8aa476e066bae7c8f53d53e7817ddf8a00cb9f6afb99a0"
+    },
+    {
+      "path": "index.html",
+      "category": "frontend",
+      "bytes": 677816,
+      "sha256": "096f9f46572930d3daa74b31d52dec0762e45d2eb258d9355681fab629ab7dda"
+    },
+    {
+      "path": "scripts/ci-offline.cjs",
+      "category": "local-tooling",
+      "bytes": 2957,
+      "sha256": "1d342ba5da2fc3f33ffbd925acc3e109da06da4a4339a892221a5c12eb0031fb"
+    },
+    {
+      "path": "scripts/commercial-postgres.cjs",
+      "category": "local-tooling",
+      "bytes": 3019,
+      "sha256": "855aa7c712c0e0c3dad1d5acf6e18c84b18bd94a8f3d11513cfbe62522167917"
+    },
+    {
+      "path": "scripts/commercial-test-deps.cjs",
+      "category": "local-tooling",
+      "bytes": 2127,
+      "sha256": "440937eacfb0026e9bc29f574a8bcd8fa958fc07254eea6a607fd5eefcd24d74"
+    },
+    {
+      "path": "scripts/hosting-build.cjs",
+      "category": "local-tooling",
+      "bytes": 18713,
+      "sha256": "01146d25d7eeaf6cb8e10069dbb7e41627dbbcb286c7ea05705186da7897eaae"
+    },
+    {
+      "path": "scripts/hosting-commercial-build.cjs",
+      "category": "local-tooling",
+      "bytes": 5303,
+      "sha256": "df45296d31cacaab811b1db4f1d56356f93bc536b05cd96b1824351ef6f72667"
+    },
+    {
+      "path": "scripts/hosting-preview.cjs",
+      "category": "local-tooling",
+      "bytes": 3349,
+      "sha256": "215dc7262f5d1d0b6da056439fca7e8bd1165f0d0ea6559fc43fcf11d03350d6"
+    },
+    {
+      "path": "scripts/hosting-runtime.cjs",
+      "category": "local-tooling",
+      "bytes": 7836,
+      "sha256": "ab5e3c05fe635c2e29a9462d50d931bd68e6af307159753757ed27ba75d55642"
+    },
+    {
+      "path": "scripts/premium-review-postgres.cjs",
+      "category": "local-tooling",
+      "bytes": 2398,
+      "sha256": "484766cad0f57cca17e8c5d79c08974a7d24afdb3f4af5b83d2fa6f0133a45ac"
+    },
+    {
+      "path": "scripts/reviewer-sql-check.mjs",
+      "category": "local-tooling",
+      "bytes": 5420,
+      "sha256": "bea61101a8f8681230264540d02a70711af3d00f0dfdd33202760d94d1e0bc02"
+    },
+    {
+      "path": "scripts/staging-return.cjs",
+      "category": "local-tooling",
+      "bytes": 4737,
+      "sha256": "d936badac63f5394d2b51ed7e49b7f88fdf3d69aef8a83213e46df1bb997f448"
+    },
+    {
+      "path": "staging/return/.gitattributes",
+      "category": "hosting",
+      "bytes": 36,
+      "sha256": "4a1ecdb8bb25b94077e7853540b10e82d80612fa3e82aa300b4262d9acfbaebc"
+    },
+    {
+      "path": "staging/return/README.md",
+      "category": "hosting",
+      "bytes": 3220,
+      "sha256": "122bbdff9d8d2c2de1d32a22fbb640f04bd492ffe39eaf67627be8c1e00c6bf7"
+    },
+    {
+      "path": "staging/return/assembly-evidence.json",
+      "category": "hosting",
+      "bytes": 8995,
+      "sha256": "26e247c76f8c5abb137ea004b3aa81d85c08537566c822257fce7f15cfe8d20f"
+    },
+    {
+      "path": "staging/return/headers-append.txt",
+      "category": "hosting",
+      "bytes": 1071,
+      "sha256": "6539e11c40e0fa5b0271fcfb7182ddd7b14e58b7f6207baec5ec731cf51aca5f"
+    },
+    {
+      "path": "staging/return/headers-base.txt",
+      "category": "hosting",
+      "bytes": 1107,
+      "sha256": "cbfb79ed2c08e87c5151987d54eb3ce994411698a67d8d2620341ece83b1b82c"
+    },
+    {
+      "path": "staging/return/manifest.json",
+      "category": "hosting",
+      "bytes": 12267,
+      "sha256": "039183cac25aaee731c838fd4991c95f70f75c56a54d93e18239e9ab61440f2d"
+    },
+    {
+      "path": "staging/return/source/assets/billing-return-model.mjs",
+      "category": "hosting",
+      "bytes": 1315,
+      "sha256": "96018c9a68081fd7d00f7dde811a9e26ee8077bf64c541b1c4220a9572fcc86e"
+    },
+    {
+      "path": "staging/return/source/assets/billing-return.css",
+      "category": "hosting",
+      "bytes": 905,
+      "sha256": "e9da41c9e0b6cdca3872172006f5c6dfd780967c710b0ff3b54fc6692323c0a4"
+    },
+    {
+      "path": "staging/return/source/assets/billing-return.js",
+      "category": "hosting",
+      "bytes": 2626,
+      "sha256": "d08cb299c82253b499a3f82875c4cd4fd567b8ff98eae9dc832e743520d68d38"
+    },
+    {
+      "path": "staging/return/source/billing-test.html",
+      "category": "hosting",
+      "bytes": 1594,
+      "sha256": "c64775a86c7fd7f22fe7b2046fe29d1c05ab00e4a1c16bb3711d124e892046e0"
+    },
+    {
+      "path": "staging/subscription/return.html",
+      "category": "hosting",
+      "bytes": 1504,
+      "sha256": "0a83948c8990f96a2e2a7b9c7459c606604c55f254bb4813215596f529597726"
+    },
+    {
+      "path": "supabase/billing-test-change.sql",
+      "category": "sql-or-config",
+      "bytes": 7879,
+      "sha256": "ae8f9d5c3c89abcebce0ba5dca9b931a53ad21a1044783fce44ffaca60f1424e"
+    },
+    {
+      "path": "supabase/billing-test-coach-gate.sql",
+      "category": "sql-or-config",
+      "bytes": 4137,
+      "sha256": "04a8fbc06b86f5b668ab1731b7ec2bec6998b27ab09b66dc8780011ce4820296"
+    },
+    {
+      "path": "supabase/billing-test-commercial.sql",
+      "category": "sql-or-config",
+      "bytes": 759,
+      "sha256": "a58d4dd2aa1ce80f2f62f12146ec5569cd10ae3e9218fd14f45898fdb2f93ad4"
+    },
+    {
+      "path": "supabase/billing-test-install.sql",
+      "category": "sql-or-config",
+      "bytes": 9085,
+      "sha256": "8f4c2cda6b87f30b91b112aebf4f88667108ac653983de4fcdddb21ee8dc94e4"
+    },
+    {
+      "path": "supabase/billing-test-restore.sql",
+      "category": "sql-or-config",
+      "bytes": 5255,
+      "sha256": "ad95debd3943940f663b4a5f398b8e21811c932066a9a26db8278280b5fe616b"
+    },
+    {
+      "path": "supabase/coach-reviewer-scope.sql",
+      "category": "sql-or-config",
+      "bytes": 13781,
+      "sha256": "cb5438c9618e7fdfdb2b1c5ef69152f704b0449dde91d46b4f65b56f653d626c"
+    },
+    {
+      "path": "supabase/config.toml",
+      "category": "sql-or-config",
+      "bytes": 447,
+      "sha256": "5bf632ad151078eab113a6f1cb46c41e4ba73bc06d066f5e2b138bcde01b06fc"
+    },
+    {
+      "path": "supabase/functions/_shared/billing-test-checkout.mjs",
+      "category": "edge",
+      "bytes": 2587,
+      "sha256": "e0690ca80aad51c4b6969aefa78b5e25e947a4336a4978ae32ba119626f85078"
+    },
+    {
+      "path": "supabase/functions/_shared/billing-test-contract.mjs",
+      "category": "edge",
+      "bytes": 6107,
+      "sha256": "87ba63aa7ca90909a8bb2fa43572c9c029489c400d93a6185f1347c58cd037a0"
+    },
+    {
+      "path": "supabase/functions/_shared/billing-test-runtime.ts",
+      "category": "edge",
+      "bytes": 12215,
+      "sha256": "bf3b20bc65ea0c7fb704d4a5a0e7426c2509d8283b9ef23c558cd9eb755c8447"
+    },
+    {
+      "path": "supabase/functions/_shared/billing-test-status.mjs",
+      "category": "edge",
+      "bytes": 3873,
+      "sha256": "8da306c209a71bb82872c89e3726fed1c6be14ff9e33afc931d0c28b9c755316"
+    },
+    {
+      "path": "supabase/functions/billing-test-webhook/index.ts",
+      "category": "edge",
+      "bytes": 2094,
+      "sha256": "94549ce3ddbebf6d2c756f927df9555ccba5663aec757719064985df8ef3e2fe"
+    },
+    {
+      "path": "supabase/functions/billing-test/index.ts",
+      "category": "edge",
+      "bytes": 2369,
+      "sha256": "55a5e261742aade4b6a4bb5860dc2edd944f2ab67ae79756248b21eff13a2f17"
+    },
+    {
+      "path": "supabase/functions/simple-coach-mock/index.ts",
+      "category": "edge",
+      "bytes": 4997,
+      "sha256": "bb3b02359e02b7ab88f8c1edee1939ec29943aadd6d76b48b0d526fa3885de5e"
+    },
+    {
+      "path": "supabase/functions/simple-coach-mock/staging-cost-guard.mjs",
+      "category": "edge",
+      "bytes": 6724,
+      "sha256": "c48caccefd4f65ca1d9a18a14bb5858ccfde180aed0abab752eb5b8bd659af1d"
+    },
+    {
+      "path": "supabase/premium-initial-review-uniform-denial.sql",
+      "category": "sql-or-config",
+      "bytes": 6021,
+      "sha256": "1dd35ba1a36dfcf1d11f6d0a07ec53540c20326ca1818cf89010a26890ad2458"
+    },
+    {
+      "path": "supabase/rollback-billing-test-change.sql",
+      "category": "sql-or-config",
+      "bytes": 4049,
+      "sha256": "0f5639255c138a290110a96bb3bbb3bcb8bacb5bf7730fb13f9eff0dd9151ae5"
+    },
+    {
+      "path": "supabase/rollback-billing-test-coach-gate.sql",
+      "category": "sql-or-config",
+      "bytes": 984,
+      "sha256": "6668e9b449ba8fa8248230c376c5366753bfa9ebb3ade2393a45893fc29d2a1b"
+    },
+    {
+      "path": "supabase/rollback-billing-test-commercial.sql",
+      "category": "sql-or-config",
+      "bytes": 169,
+      "sha256": "319974fdc73b4a65ec438d60433666bad83477ff15ff52878e571f1bb470b99e"
+    },
+    {
+      "path": "supabase/rollback-coach-reviewer-scope.sql",
+      "category": "sql-or-config",
+      "bytes": 1705,
+      "sha256": "80959005e7832f532f913a996e8491b36dfaf574cb45a66960962a9c07868837"
+    },
+    {
+      "path": "supabase/rollback-coach-reviewer-uniform-denial.sql",
+      "category": "sql-or-config",
+      "bytes": 791,
+      "sha256": "b1b26700138d09a54373e94e1f09f338a2529ba520394576a8bade6687cb5270"
+    },
+    {
+      "path": "supabase/rollback-premium-initial-review-uniform-denial.sql",
+      "category": "sql-or-config",
+      "bytes": 532,
+      "sha256": "4d2b33ed2b6770dfc1eb76dd17581ab004f6779334219a1a022e433819604428"
+    },
+    {
+      "path": "supabase/verify-reviewer-security.sql",
+      "category": "sql-or-config",
+      "bytes": 968,
+      "sha256": "d35871948a0013f8cade4b5413c6d6b8b5d2e0844d60ef2b1ac6a52445d0dc90"
+    },
+    {
+      "path": "tests/billing-test/checkout-regression.test.mjs",
+      "category": "tests",
+      "bytes": 10957,
+      "sha256": "1eb2f51c7b54ad41918edfb37cb4b733ccd18ff4ed6c6bdd2235b8733e63fb27"
+    },
+    {
+      "path": "tests/billing-test/contract.test.mjs",
+      "category": "tests",
+      "bytes": 5926,
+      "sha256": "63ecafb4d8eac04cc05a11a4e0aa9acdefee8a4cdbaf6122f1a65c48fed2ff49"
+    },
+    {
+      "path": "tests/billing-test/fixtures.mjs",
+      "category": "tests",
+      "bytes": 2709,
+      "sha256": "9ab2fdc0b32ef70ea984fd72026fab2382a0b31e2675c4f1f771d673359c0991"
+    },
+    {
+      "path": "tests/billing-test/fixtures/schema-original.sql",
+      "category": "tests",
+      "bytes": 12564,
+      "sha256": "785ad3a7d20da5952ec32fead68d17a5818fa734e8186c0283141bc9fd5450bb"
+    },
+    {
+      "path": "tests/billing-test/harness.mjs",
+      "category": "tests",
+      "bytes": 9506,
+      "sha256": "cb012346fa9af228fd14c2da55a5ef679cdd0f3f16c8f510eb24e0275912231b"
+    },
+    {
+      "path": "tests/billing-test/install.test.mjs",
+      "category": "tests",
+      "bytes": 1750,
+      "sha256": "33cf26f946e5647c206c1ce72f3b1282ef2b8e834d16ab940e5a148bbd9b7890"
+    },
+    {
+      "path": "tests/billing-test/original/billing-v4/supabase/functions/_shared/billing-test-contract.mjs",
+      "category": "tests",
+      "bytes": 6107,
+      "sha256": "87ba63aa7ca90909a8bb2fa43572c9c029489c400d93a6185f1347c58cd037a0"
+    },
+    {
+      "path": "tests/billing-test/original/billing-v4/supabase/functions/billing-test/index.ts",
+      "category": "tests",
+      "bytes": 2050,
+      "sha256": "3e4af59a53ac8eeaf25c6e93b4f484eb7285803aa3601ca7e35f25a1e6768a78"
+    },
+    {
+      "path": "tests/billing-test/original/webhook-v3/supabase/functions/billing-test-webhook/index.ts",
+      "category": "tests",
+      "bytes": 2094,
+      "sha256": "94549ce3ddbebf6d2c756f927df9555ccba5663aec757719064985df8ef3e2fe"
+    },
+    {
+      "path": "tests/billing-test/postgres-local.mjs",
+      "category": "tests",
+      "bytes": 5178,
+      "sha256": "af048ef7878b40ac0ab40d6488922c985ba8d9b6e050c07b86efd01d573b6498"
+    },
+    {
+      "path": "tests/billing-test/postgres.test.mjs",
+      "category": "tests",
+      "bytes": 7604,
+      "sha256": "ab780cbcca2afa6411f7e7ab88ec3b3facdb4e17c17797af723ed9a55385c61a"
+    },
+    {
+      "path": "tests/billing-test/reconciliation.test.mjs",
+      "category": "tests",
+      "bytes": 13491,
+      "sha256": "20516b156b27ce0e0cd9c2898f5286ecb59fa3561b9c0ddfce1938dd65f27c93"
+    },
+    {
+      "path": "tests/billing-test/run.cjs",
+      "category": "tests",
+      "bytes": 1017,
+      "sha256": "51c7c23bab401b7654852a3d81118dc926e27b4372d8dd561e9bb3275339244d"
+    },
+    {
+      "path": "tests/billing-test/runtime-harness.mjs",
+      "category": "tests",
+      "bytes": 5786,
+      "sha256": "1ce64156ff8f048f45e19f75b7194dbc7d359df99b26aabf34e6d05893c500dd"
+    },
+    {
+      "path": "tests/cloudflare/UNIFIED-HOSTING-RESULTS-20261104.md",
+      "category": "tests",
+      "bytes": 8619,
+      "sha256": "aa90fdcb9d89a6b79f06ee6f5419f8d667caaf1ac2cc623be8b602fcfd02e681"
+    },
+    {
+      "path": "tests/cloudflare/auth-contract.cjs",
+      "category": "tests",
+      "bytes": 6360,
+      "sha256": "3fd766a0821deb2ef948301c10eea366d3c8b0ee992a344ea2f696ba0b110890"
+    },
+    {
+      "path": "tests/cloudflare/build.cjs",
+      "category": "tests",
+      "bytes": 12672,
+      "sha256": "92b8d2adbc5134f46d7b10d293029af29332a6b8edccf9b026b420bd74c2bc0e"
+    },
+    {
+      "path": "tests/cloudflare/commercial-browser.cjs",
+      "category": "tests",
+      "bytes": 4282,
+      "sha256": "6929d9e11d887f98b9147329166b97b5c5143df2f6921cc9737f8eed0626a3ca"
+    },
+    {
+      "path": "tests/cloudflare/commercial-build.cjs",
+      "category": "tests",
+      "bytes": 12650,
+      "sha256": "72f8758f0f5af834e92d5c1df197a6dfbebc0a364703b6d9f2c26a209306a168"
+    },
+    {
+      "path": "tests/cloudflare/placeholder-build.cjs",
+      "category": "tests",
+      "bytes": 5506,
+      "sha256": "90631828bdd41a95f16b12cd64688654d5ddbd322756dee5ebb40c761657ff86"
+    },
+    {
+      "path": "tests/cloudflare/production-build.cjs",
+      "category": "tests",
+      "bytes": 4074,
+      "sha256": "222d74a14a6f5763a910e3d939571190f5f54d1698faabf0b232e6c9823c8827"
+    },
+    {
+      "path": "tests/cloudflare/runtime.cjs",
+      "category": "tests",
+      "bytes": 10273,
+      "sha256": "bc0faab3121d2e217556a2a41179eaf727c3a1efe0939552886b7de32b7fc227"
+    },
+    {
+      "path": "tests/cloudflare/unified-browser.cjs",
+      "category": "tests",
+      "bytes": 16425,
+      "sha256": "7a302bd4b1466a9d593740d7ec0bcec5e08f4d934009cf60cf3f7f0f4ac92d7e"
+    },
+    {
+      "path": "tests/cloudflare/unified-builds.cjs",
+      "category": "tests",
+      "bytes": 5516,
+      "sha256": "5534362f0ea09e1b65926eafabeaf32149900f6f0b02c6f65fb79fa1768c349f"
+    },
+    {
+      "path": "tests/coach-flow/UNIFIED-CANDIDATE-RESULTS-20261104.md",
+      "category": "tests",
+      "bytes": 9794,
+      "sha256": "c227c00523a196038d805b92c6d72a78b50d59900d95662a2697215ec0a96ba4"
+    },
+    {
+      "path": "tests/coach-flow/basic-cost-guard.cjs",
+      "category": "tests",
+      "bytes": 13512,
+      "sha256": "6df443acd09e26e11c4fe25613663113e49f0889f3490610367201416f77ebda"
+    },
+    {
+      "path": "tests/coach-flow/basic-real-intake.json",
+      "category": "tests",
+      "bytes": 473,
+      "sha256": "9abed07ee9712ec3fcf5eb91962423379d63552b8d5423aca3eaed5adc3afd33"
+    },
+    {
+      "path": "tests/coach-flow/basic-real-proposal.json",
+      "category": "tests",
+      "bytes": 11479,
+      "sha256": "3ae9bca7b6ef916246aec2da9c56dff6abc08d95011bb7ddce5a835294b5c4c4"
+    },
+    {
+      "path": "tests/coach-flow/contracts.cjs",
+      "category": "tests",
+      "bytes": 3764,
+      "sha256": "d2289d4ec21df17bbf59bded20597b9b70b7658fa0ee272523846ce5902e7e93"
+    },
+    {
+      "path": "tests/coach-flow/edge-v36-reconciliation.test.mjs",
+      "category": "tests",
+      "bytes": 3909,
+      "sha256": "9e981f11d6ec4c5c74cd026aa012c761d0f29ec48de34a4d1d8592a59baa22e5"
+    },
+    {
+      "path": "tests/coach-flow/integration-boundaries.cjs",
+      "category": "tests",
+      "bytes": 13397,
+      "sha256": "fcdc20ae418c97afc7e5f2dbd5ddb2d0e7a3390dc2fac2f159728b08deb607aa"
+    },
+    {
+      "path": "tests/coach-flow/journey.cjs",
+      "category": "tests",
+      "bytes": 7408,
+      "sha256": "d879f93082a10b332c6a709164b32d203e653ff33a35fa963a46bb6b7f28b6d8"
+    },
+    {
+      "path": "tests/coach-flow/observed-v36-source.json",
+      "category": "tests",
+      "bytes": 4211,
+      "sha256": "30fadb84e78df195a496f3e745e7c402ffb3dfe6f49aa146c57b23d9f17db1dc"
+    },
+    {
+      "path": "tests/coach-flow/premium-retry.cjs",
+      "category": "tests",
+      "bytes": 4603,
+      "sha256": "89b16f211cb9e4ed5dad9e4dd429102056417038a6acb204ffe20c958f071d6c"
+    },
+    {
+      "path": "tests/coach-flow/preview-offline.cjs",
+      "category": "tests",
+      "bytes": 2642,
+      "sha256": "0ed197225c5d5c7964ed2abcb139af7e90412d572c73cfdfec324f8184702759"
+    },
+    {
+      "path": "tests/coach-flow/preview-offline.test.mjs",
+      "category": "tests",
+      "bytes": 3358,
+      "sha256": "498757b4bff2b57ba6070f9bf7d42ee153d1b5b3a1ec2a2e94706a2ec4d48825"
+    },
+    {
+      "path": "tests/coach-flow/reconciled-browser.cjs",
+      "category": "tests",
+      "bytes": 1794,
+      "sha256": "8157b94d8d7adc8ca67dab0beb9f9fd34a7ed75a18e8c0dc757f0be1079d1b0d"
+    },
+    {
+      "path": "tests/coach-flow/recovery.cjs",
+      "category": "tests",
+      "bytes": 9248,
+      "sha256": "1f3844063a39e6515724fb64b11e9768e60b04d35d4a719e1f60f0a764b616d2"
+    },
+    {
+      "path": "tests/coach-flow/reload-context.cjs",
+      "category": "tests",
+      "bytes": 10303,
+      "sha256": "d5022bf5d502bbe66628f36e7d5463357843c234a296471999d7e870bd3aef94"
+    },
+    {
+      "path": "tests/coach-flow/reload-uncertain.cjs",
+      "category": "tests",
+      "bytes": 6536,
+      "sha256": "19468fbe1a0473fbc3882ab63022f49ce2cfc1c345a1b766ecd690d3b70114fc"
+    },
+    {
+      "path": "tests/coach-flow/sports-review-ui.cjs",
+      "category": "tests",
+      "bytes": 4749,
+      "sha256": "9cf4faa1728862c21caff0cf5bff06d7915584b067a6899977861380d91021a1"
+    },
+    {
+      "path": "tests/coach-flow/sports-review.cjs",
+      "category": "tests",
+      "bytes": 7986,
+      "sha256": "89ed83cb67e72e01c2a5ec5558e8e379974061dfa7531a6817177c350ff3e02f"
+    },
+    {
+      "path": "tests/commercial/backend.test.mjs",
+      "category": "tests",
+      "bytes": 7849,
+      "sha256": "37326e87e35c93328133f9b56cb6d2dd1e101ee9af75910430a285271f4a537b"
+    },
+    {
+      "path": "tests/commercial/basic-source-lock.test.mjs",
+      "category": "tests",
+      "bytes": 965,
+      "sha256": "b51ce0c6245d388ca8806e1d1014ffb48347b6f57365093dfb109bd477951cb1"
+    },
+    {
+      "path": "tests/commercial/fixtures/coach-local.sql",
+      "category": "tests",
+      "bytes": 6250,
+      "sha256": "8500ca08e75dc685732ca82f93970609a9ea13ee2a6e63a98462435af51cdc56"
+    },
+    {
+      "path": "tests/commercial/fixtures/coach-original-functions.sql",
+      "category": "tests",
+      "bytes": 5604,
+      "sha256": "bc9ff2a446ade34861253f8596d2cda34bdba92378fa9f211690ea7fad3a0560"
+    },
+    {
+      "path": "tests/commercial/fixtures/reviewer-original.sql",
+      "category": "tests",
+      "bytes": 7673,
+      "sha256": "6fd714f4fc2674476bd75e198d4e930e8a135965056dddb4ef6d1d4380f33343"
+    },
+    {
+      "path": "tests/commercial/package.test.mjs",
+      "category": "tests",
+      "bytes": 1611,
+      "sha256": "b06b73d075ead73e7d7681a7d614d443ea317bd8344f2d36000fb62d422208d2"
+    },
+    {
+      "path": "tests/commercial/postgres.test.mjs",
+      "category": "tests",
+      "bytes": 21319,
+      "sha256": "3124884384254e2da50fc1bbccd9ce1dc6e16fde290c8a546e2ee4cb1b8fc237"
+    },
+    {
+      "path": "tests/commercial/reviewer-enumeration-cases.mjs",
+      "category": "tests",
+      "bytes": 14452,
+      "sha256": "4eb355805efc1b3a0cb21037105d515277d9d518f02f6e19c280ae1c1a8f07d1"
+    },
+    {
+      "path": "tests/commercial/webhook-crypto.test.mjs",
+      "category": "tests",
+      "bytes": 2300,
+      "sha256": "85a7608de77d78e253c291dc5aca3ea192d0d47e0a2249e7c92a10341232fa0d"
+    },
+    {
+      "path": "tests/premium-direct-production/unit.cjs",
+      "category": "tests",
+      "bytes": 8990,
+      "sha256": "ae061afc6d252aa4e321f1a47e37e455475858499c35d6ea4ad00038177c0105"
+    },
+    {
+      "path": "tests/premium-review-security/README.md",
+      "category": "tests",
+      "bytes": 3487,
+      "sha256": "ceb70ac2ea8f0de9502834bb51828239b1b0f2116dbcea017927d6826ed76cf1"
+    },
+    {
+      "path": "tests/premium-review-security/error-boundary.mjs",
+      "category": "tests",
+      "bytes": 7358,
+      "sha256": "a41c25635d3af21011d50f90e775395238a1229bfe109fe04cfe25cfa5b9bd0d"
+    },
+    {
+      "path": "tests/premium-review-security/local.mjs",
+      "category": "tests",
+      "bytes": 4330,
+      "sha256": "cb1d9318ce0056c8de6d6514820b2dfe4fbfc29cb60dbf50ddd058b292a1a8e1"
+    },
+    {
+      "path": "tests/premium-review-security/postgres.test.mjs",
+      "category": "tests",
+      "bytes": 23128,
+      "sha256": "e4ca805a14b33ff47882b1d4010c66b08882716262ad2adef0c4410af73a591b"
+    },
+    {
+      "path": "tests/premium-review-security/reconciliation.test.mjs",
+      "category": "tests",
+      "bytes": 4356,
+      "sha256": "31c9ea53bd97cfbbae4f452faee7803a9310a329e05f9accccdea52425962eef"
+    },
+    {
+      "path": "tests/premium-review-security/schema.sql",
+      "category": "tests",
+      "bytes": 3393,
+      "sha256": "e2d4f7a8067491bb48bf8f1487604ea0868b2cc9370aff2005c0be79f619822d"
+    },
+    {
+      "path": "tests/staging-return/offline.cjs",
+      "category": "tests",
+      "bytes": 2798,
+      "sha256": "1b3206886b69d2c4f994bc168bb1886ff84236b694332097fa0ee13e3ef9a875"
+    },
+    {
+      "path": "tests/subscription/browser-server.cjs",
+      "category": "tests",
+      "bytes": 7298,
+      "sha256": "0f129e777a153e2fa0a576cb46069605a268fc3b287d19363bff601d062fce9a"
+    },
+    {
+      "path": "tests/subscription/browser.cjs",
+      "category": "tests",
+      "bytes": 10747,
+      "sha256": "7a0fd8ad5df91d0e224703937fc5f2f15840325b923ba295ea26bcd503d5a2b1"
+    },
+    {
+      "path": "tests/subscription/integration-browser.cjs",
+      "category": "tests",
+      "bytes": 7750,
+      "sha256": "7f4050cf0812422fe53c5a04c0704f4e14bc9941780ba64bd6cd15a393c61bda"
+    },
+    {
+      "path": "tests/subscription/offline.cjs",
+      "category": "tests",
+      "bytes": 8469,
+      "sha256": "8621d01778c6c32a0c92641ee8c2208a66b6cc179413d57c40e54500dcf03c20"
+    },
+    {
+      "path": "tests/theme-storage/unit.cjs",
+      "category": "tests",
+      "bytes": 5422,
+      "sha256": "f92889caea1ec3b1861c787ca12a4fcfcd5cc2e7fd4d009def7315de4e937fd9"
+    }
+  ],
+  "note": "Hashes are exact Git blob bytes. This inventory covers the code/test commit; the later root report and this inventory are documentation-only. Artifact inventory is a separate file. No current connected-state claim."
+}
