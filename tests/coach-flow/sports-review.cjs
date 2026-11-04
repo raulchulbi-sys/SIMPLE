@@ -1,0 +1,42 @@
+// Offline regression of the sanitized REAL generated proposal. No provider or DB calls.
+const fs=require('fs'),path=require('path'),assert=require('assert/strict'),vm=require('vm'),cp=require('child_process');
+globalThis.fetch=()=>{throw Error('Network forbidden');};
+const fixture=require('./basic-real-proposal.json'),clone=structuredClone,rows=[];
+const test=(name,fn)=>{fn();rows.push({name,pass:true});};
+(async()=>{
+ const C=await import('../../supabase/functions/simple-coach-mock/contract.mjs'),G=await import('../../supabase/functions/simple-coach-mock/staging-cost-guard.mjs');
+ const Q=globalThis.SimpleCoachProgrammingV5,I=globalThis.SimpleCoachIntakeV5;
+ const p=fixture.proposal,t=fixture.training,before=JSON.stringify(fixture);
+ const run=(proposal=p,training=t)=>Q.evaluate(proposal,training);
+ const codes=r=>r.warnings.map(w=>w.code),small=r=>r.warnings.filter(w=>w.code==='small_direct_coverage');
+ const sport=(proposal,training)=>run(proposal,training).warnings.filter(w=>w.code.startsWith('sport_'));
+ const ex=(id,n=2)=>{const source=clone(p.days[0].exercises[0]);source.name=Q.byId.get(id).name;source.sets=n;source.planned_sets=Array.from({length:n},(_,i)=>({...source.planned_sets[0],set_number:i+1}));return source;};
+ const dated=(day,activity,exercises=[ex('leg_press')])=>[{...p,days:[{name:I.weekdays.find(d=>d.id===day).label,exercises}]},{...t,days:1,weekdays:[day],activity:{type:'running',weekdays:activity}}];
+ test('real proposal remains valid with exact original structure',()=>{const r=C.reviewProposal(p,{training:t});assert(r.ok);assert.deepEqual(r.failures,[]);assert.equal(r.totalSets,30);assert.equal(r.rirMean,1.7);assert.equal(r.rirOne,9);assert.equal(r.rirZero,0);assert.deepEqual(r.durations,[46,47,47]);});
+ test('real case has precisely five contextual warnings',()=>{const r=run();assert.deepEqual(codes(r),['sport_after_activity',...Array(4).fill('small_direct_coverage')]);assert.deepEqual(small(r).map(w=>[w.muscle,w.direct,w.secondary]),[['deltoids',2,10],['biceps',0,6],['triceps',0,6],['calves',2,0]]);assert(r.warnings[0].message.includes('no demuestra interferencia'));});
+ for(const [previous,next] of [['sun','mon'],['mon','tue'],['tue','wed'],['wed','thu'],['thu','fri'],['fri','sat'],['sat','sun']])
+ test('day-after cycle '+previous+' to '+next,()=>{const w=sport(...dated(next,[previous]));assert.equal(w.length,1);assert.equal(w[0].relation,'after');assert.equal(w[0].activity_day,previous);});
+ test('same day is separate from after',()=>{const w=sport(...dated('mon',['mon']));assert.equal(w.length,1);assert.equal(w[0].code,'sport_same_day');});
+ test('heaviest session before activity is separate',()=>{const w=sport(...dated('sat',['sun'],[ex('leg_press',3),ex('seated_curl',3)]));assert.equal(w.length,1);assert.equal(w[0].code,'sport_before_heaviest');assert.equal(w[0].relation,'before');});
+ test('adjacent multiple activities produce distinct relations, no duplicates',()=>{const w=sport(...dated('mon',['sun','sun','mon','tue'],[ex('leg_press',3),ex('seated_curl',3)]));assert.deepEqual(w.map(x=>x.relation),['same_day','before','after']);});
+ test('no activity produces no sport warning',()=>assert.equal(sport(p,{...t,activity:{type:'none',weekdays:[]}}).length,0));
+ test('none with stale weekdays still produces no warning',()=>assert.equal(sport(p,{...t,activity:{type:'none',weekdays:['sun']}}).length,0));
+ test('no known weekdays does not invent scheduling',()=>assert.equal(sport(p,{...t,activity:{type:'running',weekdays:[]}}).length,0));
+ test('two-day gap produces no warning',()=>assert.equal(sport(...dated('wed',['mon'])).length,0));
+ test('upper-only session after running produces no warning',()=>assert.equal(sport(...dated('mon',['sun'],[ex('chest_press')])).length,0));
+ test('non-triggering activity does not imply demand',()=>{const [a,b]=dated('mon',['sun']);assert.equal(sport(a,{...b,activity:{type:'other_sport',weekdays:['sun']}}).length,0);});
+ test('coverage is not imposed on return goals',()=>{for(const goal of ['structured_return','regain_mass'])assert.equal(small(run(p,{...t,goal})).length,0);});
+ test('secondary arm work is preserved, never counted as direct',()=>{const r=run();for(const g of ['biceps','triceps']){assert.equal(r.smallMuscles[g].direct,0);assert.equal(r.smallMuscles[g].secondary,6);assert.equal(r.smallMuscles[g].secondary_frequency,3);}});
+ test('direct compound work is not forced to be isolation',()=>{const q=clone(p);q.days[1].exercises[4]=ex('shoulder_press',3);const tr={...t,inventory:{...t.inventory,equipment:[...t.inventory.equipment,'shoulder_press']}};assert.equal(small(run(q,tr)).filter(w=>w.muscle==='deltoids').length,0);});
+ test('half-median boundary does not trigger low direct warning',()=>{const q=clone(p);q.days[1].exercises[4]=ex('db_lateral',3);assert.equal(small(run(q)).filter(w=>w.muscle==='deltoids').length,0);});
+ test('two distributed direct exposures do not trigger concentrated-dose warning',()=>{const q=clone(p);q.days[1].exercises[4]=ex('db_lateral',1);q.days[0].exercises[4]=ex('db_lateral',1);assert.equal(small(run(q)).filter(w=>w.muscle==='deltoids').length,0);});
+ test('low-volume plan does not inherit an absolute minimum',()=>{const q=clone(p);q.days.forEach(d=>d.exercises.forEach(e=>{e.sets=1;e.planned_sets=e.planned_sets.slice(0,1);}));q.days[1].exercises[4]=ex('db_lateral',2);assert.equal(small(run(q)).filter(w=>w.muscle==='deltoids').length,0);});
+ test('insufficient major-group coverage suppresses relative triage',()=>{const [q,tr]=dated('mon',[],[ex('db_lateral')]);assert.equal(small(run(q,tr)).length,0);});
+ test('no allowed direct option reports limitation without demanding forbidden exercise',()=>{const q=clone(p);q.days[2].exercises.pop();const tr={...t,excluded:[...t.excluded,...Q.catalogue.filter(e=>e.primary.includes('calves')).map(e=>e.id)]};const r=run(q,tr);assert(!small(r).some(w=>w.muscle==='calves'));assert(r.smallMuscles.calves.note.includes('No hay una opción directa permitida'));});
+ test('review context contains actionable uncertainty and numerical coverage',()=>{const r=run();assert(r.warnings[0].message.includes('comprobar recuperación percibida'));for(const w of small(r)){assert(w.message.includes('no un mínimo universal'));assert(w.message.includes('no exige aislamientos'));}assert(r.smallMuscles.deltoids.note.includes('regiones distintas'));});
+ test('old failures and all existing evaluation metrics remain identical',()=>{const sandbox={structuredClone};vm.createContext(sandbox);for(const file of ['assets/coach-intake.js','assets/coach-programming-v4.js','assets/coach-programming-v5.js'])vm.runInContext(cp.execFileSync('git',['show','d316482:'+file],{encoding:'utf8'}),sandbox);const old=JSON.parse(JSON.stringify(sandbox.SimpleCoachProgrammingV5.evaluate(p,t))),now=run();for(const k of Object.keys(old).filter(k=>!['warnings','smallMuscles'].includes(k)))assert.deepEqual(now[k],old[k]);assert.deepEqual(JSON.parse(JSON.stringify(sandbox.SimpleCoachProgrammingV5.catalogue)),Q.catalogue);});
+ test('bounded provider request remains byte-identical',()=>{const originalOrder=require('./basic-real-intake.json');assert.deepEqual(t,originalOrder);const b=G.prepareBoundedRequest({training:originalOrder},C.DEFAULT_MODEL);assert.equal(Buffer.byteLength(b.wire),10467);assert.equal(require('crypto').createHash('sha256').update(b.wire).digest('hex'),'919ab89f39d8178761401c0dfcf9ac1c6245dfcedf62f3cd48d55898d7f521df');});
+ test('evaluation is deterministic and mutates neither intake nor proposal',()=>{assert.deepEqual(run(),run());assert.equal(JSON.stringify(fixture),before);});
+ fs.mkdirSync(path.join(__dirname,'results'),{recursive:true});fs.writeFileSync(path.join(__dirname,'results/sports-review.json'),JSON.stringify({type:'offline',passed:rows.length,total:rows.length,rows,warnings:run().warnings},null,2));
+ console.log(rows.length+'/'+rows.length+' offline sports review checks');
+})().catch(e=>{console.error(e);process.exitCode=1;});
