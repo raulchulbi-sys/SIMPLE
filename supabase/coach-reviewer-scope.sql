@@ -72,17 +72,23 @@ end $function$
 create or replace function public.review_coach_proposal(p_operation uuid,p_approve boolean,p_reason text) returns public.coach_operations language plpgsql security definer set search_path=pg_catalog,public,coach_private as $$
 declare o public.coach_operations;u uuid;i public.training_intakes;
 begin
- if not coach_private.is_reviewer(auth.uid()) then raise exception 'coach_reviewer_required' using errcode='42501';end if;
+ -- Check this operation/action before resolving its owner or taking owner locks.
+ -- Missing, own and unassigned operations have the same public denial.
+ if not coalesce(coach_private.can_review_operation(auth.uid(),p_operation,'review'),false) then
+  raise exception 'coach_review_scope_required' using errcode='42501';end if;
  if p_approve is null or length(btrim(p_reason)) not between 1 and 1000 or p_reason is null then raise exception 'coach_review_reason_required';end if;
  select user_id into u from public.coach_operations where id=p_operation;
- if u is null or u=auth.uid() then raise exception 'coach_not_authorized' using errcode='42501';end if;
+ if u is null or u=auth.uid() then raise exception 'coach_review_scope_required' using errcode='42501';end if;
  perform pg_advisory_xact_lock(hashtextextended('coach:'||u::text,0));
- if not coach_private.is_reviewer(auth.uid()) then raise exception 'coach_reviewer_required' using errcode='42501';end if;
+ -- Preserve lock order: owner advisory -> assignment SHARE -> operation UPDATE.
+ -- The precheck is not a substitute for revalidation after either wait.
  perform coach_private.lock_review_scope(p_operation,'review');
  select * into o from public.coach_operations where id=p_operation for update;
  -- The row lock can wait beyond either expiry. Recheck wall-clock eligibility
  -- after the wait; retain the assignment lock until this transaction commits.
  perform coach_private.lock_review_scope(p_operation,'review');
+ if o.id is null or o.user_id is distinct from u then
+  raise exception 'coach_review_scope_required' using errcode='42501';end if;
  if o.state<>'pending_review' or o.review_decision is not null then raise exception 'coach_review_not_pending';end if;
  if not coach_private.allowed(u) then raise exception 'coach_pilot_required';end if;
  if coach_private.require_context(u) is distinct from o.grant_ids then raise exception 'coach_context_changed';end if;
@@ -106,18 +112,19 @@ CREATE OR REPLACE FUNCTION public.authorize_coach_retry(p_operation uuid,p_reaso
 LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,public,coach_private AS $$
 DECLARE o public.coach_operations;u uuid;
 BEGIN
- IF NOT coach_private.is_reviewer(auth.uid()) OR NOT coalesce((coach_private.reviewer_config()->auth.uid()::text->>'expires_at')::timestamptz>clock_timestamp(),false)
- THEN RAISE EXCEPTION 'coach_reviewer_required' USING errcode='42501';END IF;
+ -- No owner lookup or owner lock without this exact operation/action permission.
+ IF NOT coalesce(coach_private.can_review_operation(auth.uid(),p_operation,'retry'),false)
+ THEN RAISE EXCEPTION 'coach_review_scope_required' USING errcode='42501';END IF;
  IF p_reason IS NULL OR length(btrim(p_reason)) NOT BETWEEN 1 AND 1000 THEN RAISE EXCEPTION 'coach_review_reason_required';END IF;
  SELECT user_id INTO u FROM public.coach_operations WHERE id=p_operation;
- IF u IS NULL OR u=auth.uid() THEN RAISE EXCEPTION 'coach_not_authorized' USING errcode='42501';END IF;
+ IF u IS NULL OR u=auth.uid() THEN RAISE EXCEPTION 'coach_review_scope_required' USING errcode='42501';END IF;
  PERFORM pg_advisory_xact_lock(hashtextextended('coach:'||u::text,0));
- IF NOT coach_private.is_reviewer(auth.uid()) OR NOT coalesce((coach_private.reviewer_config()->auth.uid()::text->>'expires_at')::timestamptz>clock_timestamp(),false)
- THEN RAISE EXCEPTION 'coach_reviewer_required' USING errcode='42501';END IF;
  perform coach_private.lock_review_scope(p_operation,'retry');
  SELECT * INTO o FROM public.coach_operations WHERE id=p_operation FOR UPDATE;
  -- Do not authorize a retry with a scope that expired during the row-lock wait.
  perform coach_private.lock_review_scope(p_operation,'retry');
+ IF o.id IS NULL OR o.user_id IS DISTINCT FROM u THEN
+  RAISE EXCEPTION 'coach_review_scope_required' USING errcode='42501';END IF;
  IF o.state='reserved' AND o.expires_at<=clock_timestamp() THEN
   UPDATE public.coach_operations SET state='failed',error_code='provider_timeout',updated_at=clock_timestamp()
    WHERE id=o.id AND state='reserved' AND expires_at<=clock_timestamp() RETURNING * INTO o;

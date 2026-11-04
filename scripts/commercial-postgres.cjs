@@ -2,6 +2,10 @@
 // New disposable PostgreSQL cluster only. Never connects to an existing server.
 const fs=require('node:fs'),path=require('node:path'),{spawnSync}=require('node:child_process');
 const root=path.resolve(__dirname,'..'),bin=process.env.SIMPLE_POSTGRES_BIN;
+// Optional Node test-name filter: rerun only affected commercial cases, without
+// presenting a partial run as the full billing/commercial regression.
+const options=process.argv.slice(2),filter=options[0];
+if(options.length>1||(filter&&!filter.startsWith('--test-name-pattern=')))throw Error('Only --test-name-pattern=... is supported');
 if(!bin || !fs.existsSync(path.join(bin,process.platform==='win32'?'initdb.exe':'initdb')))throw Error('Set SIMPLE_POSTGRES_BIN to an existing PostgreSQL 17 bin directory');
 const parent=path.join(root,'.tests-local');fs.mkdirSync(parent,{recursive:true});
 const dir=fs.mkdtempSync(path.join(parent,'postgres-')),data=path.join(dir,'data');
@@ -15,10 +19,10 @@ try{
  command('psql',[...args,'-d','postgres','-c','create database simple_sprint_20261102;']);
  command('psql',[...args,'-d','postgres','-c',"comment on database simple_sprint_20261102 is 'SIMPLE isolated commercial sprint 20261102';"]);
  const testEnv={...env,SIMPLE_LOCAL_PSQL:path.join(bin,process.platform==='win32'?'psql.exe':'psql'),SIMPLE_LOCAL_TEST_DATA:data};
- for(const files of [['tests/billing-test/postgres.test.mjs','tests/billing-test/install.test.mjs'],['tests/commercial/postgres.test.mjs']]){
-  const r=spawnSync(process.execPath,['--experimental-vm-modules','--test','--test-concurrency=1',...files],{cwd:root,env:testEnv,encoding:'utf8',timeout:120000,windowsHide:true});
+ for(const files of (filter?[['tests/commercial/postgres.test.mjs']]:[['tests/billing-test/postgres.test.mjs','tests/billing-test/install.test.mjs'],['tests/commercial/postgres.test.mjs']])){
+  const r=spawnSync(process.execPath,['--experimental-vm-modules','--test','--test-concurrency=1',...(filter?[filter]:[]),...files],{cwd:root,env:testEnv,encoding:'utf8',timeout:240000,windowsHide:true});
   const out=path.join(root,'tests/commercial/results');fs.mkdirSync(out,{recursive:true});
-  fs.writeFileSync(path.join(out,files.length===2?'billing-postgres.tap':'commercial-postgres.tap'),(r.stdout||'')+(r.stderr||''));
+  fs.writeFileSync(path.join(out,filter?'commercial-postgres-filtered.tap':files.length===2?'billing-postgres.tap':'commercial-postgres.tap'),(r.stdout||'')+(r.stderr||''));
   console.log(r.stdout);if(r.status!==0)throw Error(r.stderr||'Local PostgreSQL regression failed');
  }
 }finally{

@@ -1,6 +1,7 @@
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs/promises';
 import {setup,reset as billingReset,sql,query,rpc,access,asyncSql,OWNER,OTHER} from '../billing-test/postgres-local.mjs';
 import {harness,load} from '../billing-test/harness.mjs';
+import {reviewerEnumerationCases} from './reviewer-enumeration-cases.mjs';
 const read=f=>fs.readFile(new URL(f,import.meta.url),'utf8');
 // setup verifies the fixed loopback server before any fixture mutation.
 await setup();sql('drop schema if exists coach_private cascade;');
@@ -51,7 +52,7 @@ test('assignment filters queue, metrics and feedback to exactly one owner; priva
 });
 test('owner RLS still reads own proposal and feedback but cannot approve it',()=>{
  seed();assert.equal(call(OWNER,'to_jsonb((select count(*) from public.coach_operations))'),1);assert.equal(call(OWNER,'to_jsonb((select count(*) from public.coach_pilot_feedback))'),1);
- reject(OWNER,`public.review_coach_proposal('${OP}',true,'self')`,/reviewer_required/);
+ reject(OWNER,`public.review_coach_proposal('${OP}',true,'self')`,/scope_required/);
 });
 for(const state of ['view-only','expired','revoked','consent-revoked','reviewer-disabled'])test('review scope denies '+state,()=>{
  seed();assign(state==='view-only'?['view']:undefined);
@@ -76,8 +77,8 @@ test('human review RPC returns only safe fields, preserving private receipt in s
 test('reviewer cannot directly read operation/intake private rows or manipulate another identifier',()=>{
  seed();assign();
  for(const table of ['coach_operations','training_intakes'])assert.equal(call(REVIEWER,`to_jsonb((select count(*) from public.${table}))`),0);
- reject(REVIEWER,"public.review_coach_proposal('ffffffff-ffff-4fff-8fff-ffffffffffff',true,'wrong')",/not_authorized/);
- reject(OTHER,`public.review_coach_proposal('${OP}',true,'wrong')`,/reviewer_required/);
+ reject(REVIEWER,"public.review_coach_proposal('ffffffff-ffff-4fff-8fff-ffffffffffff',true,'wrong')",/scope_required/);
+ reject(OTHER,`public.review_coach_proposal('${OP}',true,'wrong')`,/scope_required/);
 });
 test('concurrent approval resolves once; second action cannot rewrite decision',async()=>{
  seed();assign();
@@ -173,11 +174,18 @@ test('commercial generation refuses a pilot configuration without human review',
  try{reject(OWNER,`public.reserve_basic_generation('${INTAKE}',gen_random_uuid())`,/generation_unavailable/);}finally{sql('create or replace function coach_private.review_required() returns boolean language sql as $$select true$$;');}
 });
 test('paid period expiring while waiting for Customer lock cannot authorize a new generation',async()=>{
- seed(false);await paid();sql("update billing_test.commercial_policy set basic_generation_enabled=true;update billing_test.invoices set period_start=extract(epoch from now())::bigint+1-2592000,period_end=extract(epoch from now())::bigint+1;");
- const holder=asyncSql(`begin;select 1 from billing_test.customers where user_id='${OWNER}' for update;select pg_sleep(2.1);commit;`);
- await new Promise(r=>setTimeout(r,80));const action=asyncSql(auth(OWNER,`select public.reserve_basic_generation('${INTAKE}',gen_random_uuid());`));
- const result=await Promise.all([holder,action]);assert.equal(result[1].ok,false);assert.match(result[1].error,/generation_unavailable/);
+ seed(false);await paid();sql('update billing_test.commercial_policy set basic_generation_enabled=true;');
+ const holder=asyncSql(`set application_name='paid_expiry_holder';begin;select 1 from billing_test.customers where user_id='${OWNER}' for update;select pg_sleep(2.5);commit;`);
+ await waitForDatabaseWait('paid_expiry_holder','Timeout');
+ sql("update billing_test.invoices set period_start=extract(epoch from clock_timestamp())::bigint+1-2592000,period_end=extract(epoch from clock_timestamp())::bigint+1;");
+ const action=asyncSql(auth(OWNER,`set application_name='paid_expiry_action';select public.reserve_basic_generation('${INTAKE}',gen_random_uuid());`));
+ await waitForDatabaseWait('paid_expiry_action','Lock');
+ assert.equal(query("select to_jsonb(exists(select 1 from pg_stat_activity a join pg_stat_activity b on b.pid=any(pg_blocking_pids(a.pid)) where a.application_name='paid_expiry_action' and b.application_name='paid_expiry_holder'));"),true);
+ const result=await Promise.all([holder,action]);assert.equal(result[0].ok,true);assert.equal(result[1].ok,false);assert.match(result[1].error,/generation_unavailable/);
+ assert.equal(query('select to_jsonb(count(*)) from public.coach_operations;'),0);
 });
+reviewerEnumerationCases({seed,assign,call,auth,waitForDatabaseWait,REVIEWER,FOREIGN,OP,OPB,INTAKE,INTAKEB,ROUTINEB});
+
 test('fail-closed reviewer rollback compiles, retains history and owner reads, denies global access',async()=>{
  seed();assign();sql(await read('../../supabase/rollback-coach-reviewer-scope.sql'));
  assert.equal(call(REVIEWER,'public.get_coach_reviewer_access()'),false);reject(REVIEWER,`public.review_coach_proposal('${OP}',true,'blocked')`,/reviewer_required/);
