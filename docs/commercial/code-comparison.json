@@ -1,0 +1,63 @@
+{
+  "source": "simple-commercial-deployment-20261102/evidence/effective-code-hashes.json",
+  "evidenceSHA256": "5d13049ffbf933dc05b3646a1e9b08e39ee6347b89c5419a6730c35ef20fc54e",
+  "note": "Historical source evidence; not a new read of staging. Later reported versions v6/v5 preserved these hashes.",
+  "records": [
+    {
+      "function": "billing-test",
+      "file": "functions/billing-test/index.ts",
+      "sha256": "3e4af59a53ac8eeaf25c6e93b4f484eb7285803aa3601ca7e35f25a1e6768a78",
+      "prepared_sha256": "55a5e261742aade4b6a4bb5860dc2edd944f2ab67ae79756248b21eff13a2f17",
+      "identical": false
+    },
+    {
+      "function": "billing-test",
+      "file": "functions/_shared/billing-test-runtime.ts",
+      "sha256": "f0d90bda5518fab882a08055bbec8557430beb5553b22bb6d1e2b511edc966e5",
+      "prepared_sha256": "bf3b20bc65ea0c7fb704d4a5a0e7426c2509d8283b9ef23c558cd9eb755c8447",
+      "identical": false
+    },
+    {
+      "function": "billing-test",
+      "file": "functions/_shared/billing-test-checkout.mjs",
+      "sha256": "e0690ca80aad51c4b6969aefa78b5e25e947a4336a4978ae32ba119626f85078",
+      "prepared_sha256": "e0690ca80aad51c4b6969aefa78b5e25e947a4336a4978ae32ba119626f85078",
+      "identical": true
+    },
+    {
+      "function": "billing-test",
+      "file": "functions/_shared/billing-test-contract.mjs",
+      "sha256": "87ba63aa7ca90909a8bb2fa43572c9c029489c400d93a6185f1347c58cd037a0",
+      "prepared_sha256": "87ba63aa7ca90909a8bb2fa43572c9c029489c400d93a6185f1347c58cd037a0",
+      "identical": true
+    },
+    {
+      "function": "billing-test-webhook",
+      "file": "functions/billing-test-webhook/index.ts",
+      "sha256": "94549ce3ddbebf6d2c756f927df9555ccba5663aec757719064985df8ef3e2fe",
+      "prepared_sha256": "94549ce3ddbebf6d2c756f927df9555ccba5663aec757719064985df8ef3e2fe",
+      "identical": true
+    },
+    {
+      "function": "billing-test-webhook",
+      "file": "functions/_shared/billing-test-runtime.ts",
+      "sha256": "f0d90bda5518fab882a08055bbec8557430beb5553b22bb6d1e2b511edc966e5",
+      "prepared_sha256": "bf3b20bc65ea0c7fb704d4a5a0e7426c2509d8283b9ef23c558cd9eb755c8447",
+      "identical": false
+    },
+    {
+      "function": "billing-test-webhook",
+      "file": "functions/_shared/billing-test-checkout.mjs",
+      "sha256": "e0690ca80aad51c4b6969aefa78b5e25e947a4336a4978ae32ba119626f85078",
+      "prepared_sha256": "e0690ca80aad51c4b6969aefa78b5e25e947a4336a4978ae32ba119626f85078",
+      "identical": true
+    },
+    {
+      "function": "billing-test-webhook",
+      "file": "functions/_shared/billing-test-contract.mjs",
+      "sha256": "87ba63aa7ca90909a8bb2fa43572c9c029489c400d93a6185f1347c58cd037a0",
+      "prepared_sha256": "87ba63aa7ca90909a8bb2fa43572c9c029489c400d93a6185f1347c58cd037a0",
+      "identical": true
+    }
+  ]
+}
