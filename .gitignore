@@ -5,3 +5,4 @@ tests/**/private/
 tests/**/results/
 
 .tests-local/
+dist/
