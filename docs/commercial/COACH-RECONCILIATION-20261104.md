@@ -1,7 +1,7 @@
-# Coach: derivada frontend independiente — 04/11/2026
+# Coach: frontend y fuentes v36 reconciliados — 04/11/2026
 
-**APTO PARA REVISIÓN LOCAL DEL DELTA FRONTEND. No es una reconciliación completa
-de la Edge ni un artefacto autorizado de despliegue.**
+**APTO PARA REVISIÓN LOCAL. Dos capas auditables: recuperación frontend y
+reconciliación de fuentes v36. No es una autorización de despliegue.**
 
 Rama `codex/coach-reconciled-20261104`, base exacta
 `b2f77c6f86318a4bf11d2b6754b2e3bbd7263ac6`. La PR #2 continúa independiente;
@@ -35,34 +35,55 @@ por lo que no se han perdido modificaciones de producto al componer este corte.
   contexto; contenido o revisión incompatible sigue sujeto al rechazo del servidor.
   No amplía cuotas, ejecuta reintentos automáticos ni sustituye la idempotencia SQL.
 
-Se conservan seis arneses offline ya existentes de PR #2 y se añade un orquestador
-local con lista cerrada. No se copian ejecutores conectados, recibos, perfiles,
-credenciales ni evidencias privadas. No cambia `scripts/ci-offline.cjs` ni workflows.
+El primer commit `4d8aa11c6546cc2c3ea0e8b9530e54a80f75c84c` conserva seis
+arneses offline ya existentes de PR #2 y añade un orquestador local con lista
+cerrada. El segundo añade las fuentes y pruebas de v36 descritas debajo. No se
+copian ejecutores conectados, recibos de gasto, perfiles privados ni credenciales.
+No cambia `scripts/ci-offline.cjs` ni workflows.
 
-## Relación con Coach v36 y partes excluidas
+## Comparación completa con las fuentes observadas de Coach v36
 
 El recibo local histórico del checkpoint B registra `simple-coach-mock` v36,
 JWT obligatorio y bundle SHA-256
 `0de5d740f29f5615cfea2e1678f95f25f7528d6bea996e50ee1e5e543e3f4c20`.
-Esta tarea no consulta Supabase; ese recibo es evidencia histórica, no una lectura
-actual. No se dispone aquí del bundle efectivo v36 completo y no se puede afirmar
-una comparación byte a byte de todas sus dependencias.
+Esta tarea no consulta Supabase; es evidencia histórica, no una lectura actual.
+Durante el trabajo se recuperaron también las once fuentes completas que el
+coordinador conservaba en memoria de la revisión anterior del 04/11. Se preservaron
+localmente, sin modificar sus originales ni abrir una conexión nueva.
 
-La PR #2 contiene el guard de costes y el evaluador que se probaron en v32/v33,
-pero su entrypoint procede de una rama anterior. El diff respecto a main añade
-`generateStaging` y el recibo saneado, mientras que las versiones posteriores
-desplegadas tienen también cambios de integración y orígenes. Reponer ciegamente
-el entrypoint de PR #2 no está justificado por un número de versión o por metadatos.
+Comparación exhaustiva con PR #2: nueve de los once archivos coinciden al convertir
+CRLF a LF; el guard coincide incluso por bytes originales. `contract-v5.mjs`
+contiene exactamente un LF final adicional, sin otra diferencia. El único cambio
+sustantivo del entrypoint v36 frente a PR #2 es su allowlist de CORS staging:
+conserva los puertos 4194/4195, añade 4280 y los dos orígenes Cloudflare previamente
+observados. La rama de producción sigue permitiendo sólo el origen GitHub Pages.
+No se elimina ningún origen autorizado ni se añade uno no observado.
 
-Por ello esta derivada NO cambia `supabase/`, el evaluador deportivo, los modelos,
-el contrato V5, los CORS, JWT, guard de coste ni configuración de generación.
-El evaluador contextual y las evidencias deportivas siguen conservados en PR #2,
-sin descartarlos ni declarar que hayan sido integrados aquí. El siguiente delta
-de Edge exige capturar por lectura autorizada su fuente efectiva, verificar todas
-las dependencias y preparar una comparación independiente. No exige desplegarlo
-si ya coincide y funciona.
+La segunda capa incorpora el entrypoint completo observado, su guard y el
+evaluador contextual de PR #2 que ya estaba en v36. El contrato V5 conserva su
+archivo canónico versionado: el LF adicional observado se registra como excepción
+exclusiva y se comprueba añadiendo exactamente un LF al calcular su huella observada,
+sin `trim` general ni tolerar otro cambio. Evita añadir una línea en blanco que
+`git diff --check` señala al final del archivo. Los once archivos efectivos quedan
+verificados con hashes del repositorio y los bytes observados, además de sus
+variantes LF, en `tests/coach-flow/observed-v36-source.json`. No se afirma identidad
+de bytes CRLF/LF ni que su hash conjunto sea el hash interno del eszip.
 
-Esta rama es un **delta frontend sobre main**, no una copia que deba reemplazar el
+No cambia ninguna regla de generación, modelo, prompt, cuestionario, catálogo,
+prescripción, configuración JWT o SQL. La revisión deportiva sigue siendo
+informativa y la generación depende de la reserva/autorización de backend. El
+gate comercial y el reviewer no se activan desde este código. Modelo fijo
+`gpt-5.4-2026-03-05`, contrato `basic-initial-v5`, guard staging: 16.384 bytes,
+12.000 tokens contados, 5.120 de salida, default, store=false, truncation=disabled,
+un conteo/una generación como máximo y cero reintentos automáticos.
+
+La captura inicial completa y sus metadatos quedan bajo `.tests-local/`, ignorado.
+Sólo se versionan fuentes revisadas, un manifiesto de hashes sin datos privados y
+fixtures sintéticas ya públicas. No hace falta redesplegar v36 para reconciliar
+Git. Antes de cualquier futuro despliegue se debe renovar la comparación de
+fuentes, JWT/CORS, SQL y gates; la lectura histórica no sustituye ese preflight.
+
+Esta rama es un **delta local sobre main**, no una copia que deba reemplazar el
 árbol comercial ni el backend configurado. Al incorporarla a la composición
 #5/#8/#7/#6 se aplican sus cambios, preservando tema, recursos de suscripción y las
 tres huellas de seguridad de PR #7. No ejecutar los SQL históricos de esta base.
@@ -75,15 +96,25 @@ sesión Auth real, JWT real, llamada Edge real ni acceso a proveedores.
 
 | Comando | Aserciones distintas | Resultado |
 |---|---:|---|
-| `node tests/coach-flow/contracts.cjs` | 23 | PASS |
+| `node tests/coach-flow/contracts.cjs` | 21 | PASS |
 | `node tests/coach-flow/reload-uncertain.cjs` | 20 | PASS |
 | `node tests/coach-flow/reload-context.cjs` | 54 | PASS |
 | `node tests/coach-flow/recovery.cjs` | 111 | PASS |
 | `node tests/coach-flow/journey.cjs` | 40 | PASS |
 | `node tests/coach-flow/premium-retry.cjs` | 8 | PASS |
-| **Total distinto de esta ejecución** | **256** | **256/256** |
+| `node --test tests/coach-flow/edge-v36-reconciliation.test.mjs` | 17 | PASS |
+| `node tests/coach-flow/basic-cost-guard.cjs` | 44 | PASS |
+| `node tests/coach-flow/sports-review.cjs` | 30 | PASS |
+| `node tests/coach-quality-v5/unit.cjs` | 35 | PASS |
+| `node tests/coach-pilot-v2/edge-http.mjs` | 20 | PASS |
+| `node tests/coach-flow/sports-review-ui.cjs` | 26 | PASS |
+| **Total distinto del candidato final** | **426** | **426/426** |
 
-Son regresiones existentes ejecutadas sobre el nuevo corte, no 256 casos nuevos.
+Son 409 regresiones existentes y 17 comprobaciones nuevas de reconciliación de
+fuentes. El corte inicial pasó 256; no se suman a los 426 finales. Sus dos
+comparaciones que exigían mantener el antiguo evaluador y entrypoint se sustituyen
+por la comprobación estricta de las once fuentes v36. Las restantes 21 se conservan
+y se declara la lista exacta de cambios autorizados, sin ignorar rutas desconocidas.
 No se suman las reejecuciones o análisis sintácticos. El primer arranque restringido
 de Edge falló antes de ejecutar aserciones; el mismo comando completó la suite con
 el permiso normal de ejecución local, sin cambiar comprobaciones del navegador.
@@ -94,14 +125,16 @@ Puertos 4266/4273 exclusivamente loopback. Servidores cerrados al terminar y aus
 de listeners comprobada. `git diff --check` pasó. Resultados y capturas sintéticos
 permanecen ignorados en `tests/coach-flow/results/`; no entran en el commit.
 
-Los 23 contratos usan la base de producto anterior (idéntica en lo protegido) y
+Los 21 contratos usan la base de producto anterior (idéntica en lo protegido) y
 certifican este corte. Al componerlo con #8/#6 hay que adaptar explícitamente la
 comparación del conjunto autorizado; no omitir esos cambios ni degradar aserciones.
 
 ## Riesgos, rollback y próximo paso
 
-- P1 operativo: desplegar la Edge histórica o ejecutar el SQL de esta rama sobre
-  staging podría recuperar componentes anteriores. Este corte no los publica.
+- P1 operativo: ejecutar SQL histórico de esta base sobre staging podría recuperar
+  componentes anteriores. No hay cambios SQL en este delta y no se ejecutan scripts.
+- P2 operativo: fuentes v36 concordantes con evidencia previa no acreditan ausencia
+  de deriva posterior. Renovar preflight antes de desplegar; no desplegar por inercia.
 - P2: los cambios frontend aún necesitan prueba conjunta con la composición
   comercial final y su artefacto de hosting; los recorridos de aquí usan esta rama.
 - Pendientes separados: revocación Basic con el mismo JWT real, habilitación
@@ -109,7 +142,7 @@ comparación del conjunto autorizado; no omitir esos cambios ni degradar asercio
   mediante mocks ni autorizados por este documento.
 - Rollback frontend: revertir este commit; no borrar operaciones, historiales,
   reservas, claves de idempotencia ni datos persistidos por un servidor.
-- Próximo paso local: aplicar únicamente este delta al candidato comercial en una
+- Próximo paso local: aplicar únicamente estos dos deltas al candidato comercial en una
   derivada, resolver las dos referencias HTML sin perder assets de suscripción,
   comprobar de nuevo los tres RPC y repetir las suites afectadas. Publicación,
   despliegue y validación conectada requieren autorizaciones independientes.

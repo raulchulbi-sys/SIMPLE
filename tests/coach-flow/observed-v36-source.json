@@ -1,0 +1,75 @@
+{
+  "provenance": "Read-only source retained from previous 2026-11-04 review; no new connected observation",
+  "version": 36,
+  "verifyJWT": true,
+  "bundleSHA256": "0de5d740f29f5615cfea2e1678f95f25f7528d6bea996e50ee1e5e543e3f4c20",
+  "normalization": "CRLF to LF; only contract-v5 has exactly one additional final LF in observed source, retained in its observed and lf hashes",
+  "files": [
+    {
+      "file": "assets/coach-intake.js",
+      "observedSHA256": "01e871875961e98e9fd787fc7b09affd92a8b18a9c732842f39351e0f319165d",
+      "lfSHA256": "7b659c035f7a1cd812af03b6b73bf8102bc2662a85742cd02cb7dd97805b15c2",
+      "repositoryLFHash": "7b659c035f7a1cd812af03b6b73bf8102bc2662a85742cd02cb7dd97805b15c2"
+    },
+    {
+      "file": "assets/coach-programming-v4.js",
+      "observedSHA256": "7162b7007c3f001752f2409e87151ac22b318157b62cedcd6c0505109f1a0740",
+      "lfSHA256": "d11203b93b09466e5af1238b65471e2d7e4c4d82f6543322e318e235175cd7f6",
+      "repositoryLFHash": "d11203b93b09466e5af1238b65471e2d7e4c4d82f6543322e318e235175cd7f6"
+    },
+    {
+      "file": "assets/coach-programming-v5.js",
+      "observedSHA256": "4023724c538bc47f3ea5769597cfe2942668709ec55531c3a087d3a8d217342e",
+      "lfSHA256": "93f987914805f52c8d95458736ef727e081ed40a7325ae2ee12e0d050ac4d429",
+      "repositoryLFHash": "93f987914805f52c8d95458736ef727e081ed40a7325ae2ee12e0d050ac4d429"
+    },
+    {
+      "file": "supabase/functions/simple-coach-mock/contract-v2.mjs",
+      "observedSHA256": "c5e35966bd379058416941e20b30a0594b69e073cb80d9d45460889e71f7eb7c",
+      "lfSHA256": "8ff4cfda05abfdf6d16dcc9ca8418093dc624bca757de856399aa966704b8c52",
+      "repositoryLFHash": "8ff4cfda05abfdf6d16dcc9ca8418093dc624bca757de856399aa966704b8c52"
+    },
+    {
+      "file": "supabase/functions/simple-coach-mock/contract-v3.mjs",
+      "observedSHA256": "bf3b91e657a31652c1f4dff65d7312e02d17136b594122e34c53f2bcb0118e52",
+      "lfSHA256": "a8411407eb3f1ccd5a9da283ec1650e0edf4257629c08a25a492a1310fc70f7d",
+      "repositoryLFHash": "a8411407eb3f1ccd5a9da283ec1650e0edf4257629c08a25a492a1310fc70f7d"
+    },
+    {
+      "file": "supabase/functions/simple-coach-mock/contract-v4.mjs",
+      "observedSHA256": "428a265edb6df852746a3341522483902650c74106b1d613c2d567e8087a3cc4",
+      "lfSHA256": "cc85297630954a5c4fbfc3a38df1f9039eaed08babfac3ea12437a60d9a75e17",
+      "repositoryLFHash": "cc85297630954a5c4fbfc3a38df1f9039eaed08babfac3ea12437a60d9a75e17"
+    },
+    {
+      "file": "supabase/functions/simple-coach-mock/contract-v5.mjs",
+      "observedSHA256": "101c3c02c2701500284a3b92c15b031c53e52dbe26aeabdd5f474549bd443039",
+      "lfSHA256": "7bcf4680ab51f3f1b28cfaa5c9ed6dffc7b5d7d5bd887fb853998162a2b60a47",
+      "repositoryLFHash": "87cb78c33a3d7eacfabadf90e011db3e60529671f34b22fa4bb2b9ce206f7254"
+    },
+    {
+      "file": "supabase/functions/simple-coach-mock/contract.mjs",
+      "observedSHA256": "2f11679ea6d550b04b2e1248edfdc76c47d2d74979ce47c976f2d66447d63a0b",
+      "lfSHA256": "769cf2c614e161eb75a55ea30431c6ed9bc33ea0a7b26be47a6cb8d208392651",
+      "repositoryLFHash": "769cf2c614e161eb75a55ea30431c6ed9bc33ea0a7b26be47a6cb8d208392651"
+    },
+    {
+      "file": "supabase/functions/simple-coach-mock/index.ts",
+      "observedSHA256": "bb3b02359e02b7ab88f8c1edee1939ec29943aadd6d76b48b0d526fa3885de5e",
+      "lfSHA256": "bb3b02359e02b7ab88f8c1edee1939ec29943aadd6d76b48b0d526fa3885de5e",
+      "repositoryLFHash": "bb3b02359e02b7ab88f8c1edee1939ec29943aadd6d76b48b0d526fa3885de5e"
+    },
+    {
+      "file": "supabase/functions/simple-coach-mock/provider.mjs",
+      "observedSHA256": "b9f8ceb7c253ad997fffd6de090cdb98ea9e676162e062c2dd736eb0d892a38f",
+      "lfSHA256": "bb3efd5af0c948d459050d5db685f073d5e5a9e25e6c58a2e125d21f09c6ea63",
+      "repositoryLFHash": "bb3efd5af0c948d459050d5db685f073d5e5a9e25e6c58a2e125d21f09c6ea63"
+    },
+    {
+      "file": "supabase/functions/simple-coach-mock/staging-cost-guard.mjs",
+      "observedSHA256": "c48caccefd4f65ca1d9a18a14bb5858ccfde180aed0abab752eb5b8bd659af1d",
+      "lfSHA256": "c48caccefd4f65ca1d9a18a14bb5858ccfde180aed0abab752eb5b8bd659af1d",
+      "repositoryLFHash": "c48caccefd4f65ca1d9a18a14bb5858ccfde180aed0abab752eb5b8bd659af1d"
+    }
+  ]
+}
