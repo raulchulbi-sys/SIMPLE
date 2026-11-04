@@ -11,6 +11,7 @@ const suites = [
   'tests/training-reset/unit.cjs',
   'tests/statistics-stage/unit.cjs',
   'tests/cycle-start/unit.cjs',
+  'tests/staging-return/offline.cjs',
 ];
 const excludedDirectories = new Set(['private', 'results', 'node_modules', '.git']);
 
@@ -39,6 +40,7 @@ function run(args) {
 
 const sources = [
   'scripts/ci-offline.cjs',
+  'scripts/staging-return.cjs',
   ...syntaxFiles('assets'),
   ...syntaxFiles('supabase/functions'),
 ];
