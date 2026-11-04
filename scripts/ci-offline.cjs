@@ -18,6 +18,9 @@ const suites = [
   'tests/billing-test/checkout-regression.test.mjs',
   'tests/commercial/backend.test.mjs',
   'tests/commercial/package.test.mjs',
+  'tests/subscription/offline.cjs',
+  'tests/commercial/basic-source-lock.test.mjs',
+  'tests/premium-review-security/reconciliation.test.mjs',
 ];
 const excludedDirectories = new Set(['private', 'results', 'node_modules', '.git']);
 
