@@ -310,7 +310,7 @@ function main() {
   console.log(JSON.stringify(result, null, 2));
 }
 
-module.exports = {build, buildPlaceholder, references, validateRuntime};
+module.exports = {build, buildPlaceholder, references, validateRuntime, rejectSecrets};
 if (require.main === module) {
   try { main(); } catch (error) { console.error('Build rejected: ' + error.message); process.exitCode = 1; }
 }

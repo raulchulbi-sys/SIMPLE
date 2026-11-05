@@ -18,3 +18,4 @@
 
 .subscription .btn:hover:not(:disabled){border-color:var(--simple-text)}
 .subscription .btn:active:not(:disabled){transform:translateY(1px)}
+.subscription-page [hidden]{display:none}

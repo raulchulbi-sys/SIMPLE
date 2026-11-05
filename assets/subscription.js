@@ -1,10 +1,11 @@
 /* Staging subscription view. URL parameters are navigation hints, never entitlements. */
 ((w)=>{'use strict';
+ const uncertainCheckouts=new Set(); // Page memory only; survives closing/reopening this view.
  const messages={none:['Elige tu plan','Todavía no tienes una suscripción.'],open:['Compra sin terminar','Puedes comprobar el estado antes de continuar.'],pending:['Pago pendiente','Todavía no se ha confirmado el pago. No vuelvas a comprar.'],payment_failed:['Revisa tu pago','El último pago necesita atención. Puedes gestionar tu método de pago.'],reconciling:['Confirmando tu suscripción','Estamos comprobando el pago. Actualiza el estado dentro de unos instantes.'],active:['Tu plan está activo','El pago y los derechos se han verificado.'],scheduled_cancel:['Cancelación programada','Conservas el acceso durante el periodo ya pagado.'],expired:['Suscripción finalizada','No hay un periodo pagado vigente. Tus rutinas e historial se conservan.'],review_required:['Comprobación pendiente','No podemos confirmar tus derechos en este momento. Actualiza el estado; si continúa, contacta con soporte.']};
  const node=(tag,text,cls)=>{const e=document.createElement(tag);if(text)e.textContent=text;if(cls)e.className=cls;return e;};
  const date=x=>{const d=new Date(x);return x&&Number.isFinite(d.getTime())?new Intl.DateTimeFormat('es-ES',{dateStyle:'long'}).format(d):'Pendiente de confirmar';};
- function mount(root,{db,onAuthNeeded=()=>{},navigate=url=>location.assign(url),onCoach=null}={}){
-  let generation=0,busy=false,disposed=false,status=null,capabilities=null,owner=null,uncertain=false;
+ function mount(root,{db,onAuthNeeded=()=>{},onAuthenticated=()=>{},navigate=url=>location.assign(url),onCoach=null,readOnly=w.SimpleAppRuntime?.billingValidationReadOnly===true}={}){
+  let generation=0,busy=false,disposed=false,status=null,capabilities=null,owner=null;
   const header=node('div',null,'subscription-heading');header.append(node('p','SIMPLE · Entorno de pruebas','subscription-eyebrow'),node('h2','Mi suscripción'));
   const content=node('div');content.setAttribute('aria-live','polite');content.setAttribute('aria-atomic','true');
   const notice=node('p',null,'subscription-notice');notice.setAttribute('role','status');
@@ -21,7 +22,7 @@
    ]){const row=node('div');row.append(node('dt',title),node('dd',value));details.append(row);}content.append(details);}
    if(status.accessActive&&status.state==='payment_failed')content.append(node('p','Tu periodo ya pagado sigue disponible hasta la fecha indicada.'));
    if(!status.accessActive)content.append(node('p','El retorno del pago no activa el plan: SIMPLE espera la confirmación verificada.','muted'));
-   if(status.canCheckout&&!uncertain){const plans=node('div',null,'subscription-plans');
+   if(status.canCheckout&&!uncertainCheckouts.has(owner)&&!readOnly){const plans=node('div',null,'subscription-plans');
     for(const [plan,label,price] of [['basic','Basic','4,99 €']]){
      const card=node('section',null,'subscription-plan');card.append(node('h3',label),node('p',price+' / mes','subscription-price'));
      card.append(node('p',plan==='basic'?'Preparación del entrenamiento con revisión humana.':'Seguimiento asistido.'));
@@ -29,9 +30,10 @@
      const b=node('button','Probar '+label+' en TEST','btn');b.type='button';b.disabled=busy;b.onclick=()=>run('checkout',{plan});card.append(b);plans.append(card);
     }content.append(plans);content.append(node('p','Premium todavía no está disponible para contratar.','muted'));content.append(node('p','Coaching humano es un servicio separado y no está incluido.','muted'));
    }
-   if(status.portalAvailable)button('Gestionar suscripción y facturas',()=>run('portal'),true);
+   if(readOnly)content.append(node('p','Consulta de validación: compras y gestión de pagos no están disponibles desde esta pantalla.','muted'));
+   if(status.portalAvailable&&!readOnly)button('Gestionar suscripción y facturas',()=>run('portal'),true);
    button('Actualizar estado',()=>refresh());
-   if(['open','pending','reconciling','review_required'].includes(status.state)||uncertain)button('Comprobar pago',()=>run('reconcile'));
+   if(!readOnly&&(['open','pending','reconciling','review_required'].includes(status.state)||uncertainCheckouts.has(owner)))button('Comprobar pago',()=>run('reconcile'));
    if(onCoach&&status.accessActive&&status.plan==='basic'){
     if(capabilities?.basicActive===true && capabilities?.basicGenerationEnabled===true && capabilities?.premiumEnabled===false && capabilities?.quotasChanged===false && capabilities?.humanReviewRequired===true)button('Abrir SIMPLE Coach',()=>onCoach());
     else content.append(node('p','Basic figura activo. La generación de nuevas propuestas todavía no está habilitada en esta prueba.','muted'));
@@ -45,7 +47,6 @@
    && (!['active','scheduled_cancel'].includes(s.state) || s.accessActive);}
   function error(e,mutating=false,readFailure=false){
    if(e.message==='auth_required'){status=null;capabilities=null;owner=null;notice.textContent='';content.replaceChildren(node('h3','Inicia sesión para ver tu suscripción'),node('p','Usa la misma cuenta con la que realizaste la compra.'));actions.replaceChildren();onAuthNeeded();return;}
-   if(mutating)uncertain=true;
    if(readFailure){status=null;capabilities=null;}
    notice.textContent=mutating?'No pudimos confirmar el resultado. Comprueba el estado antes de volver a intentarlo.':e.message==='billing_test_user_not_enabled'?'Esta cuenta no está autorizada para la prueba.':'No se pudo comprobar la suscripción. Revisa tu conexión y vuelve a actualizar.';
    notice.setAttribute('role','alert');
@@ -59,16 +60,21 @@
     if(await verifiedUser()!==who)throw Error('auth_required');if(ticket!==generation)return;
     if(!valid(s))throw Error('invalid_status');status=s;
     try{const cap=await db.rpc('billing_test_capabilities',{});capabilities=cap.error?null:cap.data;}catch{capabilities=null;}
-    if(ticket!==generation||disposed)return;notice.textContent='';notice.setAttribute('role','status');render();
+    if(ticket!==generation||disposed)return;
+    if(await verifiedUser()!==who)throw Error('auth_required');if(ticket!==generation||disposed)return;
+    notice.textContent='';notice.setAttribute('role','status');render();onAuthenticated();
    }catch(e){if(ticket===generation&&!disposed)error(e,false,true);}finally{if(ticket===generation&&!disposed)loading(false);}
   }
   async function run(action,body={}){
-   if(disposed||busy||!owner)return;const ticket=++generation,who=owner;loading(true);notice.textContent=action==='reconcile'?'Comprobando el pago…':'Preparando acceso seguro…';
+   if(disposed||busy||!owner||readOnly||action==='checkout'&&uncertainCheckouts.has(owner))return;const ticket=++generation,who=owner;loading(true);notice.textContent=action==='reconcile'?'Comprobando el pago…':'Preparando acceso seguro…';
    try{
     if(await verifiedUser()!==who)throw Error('auth_required');if(ticket!==generation||disposed)return;
+    // Record before dispatch: account switches can discard an eventual response,
+    // but must not erase an unresolved purchase when this owner returns.
+    if(action==='checkout')uncertainCheckouts.add(who);
     const response=await request(action,body);if(ticket!==generation||disposed)return;
     if(await verifiedUser()!==who)throw Error('auth_required');if(ticket!==generation||disposed)return;
-    if(action==='reconcile'){uncertain=false;loading(false);await refresh();return;}
+    if(action==='reconcile'){uncertainCheckouts.delete(who);loading(false);await refresh();return;}
     const target=new URL(response?.url);const expected=action==='portal'?'https://billing.stripe.com':'https://checkout.stripe.com';
     if(target.origin!==expected || target.username || target.password)throw Error('invalid_redirect');
     navigate(target.href); // Never retain or cache a sensitive Portal URL.
