@@ -6,6 +6,7 @@ const messages={premium_initial_request_failed:'No se ha podido completar la acc
 function errorText(e){return messages[e?.code||e?.message]||scope.PremiumApp?.errorText(e)||messages.premium_initial_request_failed;}
 let active=null;
 function mount({adapter,owner,onNavigate=()=>{},reviewer=false,subscribe=null}={}){
+ if(scope.SimpleAppRuntime?.billingValidationReadOnly===true)return;
  if(!adapter||!owner)throw Error('configuration_error');active?.destroy();
  let view=null,busy=false,alive=true,epoch=0,screen='loading',draftConflict=false,requestKey=null,reviewRows=[],unsubscribe=()=>{};
  const dialog=coachDialog(),draftKey='simple-premium-initial-v1:'+owner;
@@ -37,6 +38,6 @@ function mount({adapter,owner,onNavigate=()=>{},reviewer=false,subscribe=null}={
  function onClose(){if(!dialog.open)destroy();}
  addEventListener('storage',storage);dialog.addEventListener('close',onClose);shell('<p>Cargando tu acceso…</p>');active={destroy,load,snapshot:()=>({view:copy(view),screen,busy,draftConflict,training:copy(simpleCoach.wizard?.lifecycle===lifecycle?simpleCoach.wizard.data:null)}),reviewer};if(subscribe)unsubscribe=subscribe((event,id)=>{if(event==='SIGNED_OUT'||id&&id!==owner){destroy();if(dialog.open)dialog.close();dialog.replaceChildren();}});(reviewer?queue:load)();return active;
 }
-async function open({reviewer=false}={}){if(typeof SUPABASE_URL==='undefined'||![scope.PremiumInitialAdapter.STAGING,scope.PremiumInitialAdapter.PRODUCTION].includes(SUPABASE_URL)||!user?.id)return;const owner=user.id,adapter=scope.PremiumInitialAdapter.create(db,{projectUrl:SUPABASE_URL});return mount({adapter:adapter.handle,owner,reviewer,subscribe:fn=>{const r=db.auth.onAuthStateChange((event,session)=>fn(event,session?.user?.id));return ()=>r?.data?.subscription?.unsubscribe?.();},onNavigate:async(to,data)=>{if(owner!==user?.id)return;await reload();if(owner!==user?.id)return;await renderShared(()=>owner===user?.id);if(owner!==user?.id)return;if(to==='train')openCoachRoutine(data.routine_id);else openPremiumCoach();}});}
+async function open({reviewer=false}={}){if(scope.SimpleAppRuntime?.billingValidationReadOnly===true||typeof SUPABASE_URL==='undefined'||![scope.PremiumInitialAdapter.STAGING,scope.PremiumInitialAdapter.PRODUCTION].includes(SUPABASE_URL)||!user?.id)return;const owner=user.id,adapter=scope.PremiumInitialAdapter.create(db,{projectUrl:SUPABASE_URL});return mount({adapter:adapter.handle,owner,reviewer,subscribe:fn=>{const r=db.auth.onAuthStateChange((event,session)=>fn(event,session?.user?.id));return ()=>r?.data?.subscription?.unsubscribe?.();},onNavigate:async(to,data)=>{if(owner!==user?.id)return;await reload();if(owner!==user?.id)return;await renderShared(()=>owner===user?.id);if(owner!==user?.id)return;if(to==='train')openCoachRoutine(data.routine_id);else openPremiumCoach();}});}
 scope.PremiumInitial={mount,open,errorText};if(typeof module!=='undefined'&&module.exports)module.exports={errorText};
 })(typeof window!=='undefined'?window:globalThis);

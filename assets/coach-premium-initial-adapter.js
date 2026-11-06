@@ -8,8 +8,11 @@ function failure(e){const code=[e?.code,e?.error,e?.message].find(v=>/^(premium_
 function create(db,{projectUrl}={}){
  if(![STAGING,PRODUCTION].includes(projectUrl)||!db?.auth?.getSession||!db?.rpc)throw failure({code:'configuration_error'});
  let owner=null;
- async function session(){const r=await db.auth.getSession(),id=r.data?.session?.user?.id;if(r.error||!id)throw failure({code:'not_authenticated'});if(owner&&owner!==id)throw failure({code:'not_authenticated'});owner=id;return id;}
- async function rpc(name,args={}){await session();const r=await db.rpc(name,args);if(r.error)throw failure(r.error);return r.data;}
+ // UI containment only, never a substitute for backend authorization. Recheck
+ // after asynchronous reads so a late continuation cannot dispatch in this profile.
+ function writableFlow(){if(scope.SimpleAppRuntime?.billingValidationReadOnly===true)throw failure({code:'premium_initial_not_authorized'});}
+ async function session(){writableFlow();const r=await db.auth.getSession(),id=r.data?.session?.user?.id;writableFlow();if(r.error||!id)throw failure({code:'not_authenticated'});if(owner&&owner!==id)throw failure({code:'not_authenticated'});owner=id;return id;}
+ async function rpc(name,args={}){await session();writableFlow();const r=await db.rpc(name,args);if(r.error)throw failure(r.error);return r.data;}
  async function state(){const id=await session(),v=await rpc('premium_initial_my_state');return {...copy(v),user_id:id};}
  async function handle(action,data={}){
   if(action==='state')return state();
@@ -17,7 +20,7 @@ function create(db,{projectUrl}={}){
   if(action==='permission'){await rpc('premium_initial_permission',{p_allow:data.allow===true,p_notice:data.notice});return state();}
   if(action==='followup_permission'){await rpc('premium_admission_permission',{p_allow:data.allow===true,p_notice:'premium-followup-v1'});return state();}
   if(action==='generate'){
-   await session();if(!db.functions?.invoke)throw failure({code:'configuration_error'});
+   await session();writableFlow();if(!db.functions?.invoke)throw failure({code:'configuration_error'});
    const r=await db.functions.invoke('simple-coach-initial-premium',{body:{intake_id:data.intake_id,key:data.key}});
    if(r.error){let v;try{v=await r.error.context?.json();}catch{}throw failure(v||r.error);}if(r.data?.error)throw failure(r.data);
    return state();

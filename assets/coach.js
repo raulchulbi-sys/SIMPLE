@@ -18,9 +18,11 @@ async function renderCoachHome(isCurrent=()=>true){
  if(!isCurrent()||!coachEnabled())return;
  const owner=user?.id;let premium;try{premium=await db.rpc('premium_my_access',{});}catch{premium={error:true};}
  if(!isCurrent()||!coachEnabled()||user?.id!==owner)return;
- const premiumEnabled=!premium.error&&premium.data?.enabled===true;
- // The independent initial switch and entitlement are enforced by the server.
- let initial=null;if(globalThis.PremiumInitial){try{const r=await db.rpc('premium_initial_my_state',{});if(!r.error&&r.data?.enabled===true)initial=r.data;}catch{}}
+ const premiumEnabled=globalThis.SimpleAppRuntime?.billingValidationReadOnly!==true&&!premium.error&&premium.data?.enabled===true;
+ // Initial state performs reconciliation writes. Do not even construct this RPC
+ // in the read-only validation profile. Outside it, admission remains server-owned
+ // and independent of the followup switch (premiumEnabled).
+ let initial=null;if(globalThis.SimpleAppRuntime?.billingValidationReadOnly!==true&&globalThis.PremiumInitial){try{const r=await db.rpc('premium_initial_my_state',{});if(!r.error&&r.data?.enabled===true)initial=r.data;}catch{}}
  if(!isCurrent()||!coachEnabled()||user?.id!==owner)return;
  const basicVisible=(access.data?.authorized||(result.data||[]).length)&&!(!result.error&&(assignments||[]).length&&!(result.data||[]).length);
  if(!basicVisible&&!premiumEnabled&&!initial)return;
@@ -46,6 +48,7 @@ function premiumCoachDialog(){
  d.addEventListener('close',()=>{if(d.open)return;simpleCoachPremium.epoch++;simpleCoachPremium.controller?.destroy();simpleCoachPremium.controller=null;d.replaceChildren();});return d;
 }
 async function openPremiumCoach(options={}){
+ if(globalThis.SimpleAppRuntime?.billingValidationReadOnly===true)return;
  const mesocycleId=profile?.role==='trainer'?options.mesocycleId:null;
  if(!coachEnabled()||!window.PremiumApp||profile?.role!=='client'&&!(profile?.role==='trainer'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(mesocycleId||'')))return;
  const owner=user?.id,epoch=++simpleCoachPremium.epoch,d=premiumCoachDialog();simpleCoachPremium.controller?.destroy();simpleCoachPremium.controller=null;

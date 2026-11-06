@@ -44,6 +44,7 @@ async function main(){try{for(const[engine,launcher]of[['chromium',chromium],['w
  assert.equal(await page.evaluate(()=>document.documentElement.dataset.theme),theme);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
  assert.equal(await page.getByRole('button',{name:/Gestionar suscripción|Probar Basic|Comprobar pago|Abrir SIMPLE Coach/}).count(),0);
  calls.push(...await page.evaluate(()=>hostingCalls));assert(calls.filter(x=>x.kind==='edge').every(x=>x.action==='status'&&x.name==='billing-test'));
+ assert.equal(calls.filter(x=>x.name==='premium_initial_my_state'||x.name==='premium_chat_load').length,0,'Read-only artifact must not even invoke a mutating Premium state RPC');
  await page.getByRole('button',{name:'Cerrar sesión',exact:true}).click();await page.locator('#subscriptionLogin').waitFor({state:'visible'});assert.equal(await page.evaluate(()=>localStorage.getItem('basic-hosting-synthetic-session')),null);assert.equal(await page.getByRole('heading',{name:'Tu plan está activo'}).count(),0);
  assert.deepEqual(blocked,[]);assert.deepEqual(errors,[]);
  results.push({name:engine+' '+width+' '+theme,pass:true,version:browser.version(),readOnly:true,sameOriginSyntheticSession:true,externalDispatches:0});
