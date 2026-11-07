@@ -1,0 +1,970 @@
+{
+  "schema": 1,
+  "kind": "Basic MVP local-only reproducibility, three profiles with two independent source roots and processes each",
+  "sourceInputTreeSha256": "e6fb5178e5d2150ff7637fe7fe4ded5a1ca5df888255c5625c575949f189b0d5",
+  "sources": [
+    {
+      "path": "assets/atlas.webp",
+      "bytes": 113738,
+      "sha256": "c6adb40965992d579dc3d61eab19d18cbeee723372d1519d4f1996d1f8cfb211"
+    },
+    {
+      "path": "assets/auth.css",
+      "bytes": 19180,
+      "sha256": "c29f5afa36dd91156af334b2a1c3131e75e95b9dcbe1c4e4b4930bb80bf5d40f"
+    },
+    {
+      "path": "assets/auth.js",
+      "bytes": 20062,
+      "sha256": "a7498482971486b56a6c1aabb71c47b055555f730885d3707bc3474ea42e1943"
+    },
+    {
+      "path": "assets/client-routine.js",
+      "bytes": 2503,
+      "sha256": "b14ec456aa91363d09ae05f25b172b4904fc41775cfcfb5d082e16121fb307a9"
+    },
+    {
+      "path": "assets/coach-intake.js",
+      "bytes": 13650,
+      "sha256": "7b659c035f7a1cd812af03b6b73bf8102bc2662a85742cd02cb7dd97805b15c2"
+    },
+    {
+      "path": "assets/coach-premium-adapter.js",
+      "bytes": 9499,
+      "sha256": "b47efaac213ceb8b045b04961c95a6e0f1a77618e9fd8716220315a72f3511aa"
+    },
+    {
+      "path": "assets/coach-premium-app.css",
+      "bytes": 7150,
+      "sha256": "9ff695bd44517f19b7a655ddc1c6ee8dff10f239e3a78fabcbde967aa194357d"
+    },
+    {
+      "path": "assets/coach-premium-app.js",
+      "bytes": 36023,
+      "sha256": "cb0d3abc3414450f9c11e4b14f120312b723d3dd2cb2f01fa5f7e6dabaa83063"
+    },
+    {
+      "path": "assets/coach-premium-chat.css",
+      "bytes": 6709,
+      "sha256": "0c4bc2d05cc13a74bf36b3ba2de94f2d4e38b4f41ac10ed030ef51550c22c775"
+    },
+    {
+      "path": "assets/coach-premium-chat.js",
+      "bytes": 22687,
+      "sha256": "52aa54f238fa1e9cb0ae8d3c44f98d0ca4b228835f38363430c9bb63fc998c0d"
+    },
+    {
+      "path": "assets/coach-premium-initial-adapter.js",
+      "bytes": 2766,
+      "sha256": "c6a9502d26f6cdbc055a7ac5dbdcbe04e84067fd027b6a3bc7375ca998247f7b"
+    },
+    {
+      "path": "assets/coach-premium-initial.css",
+      "bytes": 719,
+      "sha256": "c0c3b5501996487e40a6c90c08d9a2631e5676872daeb8adf09decd011f8a622"
+    },
+    {
+      "path": "assets/coach-premium-initial.js",
+      "bytes": 19870,
+      "sha256": "25bbfb4be6f33b8977db67bea96e1d3f82a50f65056141ae6633038f78821c63"
+    },
+    {
+      "path": "assets/coach-premium-prescription.js",
+      "bytes": 4500,
+      "sha256": "7af689fb7c39a31c78f84f133168258b883141f25d6439f2a5db5921511ea0de"
+    },
+    {
+      "path": "assets/coach-premium-weekly.js",
+      "bytes": 23648,
+      "sha256": "49c6b81edc43461337910c7037656883d4449fe2c3cd1ada64b9fbfc802a1a1a"
+    },
+    {
+      "path": "assets/coach-prescription.js",
+      "bytes": 3956,
+      "sha256": "dbe22a10452f6a7f44967986cb4d5109d160583fffa76b9ac78ae60c015d8c76"
+    },
+    {
+      "path": "assets/coach-programming-v4.js",
+      "bytes": 11294,
+      "sha256": "d11203b93b09466e5af1238b65471e2d7e4c4d82f6543322e318e235175cd7f6"
+    },
+    {
+      "path": "assets/coach-programming-v5.js",
+      "bytes": 16080,
+      "sha256": "93f987914805f52c8d95458736ef727e081ed40a7325ae2ee12e0d050ac4d429"
+    },
+    {
+      "path": "assets/coach-questionnaire.js",
+      "bytes": 20593,
+      "sha256": "72ff16dbe863512a4f43d2fb5cf8a5faa9d33c0ec827ece1e74e84cf5964d02a"
+    },
+    {
+      "path": "assets/coach-reviewer.js",
+      "bytes": 10735,
+      "sha256": "95758b5b5837122f05470a349f24f87d95928ae3a839accaf9687c1c4cca4c19"
+    },
+    {
+      "path": "assets/coach.css",
+      "bytes": 7482,
+      "sha256": "840935f7eb20bd1dc10af1c2a2d4e5857c6d4cb5c3ecc71010fdcaa3cea96d29"
+    },
+    {
+      "path": "assets/coach.js",
+      "bytes": 37656,
+      "sha256": "00f1edda86e420e1e6c7f94fef10f04c53513b28d2557992bbcc9590667f377f"
+    },
+    {
+      "path": "assets/google-g.png",
+      "bytes": 33661,
+      "sha256": "d1ce9c2af0b10a7333abc99bc706f9a6a199e5b65bf3e3009624f076b8638e6a"
+    },
+    {
+      "path": "assets/interior.css",
+      "bytes": 25918,
+      "sha256": "134fd951887e83d8f9fa759d1bb60beafbc2e24b48b2c2898564a276e56054b8"
+    },
+    {
+      "path": "assets/oauth.js",
+      "bytes": 4095,
+      "sha256": "181a1edeafddc353b2d880416d74795241893716b75ca36680cae98ef5e3cb5d"
+    },
+    {
+      "path": "assets/reorder.js",
+      "bytes": 9806,
+      "sha256": "329d181d9517fc52d90b257cfa994ed6ca31df10ef4d6c9862fc5c982ed91011"
+    },
+    {
+      "path": "assets/settings.css",
+      "bytes": 2764,
+      "sha256": "1f8aae582c09632a750488f969a8904109afe23c30d6555785b0b17581335b53"
+    },
+    {
+      "path": "assets/settings.js",
+      "bytes": 4259,
+      "sha256": "13dc170cecd6767612f119c06a0e37627d6c130ccb6765237fc455318a3484c6"
+    },
+    {
+      "path": "assets/statistics-stage.js",
+      "bytes": 3128,
+      "sha256": "ce73a720448e6dfa731e8a97c3df255f87269a17b2db2b5d2590dc6a760e7ea7"
+    },
+    {
+      "path": "assets/subscription-app.js",
+      "bytes": 1898,
+      "sha256": "9ba3fb5e7e4864a0b8d7cae18d0eab185422f69df80c613df777d3dda77b0280"
+    },
+    {
+      "path": "assets/subscription-return.js",
+      "bytes": 2472,
+      "sha256": "d0e10e24b9977f31f2a277e77ed962177628cf4fb3493c9fb72f638199eaf999"
+    },
+    {
+      "path": "assets/subscription.css",
+      "bytes": 3669,
+      "sha256": "63574dcac581d2ef151650f9e3cc82d4fae2146544b23e723a872bf66d6b798d"
+    },
+    {
+      "path": "assets/subscription.js",
+      "bytes": 10314,
+      "sha256": "e6009c6cc7246f8808ce55d0d28e66e2d70bf23a269ccf8382836c1429a32a35"
+    },
+    {
+      "path": "assets/theme.css",
+      "bytes": 3152,
+      "sha256": "8af5c4eba5755f03fd6e9afe8002c56ffe44384bb7413035dd18470a28967477"
+    },
+    {
+      "path": "assets/theme.js",
+      "bytes": 1340,
+      "sha256": "aec7bfa7a6dbd9e3751b09b32e3f557fa9c05af96d40fd828169dc96d99a66ae"
+    },
+    {
+      "path": "config/cloudflare/404.html",
+      "bytes": 400,
+      "sha256": "ba23fa003b8457cf3b3b6a21e0e1c2c3ed7687270f9d6783bc8d1c8326f4df6a"
+    },
+    {
+      "path": "config/cloudflare/_headers.template",
+      "bytes": 1070,
+      "sha256": "c3dd3fb5d519c399d8b5b5aeb48cdad0593ff46cd1c67ed707c2c41567bb5b13"
+    },
+    {
+      "path": "config/cloudflare/robots.txt",
+      "bytes": 26,
+      "sha256": "331ea9090db0c9f6f597bd9840fd5b171830f6e0b3ba1cb24dfa91f0c95aedc1"
+    },
+    {
+      "path": "config/public-backends.json",
+      "bytes": 554,
+      "sha256": "1815520cbd2a97db1df29147f27c4e33b498c985653869b6869642f6ab371db9"
+    },
+    {
+      "path": "config/static-public-manifest.json",
+      "bytes": 1372,
+      "sha256": "bdcb82671d0623ea27525395fd1c6897bd110c112a2502cb07b2a663b81257bc"
+    },
+    {
+      "path": "index.html",
+      "bytes": 677879,
+      "sha256": "f6e0365fef7632f68151c2871f62e25d97c7240f7fcbeee0d5427e7ef29d9bb6"
+    },
+    {
+      "path": "scripts/hosting-build.cjs",
+      "bytes": 18728,
+      "sha256": "e17d6fc887592d557901583e952a97e54f34f423255d5bd3adae2dff48d995b8"
+    },
+    {
+      "path": "scripts/hosting-commercial-build.cjs",
+      "bytes": 9293,
+      "sha256": "6c31fe184953e1ad6dfa0dab947af21bf8b99e8fd8f03f5bf4afa48e5bc579a6"
+    },
+    {
+      "path": "scripts/hosting-runtime.cjs",
+      "bytes": 7836,
+      "sha256": "ab5e3c05fe635c2e29a9462d50d931bd68e6af307159753757ed27ba75d55642"
+    },
+    {
+      "path": "scripts/staging-return.cjs",
+      "bytes": 4737,
+      "sha256": "d936badac63f5394d2b51ed7e49b7f88fdf3d69aef8a83213e46df1bb997f448"
+    },
+    {
+      "path": "staging/return/headers-append.txt",
+      "bytes": 1071,
+      "sha256": "6539e11c40e0fa5b0271fcfb7182ddd7b14e58b7f6207baec5ec731cf51aca5f"
+    },
+    {
+      "path": "staging/return/manifest.json",
+      "bytes": 12267,
+      "sha256": "039183cac25aaee731c838fd4991c95f70f75c56a54d93e18239e9ab61440f2d"
+    },
+    {
+      "path": "staging/return/source/assets/billing-return-model.mjs",
+      "bytes": 1315,
+      "sha256": "96018c9a68081fd7d00f7dde811a9e26ee8077bf64c541b1c4220a9572fcc86e"
+    },
+    {
+      "path": "staging/return/source/assets/billing-return.css",
+      "bytes": 905,
+      "sha256": "e9da41c9e0b6cdca3872172006f5c6dfd780967c710b0ff3b54fc6692323c0a4"
+    },
+    {
+      "path": "staging/return/source/assets/billing-return.js",
+      "bytes": 2626,
+      "sha256": "d08cb299c82253b499a3f82875c4cd4fd567b8ff98eae9dc832e743520d68d38"
+    },
+    {
+      "path": "staging/return/source/billing-test.html",
+      "bytes": 1594,
+      "sha256": "c64775a86c7fd7f22fe7b2046fe29d1c05ab00e4a1c16bb3711d124e892046e0"
+    },
+    {
+      "path": "staging/subscription/return.html",
+      "bytes": 1504,
+      "sha256": "0a83948c8990f96a2e2a7b9c7459c606604c55f254bb4813215596f529597726"
+    }
+  ],
+  "passed": 13,
+  "failed": 0,
+  "checks": [
+    {
+      "name": "closed-staging independent roots and outputs",
+      "pass": true
+    },
+    {
+      "name": "closed-staging exact inventory and tree match",
+      "pass": true
+    },
+    {
+      "name": "closed-staging every output byte matches manifest",
+      "pass": true
+    },
+    {
+      "name": "closed-staging only intended commercial profile enabled",
+      "pass": true
+    },
+    {
+      "name": "basic-validation independent roots and outputs",
+      "pass": true
+    },
+    {
+      "name": "basic-validation exact inventory and tree match",
+      "pass": true
+    },
+    {
+      "name": "basic-validation every output byte matches manifest",
+      "pass": true
+    },
+    {
+      "name": "basic-validation only intended commercial profile enabled",
+      "pass": true
+    },
+    {
+      "name": "github-closed independent roots and outputs",
+      "pass": true
+    },
+    {
+      "name": "github-closed exact inventory and tree match",
+      "pass": true
+    },
+    {
+      "name": "github-closed every output byte matches manifest",
+      "pass": true
+    },
+    {
+      "name": "github-closed only intended commercial profile enabled",
+      "pass": true
+    },
+    {
+      "name": "source files remain unchanged after independent builds",
+      "pass": true
+    }
+  ],
+  "artifacts": [
+    {
+      "profile": "closed-staging",
+      "target": "preview",
+      "treeSha256": "347f222373b1e4db6103ef1d3258d0de801a07efcb57027af385280fcec7951a",
+      "files": [
+        {
+          "path": "404.html",
+          "bytes": 400,
+          "sha256": "ba23fa003b8457cf3b3b6a21e0e1c2c3ed7687270f9d6783bc8d1c8326f4df6a"
+        },
+        {
+          "path": "_headers",
+          "bytes": 2178,
+          "sha256": "baa815e517f7e2afda94ea037bcf2e7b345450a9a434baae70a74cb24a99c30d"
+        },
+        {
+          "path": "assets/atlas.webp",
+          "bytes": 113738,
+          "sha256": "c6adb40965992d579dc3d61eab19d18cbeee723372d1519d4f1996d1f8cfb211"
+        },
+        {
+          "path": "assets/auth.css",
+          "bytes": 19180,
+          "sha256": "c29f5afa36dd91156af334b2a1c3131e75e95b9dcbe1c4e4b4930bb80bf5d40f"
+        },
+        {
+          "path": "assets/auth.js",
+          "bytes": 20062,
+          "sha256": "a7498482971486b56a6c1aabb71c47b055555f730885d3707bc3474ea42e1943"
+        },
+        {
+          "path": "assets/billing-return-model.mjs",
+          "bytes": 1315,
+          "sha256": "96018c9a68081fd7d00f7dde811a9e26ee8077bf64c541b1c4220a9572fcc86e"
+        },
+        {
+          "path": "assets/billing-return.css",
+          "bytes": 905,
+          "sha256": "e9da41c9e0b6cdca3872172006f5c6dfd780967c710b0ff3b54fc6692323c0a4"
+        },
+        {
+          "path": "assets/billing-return.js",
+          "bytes": 2626,
+          "sha256": "d08cb299c82253b499a3f82875c4cd4fd567b8ff98eae9dc832e743520d68d38"
+        },
+        {
+          "path": "assets/client-routine.js",
+          "bytes": 2503,
+          "sha256": "b14ec456aa91363d09ae05f25b172b4904fc41775cfcfb5d082e16121fb307a9"
+        },
+        {
+          "path": "assets/coach-intake.js",
+          "bytes": 13650,
+          "sha256": "7b659c035f7a1cd812af03b6b73bf8102bc2662a85742cd02cb7dd97805b15c2"
+        },
+        {
+          "path": "assets/coach-premium-adapter.js",
+          "bytes": 9499,
+          "sha256": "b47efaac213ceb8b045b04961c95a6e0f1a77618e9fd8716220315a72f3511aa"
+        },
+        {
+          "path": "assets/coach-premium-app.css",
+          "bytes": 7150,
+          "sha256": "9ff695bd44517f19b7a655ddc1c6ee8dff10f239e3a78fabcbde967aa194357d"
+        },
+        {
+          "path": "assets/coach-premium-app.js",
+          "bytes": 36023,
+          "sha256": "cb0d3abc3414450f9c11e4b14f120312b723d3dd2cb2f01fa5f7e6dabaa83063"
+        },
+        {
+          "path": "assets/coach-premium-chat.css",
+          "bytes": 6709,
+          "sha256": "0c4bc2d05cc13a74bf36b3ba2de94f2d4e38b4f41ac10ed030ef51550c22c775"
+        },
+        {
+          "path": "assets/coach-premium-chat.js",
+          "bytes": 22687,
+          "sha256": "52aa54f238fa1e9cb0ae8d3c44f98d0ca4b228835f38363430c9bb63fc998c0d"
+        },
+        {
+          "path": "assets/coach-premium-initial-adapter.js",
+          "bytes": 2766,
+          "sha256": "c6a9502d26f6cdbc055a7ac5dbdcbe04e84067fd027b6a3bc7375ca998247f7b"
+        },
+        {
+          "path": "assets/coach-premium-initial.css",
+          "bytes": 719,
+          "sha256": "c0c3b5501996487e40a6c90c08d9a2631e5676872daeb8adf09decd011f8a622"
+        },
+        {
+          "path": "assets/coach-premium-initial.js",
+          "bytes": 19870,
+          "sha256": "25bbfb4be6f33b8977db67bea96e1d3f82a50f65056141ae6633038f78821c63"
+        },
+        {
+          "path": "assets/coach-premium-prescription.js",
+          "bytes": 4500,
+          "sha256": "7af689fb7c39a31c78f84f133168258b883141f25d6439f2a5db5921511ea0de"
+        },
+        {
+          "path": "assets/coach-premium-weekly.js",
+          "bytes": 23648,
+          "sha256": "49c6b81edc43461337910c7037656883d4449fe2c3cd1ada64b9fbfc802a1a1a"
+        },
+        {
+          "path": "assets/coach-prescription.js",
+          "bytes": 3956,
+          "sha256": "dbe22a10452f6a7f44967986cb4d5109d160583fffa76b9ac78ae60c015d8c76"
+        },
+        {
+          "path": "assets/coach-programming-v4.js",
+          "bytes": 11294,
+          "sha256": "d11203b93b09466e5af1238b65471e2d7e4c4d82f6543322e318e235175cd7f6"
+        },
+        {
+          "path": "assets/coach-programming-v5.js",
+          "bytes": 16080,
+          "sha256": "93f987914805f52c8d95458736ef727e081ed40a7325ae2ee12e0d050ac4d429"
+        },
+        {
+          "path": "assets/coach-questionnaire.js",
+          "bytes": 20593,
+          "sha256": "72ff16dbe863512a4f43d2fb5cf8a5faa9d33c0ec827ece1e74e84cf5964d02a"
+        },
+        {
+          "path": "assets/coach-reviewer.js",
+          "bytes": 10735,
+          "sha256": "95758b5b5837122f05470a349f24f87d95928ae3a839accaf9687c1c4cca4c19"
+        },
+        {
+          "path": "assets/coach.css",
+          "bytes": 7482,
+          "sha256": "840935f7eb20bd1dc10af1c2a2d4e5857c6d4cb5c3ecc71010fdcaa3cea96d29"
+        },
+        {
+          "path": "assets/coach.js",
+          "bytes": 37656,
+          "sha256": "00f1edda86e420e1e6c7f94fef10f04c53513b28d2557992bbcc9590667f377f"
+        },
+        {
+          "path": "assets/google-g.png",
+          "bytes": 33661,
+          "sha256": "d1ce9c2af0b10a7333abc99bc706f9a6a199e5b65bf3e3009624f076b8638e6a"
+        },
+        {
+          "path": "assets/interior.css",
+          "bytes": 25918,
+          "sha256": "134fd951887e83d8f9fa759d1bb60beafbc2e24b48b2c2898564a276e56054b8"
+        },
+        {
+          "path": "assets/oauth.js",
+          "bytes": 4095,
+          "sha256": "181a1edeafddc353b2d880416d74795241893716b75ca36680cae98ef5e3cb5d"
+        },
+        {
+          "path": "assets/reorder.js",
+          "bytes": 9806,
+          "sha256": "329d181d9517fc52d90b257cfa994ed6ca31df10ef4d6c9862fc5c982ed91011"
+        },
+        {
+          "path": "assets/runtime-config.js",
+          "bytes": 1327,
+          "sha256": "dfc1339844f68b80c96abb3cb33216b7a951716cea281056a058702057b9792f"
+        },
+        {
+          "path": "assets/settings.css",
+          "bytes": 2764,
+          "sha256": "1f8aae582c09632a750488f969a8904109afe23c30d6555785b0b17581335b53"
+        },
+        {
+          "path": "assets/settings.js",
+          "bytes": 4259,
+          "sha256": "13dc170cecd6767612f119c06a0e37627d6c130ccb6765237fc455318a3484c6"
+        },
+        {
+          "path": "assets/statistics-stage.js",
+          "bytes": 3128,
+          "sha256": "ce73a720448e6dfa731e8a97c3df255f87269a17b2db2b5d2590dc6a760e7ea7"
+        },
+        {
+          "path": "assets/subscription-app.js",
+          "bytes": 1898,
+          "sha256": "9ba3fb5e7e4864a0b8d7cae18d0eab185422f69df80c613df777d3dda77b0280"
+        },
+        {
+          "path": "assets/subscription.css",
+          "bytes": 3669,
+          "sha256": "63574dcac581d2ef151650f9e3cc82d4fae2146544b23e723a872bf66d6b798d"
+        },
+        {
+          "path": "assets/subscription.js",
+          "bytes": 10314,
+          "sha256": "e6009c6cc7246f8808ce55d0d28e66e2d70bf23a269ccf8382836c1429a32a35"
+        },
+        {
+          "path": "assets/theme.css",
+          "bytes": 3152,
+          "sha256": "8af5c4eba5755f03fd6e9afe8002c56ffe44384bb7413035dd18470a28967477"
+        },
+        {
+          "path": "assets/theme.js",
+          "bytes": 1340,
+          "sha256": "aec7bfa7a6dbd9e3751b09b32e3f557fa9c05af96d40fd828169dc96d99a66ae"
+        },
+        {
+          "path": "billing-test.html",
+          "bytes": 1594,
+          "sha256": "c64775a86c7fd7f22fe7b2046fe29d1c05ab00e4a1c16bb3711d124e892046e0"
+        },
+        {
+          "path": "index.html",
+          "bytes": 677790,
+          "sha256": "889421143c2c79ea6b6ac70977d38f5eaf28207e3ed372835133964ddf34de5c"
+        },
+        {
+          "path": "robots.txt",
+          "bytes": 26,
+          "sha256": "331ea9090db0c9f6f597bd9840fd5b171830f6e0b3ba1cb24dfa91f0c95aedc1"
+        }
+      ],
+      "basicValidation": false,
+      "readOnlyValidation": false,
+      "backend": "https://dmqjexigdnfzobarhnib.supabase.co"
+    },
+    {
+      "profile": "basic-validation",
+      "target": "preview",
+      "treeSha256": "eac9efa2a80542f595c7f192f771df45939f4ae7e9d0e6ea1ac05cef6ca8b266",
+      "files": [
+        {
+          "path": "404.html",
+          "bytes": 400,
+          "sha256": "ba23fa003b8457cf3b3b6a21e0e1c2c3ed7687270f9d6783bc8d1c8326f4df6a"
+        },
+        {
+          "path": "_headers",
+          "bytes": 2254,
+          "sha256": "eedaff4f303c7bf821f98b6fda41619975aca3bfbd27d94a41fb87b81906db1c"
+        },
+        {
+          "path": "assets/atlas.webp",
+          "bytes": 113738,
+          "sha256": "c6adb40965992d579dc3d61eab19d18cbeee723372d1519d4f1996d1f8cfb211"
+        },
+        {
+          "path": "assets/auth.css",
+          "bytes": 19180,
+          "sha256": "c29f5afa36dd91156af334b2a1c3131e75e95b9dcbe1c4e4b4930bb80bf5d40f"
+        },
+        {
+          "path": "assets/auth.js",
+          "bytes": 20062,
+          "sha256": "a7498482971486b56a6c1aabb71c47b055555f730885d3707bc3474ea42e1943"
+        },
+        {
+          "path": "assets/client-routine.js",
+          "bytes": 2503,
+          "sha256": "b14ec456aa91363d09ae05f25b172b4904fc41775cfcfb5d082e16121fb307a9"
+        },
+        {
+          "path": "assets/coach-intake.js",
+          "bytes": 13650,
+          "sha256": "7b659c035f7a1cd812af03b6b73bf8102bc2662a85742cd02cb7dd97805b15c2"
+        },
+        {
+          "path": "assets/coach-premium-adapter.js",
+          "bytes": 9499,
+          "sha256": "b47efaac213ceb8b045b04961c95a6e0f1a77618e9fd8716220315a72f3511aa"
+        },
+        {
+          "path": "assets/coach-premium-app.css",
+          "bytes": 7150,
+          "sha256": "9ff695bd44517f19b7a655ddc1c6ee8dff10f239e3a78fabcbde967aa194357d"
+        },
+        {
+          "path": "assets/coach-premium-app.js",
+          "bytes": 36023,
+          "sha256": "cb0d3abc3414450f9c11e4b14f120312b723d3dd2cb2f01fa5f7e6dabaa83063"
+        },
+        {
+          "path": "assets/coach-premium-chat.css",
+          "bytes": 6709,
+          "sha256": "0c4bc2d05cc13a74bf36b3ba2de94f2d4e38b4f41ac10ed030ef51550c22c775"
+        },
+        {
+          "path": "assets/coach-premium-chat.js",
+          "bytes": 22687,
+          "sha256": "52aa54f238fa1e9cb0ae8d3c44f98d0ca4b228835f38363430c9bb63fc998c0d"
+        },
+        {
+          "path": "assets/coach-premium-initial-adapter.js",
+          "bytes": 2766,
+          "sha256": "c6a9502d26f6cdbc055a7ac5dbdcbe04e84067fd027b6a3bc7375ca998247f7b"
+        },
+        {
+          "path": "assets/coach-premium-initial.css",
+          "bytes": 719,
+          "sha256": "c0c3b5501996487e40a6c90c08d9a2631e5676872daeb8adf09decd011f8a622"
+        },
+        {
+          "path": "assets/coach-premium-initial.js",
+          "bytes": 19870,
+          "sha256": "25bbfb4be6f33b8977db67bea96e1d3f82a50f65056141ae6633038f78821c63"
+        },
+        {
+          "path": "assets/coach-premium-prescription.js",
+          "bytes": 4500,
+          "sha256": "7af689fb7c39a31c78f84f133168258b883141f25d6439f2a5db5921511ea0de"
+        },
+        {
+          "path": "assets/coach-premium-weekly.js",
+          "bytes": 23648,
+          "sha256": "49c6b81edc43461337910c7037656883d4449fe2c3cd1ada64b9fbfc802a1a1a"
+        },
+        {
+          "path": "assets/coach-prescription.js",
+          "bytes": 3956,
+          "sha256": "dbe22a10452f6a7f44967986cb4d5109d160583fffa76b9ac78ae60c015d8c76"
+        },
+        {
+          "path": "assets/coach-programming-v4.js",
+          "bytes": 11294,
+          "sha256": "d11203b93b09466e5af1238b65471e2d7e4c4d82f6543322e318e235175cd7f6"
+        },
+        {
+          "path": "assets/coach-programming-v5.js",
+          "bytes": 16080,
+          "sha256": "93f987914805f52c8d95458736ef727e081ed40a7325ae2ee12e0d050ac4d429"
+        },
+        {
+          "path": "assets/coach-questionnaire.js",
+          "bytes": 20593,
+          "sha256": "72ff16dbe863512a4f43d2fb5cf8a5faa9d33c0ec827ece1e74e84cf5964d02a"
+        },
+        {
+          "path": "assets/coach-reviewer.js",
+          "bytes": 10735,
+          "sha256": "95758b5b5837122f05470a349f24f87d95928ae3a839accaf9687c1c4cca4c19"
+        },
+        {
+          "path": "assets/coach.css",
+          "bytes": 7482,
+          "sha256": "840935f7eb20bd1dc10af1c2a2d4e5857c6d4cb5c3ecc71010fdcaa3cea96d29"
+        },
+        {
+          "path": "assets/coach.js",
+          "bytes": 37656,
+          "sha256": "00f1edda86e420e1e6c7f94fef10f04c53513b28d2557992bbcc9590667f377f"
+        },
+        {
+          "path": "assets/google-g.png",
+          "bytes": 33661,
+          "sha256": "d1ce9c2af0b10a7333abc99bc706f9a6a199e5b65bf3e3009624f076b8638e6a"
+        },
+        {
+          "path": "assets/interior.css",
+          "bytes": 25918,
+          "sha256": "134fd951887e83d8f9fa759d1bb60beafbc2e24b48b2c2898564a276e56054b8"
+        },
+        {
+          "path": "assets/oauth.js",
+          "bytes": 4095,
+          "sha256": "181a1edeafddc353b2d880416d74795241893716b75ca36680cae98ef5e3cb5d"
+        },
+        {
+          "path": "assets/reorder.js",
+          "bytes": 9806,
+          "sha256": "329d181d9517fc52d90b257cfa994ed6ca31df10ef4d6c9862fc5c982ed91011"
+        },
+        {
+          "path": "assets/runtime-config.js",
+          "bytes": 1350,
+          "sha256": "32d09639df730a9ada9af991740eadd064ebdae1e956d9adae79406c5da0616f"
+        },
+        {
+          "path": "assets/settings.css",
+          "bytes": 2764,
+          "sha256": "1f8aae582c09632a750488f969a8904109afe23c30d6555785b0b17581335b53"
+        },
+        {
+          "path": "assets/settings.js",
+          "bytes": 4259,
+          "sha256": "13dc170cecd6767612f119c06a0e37627d6c130ccb6765237fc455318a3484c6"
+        },
+        {
+          "path": "assets/statistics-stage.js",
+          "bytes": 3128,
+          "sha256": "ce73a720448e6dfa731e8a97c3df255f87269a17b2db2b5d2590dc6a760e7ea7"
+        },
+        {
+          "path": "assets/subscription-app.js",
+          "bytes": 1898,
+          "sha256": "9ba3fb5e7e4864a0b8d7cae18d0eab185422f69df80c613df777d3dda77b0280"
+        },
+        {
+          "path": "assets/subscription-return.js",
+          "bytes": 2472,
+          "sha256": "d0e10e24b9977f31f2a277e77ed962177628cf4fb3493c9fb72f638199eaf999"
+        },
+        {
+          "path": "assets/subscription.css",
+          "bytes": 3669,
+          "sha256": "63574dcac581d2ef151650f9e3cc82d4fae2146544b23e723a872bf66d6b798d"
+        },
+        {
+          "path": "assets/subscription.js",
+          "bytes": 10314,
+          "sha256": "e6009c6cc7246f8808ce55d0d28e66e2d70bf23a269ccf8382836c1429a32a35"
+        },
+        {
+          "path": "assets/theme.css",
+          "bytes": 3152,
+          "sha256": "8af5c4eba5755f03fd6e9afe8002c56ffe44384bb7413035dd18470a28967477"
+        },
+        {
+          "path": "assets/theme.js",
+          "bytes": 1340,
+          "sha256": "aec7bfa7a6dbd9e3751b09b32e3f557fa9c05af96d40fd828169dc96d99a66ae"
+        },
+        {
+          "path": "billing-test.html",
+          "bytes": 1541,
+          "sha256": "a4bef1e3e8629c070d2e33678d39d23f28461afee972eb4c8c3626b15c633a6d"
+        },
+        {
+          "path": "index.html",
+          "bytes": 677790,
+          "sha256": "889421143c2c79ea6b6ac70977d38f5eaf28207e3ed372835133964ddf34de5c"
+        },
+        {
+          "path": "robots.txt",
+          "bytes": 26,
+          "sha256": "331ea9090db0c9f6f597bd9840fd5b171830f6e0b3ba1cb24dfa91f0c95aedc1"
+        }
+      ],
+      "basicValidation": true,
+      "readOnlyValidation": true,
+      "backend": "https://dmqjexigdnfzobarhnib.supabase.co"
+    },
+    {
+      "profile": "github-closed",
+      "target": "production",
+      "treeSha256": "7fa0f0ad025134d8f8e8781366ac3af298f0d19528b7c6a71913b44b0556b488",
+      "files": [
+        {
+          "path": "404.html",
+          "bytes": 400,
+          "sha256": "ba23fa003b8457cf3b3b6a21e0e1c2c3ed7687270f9d6783bc8d1c8326f4df6a"
+        },
+        {
+          "path": "_headers",
+          "bytes": 1107,
+          "sha256": "34580d163b9d09ac36acee7ffded5497ce06993c79da121a07db7e417f17adc4"
+        },
+        {
+          "path": "assets/atlas.webp",
+          "bytes": 113738,
+          "sha256": "c6adb40965992d579dc3d61eab19d18cbeee723372d1519d4f1996d1f8cfb211"
+        },
+        {
+          "path": "assets/auth.css",
+          "bytes": 19180,
+          "sha256": "c29f5afa36dd91156af334b2a1c3131e75e95b9dcbe1c4e4b4930bb80bf5d40f"
+        },
+        {
+          "path": "assets/auth.js",
+          "bytes": 20062,
+          "sha256": "a7498482971486b56a6c1aabb71c47b055555f730885d3707bc3474ea42e1943"
+        },
+        {
+          "path": "assets/client-routine.js",
+          "bytes": 2503,
+          "sha256": "b14ec456aa91363d09ae05f25b172b4904fc41775cfcfb5d082e16121fb307a9"
+        },
+        {
+          "path": "assets/coach-intake.js",
+          "bytes": 13650,
+          "sha256": "7b659c035f7a1cd812af03b6b73bf8102bc2662a85742cd02cb7dd97805b15c2"
+        },
+        {
+          "path": "assets/coach-premium-adapter.js",
+          "bytes": 9499,
+          "sha256": "b47efaac213ceb8b045b04961c95a6e0f1a77618e9fd8716220315a72f3511aa"
+        },
+        {
+          "path": "assets/coach-premium-app.css",
+          "bytes": 7150,
+          "sha256": "9ff695bd44517f19b7a655ddc1c6ee8dff10f239e3a78fabcbde967aa194357d"
+        },
+        {
+          "path": "assets/coach-premium-app.js",
+          "bytes": 36023,
+          "sha256": "cb0d3abc3414450f9c11e4b14f120312b723d3dd2cb2f01fa5f7e6dabaa83063"
+        },
+        {
+          "path": "assets/coach-premium-chat.css",
+          "bytes": 6709,
+          "sha256": "0c4bc2d05cc13a74bf36b3ba2de94f2d4e38b4f41ac10ed030ef51550c22c775"
+        },
+        {
+          "path": "assets/coach-premium-chat.js",
+          "bytes": 22687,
+          "sha256": "52aa54f238fa1e9cb0ae8d3c44f98d0ca4b228835f38363430c9bb63fc998c0d"
+        },
+        {
+          "path": "assets/coach-premium-initial-adapter.js",
+          "bytes": 2766,
+          "sha256": "c6a9502d26f6cdbc055a7ac5dbdcbe04e84067fd027b6a3bc7375ca998247f7b"
+        },
+        {
+          "path": "assets/coach-premium-initial.css",
+          "bytes": 719,
+          "sha256": "c0c3b5501996487e40a6c90c08d9a2631e5676872daeb8adf09decd011f8a622"
+        },
+        {
+          "path": "assets/coach-premium-initial.js",
+          "bytes": 19870,
+          "sha256": "25bbfb4be6f33b8977db67bea96e1d3f82a50f65056141ae6633038f78821c63"
+        },
+        {
+          "path": "assets/coach-premium-prescription.js",
+          "bytes": 4500,
+          "sha256": "7af689fb7c39a31c78f84f133168258b883141f25d6439f2a5db5921511ea0de"
+        },
+        {
+          "path": "assets/coach-premium-weekly.js",
+          "bytes": 23648,
+          "sha256": "49c6b81edc43461337910c7037656883d4449fe2c3cd1ada64b9fbfc802a1a1a"
+        },
+        {
+          "path": "assets/coach-prescription.js",
+          "bytes": 3956,
+          "sha256": "dbe22a10452f6a7f44967986cb4d5109d160583fffa76b9ac78ae60c015d8c76"
+        },
+        {
+          "path": "assets/coach-programming-v4.js",
+          "bytes": 11294,
+          "sha256": "d11203b93b09466e5af1238b65471e2d7e4c4d82f6543322e318e235175cd7f6"
+        },
+        {
+          "path": "assets/coach-programming-v5.js",
+          "bytes": 16080,
+          "sha256": "93f987914805f52c8d95458736ef727e081ed40a7325ae2ee12e0d050ac4d429"
+        },
+        {
+          "path": "assets/coach-questionnaire.js",
+          "bytes": 20593,
+          "sha256": "72ff16dbe863512a4f43d2fb5cf8a5faa9d33c0ec827ece1e74e84cf5964d02a"
+        },
+        {
+          "path": "assets/coach-reviewer.js",
+          "bytes": 10735,
+          "sha256": "95758b5b5837122f05470a349f24f87d95928ae3a839accaf9687c1c4cca4c19"
+        },
+        {
+          "path": "assets/coach.css",
+          "bytes": 7482,
+          "sha256": "840935f7eb20bd1dc10af1c2a2d4e5857c6d4cb5c3ecc71010fdcaa3cea96d29"
+        },
+        {
+          "path": "assets/coach.js",
+          "bytes": 37656,
+          "sha256": "00f1edda86e420e1e6c7f94fef10f04c53513b28d2557992bbcc9590667f377f"
+        },
+        {
+          "path": "assets/google-g.png",
+          "bytes": 33661,
+          "sha256": "d1ce9c2af0b10a7333abc99bc706f9a6a199e5b65bf3e3009624f076b8638e6a"
+        },
+        {
+          "path": "assets/interior.css",
+          "bytes": 25918,
+          "sha256": "134fd951887e83d8f9fa759d1bb60beafbc2e24b48b2c2898564a276e56054b8"
+        },
+        {
+          "path": "assets/oauth.js",
+          "bytes": 4095,
+          "sha256": "181a1edeafddc353b2d880416d74795241893716b75ca36680cae98ef5e3cb5d"
+        },
+        {
+          "path": "assets/reorder.js",
+          "bytes": 9806,
+          "sha256": "329d181d9517fc52d90b257cfa994ed6ca31df10ef4d6c9862fc5c982ed91011"
+        },
+        {
+          "path": "assets/runtime-config.js",
+          "bytes": 1152,
+          "sha256": "027b6a057d74c095341342b022065a808ff5a9ffaa689711f08ca3fc96b8ca02"
+        },
+        {
+          "path": "assets/settings.css",
+          "bytes": 2764,
+          "sha256": "1f8aae582c09632a750488f969a8904109afe23c30d6555785b0b17581335b53"
+        },
+        {
+          "path": "assets/settings.js",
+          "bytes": 4259,
+          "sha256": "13dc170cecd6767612f119c06a0e37627d6c130ccb6765237fc455318a3484c6"
+        },
+        {
+          "path": "assets/statistics-stage.js",
+          "bytes": 3128,
+          "sha256": "ce73a720448e6dfa731e8a97c3df255f87269a17b2db2b5d2590dc6a760e7ea7"
+        },
+        {
+          "path": "assets/subscription-app.js",
+          "bytes": 1898,
+          "sha256": "9ba3fb5e7e4864a0b8d7cae18d0eab185422f69df80c613df777d3dda77b0280"
+        },
+        {
+          "path": "assets/subscription.css",
+          "bytes": 3669,
+          "sha256": "63574dcac581d2ef151650f9e3cc82d4fae2146544b23e723a872bf66d6b798d"
+        },
+        {
+          "path": "assets/subscription.js",
+          "bytes": 10314,
+          "sha256": "e6009c6cc7246f8808ce55d0d28e66e2d70bf23a269ccf8382836c1429a32a35"
+        },
+        {
+          "path": "assets/theme.css",
+          "bytes": 3152,
+          "sha256": "8af5c4eba5755f03fd6e9afe8002c56ffe44384bb7413035dd18470a28967477"
+        },
+        {
+          "path": "assets/theme.js",
+          "bytes": 1340,
+          "sha256": "aec7bfa7a6dbd9e3751b09b32e3f557fa9c05af96d40fd828169dc96d99a66ae"
+        },
+        {
+          "path": "index.html",
+          "bytes": 677790,
+          "sha256": "889421143c2c79ea6b6ac70977d38f5eaf28207e3ed372835133964ddf34de5c"
+        },
+        {
+          "path": "robots.txt",
+          "bytes": 26,
+          "sha256": "331ea9090db0c9f6f597bd9840fd5b171830f6e0b3ba1cb24dfa91f0c95aedc1"
+        }
+      ],
+      "basicValidation": false,
+      "readOnlyValidation": false,
+      "backend": "https://yvguatdqncadkwewlepe.supabase.co"
+    }
+  ]
+}

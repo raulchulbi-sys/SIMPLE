@@ -2487,6 +2487,7 @@ button.client-overview-card{display:flex;flex-direction:column;align-items:stret
 <link rel="stylesheet" href="assets/coach-premium-app.css?v=premium-upgrade-v1">
 <link rel="stylesheet" href="assets/coach-premium-initial.css?v=premium-initial-v1">
 <link rel="stylesheet" href="assets/coach-premium-chat.css?v=premium-chat-v1">
+<link rel="stylesheet" href="assets/subscription.css?v=basic-mvp-20261105">
 </head>
 <body>
 <div class="modal" id="sessionActionModal" role="dialog" aria-modal="true" aria-labelledby="sessionActionTitle">
@@ -2660,12 +2661,13 @@ button.client-overview-card{display:flex;flex-direction:column;align-items:stret
     <div id="trainBody" style="margin-top:12px"></div>
   </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0">
+<script src="assets/runtime-config.js">
+</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0">
 </script><script>
-const SUPABASE_URL="https://yvguatdqncadkwewlepe.supabase.co";
-const SUPABASE_KEY="sb_publishable_VYoUECN0MaGIOC2LtGi0iw_C0wqUY-W";
+const SUPABASE_URL=window.SimpleAppRuntime.supabaseUrl;
+const SUPABASE_KEY=window.SimpleAppRuntime.supabasePublicKey;
 if(!window.supabase){ throw new Error("Supabase JS no cargó"); }
-const APP_URL = 'https://raulchulbi-sys.github.io/SIMPLE/';
+const APP_URL = window.SimpleAppRuntime.appUrl;
 // Capture callback intent before the SDK consumes and removes the URL fragment.
 // No token or other credential is copied into application state here.
 const SIMPLE_AUTH_CALLBACK=Object.freeze({
@@ -8661,14 +8663,16 @@ window.updateClientTrashVisual=function(full){
 <script src="assets/coach-programming-v4.js?v=basic-initial-v4"></script>
 <script src="assets/coach-programming-v5.js?v=basic-v5-rest-20261001"></script>
 <script src="assets/coach-questionnaire.js?v=premium-direct-closed-20261014"></script>
-<script src="assets/coach.js?v=reviewer-privacy-20261018"></script>
+<script src="assets/coach.js?v=basic-readonly-20261106"></script>
 <script src="assets/coach-premium-prescription.js?v=premium-upgrade-v1"></script>
 <script src="assets/coach-premium-weekly.js?v=premium-weekly-v1"></script>
-<script src="assets/coach-premium-chat.js?v=premium-chat-v1"></script>
+<script src="assets/coach-premium-chat.js?v=premium-chat-reload-20261104"></script>
 <script src="assets/coach-premium-adapter.js?v=reviewer-privacy-20261018"></script>
 <script src="assets/coach-premium-app.js?v=premium-upgrade-v1"></script>
-<script src="assets/coach-premium-initial-adapter.js?v=premium-direct-closed-20261014"></script>
-<script src="assets/coach-premium-initial.js?v=premium-direct-closed-20261014"></script>
+<script src="assets/coach-premium-initial-adapter.js?v=basic-readonly-20261106"></script>
+<script src="assets/coach-premium-initial.js?v=basic-readonly-20261106"></script>
 <script src="assets/coach-prescription.js?v=basic-v5-rest-20261001"></script>
 <script src="assets/coach-reviewer.js?v=reviewer-privacy-20261018"></script>
+<script src="assets/subscription.js?v=basic-mvp-20261105"></script>
+<script src="assets/subscription-app.js?v=basic-mvp-20261105"></script>
 </body></html>
