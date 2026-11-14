@@ -8212,18 +8212,10 @@ async function getWeeklyRoutineProgressForUser(userId,routineIds,workoutRoutineA
 
 function renderCycleCompletion(total,done,contextKey){
   if(!total||done<total)return '';
-  let animate=false;
-  if(contextKey){
-    const today=simpleCycleDateKey(),key=today+'|'+contextKey;
-    window.__cycleCelebrations=window.__cycleCelebrations||new Set();
-    try{const stored=JSON.parse(localStorage.getItem('simple_cycle_celebrations_v1')||'{}');if(stored.date===today)for(const item of stored.seen||[])window.__cycleCelebrations.add(item);}catch(_){}
-    if(!window.__cycleCelebrations.has(key)){
-      animate=!matchMedia('(prefers-reduced-motion: reduce)').matches;
-      window.__cycleCelebrations.add(key);
-      try{localStorage.setItem('simple_cycle_celebrations_v1',JSON.stringify({date:today,seen:[...window.__cycleCelebrations].filter(x=>x.startsWith(today+'|'))}));}catch(_){}
-    }
-  }
-  return '<div class="weekly-progress-celebration" aria-label="Rutina finalizada">'+(animate?'<img class="weekly-progress-gif" src="https://media.tenor.com/uYAHiDSVAn4AAAA1/baldi-dance.webp" alt="Baile de celebración" loading="lazy" referrerpolicy="no-referrer">':'')+'<div class="weekly-progress-celebration-copy"><b>Rutina finalizada</b></div></div>';
+  // Completion stays visible until the Madrid-day rollover refreshes progress.
+  // Re-rendering, reloading or another tab must not consume the celebration.
+  const animate=!!contextKey&&!matchMedia('(prefers-reduced-motion: reduce)').matches;
+  return '<div class="weekly-progress-celebration" aria-label="Rutina finalizada">'+(animate?'<img class="weekly-progress-gif" src="assets/weekly-completion.gif" alt="Baile de celebración" loading="lazy" referrerpolicy="no-referrer">':'')+'<div class="weekly-progress-celebration-copy"><b>Rutina finalizada</b></div></div>';
 }
 function renderWeeklyRoutineProgress(totalDays,completedDays,contextKey=''){
 
