@@ -11,6 +11,11 @@ const suites = [
   'tests/training-reset/unit.cjs',
   'tests/statistics-stage/unit.cjs',
   'tests/cycle-start/unit.cjs',
+  'tests/billing-test/contract.test.mjs',
+  'tests/billing-test/reconciliation.test.mjs',
+  'tests/billing-test/checkout-regression.test.mjs',
+  'tests/commercial/backend.test.mjs',
+  'tests/commercial/package.test.mjs',
 ];
 const excludedDirectories = new Set(['private', 'results', 'node_modules', '.git']);
 
@@ -46,6 +51,6 @@ for (const file of sources) run(['--check', file]);
 console.log(`${sources.length} JS/MJS syntax checks passed (no module execution).`);
 for (const suite of suites) {
   console.log(`Running ${suite}`);
-  run([suite]);
+  run(suite.endsWith('.mjs') ? ['--experimental-vm-modules','--test','--test-concurrency=1',suite] : [suite]);
 }
 console.log(`${suites.length} audited offline suites passed; no real backend/provider validation.`);
