@@ -1,0 +1,438 @@
+{
+  "provenance": "Actual Basic V5 response to a synthetic intake, 2026-10-28; proposal only, no receipt or identity.",
+  "training": {
+    "days": 3,
+    "goal": "balanced_mass",
+    "effort": "confident",
+    "minutes": 60,
+    "activity": {
+      "type": "running",
+      "weekdays": [
+        "sun"
+      ]
+    },
+    "excluded": [
+      "dead_bug",
+      "bird_dog"
+    ],
+    "weekdays": [
+      "mon",
+      "wed",
+      "fri"
+    ],
+    "inventory": {
+      "custom": [],
+      "equipment": [
+        "chest_press",
+        "pulldown",
+        "supported_row",
+        "press45",
+        "leg_extension",
+        "seated_curl",
+        "seated_calf",
+        "dumbbells",
+        "bench",
+        "cables"
+      ]
+    },
+    "experience": "y1_2",
+    "schema_version": "basic-intake-v2"
+  },
+  "proposal": {
+    "days": [
+      {
+        "name": "Lunes",
+        "exercises": [
+          {
+            "rir": 2,
+            "name": "Prensa de piernas",
+            "sets": 2,
+            "scheme": "straight",
+            "reps_max": 10,
+            "reps_min": 8,
+            "planned_sets": [
+              {
+                "rir": 2,
+                "reps_max": 10,
+                "reps_min": 8,
+                "set_number": 1,
+                "rest_seconds": 180
+              },
+              {
+                "rir": 2,
+                "reps_max": 10,
+                "reps_min": 8,
+                "set_number": 2,
+                "rest_seconds": 180
+              }
+            ],
+            "rest_seconds": 180
+          },
+          {
+            "rir": 2,
+            "name": "Press de pecho en máquina",
+            "sets": 2,
+            "scheme": "straight",
+            "reps_max": 10,
+            "reps_min": 8,
+            "planned_sets": [
+              {
+                "rir": 2,
+                "reps_max": 10,
+                "reps_min": 8,
+                "set_number": 1,
+                "rest_seconds": 150
+              },
+              {
+                "rir": 2,
+                "reps_max": 10,
+                "reps_min": 8,
+                "set_number": 2,
+                "rest_seconds": 150
+              }
+            ],
+            "rest_seconds": 150
+          },
+          {
+            "rir": 2,
+            "name": "Remo con pecho apoyado",
+            "sets": 2,
+            "scheme": "straight",
+            "reps_max": 10,
+            "reps_min": 8,
+            "planned_sets": [
+              {
+                "rir": 2,
+                "reps_max": 10,
+                "reps_min": 8,
+                "set_number": 1,
+                "rest_seconds": 150
+              },
+              {
+                "rir": 2,
+                "reps_max": 10,
+                "reps_min": 8,
+                "set_number": 2,
+                "rest_seconds": 150
+              }
+            ],
+            "rest_seconds": 150
+          },
+          {
+            "rir": 2,
+            "name": "Extensión de cuádriceps",
+            "sets": 2,
+            "scheme": "varied",
+            "reps_max": 15,
+            "reps_min": 12,
+            "planned_sets": [
+              {
+                "rir": 2,
+                "reps_max": 15,
+                "reps_min": 12,
+                "set_number": 1,
+                "rest_seconds": 120
+              },
+              {
+                "rir": 1,
+                "reps_max": 15,
+                "reps_min": 12,
+                "set_number": 2,
+                "rest_seconds": 120
+              }
+            ],
+            "rest_seconds": 120
+          },
+          {
+            "rir": 1,
+            "name": "Crunch en polea",
+            "sets": 2,
+            "scheme": "straight",
+            "reps_max": 15,
+            "reps_min": 12,
+            "planned_sets": [
+              {
+                "rir": 1,
+                "reps_max": 15,
+                "reps_min": 12,
+                "set_number": 1,
+                "rest_seconds": 90
+              },
+              {
+                "rir": 1,
+                "reps_max": 15,
+                "reps_min": 12,
+                "set_number": 2,
+                "rest_seconds": 90
+              }
+            ],
+            "rest_seconds": 90
+          }
+        ]
+      },
+      {
+        "name": "Miércoles",
+        "exercises": [
+          {
+            "rir": 2,
+            "name": "Peso muerto rumano con mancuernas",
+            "sets": 2,
+            "scheme": "straight",
+            "reps_max": 10,
+            "reps_min": 8,
+            "planned_sets": [
+              {
+                "rir": 2,
+                "reps_max": 10,
+                "reps_min": 8,
+                "set_number": 1,
+                "rest_seconds": 180
+              },
+              {
+                "rir": 2,
+                "reps_max": 10,
+                "reps_min": 8,
+                "set_number": 2,
+                "rest_seconds": 180
+              }
+            ],
+            "rest_seconds": 180
+          },
+          {
+            "rir": 2,
+            "name": "Jalón al pecho",
+            "sets": 2,
+            "scheme": "straight",
+            "reps_max": 12,
+            "reps_min": 8,
+            "planned_sets": [
+              {
+                "rir": 2,
+                "reps_max": 12,
+                "reps_min": 8,
+                "set_number": 1,
+                "rest_seconds": 150
+              },
+              {
+                "rir": 2,
+                "reps_max": 12,
+                "reps_min": 8,
+                "set_number": 2,
+                "rest_seconds": 150
+              }
+            ],
+            "rest_seconds": 150
+          },
+          {
+            "rir": 2,
+            "name": "Press de pecho en máquina",
+            "sets": 2,
+            "scheme": "straight",
+            "reps_max": 12,
+            "reps_min": 8,
+            "planned_sets": [
+              {
+                "rir": 2,
+                "reps_max": 12,
+                "reps_min": 8,
+                "set_number": 1,
+                "rest_seconds": 150
+              },
+              {
+                "rir": 2,
+                "reps_max": 12,
+                "reps_min": 8,
+                "set_number": 2,
+                "rest_seconds": 150
+              }
+            ],
+            "rest_seconds": 150
+          },
+          {
+            "rir": 2,
+            "name": "Curl femoral sentado",
+            "sets": 2,
+            "scheme": "varied",
+            "reps_max": 15,
+            "reps_min": 10,
+            "planned_sets": [
+              {
+                "rir": 2,
+                "reps_max": 15,
+                "reps_min": 10,
+                "set_number": 1,
+                "rest_seconds": 120
+              },
+              {
+                "rir": 1,
+                "reps_max": 15,
+                "reps_min": 10,
+                "set_number": 2,
+                "rest_seconds": 120
+              }
+            ],
+            "rest_seconds": 120
+          },
+          {
+            "rir": 1,
+            "name": "Elevaciones laterales",
+            "sets": 2,
+            "scheme": "straight",
+            "reps_max": 15,
+            "reps_min": 12,
+            "planned_sets": [
+              {
+                "rir": 1,
+                "reps_max": 15,
+                "reps_min": 12,
+                "set_number": 1,
+                "rest_seconds": 90
+              },
+              {
+                "rir": 1,
+                "reps_max": 15,
+                "reps_min": 12,
+                "set_number": 2,
+                "rest_seconds": 90
+              }
+            ],
+            "rest_seconds": 90
+          }
+        ]
+      },
+      {
+        "name": "Viernes",
+        "exercises": [
+          {
+            "rir": 2,
+            "name": "Press de suelo con mancuernas",
+            "sets": 2,
+            "scheme": "straight",
+            "reps_max": 12,
+            "reps_min": 8,
+            "planned_sets": [
+              {
+                "rir": 2,
+                "reps_max": 12,
+                "reps_min": 8,
+                "set_number": 1,
+                "rest_seconds": 150
+              },
+              {
+                "rir": 2,
+                "reps_max": 12,
+                "reps_min": 8,
+                "set_number": 2,
+                "rest_seconds": 150
+              }
+            ],
+            "rest_seconds": 150
+          },
+          {
+            "rir": 2,
+            "name": "Remo con pecho apoyado",
+            "sets": 2,
+            "scheme": "straight",
+            "reps_max": 12,
+            "reps_min": 8,
+            "planned_sets": [
+              {
+                "rir": 2,
+                "reps_max": 12,
+                "reps_min": 8,
+                "set_number": 1,
+                "rest_seconds": 150
+              },
+              {
+                "rir": 2,
+                "reps_max": 12,
+                "reps_min": 8,
+                "set_number": 2,
+                "rest_seconds": 150
+              }
+            ],
+            "rest_seconds": 150
+          },
+          {
+            "rir": 2,
+            "name": "Sentadilla goblet",
+            "sets": 2,
+            "scheme": "straight",
+            "reps_max": 12,
+            "reps_min": 10,
+            "planned_sets": [
+              {
+                "rir": 2,
+                "reps_max": 12,
+                "reps_min": 10,
+                "set_number": 1,
+                "rest_seconds": 150
+              },
+              {
+                "rir": 2,
+                "reps_max": 12,
+                "reps_min": 10,
+                "set_number": 2,
+                "rest_seconds": 150
+              }
+            ],
+            "rest_seconds": 150
+          },
+          {
+            "rir": 2,
+            "name": "Curl femoral sentado",
+            "sets": 2,
+            "scheme": "varied",
+            "reps_max": 15,
+            "reps_min": 10,
+            "planned_sets": [
+              {
+                "rir": 2,
+                "reps_max": 15,
+                "reps_min": 10,
+                "set_number": 1,
+                "rest_seconds": 120
+              },
+              {
+                "rir": 1,
+                "reps_max": 15,
+                "reps_min": 10,
+                "set_number": 2,
+                "rest_seconds": 120
+              }
+            ],
+            "rest_seconds": 120
+          },
+          {
+            "rir": 1,
+            "name": "Gemelo sentado",
+            "sets": 2,
+            "scheme": "straight",
+            "reps_max": 15,
+            "reps_min": 10,
+            "planned_sets": [
+              {
+                "rir": 1,
+                "reps_max": 15,
+                "reps_min": 10,
+                "set_number": 1,
+                "rest_seconds": 120
+              },
+              {
+                "rir": 1,
+                "reps_max": 15,
+                "reps_min": 10,
+                "set_number": 2,
+                "rest_seconds": 120
+              }
+            ],
+            "rest_seconds": 120
+          }
+        ]
+      }
+    ],
+    "name": "Basic · rutina inicial",
+    "description": "Respeta el RIR de cada serie. RIR 0 significa no poder completar otra repetición con técnica estable; no fuerces repeticiones. Progresa cada serie o bloque por separado: cuando alcances su techo de reps con el RIR indicado y técnica estable, aumenta ligeramente su carga. Ajusta la carga entre bloques si cambian los objetivos. No se automatizan pesos ni cambios de rutina.",
+    "schema_version": 2
+  }
+}

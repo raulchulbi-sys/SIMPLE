@@ -1,6 +1,7 @@
 // Name retained from 1A for compatibility. Closed pilot; all access checked server-side.
 import {DEFAULT_MODEL,MODELS,safetyGate} from './contract.mjs';
 import {generate} from './provider.mjs';
+import {generateStaging} from './staging-cost-guard.mjs';
 const URL=Deno.env.get('SUPABASE_URL')!;
 const ANON=Deno.env.get('SUPABASE_ANON_KEY')!;
 const SERVICE=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -40,7 +41,10 @@ Deno.serve(async req=>{
   claimed=true;
   const error=safetyGate(claim.context);
   const result=error?{proposal:null,error_code:error,latency_ms:0,attempts:[]}:
-   await generate(claim.context,{key:Deno.env.get('OPENAI_API_KEY'),model:MODEL});
+   await (staging?generateStaging:generate)(claim.context,{key:Deno.env.get('OPENAI_API_KEY'),model:MODEL,projectURL:URL});
+  // Sanitized server-only receipt: no prompt, user identity, token or key. Basic accounting
+  // remains unchanged; reconcile unexpected provider usage/tier instead of hiding its cost.
+  if(staging&&'cost_guard' in result)console.info('basic_cost_guard',JSON.stringify(result.cost_guard));
   op=await rpc('coach_backend_finish',{p_user:user.id,p_operation:op.id,p_proposal:result.proposal,p_error:result.error_code,p_latency_ms:result.latency_ms,p_attempts:result.attempts},true);
   // Only authenticated synthetic staging participants may inspect a rejected candidate.
   // Never persisted as an approvable proposal, never enabled on production.

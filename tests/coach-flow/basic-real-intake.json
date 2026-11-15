@@ -1,0 +1,15 @@
+{
+  "schema_version": "basic-intake-v2",
+  "experience": "y1_2",
+  "goal": "balanced_mass",
+  "days": 3,
+  "weekdays": ["mon", "wed", "fri"],
+  "minutes": 60,
+  "effort": "confident",
+  "excluded": ["dead_bug", "bird_dog"],
+  "activity": {"type": "running", "weekdays": ["sun"]},
+  "inventory": {
+    "equipment": ["chest_press", "pulldown", "supported_row", "press45", "leg_extension", "seated_curl", "seated_calf", "dumbbells", "bench", "cables"],
+    "custom": []
+  }
+}

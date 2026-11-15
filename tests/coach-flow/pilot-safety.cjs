@@ -1,0 +1,17 @@
+// Offline safety tests only. No SQL execution, sessions, fixture creation or provider.
+const fs=require('fs'),path=require('path'),assert=require('assert/strict'),cp=require('child_process');
+const P=require('./pilot-plan.cjs'),S=require('./pilot-sdk.cjs');
+const plan=JSON.parse(fs.readFileSync(process.argv[2],'utf8')),checks=[];
+const check=(name,fn)=>{fn();checks.push({name,pass:true});};
+const url=p=>new URL('https://'+P.PROJECT+'.supabase.co'+p),count=()=>({logins:0,reviews:0,accepts:0,workouts:0,notes:0,routine:plan.operation});
+for(const [field,value]of [['project','yvguatdqncadkwewlepe'],['windowMinutes',61],['maxProviderCalls',1],['maxCostUSD',0.01],['maxWorkouts',2]])check('reject expanded '+field,()=>assert.throws(()=>P.guard({...plan,[field]:value})));
+check('reject actor absent from synthetic snapshot',()=>assert.throws(()=>P.guard({...plan,actors:{...plan.actors,mock:plan.key}})));
+check('reject cleanup receipt from another run',()=>assert.throws(()=>P.validateReceipt(plan,{run:plan.key})));
+check('reject cleanup above the one-workout bound',()=>assert.throws(()=>P.validateReceipt(plan,{workout_ids:[plan.key,plan.operation]})));
+check('reject mutation against production host',()=>assert.equal(S.allowWrite(plan,'mock',new URL('https://yvguatdqncadkwewlepe.supabase.co/rest/v1/rpc/accept_basic_plan'),{p_operation:plan.operation},count()),false));
+check('reject non-reviewer approval and foreign operation',()=>{assert.equal(S.allowWrite(plan,'trainer',url('/rest/v1/rpc/review_coach_proposal'),{p_operation:plan.operation,p_approve:true},count()),false);assert.equal(S.allowWrite(plan,'mock',url('/rest/v1/rpc/accept_basic_plan'),{p_operation:plan.key},count()),false);});
+check('reject foreign workout/notes and every Edge invocation',()=>{assert.equal(S.allowWrite(plan,'mock',url('/rest/v1/workouts'),{user_id:plan.actors.mock,data:{routine_id:plan.key}},count()),false);assert.equal(S.allowWrite(plan,'mock',url('/rest/v1/routine_user_notes'),{user_id:plan.actors.real,routine_id:plan.operation},count()),false);assert.equal(S.allowWrite(plan,'mock',url('/functions/v1/simple-coach-mock'),{},count()),false);});
+check('allow exactly one scoped workout, reject duplicate',()=>{const c=count(),b={user_id:plan.actors.mock,data:{routine_id:c.routine}};assert.equal(S.allowWrite(plan,'mock',url('/rest/v1/workouts'),b,c),true);assert.equal(S.allowWrite(plan,'mock',url('/rest/v1/workouts'),b,c),false);});
+check('real SDK HTML uses staging and custom memory storage, no demo SDK',()=>{const h=S.htmlForStaging(fs.readFileSync(path.resolve(__dirname,'../../index.html'),'utf8'),'TEST_PUBLIC_KEY');assert(h.includes("const SUPABASE_URL='https://"+P.PROJECT+".supabase.co';")&&h.includes('storage:window.__qaAuthMemory')&&h.includes('autoRefreshToken:false')&&!h.includes('/demo-sdk'));});
+check('default command does not read credentials or start live journey',()=>{const r=cp.spawnSync(process.execPath,[path.join(__dirname,'pilot-sdk.cjs'),process.argv[2],'NONEXISTENT_CREDENTIALS','NONEXISTENT_APPROVAL'],{encoding:'utf8'});assert.equal(r.status,0);assert(r.stdout.includes('NOT EXECUTED'));});
+fs.mkdirSync(path.join(__dirname,'results'),{recursive:true});fs.writeFileSync(path.join(__dirname,'results/pilot-safety.json'),JSON.stringify({offline:true,sqlExecuted:false,providerCalls:0,passed:checks.length,total:checks.length,checks},null,2));console.log(checks.length+'/'+checks.length+' offline pilot safety assertions');
