@@ -94,9 +94,28 @@ function evaluate(p,t){
  if(beginner(t)&&unique.size>12)failures.push('beginner_variety_ceiling');const target=beginner(t)?10:t.experience==='y1_2'?14:16;if(unique.size>target)warn('excess_variety','Variedad superior a la referencia del nivel.',{unique:unique.size,target});
  for(const [family,ids] of families)if(ids.size>(beginner(t)?2:3))warn('equivalent_variants','Varias variantes de una misma familia.',{family,count:ids.size});
  const sport=new Set(t.activity.weekdays),weekIds=I.weekdays.map(d=>d.id),maxLeg=Math.max(0,...days.map(d=>d.legSets));
- if(['football','running','crossfit','martial_arts','cycling','physical_work'].includes(t.activity.type))for(const d of days){if(sport.has(d.id)&&d.legSets)warn('sport_same_day','Pierna y actividad externa el mismo día; intensidad/horario desconocidos.',{day:d.name,sets:d.legSets});if(d.legSets>4&&d.legSets===maxLeg&&sport.has(weekIds[(weekIds.indexOf(d.id)+1)%7]))warn('sport_before_heaviest','La sesión de pierna más cargada precede a la actividad externa.',{day:d.name});}
+ if(['football','running','crossfit','martial_arts','cycling','physical_work'].includes(t.activity.type))for(const d of days){
+  const index=weekIds.indexOf(d.id);if(index<0||!d.legSets)continue;
+  const previous=weekIds[(index+6)%7],next=weekIds[(index+1)%7];
+  const context=(relation,activityDay)=>({day:d.name,sets:d.legSets,relation,activity:t.activity.type,activity_day:activityDay});
+  if(sport.has(d.id))warn('sport_same_day','Tren inferior y actividad externa el mismo día. No conocemos duración, intensidad ni horario; revisar carga combinada y recuperación, sin asumir interferencia.',context('same_day',d.id));
+  if(d.legSets>4&&d.legSets===maxLeg&&sport.has(next))warn('sport_before_heaviest','La sesión de tren inferior más cargada está el día anterior a la actividad externa. No conocemos su duración ni intensidad; revisar recuperación y rendimiento antes de decidir.',context('before',next));
+  if(sport.has(previous))warn('sport_after_activity','Tren inferior el día después de '+I.weekdays.find(x=>x.id===previous).label+' con '+I.activities.find(x=>x.id===t.activity.type).label+'. No conocemos duración, intensidad ni carga; comprobar recuperación percibida y rendimiento esperado. La proximidad no demuestra interferencia ni riesgo y no exige cambiar la rutina.',context('after',previous));
+ }
+ // Within-plan triage, NOT a physiological minimum: flag absent direct work or a
+ // single exposure with less than half the median direct work of covered major groups.
+ // Require three covered major groups and an available direct option for comparison.
+ const coveredMajor=counts.slice().sort((a,b)=>a-b),mid=Math.floor(coveredMajor.length/2);
+ const reference=coveredMajor.length>=3?(coveredMajor.length%2?coveredMajor[mid]:(coveredMajor[mid-1]+coveredMajor[mid])/2):null;
+ const smallMuscles=Object.fromEntries(['deltoids','biceps','triceps','calves'].map(g=>{
+  const m=muscles[g],available=catalogue.some(e=>allowed.has(e.id)&&e.primary.includes(g));
+  const reduced=t.goal==='balanced_mass'&&reference!==null&&available&&(m.direct===0||(m.frequency===1&&m.direct<reference/2));
+  const note='Series directas y participación secundaria separadas; no se suman ni equivalen automáticamente.'+(g==='deltoids'?' Presses, remos y laterales pueden implicar regiones distintas del hombro.':'')+(!available?' No hay una opción directa permitida con este material y exclusiones.':'');
+  if(reduced)warn('small_direct_coverage','Cobertura para revisar: '+m.direct+' series directas (días: '+m.frequency+') y participación secundaria en '+m.secondary+' series / '+m.secondary_frequency+' días. Comparación interna con la mediana de grandes grupos cubiertos ('+reference+' series), no un mínimo universal. Revisar si la selección y el trabajo indirecto encajan con el objetivo equilibrado; no exige aislamientos ni añadir series.',{muscle:g,direct:m.direct,secondary:m.secondary,frequency:m.frequency,secondary_frequency:m.secondary_frequency,reference_major_median:reference});
+  return [g,{...m,note}];
+ }));
  const totalSets=days.reduce((n,d)=>n+d.sets,0);if(zero&&V4.major.some(g=>muscles[g].direct>18))warn('weekly_failure_volume','Volumen muscular elevado combinado con series RIR 0.');
- return {version:'basic-initial-v5',ok:failures.length===0,failures:[...new Set(failures)],warnings,muscles,patterns,days,totalSets,unique:unique.size,rirMean:totalSets?rirSum/totalSets:0,rirZero:zero,rirOne:one,variableExercises:variable,smallMuscles:Object.fromEntries(['deltoids','biceps','triceps','calves'].map(g=>[g,{...muscles[g],note:'Trabajo directo y secundario separados; no equivalencia automática.'}]))};
+ return {version:'basic-initial-v5',ok:failures.length===0,failures:[...new Set(failures)],warnings,muscles,patterns,days,totalSets,unique:unique.size,rirMean:totalSets?rirSum/totalSets:0,rirZero:zero,rirOne:one,variableExercises:variable,smallMuscles};
 }
 root.SimpleCoachProgrammingV5=Object.freeze({catalogue,byId,byName,major:V4.major,labels:V4.labels,bounds,restGuidance,costly,planned,heterogeneous,seconds,minutes,instruction,evaluate,beginner,uncertain});
 if(typeof module!=='undefined'&&module.exports)module.exports=root.SimpleCoachProgrammingV5;

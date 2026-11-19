@@ -1,0 +1,219 @@
+{
+  "date": "2026-11-06",
+  "base": "8086008c9017a59e21d5464b27b1a9186ff0aa92",
+  "verdict": "APTO PARA REVISION INDEPENDIENTE",
+  "realJWT": false,
+  "connectedSQL": false,
+  "deployments": 0,
+  "providerCalls": 0,
+  "newCases": {
+    "unit": 17,
+    "browser": 84,
+    "realChromiumBFCache": 2,
+    "total": 103
+  },
+  "baselineReproduction": {
+    "unit": 2,
+    "browser": 8,
+    "firstHomeInitialInvocationsPerBrowser": 2
+  },
+  "ci": {
+    "suites": [
+      {
+        "name": "client-routine",
+        "passed": 18
+      },
+      {
+        "name": "training-reset",
+        "passed": 13
+      },
+      {
+        "name": "statistics-stage",
+        "passed": 26
+      },
+      {
+        "name": "cycle-start",
+        "passed": 5
+      },
+      {
+        "name": "staging-return",
+        "passed": 12
+      },
+      {
+        "name": "theme-storage",
+        "passed": 11
+      },
+      {
+        "name": "billing-contract",
+        "passed": 48
+      },
+      {
+        "name": "billing-reconciliation",
+        "passed": 64
+      },
+      {
+        "name": "billing-checkout",
+        "passed": 37
+      },
+      {
+        "name": "commercial-backend",
+        "passed": 28
+      },
+      {
+        "name": "commercial-package",
+        "passed": 2
+      },
+      {
+        "name": "subscription-offline",
+        "passed": 38
+      },
+      {
+        "name": "basic-source-lock",
+        "passed": 2
+      },
+      {
+        "name": "premium-security-reconciliation",
+        "passed": 24
+      },
+      {
+        "name": "basic-cost-guard",
+        "passed": 44
+      },
+      {
+        "name": "preview-offline",
+        "passed": 7
+      },
+      {
+        "name": "edge-http",
+        "passed": 20
+      },
+      {
+        "name": "hosting-runtime",
+        "passed": 32
+      },
+      {
+        "name": "hosting-auth",
+        "passed": 18
+      },
+      {
+        "name": "hosting-build",
+        "passed": 17
+      },
+      {
+        "name": "hosting-commercial",
+        "passed": 23
+      },
+      {
+        "name": "hosting-placeholder",
+        "passed": 12
+      },
+      {
+        "name": "hosting-production",
+        "passed": 4
+      },
+      {
+        "name": "hosting-unified",
+        "passed": 8
+      }
+    ],
+    "totalAssertions": 513,
+    "syntaxChecks": 54
+  },
+  "regressions": {
+    "coachContracts": 21,
+    "hostingAndSubscriptionUnit": 24,
+    "subscriptionBrowser": 64,
+    "trainingBrowser": 156,
+    "artifactBrowserCombinations": 8,
+    "reproducibility": 13,
+    "coachReloadContext": 54,
+    "coachIntegrationBoundaries": 44,
+    "normalInitialAdapter": 25,
+    "normalInitialPremiumBrowser": 879
+  },
+  "limitations": [
+    "Real WebKit BFCache not verified; persisted lifecycle simulated in WebKit; browser history diagnostic reloads instead.",
+    "No new authenticated staging validation; historical acceptance results not included as current tests."
+  ],
+  "browser": [
+    {
+      "engine": "chromium",
+      "width": 390,
+      "version": "156.0.4314.50",
+      "initialInvocations": 0,
+      "sdkCalls": 70,
+      "externalDispatches": 0
+    },
+    {
+      "engine": "chromium",
+      "width": 1280,
+      "version": "156.0.4314.50",
+      "initialInvocations": 0,
+      "sdkCalls": 70,
+      "externalDispatches": 0
+    },
+    {
+      "engine": "webkit",
+      "width": 390,
+      "version": "26.5",
+      "initialInvocations": 0,
+      "sdkCalls": 70,
+      "externalDispatches": 0
+    },
+    {
+      "engine": "webkit",
+      "width": 1280,
+      "version": "26.5",
+      "initialInvocations": 0,
+      "sdkCalls": 70,
+      "externalDispatches": 0
+    }
+  ],
+  "bfcache": {
+    "passed": 2,
+    "failed": 0,
+    "notVerified": [
+      "WebKit real BFCache 390",
+      "WebKit real BFCache 1280"
+    ],
+    "rows": [
+      {
+        "engine": "chromium",
+        "width": 390,
+        "version": "156.0.4314.50",
+        "realBFCache": true,
+        "trustedPersistedPageShow": true,
+        "sameDocument": true,
+        "initialInvocations": 0,
+        "basicReadsContinue": true,
+        "pass": true
+      },
+      {
+        "engine": "chromium",
+        "width": 1280,
+        "version": "156.0.4314.50",
+        "realBFCache": true,
+        "trustedPersistedPageShow": true,
+        "sameDocument": true,
+        "initialInvocations": 0,
+        "basicReadsContinue": true,
+        "pass": true
+      }
+    ]
+  },
+  "protectedRPCs": [
+    {
+      "name": "review_coach_proposal",
+      "md5": "d94b96ae65e69997a37ae83b521ec16b"
+    },
+    {
+      "name": "authorize_coach_retry",
+      "md5": "cdf6200bb140563a96ddc472cc0ac9b7"
+    },
+    {
+      "name": "premium_initial_review",
+      "md5": "c16541b25d191997fce42c2024784c7d"
+    }
+  ],
+  "artifact": "fc35e2be369f2a7e7559602400169896e19bd019e19af9c4dfd4e1b5273525d4"
+}

@@ -1,0 +1,21 @@
+.subscription{font:16px/1.55 system-ui,sans-serif;color:var(--simple-text);text-align:left;max-width:760px;margin:auto}
+.subscription-heading{border-bottom:1px solid var(--simple-line);padding-bottom:16px;margin-bottom:24px}
+.subscription-heading h2{font-size:clamp(1.6rem,4vw,2rem);margin:4px 0}
+.subscription-eyebrow{font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;color:var(--simple-muted)}
+.subscription h3{font-size:1.15rem;margin:0 0 8px}.subscription p{margin:8px 0 16px}
+.subscription-details{border:1px solid var(--simple-line);border-radius:16px;padding:8px 20px;margin:24px 0}
+.subscription-details>div{display:flex;justify-content:space-between;gap:18px;border-bottom:1px solid var(--simple-line-soft);padding:14px 0}
+.subscription-details>div:last-child{border:0}.subscription-details dt{color:var(--simple-muted)}.subscription-details dd{margin:0;text-align:right;font-weight:600;max-width:60%}
+.subscription-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px}.subscription .btn,.subscription-back,.subscription-login button{min-height:44px;padding:10px 18px;border:1px solid var(--simple-control-line);border-radius:10px;background:var(--simple-card);color:var(--simple-text);font:inherit;cursor:pointer}
+.subscription .btn.primary,.subscription-login button{background:var(--simple-primary);color:var(--simple-on-primary)}
+.subscription :focus-visible,.subscription-login :focus-visible,.subscription-back:focus-visible{outline:3px solid var(--simple-focus);outline-offset:3px}.subscription button:disabled{opacity:.55;cursor:wait}
+.subscription-plans{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;margin-top:24px}.subscription-plan{border:1px solid var(--simple-line);border-radius:16px;padding:20px;background:var(--simple-card)}.subscription-price{font-size:1.6rem;font-weight:600}.subscription .muted{color:var(--simple-muted);font-size:.9rem}
+.subscription-notice[role=alert]{color:var(--simple-danger)}.subscription-notice:empty{display:none}
+.subscription-page{font:16px/1.55 system-ui,sans-serif;max-width:820px;margin:48px auto;padding:0 24px 64px}.subscription-page>header{display:flex;justify-content:space-between;align-items:center;margin-bottom:48px}.subscription-page a{color:inherit}.subscription-page .subscription-back{display:inline-flex;align-items:center;box-sizing:border-box;text-decoration:none}
+.subscription-login{border:1px solid var(--simple-line);border-radius:16px;padding:24px;margin-top:20px}.subscription-login label{display:block;margin-bottom:16px}.subscription-login input{box-sizing:border-box;width:100%;margin-top:6px;padding:12px;border:1px solid var(--simple-control-line);border-radius:8px;background:var(--simple-card);color:var(--simple-text);font:inherit}
+.subscription-dialog{width:min(820px,calc(100% - 32px));box-sizing:border-box;max-height:90dvh;border:1px solid var(--simple-line);border-radius:18px;background:var(--simple-bg);padding:24px}.subscription-dialog::backdrop{background:var(--simple-overlay)}.subscription-dialog>.subscription-back{float:right;position:relative;z-index:1}
+@media(max-width:520px){.subscription-page{margin-top:20px;padding-inline:18px}.subscription-page>header{margin-bottom:28px}.subscription-plans{grid-template-columns:1fr}.subscription-details{padding-inline:14px}.subscription-details>div{display:block}.subscription-details dd{text-align:left;max-width:100%;margin-top:4px}.subscription-actions .btn{width:100%}.subscription-dialog{padding:18px}}
+
+.subscription .btn:hover:not(:disabled){border-color:var(--simple-text)}
+.subscription .btn:active:not(:disabled){transform:translateY(1px)}
+.subscription-page [hidden]{display:none}

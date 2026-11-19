@@ -1,13 +1,14 @@
 // Name retained from 1A for compatibility. Closed pilot; all access checked server-side.
 import {DEFAULT_MODEL,MODELS,safetyGate} from './contract.mjs';
 import {generate} from './provider.mjs';
+import {generateStaging} from './staging-cost-guard.mjs';
 const URL=Deno.env.get('SUPABASE_URL')!;
 const ANON=Deno.env.get('SUPABASE_ANON_KEY')!;
 const SERVICE=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const MODEL=Deno.env.get('COACH_OPENAI_MODEL')||DEFAULT_MODEL;
 const production=URL==='https://yvguatdqncadkwewlepe.supabase.co';
 const staging=URL==='https://dmqjexigdnfzobarhnib.supabase.co';
-const allowed=new Set(production?['https://raulchulbi-sys.github.io']:['http://127.0.0.1:4194','http://localhost:4194','http://127.0.0.1:4195','http://localhost:4195']);
+const allowed=new Set(production?['https://raulchulbi-sys.github.io']:['http://127.0.0.1:4194','http://localhost:4194','http://127.0.0.1:4195','http://localhost:4195','http://127.0.0.1:4280','http://localhost:4280',"https://simple-staging-raulchulbi.pages.dev","https://4a8636ab.simple-staging-raulchulbi.pages.dev"]);
 Deno.serve(async req=>{
  const origin=req.headers.get('origin')||'';
  const headers={'Content-Type':'application/json','Cache-Control':'no-store','Access-Control-Allow-Origin':allowed.has(origin)?origin:'',
@@ -40,7 +41,10 @@ Deno.serve(async req=>{
   claimed=true;
   const error=safetyGate(claim.context);
   const result=error?{proposal:null,error_code:error,latency_ms:0,attempts:[]}:
-   await generate(claim.context,{key:Deno.env.get('OPENAI_API_KEY'),model:MODEL});
+   await (staging?generateStaging:generate)(claim.context,{key:Deno.env.get('OPENAI_API_KEY'),model:MODEL,projectURL:URL});
+  // Sanitized server-only receipt: no prompt, user identity, token or key. Basic accounting
+  // remains unchanged; reconcile unexpected provider usage/tier instead of hiding its cost.
+  if(staging&&'cost_guard' in result)console.info('basic_cost_guard',JSON.stringify(result.cost_guard));
   op=await rpc('coach_backend_finish',{p_user:user.id,p_operation:op.id,p_proposal:result.proposal,p_error:result.error_code,p_latency_ms:result.latency_ms,p_attempts:result.attempts},true);
   // Only authenticated synthetic staging participants may inspect a rejected candidate.
   // Never persisted as an approvable proposal, never enabled on production.

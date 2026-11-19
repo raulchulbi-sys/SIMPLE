@@ -1,0 +1,138 @@
+{
+  "date": "2026-11-05",
+  "sourceBase": "3d4dba7baa7f272d13ed0ff3ce44a719414824da",
+  "kind": "Executed local cases; synthetic browser services and isolated PostgreSQL; no connected Auth or provider",
+  "total": 1372,
+  "newCases": 298,
+  "reusedCases": 1074,
+  "syntaxChecks": 54,
+  "ciSuites": 24,
+  "cases": [
+    {
+      "suite": "ci-offline",
+      "newCases": 0,
+      "reusedCases": 539,
+      "passed": 539,
+      "failed": 0
+    },
+    {
+      "suite": "postgres-billing",
+      "newCases": 0,
+      "reusedCases": 24,
+      "passed": 24,
+      "failed": 0
+    },
+    {
+      "suite": "postgres-commercial",
+      "newCases": 0,
+      "reusedCases": 89,
+      "passed": 89,
+      "failed": 0
+    },
+    {
+      "suite": "training-browser",
+      "newCases": 156,
+      "reusedCases": 0,
+      "passed": 156,
+      "failed": 0
+    },
+    {
+      "suite": "client-routine-browser",
+      "newCases": 0,
+      "reusedCases": 116,
+      "passed": 116,
+      "failed": 0
+    },
+    {
+      "suite": "coach-recovery",
+      "newCases": 0,
+      "reusedCases": 111,
+      "passed": 111,
+      "failed": 0
+    },
+    {
+      "suite": "coach-journey",
+      "newCases": 0,
+      "reusedCases": 40,
+      "passed": 40,
+      "failed": 0
+    },
+    {
+      "suite": "coach-reload",
+      "newCases": 0,
+      "reusedCases": 20,
+      "passed": 20,
+      "failed": 0
+    },
+    {
+      "suite": "edge-v36-source-reconciliation",
+      "newCases": 0,
+      "reusedCases": 17,
+      "passed": 17,
+      "failed": 0
+    },
+    {
+      "suite": "coach-source-contracts",
+      "newCases": 0,
+      "reusedCases": 21,
+      "passed": 21,
+      "failed": 0
+    },
+    {
+      "suite": "subscription-unit-new",
+      "newCases": 12,
+      "reusedCases": 0,
+      "passed": 12,
+      "failed": 0
+    },
+    {
+      "suite": "subscription-browser-new",
+      "newCases": 64,
+      "reusedCases": 0,
+      "passed": 64,
+      "failed": 0
+    },
+    {
+      "suite": "subscription-browser-existing",
+      "newCases": 0,
+      "reusedCases": 72,
+      "passed": 72,
+      "failed": 0
+    },
+    {
+      "suite": "hosting-new",
+      "newCases": 33,
+      "reusedCases": 0,
+      "passed": 33,
+      "failed": 0
+    },
+    {
+      "suite": "acceptance-new",
+      "newCases": 21,
+      "reusedCases": 0,
+      "passed": 21,
+      "failed": 0
+    },
+    {
+      "suite": "revocation-observation-new",
+      "newCases": 12,
+      "reusedCases": 0,
+      "passed": 12,
+      "failed": 0
+    },
+    {
+      "suite": "revocation-ipc-existing",
+      "newCases": 0,
+      "reusedCases": 25,
+      "passed": 25,
+      "failed": 0
+    }
+  ],
+  "notes": [
+    "38 existing subscription unit tests and 23 commercial build tests already included in CI539.",
+    "Parameterized browser cases include engine, viewport and theme. Repeated executions and wrapper test containers are not added.",
+    "Existing subscription browser72 ran before the final page-memory Set change; final source covered by unit12, browser64 and existing unit38.",
+    "Edge-v36 reconciliation verifies local source against historical approved manifest, not current connected staging.",
+    "BFCache exercised through persisted events; actual remote navigation, JWT, Stripe and OAuth not exercised."
+  ]
+}

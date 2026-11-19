@@ -11,6 +11,28 @@ const suites = [
   'tests/training-reset/unit.cjs',
   'tests/statistics-stage/unit.cjs',
   'tests/cycle-start/unit.cjs',
+  'tests/staging-return/offline.cjs',
+  'tests/theme-storage/unit.cjs',
+  'tests/billing-test/contract.test.mjs',
+  'tests/billing-test/reconciliation.test.mjs',
+  'tests/billing-test/checkout-regression.test.mjs',
+  'tests/commercial/backend.test.mjs',
+  'tests/commercial/package.test.mjs',
+  'tests/subscription/offline.cjs',
+  'tests/commercial/basic-source-lock.test.mjs',
+  'tests/premium-review-security/reconciliation.test.mjs',
+  // Unified Coach/hosting suites: standard-library doubles and isolated builds.
+  // Historical git comparisons, browser engines and PostgreSQL stay explicit.
+  'tests/coach-flow/basic-cost-guard.cjs',
+  'tests/coach-flow/preview-offline.test.mjs',
+  'tests/coach-pilot-v2/edge-http.mjs',
+  'tests/cloudflare/runtime.cjs',
+  'tests/cloudflare/auth-contract.cjs',
+  'tests/cloudflare/build.cjs',
+  'tests/cloudflare/commercial-build.cjs',
+  'tests/cloudflare/placeholder-build.cjs',
+  'tests/cloudflare/production-build.cjs',
+  'tests/cloudflare/unified-builds.cjs',
 ];
 const excludedDirectories = new Set(['private', 'results', 'node_modules', '.git']);
 
@@ -39,6 +61,11 @@ function run(args) {
 
 const sources = [
   'scripts/ci-offline.cjs',
+  'scripts/staging-return.cjs',
+  'scripts/hosting-build.cjs',
+  'scripts/hosting-commercial-build.cjs',
+  'scripts/hosting-runtime.cjs',
+  'scripts/hosting-preview.cjs',
   ...syntaxFiles('assets'),
   ...syntaxFiles('supabase/functions'),
 ];
@@ -46,6 +73,6 @@ for (const file of sources) run(['--check', file]);
 console.log(`${sources.length} JS/MJS syntax checks passed (no module execution).`);
 for (const suite of suites) {
   console.log(`Running ${suite}`);
-  run([suite]);
+  run(suite.endsWith('.mjs') ? ['--experimental-vm-modules','--test','--test-concurrency=1',suite] : [suite]);
 }
 console.log(`${suites.length} audited offline suites passed; no real backend/provider validation.`);
