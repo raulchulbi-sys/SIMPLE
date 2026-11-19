@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "entry": "index.html",
+  "generated": ["assets/runtime-config.js"],
+  "files": [
+    "index.html",
+    "assets/atlas.webp",
+    "assets/auth.css",
+    "assets/auth.js",
+    "assets/client-routine.js",
+    "assets/coach-intake.js",
+    "assets/coach-prescription.js",
+    "assets/coach-premium-adapter.js",
+    "assets/coach-premium-app.css",
+    "assets/coach-premium-app.js",
+    "assets/coach-premium-chat.css",
+    "assets/coach-premium-chat.js",
+    "assets/coach-premium-initial-adapter.js",
+    "assets/coach-premium-initial.css",
+    "assets/coach-premium-initial.js",
+    "assets/coach-premium-prescription.js",
+    "assets/coach-premium-weekly.js",
+    "assets/coach-programming-v4.js",
+    "assets/coach-programming-v5.js",
+    "assets/coach-questionnaire.js",
+    "assets/coach-reviewer.js",
+    "assets/coach.css",
+    "assets/coach.js",
+    "assets/google-g.png",
+    "assets/interior.css",
+    "assets/oauth.js",
+    "assets/reorder.js",
+    "assets/settings.css",
+    "assets/settings.js",
+    "assets/statistics-stage.js",
+    "assets/theme.css",
+    "assets/theme.js"
+  ],
+  "externalResources": [
+    "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0",
+    "https://media.tenor.com/uYAHiDSVAn4AAAA1/baldi-dance.webp"
+  ]
+}
