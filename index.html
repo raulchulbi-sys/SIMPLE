@@ -2484,6 +2484,19 @@ button.client-overview-card{display:flex;flex-direction:column;align-items:stret
 <link rel="stylesheet" href="assets/theme.css">
 <link rel="stylesheet" href="assets/auth.css?v=auth-caps-20261020">
 <link rel="stylesheet" href="assets/interior.css">
+<style id="routine-cycle-reset-style">
+#app .cycle-reset-link{transition:none;box-shadow:none;flex:none;min-height:44px;padding:4px 3px;border:0;background:transparent;color:var(--simple-muted);font:inherit;font-size:13px;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+#app .cycle-reset-link:hover{color:var(--simple-text)}
+#app .weekly-progress-complete-row:has(.cycle-reset-link) .weekly-progress-bar{flex:1 1 6rem;min-width:0}
+#app .routine-drag-name:has(.cycle-reset-link){width:100%}
+#cycleResetDialog{box-sizing:border-box;width:min(24rem,calc(100% - 32px));max-height:calc(100dvh - 32px);margin:auto;padding:24px;border:1px solid var(--simple-line);border-radius:18px;background:var(--simple-card);color:var(--simple-text);box-shadow:0 12px 40px var(--simple-shadow)}
+#cycleResetDialog::backdrop{background:var(--simple-overlay)}
+#cycleResetDialog h2{margin:0;font-size:22px}
+#cycleResetDialog p{margin:12px 0;line-height:1.5;overflow-wrap:anywhere}
+#cycleResetDialog .buttons{margin:18px 0 0;justify-content:flex-end}
+#cycleResetError{color:var(--simple-danger);font-size:14px}
+#cycleResetError:empty{display:none}
+</style>
 <link rel="stylesheet" href="assets/settings.css">
 <link rel="stylesheet" href="assets/coach.css?v=basic-initial-v5">
 <link rel="stylesheet" href="assets/coach-premium-app.css?v=premium-upgrade-v1">
@@ -2555,6 +2568,15 @@ button.client-overview-card{display:flex;flex-direction:column;align-items:stret
 
 <div id="app" style="display:none"><div class="wrap"><header><div><h1><svg class="interior-brand-mark" viewBox="0 0 100 70" aria-hidden="true"><path d="M0 25h6v20H0zM13 12h6v46h-6zM26 0h6v70h-6zM68 0h6v70h-6zM81 12h6v46h-6zM94 25h6v20h-6z"/></svg>SIMPLE</h1><div class="sub"><span id="role"></span> · <span id="mail"></span></div></div><div class="actions"><button class="btn" onclick="shareHeaderOpen()">Compartir</button><button class="btn" onclick="logout()">Salir</button></div></header>
 <div id="tabs" class="tabs"></div>
+<dialog id="cycleResetDialog" aria-labelledby="cycleResetTitle" aria-describedby="cycleResetCopy">
+ <h2 id="cycleResetTitle">¿Reiniciar tu ciclo?</h2>
+ <p id="cycleResetCopy">El contador de <strong id="cycleResetName"></strong> volverá a cero. Conservarás tus entrenamientos y estadísticas.</p>
+ <p id="cycleResetError" role="alert"></p>
+ <div class="buttons">
+  <button class="btn" id="cycleResetCancel" type="button" autofocus onclick="this.closest('dialog').close()">Cancelar</button>
+  <button class="btn primary" type="button" id="cycleResetConfirm" data-keep-enabled="true">Reiniciar ciclo</button>
+ </div>
+</dialog>
 <div id="mine"></div>
 <div id="new" style="display:none"></div>
 <div id="shared" style="display:none"></div>
@@ -3060,6 +3082,7 @@ async function restoreClientRoutine(assignmentId){
 
 
 function view(v){
+  if($('cycleResetDialog')?.open)$('cycleResetDialog').close();
   window.__workoutContextVersion=(window.__workoutContextVersion||0)+1;
   // All dashboard sections (Mis rutinas, Crear rutina, Mis clientes, etc.)
   // are top-level, so the global navigation must always be visible here.
@@ -4586,7 +4609,7 @@ async function renderClients(){
 let __routineDrag=null;
 async function renderMine(){
   if(window.simpleReorder?.dragging)return;
-  const token=++__mineRenderToken;
+  const token=++__mineRenderToken,owner=user,ownerId=user?.id;
   const box=$('mine'); if(!box)return;
   const header='<div class="card reorder-heading"><h2 style="margin:0">Mis rutinas</h2><button id="routineReorderToggle" class="btn" type="button" onclick="simpleReorder.toggle(\'routine\')">Reordenar</button></div>';
   if(!routines.length){
@@ -4595,8 +4618,8 @@ async function renderMine(){
   }
 
   const routineIds=routines.map(r=>String(r.id));
-  const weekly=await getWeeklyRoutineProgressForUser(user.id,routineIds);
-  if(token!==__mineRenderToken||window.simpleReorder?.dragging)return;
+  const weekly=await getWeeklyRoutineProgressForUser(ownerId,routineIds);
+  if(token!==__mineRenderToken||user!==owner||user?.id!==ownerId||window.simpleReorder?.dragging)return;
 
   // `weekly` conserva el nombre histórico de la variable; el contador representa
   // el progreso actual del ciclo de la rutina.
@@ -4616,7 +4639,7 @@ async function renderMine(){
         <div class="routine-drag-name" style="min-width:0">
           <h3>${esc(r.name)}</h3>
           <div class="muted routine-description">${esc(r.description||'Sin descripción')}</div>
-          ${renderWeeklyRoutineProgress(p.total,p.done,String(user.id)+'|'+String(r.id))}
+          ${renderWeeklyRoutineProgress(p.total,p.done,String(ownerId)+'|'+String(r.id),{ownerId,routineId:r.id})}
         </div>
       </div>
       <div class="buttons routine-actions">
@@ -8065,7 +8088,7 @@ function simpleDailyProgressFromSessions(sessions,total,aliases={},routineIds=[]
       return {row,dateKey,ts};
     })
     .filter(x=>x.dateKey && Number.isFinite(x.ts))
-    .sort((a,b)=>a.ts-b.ts);
+    .sort((a,b)=>a.dateKey.localeCompare(b.dateKey)||a.ts-b.ts);
 
   if(!normalized.length)return 0;
 
@@ -8073,12 +8096,19 @@ function simpleDailyProgressFromSessions(sessions,total,aliases={},routineIds=[]
   // Important: when the cycle is completed today, keep it at 100% (X/X)
   // for the rest of today. It starts at 0/X on the following calendar day.
   let seen=new Set();
+  let previousWorkoutDate;
   let cycleCompletedToday=false;
-  const todayKey=simpleLocalDateKey(new Date());
+  const todayKey=simpleCycleDateKey();
+  // Count full intervening Madrid calendar dates, including across clock changes.
+  const inactivityWindow=4*86400000;
 
   for(let i=0;i<normalized.length;i++){
     const key=resolveRoutineDayKey(normalized[i].row);
     if(key){
+      // ISO dates parse at UTC midnight, so DST does not shorten a calendar day.
+      const workoutDate=Date.parse(normalized[i].dateKey);
+      if(workoutDate-previousWorkoutDate>inactivityWindow)seen.clear();
+      previousWorkoutDate=workoutDate;
       // If a day that is already inside an unfinished cycle is played again,
       // treat that workout as an intentional restart of the routine. This lets
       // a client go from e.g. 4/5 back to day 1 and correctly show 1/5.
@@ -8098,6 +8128,7 @@ function simpleDailyProgressFromSessions(sessions,total,aliases={},routineIds=[]
   }
 
   if(cycleCompletedToday)return maxDays;
+  if(Date.parse(todayKey)-previousWorkoutDate>inactivityWindow)return 0;
   return Math.min(maxDays,seen.size);
 }
 
@@ -8217,9 +8248,76 @@ function renderCycleCompletion(total,done,contextKey){
   // Completion stays visible until the Madrid-day rollover refreshes progress.
   // Re-rendering, reloading or another tab must not consume the celebration.
   const animate=!!contextKey&&!matchMedia('(prefers-reduced-motion: reduce)').matches;
-  return '<div class="weekly-progress-celebration" aria-label="Rutina finalizada">'+(animate?'<img class="weekly-progress-gif" src="assets/weekly-completion.gif" alt="Baile de celebración" loading="lazy" referrerpolicy="no-referrer">':'')+'<div class="weekly-progress-celebration-copy"><b>Rutina finalizada</b></div></div>';
+  return '<div class="weekly-progress-celebration" aria-label="Rutina finalizada">'+(animate?'<img class="weekly-progress-gif" src="assets/weekly-completion.gif?v=0fb8e22a" alt="Baile de celebración" loading="lazy" referrerpolicy="no-referrer">':'')+'<div class="weekly-progress-celebration-copy"><b>Rutina finalizada</b></div></div>';
 }
-function renderWeeklyRoutineProgress(totalDays,completedDays,contextKey=''){
+const pendingCycleResets=new Map();
+function openRoutineCycleReset(button){
+  const {cycleOwner:ownerId,cycleRoutine:routineId}=button.dataset;
+  const owner=user,section=button.closest('#mine,#shared'),dialog=$('cycleResetDialog');
+  if(!section||!ownerId||owner?.id!==ownerId||!routineId||dialog.open)return;
+  const version=window.__workoutContextVersion;
+  const current=()=>user===owner&&user?.id===ownerId&&version===window.__workoutContextVersion;
+  const findTrigger=()=>section.querySelector('[data-cycle-owner="'+CSS.escape(ownerId)+'"][data-cycle-routine="'+CSS.escape(routineId)+'"]');
+  const key='simple_cycle_reset_'+ownerId+'_'+routineId;
+  let request=pendingCycleResets.get(key);
+  if(request?.busy){toast('El reinicio sigue en curso.');return;}
+  if(!request){
+    let id;
+    try{id=sessionStorage.getItem(key);}catch(_){}
+    request={id,busy:false};
+  }
+  const confirmButton=$('cycleResetConfirm'),error=$('cycleResetError');
+  $('cycleResetName').textContent=button.closest('.card')?.querySelector('h3')?.textContent||'esta rutina';
+  $('cycleResetCancel').textContent=request.id?'Cerrar':'Cancelar';
+  confirmButton.textContent=request.id?'Reintentar reinicio':'Reiniciar ciclo';
+  confirmButton.removeAttribute('aria-disabled');
+  error.textContent=request.id?'Queda un reinicio por confirmar.':'';
+  async function submit(){
+    if(request.busy||!dialog.open)return;
+    if(!current()||!findTrigger()){dialog.close();return;}
+    if(!request.id)request.id=crypto.randomUUID();
+    pendingCycleResets.set(key,request);
+    // Keep the confirmation key when the server response is lost, even on reload.
+    try{sessionStorage.setItem(key,request.id);}catch(_){}
+    request.busy=true;
+    $('cycleResetCancel').textContent='Cerrar';
+    confirmButton.setAttribute('aria-disabled','true');
+    confirmButton.textContent='Reiniciando…';
+    error.textContent='';
+    try{
+      const result=await db.rpc('reset_my_routine_cycle',{
+        p_expected_user_id:ownerId,p_routine_id:routineId,p_request_id:request.id
+      });
+      if(result.error)throw result.error;
+    }catch(_){
+      request.busy=false;
+      if(current()&&dialog.open&&confirmButton.onclick===submit){
+        error.textContent='No se pudo confirmar el reinicio. Puedes reintentarlo.';
+        confirmButton.removeAttribute('aria-disabled');
+        confirmButton.textContent='Reintentar reinicio';
+      }
+      return;
+    }
+    pendingCycleResets.delete(key);
+    try{sessionStorage.removeItem(key);}catch(_){}
+    announceCycleChange(false);
+    if(!current())return;
+    await refreshDailyProgressAfterDateChange(true);
+    if(!current()||!dialog.open||confirmButton.onclick!==submit)return;
+    dialog.close();
+    findTrigger()?.focus();
+    toast('Ciclo reiniciado.');
+  }
+  confirmButton.onclick=submit;
+  dialog.onclose=()=>{
+    if(dialog.open)return;
+    confirmButton.onclick=null;
+    $('cycleResetName').textContent='';
+    error.textContent='';
+  };
+  dialog.showModal();
+}
+function renderWeeklyRoutineProgress(totalDays,completedDays,contextKey='',resetTarget=null){
 
   const total=Math.max(0,Number(totalDays)||0);
   const done=Math.min(total,Math.max(0,Number(completedDays)||0));
@@ -8229,9 +8327,10 @@ function renderWeeklyRoutineProgress(totalDays,completedDays,contextKey=''){
   return `<div class="weekly-routine-progress">
     <div class="weekly-routine-progress-head"><span>Ciclo actual</span><b>${done}/${total} del ciclo actual</b></div>
     <div class="weekly-progress-complete-row">
-      <div class="weekly-progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${total}" aria-valuenow="${done}">
+      <div class="weekly-progress-bar" role="progressbar" aria-label="Ciclo actual" aria-valuemin="0" aria-valuemax="${total}" aria-valuenow="${done}">
         ${Array.from({length:total},(_,i)=>`<span class="weekly-progress-segment ${i<done?'is-done':''}"></span>`).join('')}
       </div>
+      ${resetTarget?.ownerId&&resetTarget.routineId?`<button type="button" class="cycle-reset-link" data-cycle-owner="${esc(resetTarget.ownerId)}" data-cycle-routine="${esc(resetTarget.routineId)}" aria-haspopup="dialog" onclick="openRoutineCycleReset(this)">Reiniciar ciclo</button>`: ''}
       ${celebration}
     </div>
   </div>`;
@@ -8284,13 +8383,14 @@ async function renderShared(parentCurrent=()=>true){
     const description=unavailable?'No se pudo cargar la rutina del cliente.':routine?.description||(a.client_routine_id?cached.description:'')||'';
     if(!unavailable)mm[trainerRoutineId]={name,description};
     const routineId=String(a.client_routine_id||a.trainer_routine_id);
-    const weekly=weeklyAll.get(routineId)||weeklyAll.get(trainerRoutineId)||{total:0,done:0};
+    const progressRoutineId=weeklyAll.has(routineId)?routineId:trainerRoutineId;
+    const weekly=weeklyAll.get(progressRoutineId)||{total:0,done:0};
 
     h+=`<div class="card routine">
       <div>
         <h3>${esc(name)}</h3>
         <div class="muted">${esc(description)}</div>
-        ${renderWeeklyRoutineProgress(weekly.total,weekly.done,String(user.id)+'|'+String(trainerRoutineId))}
+        ${renderWeeklyRoutineProgress(weekly.total,weekly.done,String(owner.id)+'|'+trainerRoutineId,{ownerId:owner.id,routineId:progressRoutineId})}
       </div>
       <div class="buttons">
         <button class="btn primary" ${unavailable?'disabled':''} onclick="openSharedRoutine('${trainerRoutineId}')">Abrir</button>
@@ -8403,7 +8503,7 @@ async function redeemShareCode(){
 
 </script>
 <script src="assets/oauth.js?v=google-below-20260927"></script>
-<script src="assets/auth.js?v=auth-caps-20261020"></script>
+<script src="assets/auth.js?v=cycle-reset-1"></script>
 <script src="assets/settings.js"></script>
 <script>
 // Protección contra dobles clics en acciones sensibles.
@@ -8655,7 +8755,7 @@ window.updateClientTrashVisual=function(full){
 <script src="assets/coach-programming-v4.js?v=basic-initial-v4"></script>
 <script src="assets/coach-programming-v5.js?v=basic-v5-rest-20261001"></script>
 <script src="assets/coach-questionnaire.js?v=premium-direct-closed-20261014"></script>
-<script src="assets/coach.js?v=reviewer-privacy-20261018"></script>
+<script src="assets/coach.js?v=cycle-reset-1"></script>
 <script src="assets/coach-premium-prescription.js?v=premium-upgrade-v1"></script>
 <script src="assets/coach-premium-weekly.js?v=premium-weekly-v1"></script>
 <script src="assets/coach-premium-chat.js?v=premium-chat-v1"></script>

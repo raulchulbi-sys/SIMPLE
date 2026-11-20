@@ -246,6 +246,7 @@ function resetAuthSession(){
   simpleAuth.epoch++;simpleAuth.role=null;simpleAuth.recovery=false;simpleAuth.callbackError=false;simpleAuth.failed=false;
   window.__workoutContextVersion=(window.__workoutContextVersion||0)+1;
   window.__simpleStarted=false;window.__simpleStartBusy=false;
+  $('cycleResetDialog')?.close();
   document.querySelectorAll('.modal.show').forEach(el=>closeM(el.id));
   user=null;profile=null;routines=[];assignments=[];activeWorkout=null;workoutRoutine=null;
   ['mine','shared','clients','new','trash','tabs'].forEach(id=>{if($(id))$(id).innerHTML='';});
