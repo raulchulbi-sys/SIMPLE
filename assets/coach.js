@@ -35,7 +35,7 @@ async function renderCoachHome(isCurrent=()=>true){
   const cycle=await getWeeklyRoutineProgressForUser(user.id,[r.id]);
   if(!isCurrent())return;
   const p=cycle.get(r.id)||{done:0,total:0};
-  host.insertAdjacentHTML('beforeend','<div class="card"><h3>'+esc(r.name)+'</h3><p class="muted">SIMPLE Coach · piloto</p>'+renderWeeklyRoutineProgress(p.total,p.done,user.id+'|'+r.id)+'<div class="buttons"><button data-keep-enabled="true" class="btn primary" onclick="openCoachRoutine(\''+r.id+'\')">Entrenar</button><button data-keep-enabled="true" class="btn" onclick="openRoutineProgress(\''+r.id+'\')">Progreso</button></div></div>');
+  host.insertAdjacentHTML('beforeend','<div class="card"><h3>'+esc(r.name)+'</h3><p class="muted">SIMPLE Coach · piloto</p>'+renderWeeklyRoutineProgress(p.total,p.done,user.id+'|'+r.id,{ownerId:owner,routineId:r.id})+'<div class="buttons"><button data-keep-enabled="true" class="btn primary" onclick="openCoachRoutine(\''+r.id+'\')">Entrenar</button><button data-keep-enabled="true" class="btn" onclick="openRoutineProgress(\''+r.id+'\')">Progreso</button></div></div>');
  }
 }
 // Premium uses the existing SDK/session. Its dialog owns no Auth or Basic state.
