@@ -1,0 +1,23 @@
+
+# Exact return routes only; inherited headers remain present.
+# Detach/re-add replaces one inherited value without comma duplication.
+/billing-test.html
+  ! Referrer-Policy
+  Referrer-Policy: no-referrer
+  Cache-Control: no-store
+  Content-Security-Policy: default-src 'none'; script-src 'self' https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0; style-src 'self'; connect-src https://dmqjexigdnfzobarhnib.supabase.co; base-uri 'none'; frame-ancestors 'none'; form-action 'self'; object-src 'none'
+
+/assets/billing-return.js
+  ! Cache-Control
+  Cache-Control: no-store
+
+/assets/billing-return-model.mjs
+  ! Cache-Control
+  Cache-Control: no-store
+  Content-Type: text/javascript; charset=utf-8
+
+/billing-test
+  ! Referrer-Policy
+  Referrer-Policy: no-referrer
+  Cache-Control: no-store
+  Content-Security-Policy: default-src 'none'; script-src 'self' https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0; style-src 'self'; connect-src https://dmqjexigdnfzobarhnib.supabase.co; base-uri 'none'; frame-ancestors 'none'; form-action 'self'; object-src 'none'

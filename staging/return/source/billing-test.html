@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="referrer" content="no-referrer">
+  <title>SIMPLE · Estado de tu suscripción de prueba</title>
+  <link rel="stylesheet" href="/assets/billing-return.css">
+</head>
+<body><main>
+  <p>SIMPLE / Suscripción</p>
+  <h1>Consulta tu suscripción</h1>
+  <p class="notice">Entorno de pruebas. Esta página permite consultar el resultado; no realiza compras ni cambios de plan.</p>
+  <form id="login">
+    <h2>Accede a tu cuenta de pruebas</h2>
+    <p>Al volver del pago, inicia sesión de nuevo para comprobar el estado de tu cuenta.</p>
+    <label for="email">Correo electrónico</label>
+    <input id="email" type="email" autocomplete="username" required>
+    <label for="password">Contraseña</label>
+    <input id="password" type="password" autocomplete="current-password" required>
+    <button type="submit">Iniciar sesión</button>
+  </form>
+  <section id="account" hidden>
+    <h2 id="state">Consultando…</h2>
+    <p id="detail"></p>
+    <nav><button id="refresh" type="button">Actualizar estado</button><button id="logout" type="button">Cerrar sesión</button></nav>
+  </section>
+  <p id="status" role="status" aria-live="polite"></p>
+  <noscript>Activa JavaScript para consultar tu suscripción de forma segura.</noscript>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0"></script>
+<script type="module" src="/assets/billing-return.js"></script>
+</body></html>
