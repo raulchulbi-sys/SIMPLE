@@ -57,6 +57,7 @@ async function personalSessionChoices(ownerId, isCurrent) {
     if (result.status !== 'fulfilled') continue;
     for (const name of result.value) {
       if (typeof name !== 'string' || !name.trim()) continue;
+      if (/^nuevo\s+d[ií]a$/iu.test(name.trim().normalize('NFC'))) continue;
       const key = name.toLowerCase();
       if (!names.has(key)) names.set(key, name);
     }
