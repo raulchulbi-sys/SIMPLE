@@ -24,6 +24,10 @@ const tables = { profiles, routines: [
     session(profiles[1].id, 9000)] };
 tables.workouts[0].data.day_name = 'LUNES / PUSH EXTRA';
 tables.workouts[310].data.day_name = 'Entreno antiguo único';
+tables.workouts[ownCount-2].data.day_name = 'Nuevo día';
+tables.workouts[ownCount-3].data.day_name = '';
+tables.workouts[ownCount-3].day = ' NUEVO  DIA ';
+tables.workouts[311].data.day_name = 'Nuevo día / Movilidad';
 tables.workouts.at(-1).data.day_name = 'Sesión exclusiva de la otra cuenta';
 for (const row of tables.workouts) {
   row.fixtureDateOrder = row.workout_date || '';
@@ -283,7 +287,7 @@ async function main() {
       mock.tables.routine_days = days;
       mock.failNames = true;
     }, {routine:id(770),copy:id(771),aid:id(775),days:[
-      ...['LUNES / PUSH','MARTES / PULL','MIÉRCOLES / LEG'].map((name,i)=>({
+      ...['LUNES / PUSH','MARTES / PULL','MIÉRCOLES / LEG','Nuevo di\u0301a'].map((name,i)=>({
         id:id(780+i),routine_id:id(770),day_order:i,name
       })), {id:id(785),routine_id:id(771),day_order:0,name:'VIERNES / UPPER'}
     ]});
@@ -295,6 +299,8 @@ async function main() {
     assert.deepEqual(choices.slice(0,5),['Todas las sesiones','LUNES / PUSH','MARTES / PULL','MIÉRCOLES / LEG','VIERNES / UPPER']);
     assert.equal(choices.filter(x=>x.toLowerCase()==='lunes / push').length,1);
     assert.ok(choices.includes('LUNES / PUSH EXTRA'));
+    for (const placeholder of ['Nuevo día', 'Nuevo di\u0301a', ' NUEVO  DIA '])
+      assert.ok(!choices.includes(placeholder));
     assert.ok(!choices.includes('Sesión exclusiva de la otra cuenta'));
     async function apply(term, direction) {
       if (!await picker.isVisible()) await filter.click();
@@ -302,6 +308,9 @@ async function main() {
       await personal.getByLabel('Orden por fecha').selectOption(direction);
       await personal.getByRole('button', {name:'Aplicar'}).click();
     }
+    await apply('Nuevo día / Movilidad','desc');
+    await currentCards.first().waitFor();
+    assert.deepEqual(await currentCards.locator('.history-title').allTextContents(), ['Retirada 311']);
     await apply('LUNES / PUSH', 'asc');
     const expected = tables.workouts.filter(row => row.user_id === profiles[0].id &&
       (row.data.day_name || row.day).toLowerCase()==='lunes / push').sort((a,b) =>
@@ -327,6 +336,8 @@ async function main() {
     await personal.getByRole('button', {name:'Restablecer'}).click();
     await currentCards.first().waitFor();
     assert.match(await currentCards.first().innerText(), /Retirada 1104/);
+    assert.match(await currentCards.nth(1).locator('summary').innerText(), /Nuevo día/);
+    assert.match(await currentCards.nth(2).locator('summary').innerText(), /NUEVO\s+DIA/);
     await currentCards.first().locator('summary').click();
     const edit = currentCards.first().getByRole('button', {name:'Editar sesión'});
     const dialog = page.getByRole('dialog', {name:'Editar sesión'});
