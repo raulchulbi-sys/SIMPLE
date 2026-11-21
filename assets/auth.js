@@ -256,12 +256,18 @@ function resetAuthSession(){
 }
 async function authLogout(){
   if(simpleAuth.busy)return;
+  const owner=user, personalHistory=$('history')?.querySelector('.personal-sessions');
   // Invalidate pending workout reads/writes before awaiting network sign-out.
   window.__workoutContextVersion=(window.__workoutContextVersion||0)+1;
   if(typeof activeWorkout!=='undefined'&&activeWorkout&&!activeWorkout.locked){try{saveWorkoutDraft();}catch(_){} }
   simpleAuth.epoch++;setAuthBusy(true);
   try{const r=await db.auth.signOut();if(r.error)throw r.error;resetAuthSession();}
-  catch(_){if($('app').style.display!=='none')toast('No se pudo cerrar la sesión. Inténtalo de nuevo.');else msg('No se pudo cerrar la sesión. Inténtalo de nuevo.');}
+  catch(_){
+    if($('app').style.display!=='none'){
+      if(owner&&user===owner&&personalHistory?.isConnected)renderPersonalHistory();
+      toast('No se pudo cerrar la sesión. Inténtalo de nuevo.');
+    }else msg('No se pudo cerrar la sesión. Inténtalo de nuevo.');
+  }
   finally{setAuthBusy(false);}
 }
 async function bootstrapAuthSession(){

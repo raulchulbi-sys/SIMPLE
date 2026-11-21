@@ -198,6 +198,23 @@ async function main() {
     await personal.getByRole('button', { name: 'Reintentar' }).click();
     await page.waitForFunction(() => document.querySelectorAll('#history details').length === 30);
     assert.equal(await currentCards.last().locator('.history-title').innerText(), 'Retirada 0');
+    // A failed logout invalidates the old read. The same account must still be able to browse.
+    await page.evaluate(() => {
+      window.historyHold = true;
+      window.releaseHistory = null;
+      db.auth.signOut = async () => ({ error: { message: 'Offline fixture' } });
+    });
+    await openHistory();
+    await page.waitForFunction(() => typeof window.releaseHistory === 'function');
+    await page.getByRole('button', { name: 'Salir', exact: true }).click();
+    await page.getByText('No se pudo cerrar la sesión. Inténtalo de nuevo.', { exact: true }).waitFor();
+    await page.evaluate(() => window.releaseHistory());
+    await page.waitForFunction(() => document.querySelectorAll('#history details').length === 25);
+    await personal.getByRole('button', { name: 'Ver más sesiones' }).click();
+    await page.waitForFunction(() => document.querySelectorAll('#history details').length === 29);
+    assert.equal(await currentCards.last().locator('.history-title').innerText(), 'Retirada 0');
+    assert.equal(await page.evaluate(() => mock.calls.some(c => c.write)), false);
+    console.log('OK · tras fallar el cierre de sesión, la misma cuenta vuelve a leer y paginar');
     console.log('OK · página repetida rechazada sin duplicados, reintento correcto');
     console.log('OK · borrado concurrente en la primera página, cinco sesiones restantes accesibles');
     console.log('OK · respuesta de cuenta anterior descartada, error y reintento, cuenta vacía');
