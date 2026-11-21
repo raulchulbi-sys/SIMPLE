@@ -10,8 +10,8 @@ const id = n => '00000000-0000-4000-8000-' + String(n).padStart(12, '0');
 const profiles = ['client', 'trainer'].map((role, i) => ({ id: id(i + 1), role, name: role }));
 function session(owner, i) {
   return { id: id((owner === profiles[0].id ? 10000 : 20000) + i), user_id: owner,
-    workout_date: i < 30 ? null : i < 65 ? '2025-12-31' : '2026-01-01', day: i % 5 ? 'Pull' : 'Push clásico',
-    data: { [i % 2 ? 'routine_id' : 'routineId']: id(900 + i % 3), routine_name: 'Retirada ' + i, day_name: i % 7 === 0 ? 'PUSH A' : i % 7 === 1 ? 'Sesión (A.1)' : '', duration_seconds: 600,
+    workout_date: i < 30 ? null : i < 65 ? '2025-12-31' : '2026-01-01', day: i % 5 ? 'MARTES / PULL' : 'LUNES / PUSH',
+    data: { [i % 2 ? 'routine_id' : 'routineId']: id(900 + i % 3), routine_name: 'Retirada ' + i, day_name: i % 7 === 0 ? 'lunes / push' : i % 7 === 1 ? 'Sesión (A.1)' : '', duration_seconds: 600,
       exercises: [{ name: 'Ejercicio <guardado>', notes: 'Nota del propietario', rest_seconds: 60,
         sets: [{ set: 1, kg: 12, reps: 8, rir: 0 }] }] } };
 }
@@ -22,6 +22,9 @@ const tables = { profiles, routines: [
 ], routine_assignments: [],
   workouts: [...Array.from({ length: ownCount }, (_, i) => session(profiles[0].id, i)),
     session(profiles[1].id, 9000)] };
+tables.workouts[0].data.day_name = 'LUNES / PUSH EXTRA';
+tables.workouts[310].data.day_name = 'Entreno antiguo único';
+tables.workouts.at(-1).data.day_name = 'Sesión exclusiva de la otra cuenta';
 for (const row of tables.workouts) {
   row.fixtureDateOrder = row.workout_date || '';
   row.fixtureDateAsc = row.workout_date || '9999-12-31';
@@ -33,15 +36,27 @@ function installCursorDouble() {
   db.from = table => {
     const query = from(table);
     if (table !== 'workouts') return query;
+    const select = query.select.bind(query);
+    query.select = columns => {
+      if (columns === 'id,user_id,day,session_name:data->>day_name') {
+        const then = query.then.bind(query);
+        query.then = (resolve,reject) => then(result => {
+          if (mock.failNames) { mock.failNames = false; return resolve({data:null,error:{message:'offline'}}); }
+          return resolve({...result,data:result.data.map(({id,user_id,day,data}) => ({id,user_id,day,session_name:data.day_name}))});
+        },reject);
+      }
+      return select(columns);
+    };
     const subset = predicate => query.in('id', mock.tables.workouts.filter(predicate).map(row => row.id));
     query.lt = (key, value) => subset(row => row[key] < value);
     query.gt = (key, value) => subset(row => row[key] > value);
     query.or = expression => {
       if (expression.startsWith('data->>day_name.imatch.')) {
         const match = /^data->>day_name\.imatch\.("(?:[^"\\]|\\.)*"),and\(or\(data->>day_name\.is\.null,data->>day_name\.eq\.""\),day\.imatch\.(.+)\)$/.exec(expression);
-        if (!match || match[1] !== match[2] || !JSON.parse(match[1]).startsWith('***=')) throw Error('Unexpected name filter');
-        const term = JSON.parse(match[1]).slice(4).toLowerCase();
-        return subset(row => (row.data.day_name || row.day).toLowerCase().includes(term));
+        if (!match || match[1] !== match[2]) throw Error('Unexpected name filter');
+        const pattern = JSON.parse(match[1]);
+        if (!pattern.startsWith('^') || !pattern.endsWith('$')) throw Error('Expected whole session name');
+        return subset(row => new RegExp(pattern,'i').test(row.data.day_name || row.day));
       }
       const match = /^workout_date\.(gt|lt)\.([^,]+),and\(workout_date\.eq\.([^,]+),id\.(gt|lt)\.([^)]+)\),workout_date\.is\.null$/.exec(expression);
       if (!match || match[2] !== match[3] || match[1] !== match[4]) throw Error('Unexpected cursor predicate');
@@ -257,28 +272,54 @@ async function main() {
     await page.evaluate(rows => { mock.tables.workouts = rows; }, tables.workouts);
     await openHistory();
     const filter = personal.getByRole('button', {name:'Filtrar'});
-    const search = personal.getByRole('searchbox');
+    const picker = personal.getByLabel('Sesión de entrenamiento');
+    await page.evaluate(({routine,copy,aid,days}) => {
+      assignments = [
+        {id:aid,client_id:user.id,trainer_routine_id:routine},
+        {id:'copy-assignment',client_id:user.id,trainer_routine_id:'template',client_routine_id:copy}
+      ];
+      mock.tables.routine_assignments = assignments;
+      mock.tables.routines.push({id:routine,name:'Plan asignado'});
+      mock.tables.routine_days = days;
+      mock.failNames = true;
+    }, {routine:id(770),copy:id(771),aid:id(775),days:[
+      ...['LUNES / PUSH','MARTES / PULL','MIÉRCOLES / LEG'].map((name,i)=>({
+        id:id(780+i),routine_id:id(770),day_order:i,name
+      })), {id:id(785),routine_id:id(771),day_order:0,name:'VIERNES / UPPER'}
+    ]});
+    await filter.click();
+    await personal.getByText('No se han podido cargar todas las sesiones.').waitFor();
+    await personal.getByRole('button',{name:'Reintentar carga de sesiones'}).click();
+    await picker.getByRole('option',{name:'Entreno antiguo único',exact:true}).waitFor({state:'attached'});
+    const choices = await picker.locator('option').allTextContents();
+    assert.deepEqual(choices.slice(0,5),['Todas las sesiones','LUNES / PUSH','MARTES / PULL','MIÉRCOLES / LEG','VIERNES / UPPER']);
+    assert.equal(choices.filter(x=>x.toLowerCase()==='lunes / push').length,1);
+    assert.ok(choices.includes('LUNES / PUSH EXTRA'));
+    assert.ok(!choices.includes('Sesión exclusiva de la otra cuenta'));
     async function apply(term, direction) {
-      await filter.click();
-      await search.fill(term);
+      if (!await picker.isVisible()) await filter.click();
+      await picker.selectOption({label:term});
       await personal.getByLabel('Orden por fecha').selectOption(direction);
       await personal.getByRole('button', {name:'Aplicar'}).click();
     }
-    await apply('PuSh', 'asc');
+    await apply('LUNES / PUSH', 'asc');
     const expected = tables.workouts.filter(row => row.user_id === profiles[0].id &&
-      (row.data.day_name || row.day).toLowerCase().includes('push')).sort((a,b) =>
+      (row.data.day_name || row.day).toLowerCase()==='lunes / push').sort((a,b) =>
         a.fixtureDateAsc.localeCompare(b.fixtureDateAsc) || a.id.localeCompare(b.id));
     for (let n = 25; n < expected.length; n += 25) {
       await personal.getByRole('button', {name:'Ver más sesiones'}).click();
       await page.waitForFunction(n => document.querySelectorAll('#history details').length === n, Math.min(n+25, expected.length));
     }
     assert.deepEqual(await currentCards.locator('.history-title').allTextContents(), expected.map(r => r.data.routine_name));
-    await apply('zzz', 'asc');
-    await personal.getByText('No hay sesiones que coincidan con ese nombre.').waitFor();
+    await apply('MARTES / PULL','desc');
+    assert.ok((await currentCards.locator('summary').allTextContents()).every(s=>s.includes('MARTES / PULL')));
+    assert.equal(await currentCards.count(),25);
+    await apply('MIÉRCOLES / LEG', 'asc');
+    await personal.getByText('Todavía no hay entrenamientos guardados para esta sesión.').waitFor();
     await page.evaluate(() => { window.historyHold = true; window.releaseHistory = null; });
-    await apply('pull', 'asc');
+    await apply('MARTES / PULL', 'asc');
     await page.waitForFunction(() => typeof window.releaseHistory === 'function');
-    await apply('(a.1)', 'desc');
+    await apply('Sesión (A.1)', 'desc');
     await currentCards.first().waitFor();
     await page.evaluate(() => window.releaseHistory());
     assert.match(await currentCards.first().innerText(), /Sesión \(A\.1\)/);
@@ -334,14 +375,14 @@ async function main() {
     await dialog.getByText(/etapa de estadísticas anterior/).waitFor();
     await dialog.getByRole('button', {name:'Cancelar'}).click();
     await page.evaluate(() => {
-      const days = ['Pull · Espalda y bíceps', 'Push · Pecho y tríceps', 'Pierna', 'Push · Tren superior'];
+      const days = ['MARTES / PULL','LUNES / PUSH','MIÉRCOLES / LEG','LUNES / PUSH'];
       mock.tables.workouts = mock.tables.workouts.slice(0,4).map((row,i) => ({
         ...row, workout_date:'2026-11-' + (15+i), fixtureDateOrder:'2026-11-' + (15+i),
         data:{...row.data, routine_name:'Fuerza · Bloque 1',day_name:days[i]}
       }));
     });
     await openHistory();
-    await apply('Push','desc');
+    await apply('LUNES / PUSH','desc');
     await currentCards.nth(1).waitFor();
     await filter.click();
     const screenshots = process.env.SIMPLE_HISTORY_PREVIEWS;
@@ -370,6 +411,17 @@ async function main() {
     assert.match(await currentCards.first().innerText(), /Retirada 9000/);
     await page.setViewportSize({width:320,height:750});
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+    await page.evaluate(() => { window.historyHold = true; window.releaseHistory = null; });
+    await filter.click();
+    await page.waitForFunction(() => typeof window.releaseHistory === 'function');
+    await page.evaluate(() => resetAuthSession());
+    await enter(page,0);
+    await openHistory();
+    await filter.click();
+    await picker.getByRole('option',{name:'Entreno antiguo único'}).waitFor({state:'attached'});
+    await page.evaluate(async () => { window.releaseHistory(); await new Promise(resolve=>setTimeout(resolve,0)); });
+    assert.equal(await picker.getByRole('option',{name:'Sesión exclusiva de la otra cuenta'}).count(),0);
+    console.log('OK · selector por día asignado, copia, historial retirado, aislamiento y reintento');
     console.log('OK · filtro literal, fallback, ambas direcciones, cursor con fechas repetidas y nulas, respuesta obsoleta');
     console.log('OK · volver para ambos roles, móvil y escritorio, cancelar, validar, guardar una sola vez, conflicto y etapa anterior');
     console.log('OK · tras fallar el cierre de sesión, la misma cuenta vuelve a leer y paginar');
