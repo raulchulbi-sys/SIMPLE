@@ -131,8 +131,8 @@ body:has(#app[style*="block"]){background:var(--simple-bg)}
 :is(#app,.modal:not(#resetModal),#restBox,#toast,#settingsDialog) .btn.danger{color:var(--danger);border-color:var(--simple-danger-line);background:transparent}
 :is(#app,.modal:not(#resetModal),#restBox,#toast,#settingsDialog) .btn.danger:hover{border-color:var(--simple-danger-line);background:var(--simple-danger-soft)}
 :is(#app,.modal:not(#resetModal),#restBox,#toast,#settingsDialog) :is(button,a,input):focus-visible{outline:2px solid var(--simple-focus);outline-offset:4px}
-#app #tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) 44px;gap:5px;align-items:center;margin:24px 0 40px;padding:0;border:0;background:transparent;box-shadow:none;max-width:600px}
-#app #tabs:has(#tShared){grid-template-columns:minmax(0,1fr) 44px;max-width:320px}
+#app #tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) 44px;gap:5px;align-items:center;margin:24px 0 40px;padding:0;border:0;background:transparent;box-shadow:none;max-width:660px}
+#app #tabs:has(#tShared){grid-template-columns:repeat(2,minmax(0,1fr)) 44px;max-width:360px}
 #app h2::after{display:none}
 #app #tabs>button:not(.icon-trash-btn){min-height:44px;padding:11px 18px;border:1px solid transparent;border-radius:9px;font-size:14px;font-weight:500;text-transform:none;letter-spacing:0;background:transparent;color:var(--muted);box-shadow:none}
 #app #tabs>button.active:not(.icon-trash-btn){background:var(--simple-stone);border-color:var(--simple-stone);color:var(--text)}
@@ -234,3 +234,48 @@ body:has(#app[style*="block"]){background:var(--simple-bg)}
 :is(#app,.modal:not(#resetModal)) :is(input,textarea,select){border-color:var(--simple-control-line)}
 @media(prefers-reduced-motion:reduce){.weekly-progress-gif{display:none!important}}
 @media(max-width:340px){#trainModal #trainBody .workout-exercise{padding-inline:10px}#trainBody .workout-exercise .rest-buttons{gap:4px}}
+
+@media(max-width:580px){
+  #app #tabs:has(#tMine){grid-template-columns:repeat(2,minmax(0,1fr)) 44px;grid-template-areas:"mine history trash" "new clients ."}
+  #app #tMine{grid-area:mine}
+  #app #tabs:has(#tMine) #tHistory{grid-area:history}
+  #app #tTrash{grid-area:trash}
+  #app #tNew{grid-area:new}
+  #app #tClients{grid-area:clients}
+}
+#app #history [hidden]{display:none!important}
+#app #history .personal-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px}
+#app #history .personal-heading h2{margin:0}
+#app #history .personal-heading h2:focus{outline:none}
+#app #history .personal-toggle.has-filters{background:var(--simple-stone);border-color:var(--simple-control-line)}
+#app #history .personal-filter{
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:end
+}
+#app #history label{display:block;margin:0;color:var(--muted);font:inherit;font-size:14px;letter-spacing:normal;text-transform:none}
+#app #history :is(input,select,textarea){
+  display:block;min-width:0;width:100%;box-sizing:border-box;min-height:44px;margin:5px 0 0;
+  background:var(--card);color:var(--text);border:1px solid var(--simple-control-line);border-radius:8px;padding:8px 10px;font:inherit
+}
+#app #history .personal-filter-actions,#app #history .personal-card-actions{
+  display:flex;justify-content:flex-end;align-items:center;gap:8px;flex-wrap:wrap
+}
+#app #history .personal-filter-actions{grid-column:1/-1}
+#app #history .personal-applied{margin:0 0 14px;overflow-wrap:anywhere}
+#app #history .history-session{padding:0}
+#app #history .history-summary{min-height:48px}
+#app #history .personal-card-actions{margin-top:12px}
+#app #history .personal-edit{
+  box-sizing:border-box;width:min(540px,calc(100% - 24px));max-width:100%;max-height:86dvh;overflow:auto;
+  padding:24px;border:1px solid var(--line);border-radius:18px;margin:auto;background:var(--card);color:var(--text)
+}
+#app #history .personal-edit::backdrop{background:var(--simple-overlay,rgba(0,0,0,.48))}
+#app #history .personal-edit h2{margin:0 0 6px}
+#app #history .personal-edit-name{margin:0 0 18px}
+#app #history .personal-edit .history-row{grid-template-columns:.75fr repeat(3,minmax(0,1fr))}
+#app #history .personal-edit .history-edit-input{text-align:center;margin:0}
+#app #history .personal-message{color:var(--text);font-size:14px}
+@media(max-width:580px){
+  #app #history .personal-filter{grid-template-columns:1fr;padding:16px}
+  #app #history .personal-edit{padding:16px}
+  #app #history :is(input,select,textarea){font-size:16px}
+}
