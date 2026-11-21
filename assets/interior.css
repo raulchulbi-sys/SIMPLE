@@ -36,6 +36,12 @@
 #restBox :is(.rest-time,.rest-mini){color:var(--text)}
 #restBox .rest-mini{background:transparent;border-color:var(--line)}
 #toast{background:var(--simple-bg);color:var(--simple-text);border:1px solid var(--simple-line);border-radius:10px;box-shadow:0 4px 16px var(--simple-shadow);padding:14px 18px;font-size:14px;font-weight:500;line-height:1.5;text-align:left}
+#mine .reorder-heading{flex-wrap:wrap}
+#history .history-session.card{padding:0}
+#history .history-summary{flex-direction:row;align-items:center}
+#history .history-summary:hover,#history .history-label{background:var(--card2);color:var(--text)}
+#history :is(.history-table,.history-row){border-color:var(--line)}
+#history .history-row{font-size:13px}
 .reorder-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
 #mine:not(.routine-compact-mode) .routine-drag-handle,#trainBody:not(.open-compact-mode) .open-day-handle{display:none}
 .reorder-tools{margin:8px 0 16px;color:var(--simple-muted);font-size:13px}

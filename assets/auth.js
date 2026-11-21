@@ -249,7 +249,7 @@ function resetAuthSession(){
   $('cycleResetDialog')?.close();
   document.querySelectorAll('.modal.show').forEach(el=>closeM(el.id));
   user=null;profile=null;routines=[];assignments=[];activeWorkout=null;workoutRoutine=null;
-  ['mine','shared','clients','new','trash','tabs'].forEach(id=>{if($(id))$(id).innerHTML='';});
+  ['mine','shared','clients','new','trash','history','tabs'].forEach(id=>{if($(id))$(id).innerHTML='';});
   $('password').value='';$('email').value='';resetPasswordVisibility();msg('');
   $('newPassword').value='';$('newPassword2').value='';
   setAuthScreen('welcome',false);
