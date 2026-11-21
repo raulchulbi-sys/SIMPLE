@@ -2483,7 +2483,7 @@ button.client-overview-card{display:flex;flex-direction:column;align-items:stret
 </style>
 <link rel="stylesheet" href="assets/theme.css">
 <link rel="stylesheet" href="assets/auth.css?v=auth-caps-20261020">
-<link rel="stylesheet" href="assets/interior.css">
+<link rel="stylesheet" href="assets/interior.css?v=personal-history-1">
 <style id="routine-cycle-reset-style">
 #app .cycle-reset-link{transition:none;box-shadow:none;flex:none;min-height:44px;padding:4px 3px;border:0;background:transparent;color:var(--simple-muted);font:inherit;font-size:13px;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 #app .cycle-reset-link:hover{color:var(--simple-text)}
@@ -2578,6 +2578,7 @@ button.client-overview-card{display:flex;flex-direction:column;align-items:stret
  </div>
 </dialog>
 <div id="mine"></div>
+<div id="history" style="display:none"></div>
 <div id="new" style="display:none"></div>
 <div id="shared" style="display:none"></div>
 <div id="clients" style="display:none"></div><div id="trash" style="display:none"></div></div></div>
@@ -2777,9 +2778,6 @@ function renderTabs(){
 
   updateTrashIconState();
 
-  // El cliente ya no tiene un apartado de Historial independiente.
-  // El historial se consulta dentro de cada rutina, desde el botón
-  // "Historial" del entrenamiento correspondiente.
 }
 
 let __trashIconToken=0;
@@ -3097,6 +3095,8 @@ function view(v){
     : $('t'+v[0].toUpperCase()+v.slice(1));
   if(target) target.classList.add('active');
 
+  if(v==='history') renderPersonalHistory();
+  else $('history').replaceChildren();
   if(v==='mine') renderMine();
   if(v==='new') renderNew();
   if(v==='shared') renderShared();
@@ -3683,23 +3683,8 @@ async function openRoutineProgress(routineId){
         <div id="clientProgressChartSummary" class="progress-chart-summary"></div>
       </div>
       <h3>Historial completo</h3>
-      ${historySessions.map((s,idx)=>{
-        const d=s.data||{}, exercises=Array.isArray(d.exercises)?d.exercises:[];
-        return `<details class="history-session card" ${idx===0?'open':''}>
-          <summary class="history-summary"><div><b class="history-title">${esc(d.day_name||s.day||'Entrenamiento')}</b>
-          <div class="muted">${simpleFormatDateKey(s.workout_date)}</div></div><span class="history-chevron">⌄</span></summary>
-          <div class="history-content">${exercises.length?exercises.map(e=>{
-            const sets=Array.isArray(e.sets)?e.sets:[];
-            return `<div class="history-exercise"><div class="history-exercise-head"><div><b>${esc(e.name||'Ejercicio')}</b>
-              <div class="history-objective">Objetivo: ${esc(e.target||'—')} · ${esc(String(e.planned_sets||sets.length||1))} series · RIR ${esc(String(e.planned_rir??0))}</div></div></div>
-              <div class="history-table"><div class="history-row history-label"><span>Serie</span><span>KG</span><span>REPS</span><span>RIR</span></div>
-              ${sets.map(set=>`<div class="history-row"><span>${esc(String(set.set??''))}</span>
-                <span>${esc(String(set.kg!==''&&set.kg!=null?set.kg:'—'))}</span>
-                <span>${esc(String(set.reps!==''&&set.reps!=null?set.reps:'—'))}</span>
-                <span>${esc(String(set.rir!==''&&set.rir!=null?set.rir:'—'))}</span></div>`).join('')}</div>
-              ${e.notes?`<div class="history-notes"><span>Notas:</span> ${esc(e.notes)}</div>`:''}</div>`;
-          }).join(''):'<div class="muted">Sin ejercicios registrados.</div>'}</div></details>`;
-      }).join('')}`;
+      ${historySessions.map((s,idx)=>historySessionCard(s,s.data?.day_name||s.day||'Entrenamiento',
+        simpleFormatDateKey(s.workout_date),idx===0)).join('')}`;
     clientProgressChartState.orderedRoutineDays=orderedRoutineDays;
     clientProgressChartState.identityContext=progressIdentityContext(user.id,routineId,orderedRoutineDays);
     clientProgressChartState.currentExerciseNamesById=Object.fromEntries((orderedRoutineDays||[]).flatMap(d=>(d.exercises||[]).map(e=>[String(e.id),String(e.name||'').trim()]).filter(([id,name])=>id&&name)));
@@ -4611,7 +4596,7 @@ async function renderMine(){
   if(window.simpleReorder?.dragging)return;
   const token=++__mineRenderToken,owner=user,ownerId=user?.id;
   const box=$('mine'); if(!box)return;
-  const header='<div class="card reorder-heading"><h2 style="margin:0">Mis rutinas</h2><button id="routineReorderToggle" class="btn" type="button" onclick="simpleReorder.toggle(\'routine\')">Reordenar</button></div>';
+  const header='<div class="card reorder-heading"><h2 style="margin:0">Mis rutinas</h2><button type="button" class="btn" onclick="view(\'history\')">Mi historial</button><button id="routineReorderToggle" class="btn" type="button" onclick="simpleReorder.toggle(\'routine\')">Reordenar</button></div>';
   if(!routines.length){
     box.innerHTML=header+'<div class="card empty"><b style="color:var(--text)">No tienes rutinas todavía.</b><div style="margin-top:6px">Crea la primera desde aquí.</div><button class="btn primary" style="margin-top:14px" onclick="view(\'new\')">Crear rutina</button></div>';
     return;
@@ -6070,6 +6055,88 @@ async function persistClientExerciseOrder(fd,td){
 }
 
 let activeWorkout={day:null,exercises:[],sets:{}};
+
+function historySessionCard(session,title,subtitle,expanded=false){
+  const data=session.data||{};
+  const exercises=Array.isArray(data.exercises)?data.exercises.filter(Boolean):[];
+  const duration=formatWorkoutDuration(data);
+  const content=exercises.map(exercise=>{
+    const sets=Array.isArray(exercise.sets)?exercise.sets.filter(Boolean):[];
+    const rest=exercise.rest_seconds;
+    return `<div class="history-exercise">
+      <div class="history-exercise-head"><div><b>${esc(exercise.name||'Ejercicio')}</b>
+        <div class="history-objective">Objetivo: ${esc(exercise.target||'—')} · ${esc(exercise.planned_sets??(sets.length||'—'))} series · RIR ${esc(exercise.planned_rir??'—')}</div>
+        ${rest!=null&&rest!==''?`<div class="muted">Descanso: ${esc(rest)} s</div>`:''}
+      </div></div>
+      <div class="history-table">
+        <div class="history-row history-label"><span>Serie</span><span>KG</span><span>REPS</span><span>RIR</span></div>
+        ${sets.map(set=>`<div class="history-row"><span>${esc(set.set??'')}</span>
+          ${['kg','reps','rir'].map(key=>`<span>${esc(set[key]==null||set[key]===''?'—':set[key])}</span>`).join('')}</div>`).join('')}
+      </div>
+      ${exercise.notes?`<div class="history-notes"><span>Notas:</span> ${esc(exercise.notes)}</div>`:''}
+    </div>`;
+  }).join('');
+  return `<details class="history-session card" ${expanded?'open':''}>
+    <summary class="history-summary"><div><b class="history-title">${esc(title)}</b>
+      <div class="muted">${esc(subtitle)}</div></div><span class="history-chevron">⌄</span></summary>
+    <div class="history-content">${duration?`<p class="muted">Duración de la sesión: ${esc(duration)}</p>`:''}
+      ${content||'<div class="muted">Sin ejercicios registrados.</div>'}</div></details>`;
+}
+
+function renderPersonalHistory(){
+  const box=$('history'),owner=user,epoch=simpleAuth.epoch,version=window.__workoutContextVersion;
+  box.innerHTML='<h2>Mi historial</h2><div class="personal-sessions"></div><p role="status"></p><button type="button" class="btn">Ver más sesiones</button>';
+  const list=box.querySelector('.personal-sessions'),status=box.querySelector('[role="status"]'),more=box.querySelector('button');
+  const isCurrent=()=>list.isConnected&&user===owner&&simpleAuth.epoch===epoch&&window.__workoutContextVersion===version;
+  const size=25,seen=new Set();
+  let cursor=null;
+  async function loadPage(){
+    if(!owner?.id||!isCurrent()||more.disabled)return;
+    more.disabled=true;
+    status.textContent='Cargando sesiones…';
+    try{
+      let query=db.from('workouts').select('id,user_id,day,workout_date,data').eq('user_id',owner.id);
+      if(cursor){
+        if(cursor.workout_date===null)query=query.is('workout_date',null).lt('id',cursor.id);
+        else query=query.or(`workout_date.lt.${cursor.workout_date},and(workout_date.eq.${cursor.workout_date},id.lt.${cursor.id}),workout_date.is.null`);
+      }
+      const {data,error}=await query.order('workout_date',{ascending:false,nullsFirst:false})
+        .order('id',{ascending:false}).limit(size+1);
+      if(!isCurrent())return;
+      if(error||!Array.isArray(data))throw Error('personal_history_read');
+      let previous=cursor;
+      for(const row of data){
+        const date=row.workout_date;
+        if(row.user_id!==owner.id||!/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/.test(row.id)
+          ||(date!==null&&!/^\d{4}-\d{2}-\d{2}$/.test(date)))throw Error('personal_history_row');
+        // NULL dates sort last. The server must move strictly beyond the last consumed key.
+        if(previous&&(date===previous.workout_date?row.id>=previous.id:
+          date!==null&&(previous.workout_date===null||date>previous.workout_date)))throw Error('personal_history_order');
+        previous=row;
+      }
+      const page=data.slice(0,size);
+      const cards=page.filter(row=>!seen.has(row.id)).map(row=>{
+        const day=row.data?.day_name||row.day;
+        const date=simpleFormatDateKey(row.workout_date)||'Fecha no disponible';
+        return historySessionCard(row,row.data?.routine_name||'Entrenamiento',[day,date].filter(Boolean).join(' · '));
+      });
+      list.insertAdjacentHTML('beforeend',cards.join(''));
+      page.forEach(row=>seen.add(row.id));
+      if(page.length)cursor=page[page.length-1];
+      status.textContent=seen.size?'':'Todavía no tienes sesiones guardadas.';
+      if(data.length<=size)more.remove();
+      else more.textContent='Ver más sesiones';
+    }catch{
+      if(!isCurrent())return;
+      status.textContent='No se pudo cargar el historial.';
+      more.textContent='Reintentar';
+    }finally{
+      if(isCurrent())more.disabled=false;
+    }
+  }
+  more.onclick=loadPage;
+  loadPage();
+}
 
 async function loadHistory(routineId=null,isCurrent=()=>true){
   let query=db.from('workouts')
@@ -8343,6 +8410,7 @@ async function renderShared(parentCurrent=()=>true){
   let h=`<div class="card">
     <h2 style="margin:0 0 4px">Mis rutinas</h2>
     <div class="muted">Rutinas que un entrenador te ha asignado.</div>
+    <button class="btn" type="button" onclick="view('history')">Mi historial</button>
     <button id="addRoutineButton" class="btn primary" style="margin-top:12px" onclick="openRedeemRoutine()">Añadir rutina</button>
   </div>`;
   const mk='simple_shared_routine_meta_'+user.id;
@@ -8503,7 +8571,7 @@ async function redeemShareCode(){
 
 </script>
 <script src="assets/oauth.js?v=google-below-20260927"></script>
-<script src="assets/auth.js?v=cycle-reset-1"></script>
+<script src="assets/auth.js?v=personal-history-1"></script>
 <script src="assets/settings.js"></script>
 <script>
 // Protección contra dobles clics en acciones sensibles.
