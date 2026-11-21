@@ -7,12 +7,68 @@ function personalSessionCard(row, expanded = false) {
     [day, date].filter(Boolean).join(' · '), expanded, true);
 }
 
+// Read only the session labels from older workouts, including retired routines.
+async function savedSessionNames(ownerId, isCurrent) {
+  const names = new Set();
+  let cursor = null;
+  while (isCurrent()) {
+    let query = db.from('workouts').select('id,user_id,day,session_name:data->>day_name')
+      .eq('user_id', ownerId).order('id', {ascending:true}).limit(300);
+    if (cursor) query = query.gt('id', cursor);
+    const {data, error} = await query;
+    if (!isCurrent()) return [];
+    if (error || !Array.isArray(data)) throw Error('session_names_unavailable');
+    if (!data.length) break;
+    for (const row of data) {
+      if (row.user_id !== ownerId || typeof row.id !== 'string' || !row.id || (cursor && row.id <= cursor))
+        throw Error('invalid_session_names');
+      cursor = row.id;
+      names.add(row.session_name || row.day);
+    }
+  }
+  return [...names].filter(name => typeof name === 'string' && name.trim())
+    .sort((a,b) => a.localeCompare(b,'es',{numeric:true}));
+}
+
+async function routineSessionNames(routineId) {
+  const {data, error} = await db.from('routine_days').select('routine_id,name')
+    .eq('routine_id', routineId).order('day_order').order('id');
+  if (error || !Array.isArray(data) || data.some(day => day.routine_id !== routineId))
+    throw Error('routine_days_unavailable');
+  return data.map(day => day.name);
+}
+
+async function personalSessionChoices(ownerId, isCurrent) {
+  const direct = new Set(), sources = [];
+  for (const a of assignments || []) {
+    if (a.client_id !== ownerId || a.client_deleted_at) continue;
+    if (a.client_routine_id) direct.add(a.client_routine_id);
+    else sources.push(simpleClientRoutine.read(db,ownerId,a.trainer_routine_id).then(r => r.days.map(day => day.name)));
+  }
+  for (const routine of routines || []) {
+    // reload() has already scoped this collection to the signed-in owner's active routines.
+    if (routine.id && !routine.deleted_at) direct.add(routine.id);
+  }
+  for (const id of direct) sources.push(routineSessionNames(id));
+  sources.push(savedSessionNames(ownerId, isCurrent));
+  const results = await Promise.allSettled(sources);
+  const names = new Map();
+  for (const result of results) {
+    if (result.status !== 'fulfilled') continue;
+    for (const name of result.value) {
+      if (typeof name !== 'string' || !name.trim()) continue;
+      const key = name.toLowerCase();
+      if (!names.has(key)) names.set(key, name);
+    }
+  }
+  return {names:[...names.values()], complete:results.every(result => result.status === 'fulfilled')};
+}
+
 function personalHistoryQuery(ownerId, term, ascending, cursor, size) {
   let query = db.from('workouts').select('id,user_id,day,workout_date,data').eq('user_id', ownerId);
   if (term) {
-    // PostgreSQL's ***= prefix treats the search as literal text. Quote the whole
-    // operand for PostgREST so punctuation in a session name stays inside it.
-    const pattern = JSON.stringify('***=' + term);
+    // Match the whole saved label, including literal punctuation in routine names.
+    const pattern = JSON.stringify('^' + term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$');
     query = query.or(`data->>day_name.imatch.${pattern},and(or(data->>day_name.is.null,data->>day_name.eq.""),day.imatch.${pattern})`);
   }
   if (cursor) {
@@ -41,30 +97,71 @@ function renderPersonalHistory() {
     <div class="personal-heading"><h2 tabindex="-1">Mi historial</h2>
       <button type="button" class="btn personal-toggle" aria-expanded="false" aria-controls="historyFilters">Filtrar</button></div>
     <form id="historyFilters" class="personal-filter card" hidden>
-      <label>Nombre de la sesión<input type="search" name="term" maxlength="100" placeholder="Ej. Push o Pull" autocomplete="off"></label>
+      <label>Sesión de entrenamiento<select name="term"><option value="">Todas las sesiones</option></select></label>
       <label>Orden por fecha<select name="order"><option value="desc">Más recientes primero</option><option value="asc">Más antiguas primero</option></select></label>
+      <div class="personal-choices-status" hidden><span class="muted" role="status"></span>
+        <button type="button" class="btn" hidden>Reintentar carga de sesiones</button></div>
       <div class="personal-filter-actions"><button type="reset" class="btn">Restablecer</button><button type="submit" class="btn primary" data-keep-enabled="true">Aplicar</button></div>
     </form>
     <p class="personal-applied muted" hidden></p>
     <div class="personal-sessions"></div><p class="muted" role="status"></p>
     <button type="button" class="btn personal-more" hidden>Ver más sesiones</button>`;
   const list = box.querySelector('.personal-sessions'), more = box.querySelector('.personal-more');
-  const status = box.querySelector('[role="status"]'), form = box.querySelector('form');
+  const status = box.querySelector('.personal-sessions + [role="status"]'), form = box.querySelector('form');
   const toggle = box.querySelector('.personal-toggle'), summary = box.querySelector('.personal-applied');
   const isCurrent = () => list.isConnected && user === owner && simpleAuth.epoch === epoch;
   const seen = new Set(), size = 25;
   let term = '', ascending = false, cursor = null, generation = 0;
 
+  const select = form.elements.term, feedback = form.querySelector('.personal-choices-status');
+  const retry = feedback.querySelector('button'), notice = feedback.querySelector('[role="status"]');
+  let loadingChoices = false, choicesReady = false;
+
+  async function loadChoices() {
+    if (loadingChoices || choicesReady || !isCurrent()) return;
+    loadingChoices = true;
+    feedback.hidden = false;
+    select.disabled = select.options.length === 1;
+    retry.hidden = true;
+    notice.textContent = 'Cargando sesiones…';
+    try {
+      const {names, complete} = await personalSessionChoices(owner.id, isCurrent);
+      if (!isCurrent()) return;
+      const selected = select.value;
+      select.replaceChildren(new Option('Todas las sesiones',''));
+      for (const name of names) select.add(new Option(name, name));
+      if (selected) {
+        const match = names.find(name => name.toLowerCase() === selected.toLowerCase());
+        if (!match) select.add(new Option(selected, selected));
+        select.value = match || selected;
+      }
+      choicesReady = complete;
+    } catch {
+      choicesReady = false;
+    } finally {
+      loadingChoices = false;
+      if (isCurrent()) {
+        select.disabled = false;
+        if (!form.hidden && document.activeElement === toggle) select.focus();
+        feedback.hidden = choicesReady;
+        retry.hidden = choicesReady;
+        notice.textContent = choicesReady ? '' : 'No se han podido cargar todas las sesiones.';
+      }
+    }
+  }
+  retry.onclick = loadChoices;
   function setFilterOpen(open) {
     form.hidden = !open;
     toggle.setAttribute('aria-expanded', String(open));
-    if (open) form.elements.term.focus();
-    else toggle.focus();
+    if (open) {
+      loadChoices();
+      if (!select.disabled) select.focus();
+    } else toggle.focus();
   }
   toggle.onclick = () => setFilterOpen(form.hidden);
   function applyFilters() {
     generation++;
-    term = form.elements.term.value.trim();
+    term = select.value;
     ascending = form.elements.order.value === 'asc';
     summary.textContent = [term && 'Sesión: ' + term, ascending && 'Más antiguas primero'].filter(Boolean).join(' · ');
     summary.hidden = !summary.textContent;
@@ -105,7 +202,7 @@ function renderPersonalHistory() {
       list.insertAdjacentHTML('beforeend', page.filter(row => !seen.has(row.id)).map(row => personalSessionCard(row)).join(''));
       page.forEach(row => seen.add(row.id));
       if (page.length) cursor = page[page.length - 1];
-      status.textContent = seen.size ? '' : term ? 'No hay sesiones que coincidan con ese nombre.' : 'Todavía no tienes sesiones guardadas.';
+      status.textContent = seen.size ? '' : term ? 'Todavía no hay entrenamientos guardados para esta sesión.' : 'Todavía no tienes sesiones guardadas.';
       more.hidden = data.length <= size;
       more.textContent = 'Ver más sesiones';
     } catch {
