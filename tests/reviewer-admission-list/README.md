@@ -2,7 +2,7 @@
 
 Corrección mínima validada y aplicada al backend con autorización expresa. No cambia consumidores frontend ni amplía permisos. La validación poblada de staging cubre los doce grupos del encargo, ocho recorridos de navegador y tres cruces con bloqueo observado. Las reejecuciones y la evidencia histórica se mantienen separadas. Rollback transaccional de contención comprobado.
 
-La comprobación productiva de cola y detalle ya funciona; el contraste REST con JWT productivo normal sigue pendiente de login manual en el harness autorizado. No confundir los ensayos SQL de abajo con esa comprobación real. Las evidencias detalladas, datos sintéticos y resultados operativos se conservan fuera de los archivos publicados.
+La comprobación productiva de cola y detalle funcionó antes de caducar el scope autorizado. El contraste REST con JWT productivo normal no se ejecutó: el scope ya caducado impide su control positivo y no se ha ampliado. El harness temporal se cerró sin probe ni exportación de storage o bearer. No confundir los ensayos SQL de abajo con esa comprobación pendiente. Las evidencias detalladas, datos sintéticos y resultados operativos se conservan fuera de los archivos publicados.
 
 ## Registro histórico del candidato inicial
 

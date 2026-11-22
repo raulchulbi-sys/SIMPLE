@@ -1,0 +1,30 @@
+# Static Cloudflare Pages only. The build substitutes the one selected backend.
+# CSP starts in report-only mode because index.html contains inline scripts/styles.
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://media.tenor.com; font-src 'self' data:; connect-src 'self' {{SUPABASE_ORIGIN}} {{SUPABASE_WEBSOCKET}}; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'
+  X-Robots-Tag: noindex, nofollow
+
+/
+  Cache-Control: no-cache
+
+/index.html
+  Cache-Control: no-cache
+
+/index
+  Cache-Control: no-cache
+
+/assets/*
+  Cache-Control: public, max-age=0, must-revalidate
+
+/404.html
+  Cache-Control: no-store
+
+/404
+  Cache-Control: no-store
+
+/robots.txt
+  Cache-Control: public, max-age=0, must-revalidate
