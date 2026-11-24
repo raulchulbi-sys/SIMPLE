@@ -56,9 +56,9 @@ function mount(root,adapter,options={}){
  if(!root||typeof adapter!=='function')throw Error('chat_adapter_required');
  root.classList.add('premium-chat');root.replaceChildren();
  const header=text('header',undefined,'chat-header'),back=button('← SIMPLE Coach','back','chat-back');
- const headings=text('div',undefined,'chat-headings'),heading=text('h1','Chat'),context=text('p','SIMPLE Coach', 'chat-context');
+ const headings=text('div',undefined,'chat-headings'),heading=text('h1','Chat con mi asistente IA'),context=text('p','SIMPLE Coach', 'chat-context');
  headings.append(heading,context);header.append(back,headings);
- const transcript=text('main',undefined,'chat-transcript');transcript.setAttribute('aria-label','Conversación con SIMPLE Coach');
+ const transcript=text('main',undefined,'chat-transcript');transcript.setAttribute('aria-label','Chat con mi asistente IA');
  const status=text('p','', 'chat-status');status.setAttribute('role','status');status.setAttribute('aria-live','polite');status.setAttribute('aria-atomic','true');
  const footer=text('footer',undefined,'chat-footer'),notice=text('p',NOTICE,'chat-notice');notice.id='premium-chat-notice';
  const consent=text('div',undefined,'chat-consent');
